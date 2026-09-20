@@ -1,6 +1,6 @@
 # Golden Reference — Foundation Gaps
 
-**Status:** 1 gap confirmado e resolvido durante G1.
+**Status:** 2 gaps confirmados e resolvidos durante G1.
 
 Este arquivo registra somente deficiências reproduzíveis da Foundation encontradas durante a construção da Golden.
 
@@ -13,53 +13,69 @@ Este arquivo registra somente deficiências reproduzíveis da Foundation encontr
 **Capability:** distribuição/build da Foundation.
 
 **Cenário reproduzível:**  
-Um serviço independente usa `platform-parent:1.0.1`, `platform-starter:1.0.0` e `platform-test-support:1.0.0` e executa `mvn clean verify` em runner limpo, autenticado no GitHub Packages.
+Um serviço independente consome o parent e as libraries e executa `mvn clean verify` em runner limpo, autenticado no GitHub Packages.
 
 **Comportamento esperado:**  
-O parent deve ser resolvido remotamente pelo registry de `platform-build` e os artefatos das libraries devem ser resolvidos remotamente pelo registry de `platform-libraries`.
+O parent deve ser resolvido pelo registry de `platform-build` e os JARs das capabilities pelo registry de `platform-libraries`.
 
 **Comportamento encontrado:**  
-O parent era resolvido remotamente, mas `platform-starter:1.0.0` e `platform-test-support:1.0.0` não existiam no registry remoto de `platform-libraries`. O reactor também não possuía `distributionManagement` próprio nem workflow de publicação das libraries.
+O parent era resolvido remotamente, mas `platform-starter:1.0.0` e `platform-test-support:1.0.0` ainda não estavam publicados no registry correto.
+
+**Correção:**  
+Distribuição própria, settings e workflow de publicação para `platform-libraries`.
 
 **Evidência:**  
-No `account-service`, com autenticação válida e ambos os registries configurados, Maven confirmou a ausência dos artefatos `1.0.0`. A versão foi preservada porque o probe remoto demonstrou que não havia release completo conflitante no registry correto.
-
-**Impacto:**  
-Uma aplicação Golden não conseguia consumir a Foundation completa remotamente sem uma publicação das libraries, contrariando o fluxo oficial que proíbe dependência de `mvn install` local entre repositórios.
-
-**Correção executada:**  
-`platform-libraries` recebeu:
-
-- `distributionManagement` próprio para `https://maven.pkg.github.com/brunobs/platform-libraries`;
-- configuração Maven de publicação;
-- workflow de publicação manual;
-- publicação do reactor Foundation `1.0.0`.
-
-**Evidência da correção:**  
 
 - `platform-libraries` Verify #48 — run `35534990434`: **success**;
-- `platform-libraries` Publish Maven packages #2 — run `35534990418`: **success / BUILD SUCCESS**;
-- `account-service` Verify #7 — run `35535402633`: **success / BUILD SUCCESS**.
+- `platform-libraries` Publish #2 — run `35534990418`: **BUILD SUCCESS**;
+- `account-service` Verify #7 — run `35535402633`: **BUILD SUCCESS**.
 
-**Autenticação:**  
-O consumidor continua usando `PLATFORM_PACKAGES_TOKEN`. A publicação no registry do próprio `platform-libraries` usa o `GITHUB_TOKEN` efêmero do workflow com `packages: write`, sem exposição de tokens.
+**Decisão:** encerrado.
 
-**Decisão:**  
-Gap encerrado. Não houve alteração de versão das libraries nem mudança arquitetural das capabilities da Foundation.
+## GAP-0002 — platform-test-support impõe JDBC ao consumidor sem banco
+
+**Status:** RESOLVIDO  
+**Detectado em:** G1 — startup mínimo sem persistência  
+**Data:** 2026-09-20
+
+**Capability:** `platform-test-support`.
+
+**Cenário reproduzível:**  
+Um serviço Spring Boot sem persistência declara somente `platform-test-support` em test scope e executa um `@PlatformIntegrationTest`.
+
+**Comportamento esperado:**  
+Sem dependência de banco declarada pela aplicação, JDBC/MySQL/Testcontainers não devem entrar transitivamente nem provocar criação de `DataSource`.
+
+**Comportamento encontrado:**  
+`platform-test-support:1.0.0` declarava `spring-boot-starter-jdbc` e demais infraestruturas de teste como dependências não opcionais. O Spring Boot detectava JDBC e ativava `DataSourceAutoConfiguration`, causando falha por ausência de driver/configuração no skeleton G1.
+
+**Workaround rejeitado:**  
+Excluir manualmente `DataSourceAutoConfiguration` no consumidor. Esse workaround mascara o acoplamento e transfere para cada aplicação a responsabilidade de desligar infraestrutura que nunca pediu.
+
+**Correção:**  
+No `platform-test-support:1.0.1`, JDBC, driver MySQL, Kafka e Testcontainers foram marcados como dependências Maven opcionais. `@WithMySql` e `@WithKafka` continuam explícitos e exigem as dependências correspondentes somente nos serviços que usam essas capacidades.
+
+Foi criado `InfrastructureDependencyOptionalityTest` para garantir o contrato.
+
+**Versionamento:**  
+
+- `platform-build/platform-parent/platform-dependencies:1.0.2`;
+- release train `platform-libraries:1.0.1`.
+
+Nenhum release existente foi sobrescrito.
+
+**Evidência:**  
+
+- `platform-build` Publish #12 — run `35535997475`: **BUILD SUCCESS**;
+- `platform-libraries` Verify #50 — run `35536158485`: **BUILD SUCCESS**;
+- `platform-libraries` Publish #3 — run `35536158484`: **BUILD SUCCESS**;
+- `account-service` Verify #11 — run `35536464540`: **BUILD SUCCESS sem exclude de DataSource**.
+
+**Decisão:** encerrado. O contrato passa a ser “infraestrutura ausente não é carregada implicitamente”.
 
 ## Regra para novos gaps
 
-Para cada novo gap registrar:
-
-- capability;
-- cenário reproduzível;
-- comportamento esperado;
-- comportamento atual;
-- evidência/teste;
-- impacto;
-- alternativas;
-- recomendação;
-- decisão.
+Para cada novo gap registrar capability, cenário reproduzível, comportamento esperado/atual, evidência, impacto, alternativas, recomendação e decisão.
 
 Preferência arquitetural, redução de linhas ou conveniência local não constituem gap de Foundation.
 

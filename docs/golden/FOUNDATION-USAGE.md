@@ -12,7 +12,7 @@ A nova Golden deverá utilizar:
 <parent>
     <groupId>com.empresa.platform</groupId>
     <artifactId>platform-parent</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <relativePath/>
 </parent>
 ```
@@ -31,11 +31,11 @@ A topologia validada na G1 separa os artefatos pelos repositórios que os produz
 ```text
 platform-build
   -> https://maven.pkg.github.com/brunobs/platform-build
-  -> platform-parent:1.0.1 / platform-dependencies:1.0.1
+  -> platform-parent:1.0.2 / platform-dependencies:1.0.2
 
 platform-libraries
   -> https://maven.pkg.github.com/brunobs/platform-libraries
-  -> platform-starter:1.0.0 / platform-test-support:1.0.0 / capabilities 1.0.0
+  -> platform-starter:1.0.1 / platform-test-support:1.0.1 / capabilities 1.0.1
 ```
 
 O consumer consulta ambos os registries e autentica a leitura com `PLATFORM_PACKAGES_TOKEN`.
@@ -265,8 +265,12 @@ Capabilities confirmadas:
 Uso Golden:
 
 - aproveitar infraestrutura reutilizável;
+- consumir `platform-test-support` sem trazer JDBC/MySQL/Kafka/Testcontainers quando essas capacidades não forem declaradas pela aplicação;
+- declarar explicitamente as dependências necessárias ao usar `@WithMySql` ou `@WithKafka`;
 - não obrigar todos os testes a usar annotations da plataforma;
 - complementar `@PlatformArchitectureTest` com regras ArchUnit específicas da Golden quando necessário.
+
+Contrato validado em G1: infraestrutura de teste pesada é opt-in. Um serviço sem banco inicia com `@PlatformIntegrationTest` sem `DataSourceAutoConfiguration` exclude.
 
 Observação: `@PlatformArchitectureTest` atual é um guard opt-in relacionado a overrides de tipos base da plataforma. Ele não substitui regras próprias como “controller não acessa repository”.
 
@@ -311,7 +315,7 @@ A G1 foi concluída após validar:
 
 ```text
 novo repositório Golden
-→ resolve platform-parent:1.0.1 remotamente
+→ resolve platform-parent:1.0.2 remotamente
 → resolve platform-starter
 → compila
 → inicia aplicação mínima
@@ -324,10 +328,11 @@ Sem checkout ou `mvn install` local da Foundation.
 
 ### Evidência de fechamento G1
 
-- `platform-libraries` Publish Maven packages #2 — run `35534990418`: `BUILD SUCCESS`;
-- `platform-libraries` Verify #49 — run `35535567815`: sucesso no estado final da correção;
-- `account-service` Verify #9 — run `35535628209`: sucesso no head com checkpoint documentado;
+- `platform-build` Publish #12 — run `35535997475`: `BUILD SUCCESS` para `1.0.2`;
+- `platform-libraries` Verify #50 — run `35536158485`: `BUILD SUCCESS` para `1.0.1`;
+- `platform-libraries` Publish #3 — run `35536158484`: `BUILD SUCCESS` para `1.0.1`;
+- `account-service` Verify #11 — run `35536464540`: `BUILD SUCCESS` sem exclusão de DataSource;
 - resolução remota de parent, starter e test-support;
 - Maven Enforcer e dependency convergence verdes;
-- contexto Spring Boot e teste mínimo verdes;
+- infraestrutura JDBC/Kafka/Testcontainers opt-in;
 - nenhum `mvn install` local entre repositórios.
