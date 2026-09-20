@@ -1,338 +1,237 @@
 # Golden Reference — Foundation Usage
 
-**Fase:** G1  
-**Status:** Validado  
-**Objetivo:** registrar como a Golden deve consumir a Foundation sem reabrir decisões do checkpoint `FOUNDATION-GOLDEN-V1`.
+**Fase:** G1 revalidada para a Foundation consolidada  
+**Status:** baseline de consumo atualizado  
+**Objetivo:** registrar como a Golden Reference consome a Foundation oficial sem reabrir decisões arquiteturais da Foundation.
 
-## 1. Baseline Maven
+## 1. Fonte oficial
 
-A nova Golden deverá utilizar:
+A Foundation oficial está no repositório:
+
+```text
+BrunoBS/platform-libraries
+```
+
+O consumidor não utiliza outro repositório Maven da Foundation.
+
+Registry oficial:
+
+```text
+https://maven.pkg.github.com/brunobs/platform-libraries
+```
+
+Autenticação de leitura:
+
+```text
+GITHUB_PACKAGES_USERNAME
+PLATFORM_PACKAGES_TOKEN
+```
+
+Não usar checkout local nem `mvn install` da Foundation como mecanismo de integração.
+
+## 2. Namespace oficial
+
+Coordenadas Maven e packages Java da Foundation usam:
+
+```text
+br.com.portalmanager.core
+```
+
+A Golden não deve introduzir aliases ou compatibilidade com o namespace provisório anterior.
+
+## 3. Parent de build
+
+O serviço usa:
 
 ```xml
 <parent>
-    <groupId>com.empresa.platform</groupId>
+    <groupId>br.com.portalmanager.core</groupId>
     <artifactId>platform-parent</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.0</version>
     <relativePath/>
 </parent>
 ```
 
-Regras:
+Responsabilidades do parent:
 
-- resolução pelo GitHub Packages;
-- não depender de checkout local de `platform-build` ou `platform-libraries`;
-- não usar `mvn install` local da Foundation como mecanismo oficial;
-- preservar Maven Enforcer e dependency convergence fornecidos pelo parent.
+- Java 25;
+- Maven >= 3.9.9;
+- plugins de build;
+- Surefire/Failsafe;
+- Maven Enforcer;
+- dependency convergence;
+- JaCoCo;
+- import de `platform-dependencies:1.0.0`.
 
-### 1.1 Registries remotos
+O parent não gerencia versões das capabilities.
 
-A topologia validada na G1 separa os artefatos pelos repositórios que os produzem:
+## 4. BOM das capabilities
 
-```text
-platform-build
-  -> https://maven.pkg.github.com/brunobs/platform-build
-  -> platform-parent:1.0.2 / platform-dependencies:1.0.2
+A Golden importa explicitamente:
 
-platform-libraries
-  -> https://maven.pkg.github.com/brunobs/platform-libraries
-  -> platform-starter:1.0.1 / platform-test-support:1.0.1 / capabilities 1.0.1
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>br.com.portalmanager.core</groupId>
+            <artifactId>platform-libraries-bom</artifactId>
+            <version>1.0.0</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
 ```
 
-O consumer consulta ambos os registries e autentica a leitura com `PLATFORM_PACKAGES_TOKEN`.
+O `platform-libraries-bom` é a fonte de versões das capabilities reutilizáveis.
 
-Fluxo comprovado:
+O `platform-dependencies` continua exclusivamente responsável por dependências tecnológicas externas e não substitui o BOM das capabilities.
 
-```text
-platform-build
-  -> GitHub Packages / platform-build
-  -> platform-libraries
-  -> GitHub Packages / platform-libraries
-  -> account-service
+## 5. Baseline de runtime
+
+A Golden declara:
+
+```xml
+<dependency>
+    <groupId>br.com.portalmanager.core</groupId>
+    <artifactId>platform-starter</artifactId>
+</dependency>
 ```
 
-## 2. Baseline de runtime
-
-A aplicação deve declarar explicitamente:
-
-```text
-platform-starter
-```
-
-O starter agrega somente:
+O starter agrega o baseline transversal aprovado:
 
 - `platform-logging`;
 - `platform-messaging`;
 - `platform-authorization`.
 
-A aplicação não deve redeclarar esses módulos separadamente sem necessidade concreta de contrato/configuração.
+As capabilities opcionais continuam explícitas e entram somente quando houver caso real.
 
-## 3. Dependências de aplicação
+## 6. platform-test-support
 
-A Foundation não substitui starters funcionais do Spring Boot necessários ao serviço.
+Dependência de teste:
 
-A Golden poderá declarar explicitamente, conforme o slice aprovado:
-
-- Spring Web;
-- Spring Data JPA;
-- Validation;
-- MySQL runtime;
-- ferramenta de migrations aprovada.
-
-Essas são dependências de infraestrutura/aplicação, não novas capabilities da Foundation.
-
-## 4. platform-logging
-
-Responsabilidade Foundation:
-
-- logging estruturado;
-- baseline transversal.
-
-Uso Golden:
-
-- consumir pelo starter;
-- não criar framework de logging próprio;
-- validar startup e correlação/estrutura disponível conforme contrato atual.
-
-## 5. platform-messaging
-
-Responsabilidade Foundation:
-
-- mensagens;
-- i18n;
-- tratamento padronizado de exceções.
-
-A capability pode operar sem JDBC, utilizando fallback NoOp de repositório de mensagens.
-
-Uso Golden:
-
-- consumir pelo starter;
-- usar exceções/contratos corporativos para erros de validação/not-found/conflitos quando apropriado;
-- não ativar JDBC/Redis de messaging sem caso real;
-- registrar mensagens específicas de Account sem duplicar o mecanismo transversal.
-
-## 6. platform-authorization
-
-Responsabilidade Foundation:
-
-- autorização;
-- contexto do usuário;
-- níveis de autorização.
-
-APIs públicas confirmadas na branch da Foundation:
-
-- `@AuthorizationRequired`;
-- `AuthorizationLevel` com `OPEN`, `DEV`, `TST`, `ADM`, `OWNER`;
-- `UserContext`;
-- `UserSession`;
-- `UserSession.isOwner()`;
-- `UserSession.hasAuthorizer(...)`;
-- `@ResourceVisibility` existe tecnicamente.
-
-Uso Golden:
-
-- consumir pelo starter;
-- aplicar autorização de endpoint onde houver contrato aprovado;
-- manter regras de acesso dependentes de Account explícitas no caso de uso;
-- não tratar `ResourceVisibility` como obrigatório apenas porque existe na library.
-
-### Pendência
-
-A matriz exata de nível por endpoint e o uso de `ResourceVisibility` serão decididos antes de G4.
-
-## 7. platform-audit
-
-Capability opcional e explícita.
-
-APIs públicas confirmadas:
-
-- `@Auditable`;
-- `@AuditField`;
-- `AuditFieldSource`;
-- sources `PATH`, `BODY`, `RESPONSE`, `HEADER`.
-
-Uso Golden:
-
-- declarar `platform-audit` explicitamente;
-- auditar mutações reais do domínio;
-- preferir extração de resource id coerente com o caso de uso;
-- não habilitar Redis fallback apenas para demonstrar a capability.
-
-Casos candidatos:
-
-- create;
-- update;
-- deactivate;
-- restore;
-- conclusão de onboarding.
-
-## 8. platform-tagging
-
-Capability opcional e explícita.
-
-API pública confirmada:
-
-```text
-TagManager
-TagNormalizer
-TagOwnerType
-TagOriginType
+```xml
+<dependency>
+    <groupId>br.com.portalmanager.core</groupId>
+    <artifactId>platform-test-support</artifactId>
+    <scope>test</scope>
+</dependency>
 ```
 
-`TagManager` oferece, entre outros:
-
-- `reconcile(...)`;
-- `findAll(...)`;
-- `findManual(...)`;
-- `findSystem(...)`;
-- `findManualByOwners(...)`;
-- `deleteAll(...)`.
-
-`TagNormalizer.normalize(...)`:
-
-- trim;
-- vazio → null;
-- lowercase;
-- whitespace → `-`.
-
-Uso Golden:
-
-- declarar `platform-tagging` explicitamente;
-- definir owner type `ACCOUNT`;
-- usar identifier estável como owner id;
-- reconciliar tags manuais e de sistema;
-- preservar distinção MANUAL/SYSTEM;
-- não reimplementar normalização já pertencente à capability.
-
-## 9. platform-catalog
-
-Capability opcional e explícita para catálogos persistidos e gerenciados.
-
-Contratos próprios incluem serviços de catálogo:
-
-- `BaseCatalogService`;
-- `DynamicCatalogService`;
-- `EnumCatalogService`.
-
-A capability possui lifecycle, restore, ordering, name lookup, filtros e validação próprios de catálogo e não depende de CRUD genérico.
-
-### Uso Golden recomendado
-
-Usar somente para conceitos que realmente sejam catálogos.
-
-Candidato aprovado para avaliação:
-
-- AccountType.
-
-Candidato condicionado:
-
-- OnboardingPhase, se o fluxo for configurável/administrável.
-
-Não usar automaticamente para:
-
-- estado ACTIVE/INACTIVE de Account;
-- origem de tags;
-- qualquer enum estático apenas para “demonstrar” catalog.
-
-### Pendência
-
-Decidir se Account lifecycle é:
-
-1. estado explícito do domínio; ou
-2. catálogo persistido realmente justificável.
-
-A opção 1 é a preferência arquitetural da análise G0 enquanto não houver requisito de administrabilidade.
-
-## 10. platform-test-support
-
-Dependência somente de teste.
-
-Capabilities confirmadas:
+APIs relevantes incluem:
 
 - `@PlatformUnitTest`;
 - `@PlatformIntegrationTest`;
 - `@PlatformArchitectureTest`;
 - `@WithMySql`;
 - `@WithKafka`;
-- `@WithMockAuthorization`;
-- suporte Testcontainers;
-- MySQL;
-- Kafka;
-- WireMock;
-- RestAssured;
-- builders/factories/scenarios;
-- validação arquitetural opt-in.
+- `@WithMockAuthorization`.
 
-Uso Golden:
+Infraestrutura pesada permanece opt-in. Consumir `platform-test-support` sozinho não deve forçar JDBC, MySQL, Kafka ou Testcontainers no classpath do consumidor.
 
-- aproveitar infraestrutura reutilizável;
-- consumir `platform-test-support` sem trazer JDBC/MySQL/Kafka/Testcontainers quando essas capacidades não forem declaradas pela aplicação;
-- declarar explicitamente as dependências necessárias ao usar `@WithMySql` ou `@WithKafka`;
-- não obrigar todos os testes a usar annotations da plataforma;
-- complementar `@PlatformArchitectureTest` com regras ArchUnit específicas da Golden quando necessário.
+Quando a Golden realmente usar `@WithMySql` ou `@WithKafka`, deve declarar explicitamente as dependências de teste necessárias.
 
-Contrato validado em G1: infraestrutura de teste pesada é opt-in. Um serviço sem banco inicia com `@PlatformIntegrationTest` sem `DataSourceAutoConfiguration` exclude.
+## 7. Capabilities opcionais
 
-Observação: `@PlatformArchitectureTest` atual é um guard opt-in relacionado a overrides de tipos base da plataforma. Ele não substitui regras próprias como “controller não acessa repository”.
+### platform-audit
 
-## 11. platform-crud
+Adicionar somente quando as mutações reais de Account forem implementadas.
+
+### platform-catalog
+
+Usar somente para conceitos realmente administráveis. `AccountType` permanece o principal candidato do slice.
+
+### platform-tagging
+
+Usar para tags manuais e de sistema de Account, sem reimplementar normalização transversal.
+
+### platform-authorization
+
+Já chega pelo starter. Regras dependentes de Account permanecem explícitas no domínio/aplicação.
+
+### platform-messaging
+
+Já chega pelo starter. Erros e mensagens específicas de Account usam os contratos da Foundation sem duplicar mecanismo transversal.
+
+### platform-logging
+
+Já chega pelo starter. Não criar framework de logging paralelo na Golden.
+
+## 8. platform-crud
 
 Situação:
 
 ```text
-REMOVIDO DA FOUNDATION
+REMOVIDO
 ```
 
-Regra Golden:
+Regras da Golden:
 
-- nenhuma dependência;
+- nenhuma dependência `platform-crud`;
 - nenhum import;
 - nenhuma cópia de `BaseCrud*`;
-- nenhuma abstração equivalente com outro nome.
+- nenhuma abstração genérica equivalente introduzida para substituir o CRUD removido.
 
-Deve existir teste arquitetural/dependência que impeça regressão.
+## 9. Dependências próprias da aplicação
 
-## 12. Mapa Foundation × Golden
+A Foundation não substitui dependências funcionais da aplicação.
 
-| Necessidade | Responsável | Uso na Golden |
-|---|---|---|
-| Java/Spring/Maven baseline | platform-build | consumir parent |
-| Maven Enforcer / convergence | platform-build | herdado |
-| logging transversal | platform-logging | starter |
-| mensagens/exceções | platform-messaging | starter |
-| autorização/contexto | platform-authorization | starter |
-| auditoria | platform-audit | dependência explícita |
-| catálogo administrável | platform-catalog | dependência explícita quando necessário |
-| tagging | platform-tagging | dependência explícita |
-| infra reutilizável de testes | platform-test-support | test scope |
-| regras de Account | Golden | explícitas no domínio/aplicação |
-| controller/service/repository pattern | Golden | demonstrado, não library |
-| migrations do serviço | Golden | infraestrutura da aplicação |
-| CRUD genérico | nenhum | proibido como Foundation/padrão |
+Conforme o slice aprovado, a Golden poderá declarar explicitamente:
 
-## 13. Critério de integração G1 — validado
+- Spring Web;
+- Spring Data JPA;
+- Validation;
+- MySQL;
+- ferramenta de migrations aprovada;
+- dependências de teste específicas exigidas por persistência.
 
-A G1 foi concluída após validar:
+Essas dependências entram porque o serviço precisa delas, não por transitividade implícita da Foundation.
+
+## 10. Configuração Maven do consumidor
+
+O settings contém um único server/profile/repository para:
 
 ```text
-novo repositório Golden
-→ resolve platform-parent:1.0.2 remotamente
-→ resolve platform-starter
-→ compila
-→ inicia aplicação mínima
-→ executa testes mínimos
-→ mvn clean verify
-→ CI verde
+https://maven.pkg.github.com/brunobs/platform-libraries
 ```
 
-Sem checkout ou `mvn install` local da Foundation.
+O consumidor não consulta registry legado da Foundation.
 
-### Evidência de fechamento G1
+## 11. Validação oficial
 
-- `platform-build` Publish #12 — run `35535997475`: `BUILD SUCCESS` para `1.0.2`;
-- `platform-libraries` Verify #50 — run `35536158485`: `BUILD SUCCESS` para `1.0.1`;
-- `platform-libraries` Publish #3 — run `35536158484`: `BUILD SUCCESS` para `1.0.1`;
-- `account-service` Verify #11 — run `35536464540`: `BUILD SUCCESS` sem exclusão de DataSource;
-- resolução remota de parent, starter e test-support;
-- Maven Enforcer e dependency convergence verdes;
-- infraestrutura JDBC/Kafka/Testcontainers opt-in;
-- nenhum `mvn install` local entre repositórios.
+A prova de integração deve executar:
+
+```text
+checkout limpo
+→ repository Maven local vazio/isolado
+→ resolve platform-parent:1.0.0
+→ resolve platform-libraries-bom:1.0.0
+→ resolve platform-starter:1.0.0
+→ resolve platform-test-support:1.0.0
+→ compila
+→ inicia contexto Spring Boot
+→ Maven Enforcer
+→ dependency convergence
+→ mvn clean verify
+→ BUILD SUCCESS
+```
+
+Sem checkout local e sem `mvn install` da Foundation.
+
+## 12. Regra para problemas encontrados
+
+Durante a Golden Reference:
+
+```text
+problema
+  ↓
+é integração/uso do consumidor?
+  ├─ sim → corrigir na Golden
+  └─ não
+      ↓
+há defeito reproduzível da Foundation?
+      ├─ não → manter explícito na Golden
+      └─ sim → registrar evidência antes de propor alteração
+```
+
+A Foundation não deve ser alterada nesta etapa sem evidência técnica concreta e decisão explícita.
