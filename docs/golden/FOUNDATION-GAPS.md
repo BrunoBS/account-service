@@ -1,82 +1,54 @@
 # Golden Reference — Foundation Gaps
 
-**Status:** 2 gaps confirmados e resolvidos durante G1.
+**Status atual:** nenhum gap aberto contra a Foundation consolidada.
 
-Este arquivo registra somente deficiências reproduzíveis da Foundation encontradas durante a construção da Golden.
+Este arquivo registra somente deficiências reproduzíveis da Foundation encontradas durante a construção da Golden Reference.
 
-## GAP-0001 — Distribuição remota de platform-libraries para consumidores Golden
+## Baseline oficial atual
 
-**Status:** RESOLVIDO  
-**Detectado em:** G1 — Skeleton + consumo da Foundation  
-**Data:** 2026-09-20
+A Foundation consolidada é consumida a partir de:
 
-**Capability:** distribuição/build da Foundation.
+```text
+BrunoBS/platform-libraries
+br.com.portalmanager.core
+platform-parent:1.0.0
+platform-libraries-bom:1.0.0
+capabilities:1.0.0
+```
 
-**Cenário reproduzível:**  
-Um serviço independente consome o parent e as libraries e executa `mvn clean verify` em runner limpo, autenticado no GitHub Packages.
+Registry:
 
-**Comportamento esperado:**  
-O parent deve ser resolvido pelo registry de `platform-build` e os JARs das capabilities pelo registry de `platform-libraries`.
+```text
+https://maven.pkg.github.com/brunobs/platform-libraries
+```
 
-**Comportamento encontrado:**  
-O parent era resolvido remotamente, mas `platform-starter:1.0.0` e `platform-test-support:1.0.0` ainda não estavam publicados no registry correto.
+## Histórico pré-consolidação
 
-**Correção:**  
-Distribuição própria, settings e workflow de publicação para `platform-libraries`.
+Durante a G1, o consumidor revelou dois problemas no baseline provisório anterior:
 
-**Evidência:**  
+1. publicação incompleta das libraries para consumidores downstream;
+2. infraestrutura JDBC/Kafka/Testcontainers exportada de forma excessiva pelo suporte de testes.
 
-- `platform-libraries` Verify #48 — run `35534990434`: **success**;
-- `platform-libraries` Publish #2 — run `35534990418`: **BUILD SUCCESS**;
-- `account-service` Verify #7 — run `35535402633`: **BUILD SUCCESS**.
+Esses problemas foram corrigidos antes da consolidação definitiva e não representam gaps abertos do baseline oficial atual.
 
-**Decisão:** encerrado.
+A Foundation consolidada incorporou:
 
-## GAP-0002 — platform-test-support impõe JDBC ao consumidor sem banco
-
-**Status:** RESOLVIDO  
-**Detectado em:** G1 — startup mínimo sem persistência  
-**Data:** 2026-09-20
-
-**Capability:** `platform-test-support`.
-
-**Cenário reproduzível:**  
-Um serviço Spring Boot sem persistência declara somente `platform-test-support` em test scope e executa um `@PlatformIntegrationTest`.
-
-**Comportamento esperado:**  
-Sem dependência de banco declarada pela aplicação, JDBC/MySQL/Testcontainers não devem entrar transitivamente nem provocar criação de `DataSource`.
-
-**Comportamento encontrado:**  
-`platform-test-support:1.0.0` declarava `spring-boot-starter-jdbc` e demais infraestruturas de teste como dependências não opcionais. O Spring Boot detectava JDBC e ativava `DataSourceAutoConfiguration`, causando falha por ausência de driver/configuração no skeleton G1.
-
-**Workaround rejeitado:**  
-Excluir manualmente `DataSourceAutoConfiguration` no consumidor. Esse workaround mascara o acoplamento e transfere para cada aplicação a responsabilidade de desligar infraestrutura que nunca pediu.
-
-**Correção:**  
-No `platform-test-support:1.0.1`, JDBC, driver MySQL, Kafka e Testcontainers foram marcados como dependências Maven opcionais. `@WithMySql` e `@WithKafka` continuam explícitos e exigem as dependências correspondentes somente nos serviços que usam essas capacidades.
-
-Foi criado `InfrastructureDependencyOptionalityTest` para garantir o contrato.
-
-**Versionamento:**  
-
-- `platform-build/platform-parent/platform-dependencies:1.0.2`;
-- release train `platform-libraries:1.0.1`.
-
-Nenhum release existente foi sobrescrito.
-
-**Evidência:**  
-
-- `platform-build` Publish #12 — run `35535997475`: **BUILD SUCCESS**;
-- `platform-libraries` Verify #50 — run `35536158485`: **BUILD SUCCESS**;
-- `platform-libraries` Publish #3 — run `35536158484`: **BUILD SUCCESS**;
-- `account-service` Verify #11 — run `35536464540`: **BUILD SUCCESS sem exclude de DataSource**.
-
-**Decisão:** encerrado. O contrato passa a ser “infraestrutura ausente não é carregada implicitamente”.
+- publicação unificada;
+- BOM próprio das capabilities;
+- namespace oficial;
+- infraestrutura de teste pesada opt-in;
+- remoção definitiva de `platform-crud`.
 
 ## Regra para novos gaps
 
-Para cada novo gap registrar capability, cenário reproduzível, comportamento esperado/atual, evidência, impacto, alternativas, recomendação e decisão.
+Antes de propor qualquer mudança na Foundation:
 
-Preferência arquitetural, redução de linhas ou conveniência local não constituem gap de Foundation.
+1. reproduzir o problema no consumidor;
+2. excluir erro de POM, import, settings, workflow ou uso incorreto da Golden;
+3. confirmar que o comportamento pertence à Foundation;
+4. registrar evidência, impacto e alternativas;
+5. obter decisão explícita antes de alterar a Foundation.
 
-Nenhuma nova alteração em `platform-build` ou `platform-libraries` deve ser iniciada sem evidência e decisão explícita.
+Preferência arquitetural, conveniência local ou redução de linhas não constituem gap.
+
+Enquanto a migração para a Foundation consolidada estiver em validação, qualquer falha deve ser tratada primeiro como problema de integração do consumidor até haver evidência em contrário.
