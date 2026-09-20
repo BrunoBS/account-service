@@ -1,6 +1,6 @@
 package com.empresa.golden;
 
-import com.empresa.platform.testing.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.core.testing.annotation.PlatformIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;

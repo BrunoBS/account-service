@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.empresa.platform</groupId>
+        <groupId>br.com.portalmanager.core</groupId>
         <artifactId>platform-parent</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.0</version>
         <relativePath/>
     </parent>
 
@@ -19,6 +19,18 @@
     <name>account-service</name>
     <description>Golden Reference para o domínio de Account.</description>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>br.com.portalmanager.core</groupId>
+                <artifactId>platform-libraries-bom</artifactId>
+                <version>1.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -26,12 +38,12 @@
         </dependency>
 
         <dependency>
-            <groupId>com.empresa.platform</groupId>
+            <groupId>br.com.portalmanager.core</groupId>
             <artifactId>platform-starter</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.empresa.platform</groupId>
+            <groupId>br.com.portalmanager.core</groupId>
             <artifactId>platform-test-support</artifactId>
             <scope>test</scope>
         </dependency>

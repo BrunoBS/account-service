@@ -4,11 +4,6 @@
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
     <servers>
         <server>
-            <id>github-platform-build</id>
-            <username>${env.GITHUB_PACKAGES_USERNAME}</username>
-            <password>${env.GITHUB_PACKAGES_TOKEN}</password>
-        </server>
-        <server>
             <id>github-platform-libraries</id>
             <username>${env.GITHUB_PACKAGES_USERNAME}</username>
             <password>${env.GITHUB_PACKAGES_TOKEN}</password>
@@ -17,14 +12,8 @@
 
     <profiles>
         <profile>
-            <id>github-platform</id>
+            <id>github-platform-libraries</id>
             <repositories>
-                <repository>
-                    <id>github-platform-build</id>
-                    <url>https://maven.pkg.github.com/brunobs/platform-build</url>
-                    <releases><enabled>true</enabled></releases>
-                    <snapshots><enabled>false</enabled></snapshots>
-                </repository>
                 <repository>
                     <id>github-platform-libraries</id>
                     <url>https://maven.pkg.github.com/brunobs/platform-libraries</url>
@@ -36,6 +25,6 @@
     </profiles>
 
     <activeProfiles>
-        <activeProfile>github-platform</activeProfile>
+        <activeProfile>github-platform-libraries</activeProfile>
     </activeProfiles>
 </settings>
