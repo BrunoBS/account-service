@@ -2,6 +2,8 @@
 
 **Estado:** em validação
 
+**Bootstrap commit:** `3a5eb731d121aacbc56e97deea744811fee491fb`
+
 ## Objetivo
 
 Provar que `account-service` nasce como aplicação nova sobre `FOUNDATION-GOLDEN-V1`, sem dependência estrutural do legado.
