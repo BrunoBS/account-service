@@ -25,7 +25,7 @@ Checkpoint técnico confirmado: `FOUNDATION-GOLDEN-V1`.
 Evidência oficial:
 
 - `BrunoBS/platform-libraries`
-- branch `refactor/golden-foundation`
+- branch `main`
 - `docs/foundation/FOUNDATION-CHECKPOINT.md`
 
 Baseline:
@@ -33,9 +33,10 @@ Baseline:
 - Java 25;
 - Spring Boot 4.1.1;
 - Maven >= 3.9.9;
-- `platform-parent:1.0.1`;
-- GitHub Packages;
-- starter obrigatório: logging + messaging + authorization;
+- `br.com.portalmanager.core:platform-parent:1.0.0`;
+- `br.com.portalmanager.core:platform-libraries-bom:1.0.0`;
+- GitHub Packages via `https://maven.pkg.github.com/brunobs/platform-libraries`;
+- `platform-starter:1.0.0` agrega logging + messaging + authorization;
 - audit/catalog/tagging explícitos;
 - test-support para testes;
 - `platform-crud` removido.
