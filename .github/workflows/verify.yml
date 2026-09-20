@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   verify:
@@ -29,5 +30,5 @@ jobs:
       - name: Verify
         env:
           GITHUB_PACKAGES_USERNAME: BrunoBS
-          GITHUB_PACKAGES_TOKEN: ${{ secrets.PLATFORM_PACKAGES_TOKEN }}
+          GITHUB_PACKAGES_TOKEN: ${{ secrets.PLATFORM_PACKAGES_TOKEN || github.token }}
         run: mvn --settings .github/maven-settings.xml --batch-mode --no-transfer-progress clean verify
