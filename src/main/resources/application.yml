@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: account-service
+  main:
+    banner-mode: "off"
+
+platform:
+  authorization:
+    enabled: true
+    service-url: ${AUTHORIZATION_SERVICE_URL:http://localhost:2020}
+  messaging:
+    enabled: true
+    default-locale: pt-BR
+    cache:
+      enabled: false

@@ -1,0 +1,8 @@
+platform:
+  authorization:
+    enabled: false
+  messaging:
+    enabled: true
+    default-locale: pt-BR
+    cache:
+      enabled: false
