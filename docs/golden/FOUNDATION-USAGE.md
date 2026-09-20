@@ -1,7 +1,7 @@
 # Golden Reference — Foundation Usage
 
-**Fase:** G0  
-**Status:** Em revisão  
+**Fase:** G1  
+**Status:** Validado  
 **Objetivo:** registrar como a Golden deve consumir a Foundation sem reabrir decisões do checkpoint `FOUNDATION-GOLDEN-V1`.
 
 ## 1. Baseline Maven
@@ -23,6 +23,32 @@ Regras:
 - não depender de checkout local de `platform-build` ou `platform-libraries`;
 - não usar `mvn install` local da Foundation como mecanismo oficial;
 - preservar Maven Enforcer e dependency convergence fornecidos pelo parent.
+
+### 1.1 Registries remotos
+
+A topologia validada na G1 separa os artefatos pelos repositórios que os produzem:
+
+```text
+platform-build
+  -> https://maven.pkg.github.com/brunobs/platform-build
+  -> platform-parent:1.0.1 / platform-dependencies:1.0.1
+
+platform-libraries
+  -> https://maven.pkg.github.com/brunobs/platform-libraries
+  -> platform-starter:1.0.0 / platform-test-support:1.0.0 / capabilities 1.0.0
+```
+
+O consumer consulta ambos os registries e autentica a leitura com `PLATFORM_PACKAGES_TOKEN`.
+
+Fluxo comprovado:
+
+```text
+platform-build
+  -> GitHub Packages / platform-build
+  -> platform-libraries
+  -> GitHub Packages / platform-libraries
+  -> account-service
+```
 
 ## 2. Baseline de runtime
 
@@ -279,9 +305,9 @@ Deve existir teste arquitetural/dependência que impeça regressão.
 | migrations do serviço | Golden | infraestrutura da aplicação |
 | CRUD genérico | nenhum | proibido como Foundation/padrão |
 
-## 13. Critério de integração G1
+## 13. Critério de integração G1 — validado
 
-A G1 somente estará concluída quando:
+A G1 foi concluída após validar:
 
 ```text
 novo repositório Golden
@@ -295,3 +321,13 @@ novo repositório Golden
 ```
 
 Sem checkout ou `mvn install` local da Foundation.
+
+### Evidência de fechamento G1
+
+- `platform-libraries` Publish Maven packages #2 — run `35534990418`: `BUILD SUCCESS`;
+- `platform-libraries` Verify #49 — run `35535567815`: sucesso no estado final da correção;
+- `account-service` Verify #9 — run `35535628209`: sucesso no head com checkpoint documentado;
+- resolução remota de parent, starter e test-support;
+- Maven Enforcer e dependency convergence verdes;
+- contexto Spring Boot e teste mínimo verdes;
+- nenhum `mvn install` local entre repositórios.
