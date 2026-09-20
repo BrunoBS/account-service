@@ -9,8 +9,8 @@ Este repositório implementa a fase `GOLDEN-REFERENCE-V1` sobre o checkpoint `FO
 - Java 25
 - Spring Boot 4.1.1
 - Maven >= 3.9.9
-- `com.empresa.platform:platform-parent:1.0.1`
-- `com.empresa.platform:platform-starter:1.0.0`
+- `com.empresa.platform:platform-parent:1.0.2`
+- `com.empresa.platform:platform-starter:1.0.1`
 
 ## Princípios
 
