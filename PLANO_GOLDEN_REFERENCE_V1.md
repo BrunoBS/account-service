@@ -9,7 +9,7 @@
 
 Construir uma aplicação real de referência sobre a Foundation estabilizada da Golden Platform e provar, em código executável, como novos serviços devem utilizar:
 
-- `platform-build`;
+- Foundation consolidada no repositório `BrunoBS/platform-libraries`;
 - `platform-libraries`;
 - os padrões arquiteturais aprovados;
 - capacidades transversais somente quando houver caso real de uso.
@@ -50,7 +50,7 @@ Baseline oficial:
 - Java 25;
 - Spring Boot 4.1.1;
 - Maven >= 3.9.9;
-- `com.empresa.platform:platform-parent:1.0.1`;
+- `br.com.portalmanager.core:platform-parent:1.0.0`;
 - GitHub Packages como repositório Maven remoto oficial;
 - `platform-starter:1.0.0`;
 - `platform-crud` ausente da Foundation.
@@ -266,7 +266,7 @@ O consumo esperado está detalhado em `FOUNDATION-USAGE.md`.
 
 Regras principais:
 
-- parent `platform-parent:1.0.1`;
+- parent `platform-parent:1.0.0` + BOM `platform-libraries-bom:1.0.0`;
 - `platform-starter` como baseline;
 - audit/catalog/tagging adicionados explicitamente apenas quando usados;
 - `platform-test-support` em escopo de teste;
@@ -347,7 +347,7 @@ Usar `platform-test-support` onde fizer sentido e complementar com regras espec�
 
 - controller não acessa repository diretamente;
 - domínio não depende de web;
-- ausência de `com.empresa.platform.crud`;
+- ausência de qualquer dependência/import de `platform-crud`;
 - ausência do artefato `platform-crud`;
 - dependências opcionais da Foundation são explícitas;
 - regras arquiteturais devem detectar problemas reais, não apenas estética.
@@ -422,7 +422,7 @@ Criar o novo repositório/aplicação somente após G0.
 
 Provar:
 
-- `platform-parent:1.0.1`;
+- `platform-parent:1.0.0`;
 - resolução remota da Foundation;
 - `platform-starter`;
 - aplicação mínima inicia;
@@ -510,7 +510,7 @@ Somente após aprovação poderá ser declarado `GOLDEN-REFERENCE-V1`.
 
 ### Foundation
 
-- `platform-parent:1.0.1`;
+- `platform-parent:1.0.0`;
 - artefatos oficiais publicados;
 - sem checkout/install local da Foundation;
 - starter baseline;
