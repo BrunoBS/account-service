@@ -8,27 +8,34 @@
             <username>${env.GITHUB_PACKAGES_USERNAME}</username>
             <password>${env.GITHUB_PACKAGES_TOKEN}</password>
         </server>
+        <server>
+            <id>github-platform-libraries</id>
+            <username>${env.GITHUB_PACKAGES_USERNAME}</username>
+            <password>${env.GITHUB_PACKAGES_TOKEN}</password>
+        </server>
     </servers>
 
     <profiles>
         <profile>
-            <id>github-platform-build</id>
+            <id>github-platform</id>
             <repositories>
                 <repository>
                     <id>github-platform-build</id>
                     <url>https://maven.pkg.github.com/brunobs/platform-build</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>false</enabled></snapshots>
+                </repository>
+                <repository>
+                    <id>github-platform-libraries</id>
+                    <url>https://maven.pkg.github.com/brunobs/platform-libraries</url>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>false</enabled></snapshots>
                 </repository>
             </repositories>
         </profile>
     </profiles>
 
     <activeProfiles>
-        <activeProfile>github-platform-build</activeProfile>
+        <activeProfile>github-platform</activeProfile>
     </activeProfiles>
 </settings>
