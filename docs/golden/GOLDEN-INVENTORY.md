@@ -33,8 +33,8 @@ Baseline:
 - Java 25;
 - Spring Boot 4.1.1;
 - Maven >= 3.9.9;
-- `br.com.portalmanager.core:platform-parent:1.0.0`;
-- `br.com.portalmanager.core:platform-libraries-bom:1.0.0`;
+- `br.com.portalmanager.platform:platform-parent:1.0.0`;
+- `br.com.portalmanager.platform:platform-libraries-bom:1.0.0`;
 - GitHub Packages via `https://maven.pkg.github.com/brunobs/platform-libraries`;
 - `platform-starter:1.0.0` agrega logging + messaging + authorization;
 - audit/catalog/tagging explícitos;

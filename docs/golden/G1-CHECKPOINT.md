@@ -15,11 +15,11 @@ Provar que `account-service` nasce como aplicação nova sobre a Foundation cons
 - Java 25;
 - Spring Boot 4.1.1;
 - Maven >= 3.9.9;
-- `br.com.portalmanager.core:platform-parent:1.0.0`;
-- `br.com.portalmanager.core:platform-dependencies:1.0.0`;
-- `br.com.portalmanager.core:platform-libraries-bom:1.0.0`;
-- `br.com.portalmanager.core:platform-starter:1.0.0`;
-- `br.com.portalmanager.core:platform-test-support:1.0.0`.
+- `br.com.portalmanager.platform:platform-parent:1.0.0`;
+- `br.com.portalmanager.platform:platform-dependencies:1.0.0`;
+- `br.com.portalmanager.platform:platform-libraries-bom:1.0.0`;
+- `br.com.portalmanager.platform:platform-starter:1.0.0`;
+- `br.com.portalmanager.platform:platform-testing:1.0.0`.
 
 ## Repositório e registry da Foundation
 
@@ -49,7 +49,7 @@ platform-parent:1.0.0
 platform-libraries-bom:1.0.0
         ↓
 platform-starter:1.0.0
-platform-test-support:1.0.0
+platform-testing:1.0.0
 ```
 
 As capabilities são declaradas sem versão individual.
@@ -59,13 +59,13 @@ As capabilities são declaradas sem versão individual.
 O consumidor utiliza o namespace oficial da Foundation:
 
 ```text
-br.com.portalmanager.core
+br.com.portalmanager.platform
 ```
 
 O import de `PlatformIntegrationTest` foi migrado para:
 
 ```java
-import br.com.portalmanager.core.testing.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.testing.annotation.PlatformIntegrationTest;
 ```
 
 Não existe camada de compatibilidade com o namespace provisório anterior.
@@ -125,7 +125,7 @@ Resultado:
 - `BanDuplicatePomDependencyVersions`: passed;
 - `DependencyConvergence`: passed;
 - `AccountServiceApplicationIT`: 1 teste, 0 falhas, 0 erros;
-- execução do test-support registrada sob `br.com.portalmanager.core.testing`;
+- execução do test-support registrada sob `br.com.portalmanager.platform.testing`;
 - `BUILD SUCCESS`.
 
 Como o repository Maven utilizado estava isolado e o build não possui checkout/install local da Foundation, o sucesso comprova resolução remota do parent, BOM e capabilities necessários ao consumidor.
@@ -141,7 +141,7 @@ platform-parent:1.0.0
 platform-dependencies:1.0.0
 platform-libraries-bom:1.0.0
 platform-starter:1.0.0
-platform-test-support:1.0.0
+platform-testing:1.0.0
         ↓
 account-service
         ↓
@@ -154,11 +154,11 @@ BUILD SUCCESS
 
 ## Critérios de saída G1
 
-- [x] namespace oficial `br.com.portalmanager.core`;
+- [x] namespace oficial `br.com.portalmanager.platform`;
 - [x] `platform-parent:1.0.0`;
 - [x] `platform-libraries-bom:1.0.0`;
 - [x] `platform-starter:1.0.0`;
-- [x] `platform-test-support:1.0.0`;
+- [x] `platform-testing:1.0.0`;
 - [x] apenas o registry oficial de `platform-libraries`;
 - [x] resolução remota em repository Maven isolado;
 - [x] aplicação mínima compila;

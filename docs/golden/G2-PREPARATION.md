@@ -12,7 +12,7 @@ Baseline:
 
 - Maven `br.com.portalmanager:account-service:0.1.0-SNAPSHOT`;
 - Java `br.com.portalmanager.account`;
-- Foundation `br.com.portalmanager.core:*:1.0.0`;
+- Foundation `br.com.portalmanager.platform:*:1.0.0`;
 - registry único `BrunoBS/platform-libraries`;
 - CI com repository Maven isolado verde;
 - nenhuma instalação local da Foundation.
