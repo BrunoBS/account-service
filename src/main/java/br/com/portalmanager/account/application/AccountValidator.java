@@ -28,7 +28,7 @@ public class AccountValidator {
         ValidationResult result = new ValidationResult();
 
         if (command == null) {
-            result.addError("request", AccountMessageKeys.NAME_REQUIRED);
+            result.addLiteralError("request", "A requisição é obrigatória.");
             rejectIfInvalid(result);
             return;
         }
@@ -45,7 +45,7 @@ public class AccountValidator {
         );
 
         if (command.name() != null && repository.existsByName(command.name())) {
-            result.addError("name", AccountMessageKeys.NAME_DUPLICATE);
+            result.addLiteralError("name", "Já existe uma conta com esse nome.");
         }
 
         rejectIfInvalid(result);
@@ -55,13 +55,13 @@ public class AccountValidator {
         ValidationResult result = new ValidationResult();
 
         if (command == null) {
-            result.addError("request", AccountMessageKeys.NAME_REQUIRED);
+            result.addLiteralError("request", "A requisição é obrigatória.");
             rejectIfInvalid(result);
             return;
         }
 
         if (command.version() == null || command.version() < 0) {
-            result.addError("version", AccountMessageKeys.VERSION_REQUIRED);
+            result.addLiteralError("version", "A versão da conta é obrigatória para atualização.");
         }
 
         validateCommon(
@@ -76,7 +76,7 @@ public class AccountValidator {
         );
 
         if (command.name() != null && repository.existsByNameAndIdNot(command.name(), id)) {
-            result.addError("name", AccountMessageKeys.NAME_DUPLICATE);
+            result.addLiteralError("name", "Já existe uma conta com esse nome.");
         }
 
         rejectIfInvalid(result);
@@ -89,7 +89,7 @@ public class AccountValidator {
 
         ValidationResult result = new ValidationResult();
         if (!isValidAccountType(normalizedTypeName)) {
-            result.addError("typeName", AccountMessageKeys.TYPE_FILTER_INVALID);
+            result.addLiteralError("typeName", "O filtro de tipo deve ser ADMIN ou MANAGER.");
         }
         rejectIfInvalid(result);
     }
@@ -105,32 +105,32 @@ public class AccountValidator {
             ValidationResult result
     ) {
         if (!isValidAccountType(accountType)) {
-            result.addError("accountType", AccountMessageKeys.ACCOUNT_TYPE_INVALID);
+            result.addLiteralError("accountType", "O tipo de conta deve ser ADMIN ou MANAGER.");
         }
 
         if (name == null || name.isBlank()) {
-            result.addError("name", AccountMessageKeys.NAME_REQUIRED);
+            result.addLiteralError("name", "O nome da conta é obrigatório.");
         } else if (name.length() < 3 || name.length() > 100) {
-            result.addError("name", AccountMessageKeys.NAME_SIZE);
+            result.addLiteralError("name", "O nome da conta deve possuir entre 3 e 100 caracteres.");
         }
 
         if (description == null || description.isBlank()
                 || description.length() < 10 || description.length() > 500) {
-            result.addError("description", AccountMessageKeys.DESCRIPTION_SIZE);
+            result.addLiteralError("description", "A descrição deve possuir entre 10 e 500 caracteres.");
         }
 
         if (requester == null || requester.isBlank() || requester.length() < 5) {
-            result.addError("requester", AccountMessageKeys.REQUESTER_SIZE);
+            result.addLiteralError("requester", "O requester deve possuir pelo menos 5 caracteres.");
         }
 
         if (acronym == null || acronym.isBlank()) {
-            result.addError("acronym", AccountMessageKeys.ACRONYM_REQUIRED);
+            result.addLiteralError("acronym", "O acrônimo é obrigatório.");
         } else if (acronym.length() > 5) {
-            result.addError("acronym", AccountMessageKeys.ACRONYM_SIZE);
+            result.addLiteralError("acronym", "O acrônimo deve possuir no máximo 5 caracteres.");
         }
 
         if (!isEmail(emailGroup)) {
-            result.addError("emailGroup", AccountMessageKeys.EMAIL_INVALID);
+            result.addLiteralError("emailGroup", "O e-mail informado é inválido.");
         }
 
         validateApprovers(approvers, result);
@@ -138,7 +138,7 @@ public class AccountValidator {
 
     private void validateApprovers(List<ApproverCommand> approvers, ValidationResult result) {
         if (approvers == null || approvers.isEmpty()) {
-            result.addError("approvers", AccountMessageKeys.APPROVERS_REQUIRED);
+            result.addLiteralError("approvers", "A conta deve possuir pelo menos um approver.");
             return;
         }
 
@@ -147,16 +147,16 @@ public class AccountValidator {
             String path = "approvers[" + index + "]";
 
             if (approver == null) {
-                result.addError(path, AccountMessageKeys.APPROVERS_REQUIRED);
+                result.addLiteralError(path, "O approver é obrigatório.");
                 continue;
             }
 
             if (approver.functional() == null || approver.functional().isBlank()) {
-                result.addError(path + ".functional", AccountMessageKeys.APPROVER_FUNCTIONAL_REQUIRED);
+                result.addLiteralError(path + ".functional", "O funcional do approver é obrigatório.");
             }
 
             if (!isEmail(approver.email())) {
-                result.addError(path + ".email", AccountMessageKeys.EMAIL_INVALID);
+                result.addLiteralError(path + ".email", "O e-mail do approver é inválido.");
             }
         }
     }
