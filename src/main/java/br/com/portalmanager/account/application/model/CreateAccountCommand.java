@@ -11,6 +11,7 @@ public record CreateAccountCommand(
         String authorizerGroup,
         String settings,
         String emailGroup,
-        List<ApproverCommand> approvers
+        List<ApproverCommand> approvers,
+        List<String> tags
 ) {
 }
