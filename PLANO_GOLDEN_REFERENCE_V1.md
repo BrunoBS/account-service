@@ -162,7 +162,7 @@ Não há evidência, neste checkpoint, que justifique arquitetura multi-module.
 
 O repositório deve ser novo e separado da `account-api`, preservando o legado como referência comparável.
 
-Nome e package root permanecem pendências de G0 até a criação do repositório.
+Repositório definido: `BrunoBS/account-service`. Package root Java oficial: `br.com.portalmanager.account`.
 
 ### 7.2 Organização por feature
 
@@ -572,7 +572,7 @@ Cobertura do comportamento aprovado em `ACCOUNT-BEHAVIOR-MATRIX.md`.
 
 Antes de avançar de forma definitiva para a implementação, registrar decisão sobre:
 
-1. nome do novo repositório e package root;
+1. ~~nome do novo repositório e package root~~ — definido: `BrunoBS/account-service` / `br.com.portalmanager.account`;
 2. ferramenta de migrations;
 3. política de compatibilidade de API com `account-api`;
 4. uso ou não de `ResourceVisibility`;

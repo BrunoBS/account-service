@@ -19,7 +19,17 @@ Evidência:
 - GitHub Actions Verify #22, run `35546296942`: sucesso no head documental final;
 - nenhuma instalação local da Foundation.
 
-## 2. Escopo G2 já aprovado
+## 2. Namespace da aplicação
+
+Package root Java aprovado antes da implementação da G2:
+
+```text
+br.com.portalmanager.account
+```
+
+O namespace da aplicação permanece separado da Foundation (`br.com.portalmanager.core`).
+
+## 3. Escopo G2 já aprovado
 
 Implementar somente o modelo mínimo necessário para Account:
 
@@ -41,7 +51,7 @@ Não implementar nesta onda:
 - regras completas de autorização;
 - outros domínios do legado.
 
-## 3. Guardrails
+## 4. Guardrails
 
 - zero `platform-crud`;
 - nenhuma classe `BaseCrud*`;
@@ -54,7 +64,7 @@ Não implementar nesta onda:
 - entity não é contrato HTTP;
 - optimistic locking usa `@Version` diretamente.
 
-## 4. Inventário mínimo de Account
+## 5. Inventário mínimo de Account
 
 Comportamentos que a persistência precisa permitir:
 
@@ -73,7 +83,7 @@ Comportamentos que a persistência precisa permitir:
 
 O desenho físico definitivo só deve ser fechado depois das decisões abaixo.
 
-## 5. Decisão pendente — ferramenta de migrations
+## 6. Decisão pendente — ferramenta de migrations
 
 O plano exige migrations SQL versionadas, mas ainda não registrou ferramenta.
 
@@ -100,7 +110,7 @@ PENDENTE DE APROVAÇÃO
 recomendação: Flyway
 ```
 
-## 6. Decisão pendente — lifecycle de Account
+## 7. Decisão pendente — lifecycle de Account
 
 A G0 registrou explicitamente que o legado usar catálogo para ACTIVE/INACTIVE não prova que lifecycle seja administrável.
 
@@ -128,7 +138,7 @@ PENDENTE DE APROVAÇÃO FINAL
 recomendação: enum/estado explícito de domínio
 ```
 
-## 7. AccountType
+## 8. AccountType
 
 `AccountType` permanece o principal candidato real para `platform-catalog`.
 
@@ -136,7 +146,7 @@ A G2 não deve antecipar integração artificial com Catalog apenas para montar 
 
 Nenhuma nova abstração de catálogo deve ser criada na Golden.
 
-## 8. Sequência após decisões
+## 9. Sequência após decisões
 
 Após aprovação das duas decisões:
 
@@ -155,7 +165,7 @@ decisões G2
 → review G2
 ```
 
-## 9. Critério de saída G2
+## 10. Critério de saída G2
 
 A G2 só fecha quando:
 
@@ -171,7 +181,7 @@ A G2 só fecha quando:
 - `mvn clean verify` está verde;
 - documentação da decisão está registrada.
 
-## 10. Foundation
+## 11. Foundation
 
 Nenhuma alteração na Foundation está autorizada nesta etapa.
 

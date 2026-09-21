@@ -1,4 +1,4 @@
-package com.empresa.golden;
+package br.com.portalmanager.account;
 
 import br.com.portalmanager.core.testing.annotation.PlatformIntegrationTest;
 import org.junit.jupiter.api.Test;

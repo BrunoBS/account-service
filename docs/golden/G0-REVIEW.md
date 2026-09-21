@@ -1,7 +1,7 @@
 # G0 Review — GOLDEN-REFERENCE-V1
 
 **Data:** 2026-09-20  
-**Estado:** análise principal concluída; pendências de decisão antes de G1/G2.
+**Estado:** análise principal concluída; package root fechado antes de G2.
 
 ## Artefatos produzidos
 
@@ -32,7 +32,7 @@
 
 - criar o novo repositório;
 - definir nome do repositório;
-- definir package root;
+- ~~definir package root~~ — definido: `br.com.portalmanager.account`;
 - definir política de compatibilidade de API.
 
 ### Necessárias antes de G2
@@ -55,7 +55,7 @@ Estas são recomendações da análise, não decisões de governança ainda:
 
 ```text
 repository: golden-reference
-package root: com.empresa.golden
+package root: br.com.portalmanager.account
 API compatibility: preservar comportamento necessário, sem compromisso de wire compatibility total
 ResourceVisibility: não usar na V1 sem necessidade concreta
 Account lifecycle: enum/estado explícito no domínio
