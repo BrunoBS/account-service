@@ -10,7 +10,7 @@ A Foundation consolidada é consumida a partir de:
 
 ```text
 BrunoBS/platform-libraries
-br.com.portalmanager.core
+br.com.portalmanager.platform
 platform-parent:1.0.0
 platform-libraries-bom:1.0.0
 capabilities:1.0.0

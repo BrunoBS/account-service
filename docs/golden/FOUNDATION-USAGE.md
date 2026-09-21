@@ -34,7 +34,7 @@ Não usar checkout local nem `mvn install` da Foundation como mecanismo de integ
 Coordenadas Maven e packages Java da Foundation usam:
 
 ```text
-br.com.portalmanager.core
+br.com.portalmanager.platform
 ```
 
 A Golden não deve introduzir aliases ou compatibilidade com o namespace provisório anterior.
@@ -45,7 +45,7 @@ O serviço usa:
 
 ```xml
 <parent>
-    <groupId>br.com.portalmanager.core</groupId>
+    <groupId>br.com.portalmanager.platform</groupId>
     <artifactId>platform-parent</artifactId>
     <version>1.0.0</version>
     <relativePath/>
@@ -73,7 +73,7 @@ A Golden importa explicitamente:
 <dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>br.com.portalmanager.core</groupId>
+            <groupId>br.com.portalmanager.platform</groupId>
             <artifactId>platform-libraries-bom</artifactId>
             <version>1.0.0</version>
             <type>pom</type>
@@ -93,27 +93,27 @@ A Golden declara:
 
 ```xml
 <dependency>
-    <groupId>br.com.portalmanager.core</groupId>
+    <groupId>br.com.portalmanager.platform</groupId>
     <artifactId>platform-starter</artifactId>
 </dependency>
 ```
 
 O starter agrega o baseline transversal aprovado:
 
-- `platform-logging`;
+- `platform-observability`;
 - `platform-messaging`;
 - `platform-authorization`.
 
 As capabilities opcionais continuam explícitas e entram somente quando houver caso real.
 
-## 6. platform-test-support
+## 6. platform-testing
 
 Dependência de teste:
 
 ```xml
 <dependency>
-    <groupId>br.com.portalmanager.core</groupId>
-    <artifactId>platform-test-support</artifactId>
+    <groupId>br.com.portalmanager.platform</groupId>
+    <artifactId>platform-testing</artifactId>
     <scope>test</scope>
 </dependency>
 ```
@@ -127,7 +127,7 @@ APIs relevantes incluem:
 - `@WithKafka`;
 - `@WithMockAuthorization`.
 
-Infraestrutura pesada permanece opt-in. Consumir `platform-test-support` sozinho não deve forçar JDBC, MySQL, Kafka ou Testcontainers no classpath do consumidor.
+Infraestrutura pesada permanece opt-in. Consumir `platform-testing` sozinho não deve forçar JDBC, MySQL, Kafka ou Testcontainers no classpath do consumidor.
 
 Quando a Golden realmente usar `@WithMySql` ou `@WithKafka`, deve declarar explicitamente as dependências de teste necessárias.
 
@@ -172,7 +172,7 @@ META-INF/platform-messages/account-service_pt_BR.properties
 
 Essa é uma decisão explícita de integração do consumidor; não cria uma implementação paralela de messaging.
 
-### platform-logging
+### platform-observability
 
 Já chega pelo starter. Não criar framework de logging paralelo na Golden.
 
@@ -226,7 +226,7 @@ checkout limpo
 → resolve platform-parent:1.0.0
 → resolve platform-libraries-bom:1.0.0
 → resolve platform-starter:1.0.0
-→ resolve platform-test-support:1.0.0
+→ resolve platform-testing:1.0.0
 → compila
 → inicia contexto Spring Boot
 → Maven Enforcer
@@ -275,7 +275,7 @@ Dependência explícita:
 
 ```xml
 <dependency>
-    <groupId>br.com.portalmanager.core</groupId>
+    <groupId>br.com.portalmanager.platform</groupId>
     <artifactId>platform-tagging</artifactId>
 </dependency>
 ```
@@ -288,7 +288,7 @@ Dependência explícita:
 
 ```xml
 <dependency>
-    <groupId>br.com.portalmanager.core</groupId>
+    <groupId>br.com.portalmanager.platform</groupId>
     <artifactId>platform-audit</artifactId>
 </dependency>
 ```
