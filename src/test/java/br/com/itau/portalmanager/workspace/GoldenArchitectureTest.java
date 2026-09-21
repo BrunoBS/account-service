@@ -8,8 +8,11 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -23,6 +26,8 @@ class GoldenArchitectureTest {
     private static final String CORE = ROOT + ".core..";
     private static final String FEATURE = ROOT + ".feature..";
     private static final String INPUT = ROOT + ".input..";
+    private static final Set<String> MODULE_LAYERS =
+            Set.of("domain", "usecase", "repository", "integration");
 
     private final com.tngtech.archunit.core.domain.JavaClasses classes =
             new ClassFileImporter()
@@ -45,13 +50,34 @@ class GoldenArchitectureTest {
                 .toList();
 
         assertThat(invalidPackages).isEmpty();
+    }
 
+    @Test
+    void compositionRootMayContainOnlyBootstrapOrSpringConfiguration() {
         var rootClasses = classes.stream()
                 .filter(javaClass -> javaClass.getPackageName().equals(ROOT))
-                .map(JavaClass::getSimpleName)
                 .toList();
 
-        assertThat(rootClasses).containsExactly("WorkspaceServiceApplication");
+        assertThat(rootClasses)
+                .extracting(JavaClass::getSimpleName)
+                .containsExactlyInAnyOrder(
+                        "WorkspaceServiceApplication",
+                        "WorkspaceMessagingConfiguration"
+                );
+
+        assertThat(rootClasses).allSatisfy(javaClass -> {
+            boolean bootstrap = javaClass.isAnnotatedWith(SpringBootApplication.class);
+            boolean configuration = javaClass.isAnnotatedWith(Configuration.class);
+
+            assertThat(bootstrap || configuration)
+                    .as(javaClass.getName() + " must be bootstrap or @Configuration")
+                    .isTrue();
+        });
+
+        noClasses()
+                .that().resideInAnyPackage(FOUNDATION, CORE, FEATURE, INPUT)
+                .should().dependOnClassesThat().resideInAPackage(ROOT)
+                .check(classes);
     }
 
     @Test
@@ -79,6 +105,32 @@ class GoldenArchitectureTest {
     }
 
     @Test
+    void domainMustRemainIndependentFromOrchestrationPersistenceIntegrationAndWeb() {
+        noClasses()
+                .that().resideInAPackage("..domain..")
+                .should().dependOnClassesThat().resideInAnyPackage(
+                        "..usecase..",
+                        "..repository..",
+                        "..integration..",
+                        INPUT,
+                        "org.springframework.web.."
+                )
+                .check(classes);
+    }
+
+    @Test
+    void inputMustNotBypassUseCasesIntoModuleInternals() {
+        noClasses()
+                .that().resideInAPackage(INPUT)
+                .should().dependOnClassesThat().resideInAnyPackage(
+                        "..domain..",
+                        "..repository..",
+                        "..integration.."
+                )
+                .check(classes);
+    }
+
+    @Test
     void restControllersMustNotAccessRepositories() {
         noClasses()
                 .that().areAnnotatedWith(RestController.class)
@@ -95,23 +147,30 @@ class GoldenArchitectureTest {
     }
 
     @Test
-    void domainMustNotDependOnIntegration() {
-        noClasses()
-                .that().resideInAPackage("..domain..")
-                .should().dependOnClassesThat().resideInAPackage("..integration..")
+    void businessModulesMayCollaborateOnlyThroughUseCaseContracts() {
+        classes()
+                .that().resideInAnyPackage(CORE, FEATURE)
+                .should(notAccessInternalsOfAnotherBusinessModule())
                 .check(classes);
     }
 
     @Test
-    void businessModulesMustNotAccessInternalsOfAnotherBusinessModule() {
-        classes()
-                .that().resideInAnyPackage(CORE, FEATURE)
-                .should(notAccessRepositoryOrDomainOfAnotherModule())
-                .check(classes);
+    void nestedBusinessModulesMustBeIdentifiedIndependently() {
+        assertThat(businessModule(
+                ROOT + ".core.configuration.workspace.usecase.create"
+        )).isEqualTo("core.configuration.workspace");
+
+        assertThat(businessModule(
+                ROOT + ".core.configuration.application.repository"
+        )).isEqualTo("core.configuration.application");
+
+        assertThat(businessModule(
+                ROOT + ".core.workspace.domain"
+        )).isEqualTo("core.workspace");
     }
 
-    private ArchCondition<JavaClass> notAccessRepositoryOrDomainOfAnotherModule() {
-        return new ArchCondition<>("not access repository or domain of another business module") {
+    private ArchCondition<JavaClass> notAccessInternalsOfAnotherBusinessModule() {
+        return new ArchCondition<>("collaborate with another business module only through Use Case contracts") {
             @Override
             public void check(JavaClass source, ConditionEvents events) {
                 String sourceModule = businessModule(source.getPackageName());
@@ -127,19 +186,30 @@ class GoldenArchitectureTest {
                         continue;
                     }
 
-                    String targetPackage = target.getPackageName();
-                    boolean internal = targetPackage.contains(".repository")
-                            || targetPackage.contains(".domain");
-
-                    if (internal) {
+                    if (!isPublicUseCaseContract(target)) {
                         events.add(SimpleConditionEvent.violated(
                                 source,
-                                source.getName() + " accesses internal type " + target.getName()
+                                source.getName()
+                                        + " accesses non-public type "
+                                        + target.getName()
+                                        + " from module "
+                                        + targetModule
                         ));
                     }
                 }
             }
         };
+    }
+
+    private boolean isPublicUseCaseContract(JavaClass target) {
+        if (!target.getPackageName().contains(".usecase.")) {
+            return false;
+        }
+
+        String simpleName = target.getSimpleName();
+        return simpleName.endsWith("UseCase")
+                || simpleName.endsWith("Input")
+                || simpleName.endsWith("Output");
     }
 
     private String businessModule(String packageName) {
@@ -150,10 +220,27 @@ class GoldenArchitectureTest {
             }
 
             String remainder = packageName.substring(prefix.length());
-            int separator = remainder.indexOf('.');
-            String module = separator < 0 ? remainder : remainder.substring(0, separator);
-            return zone + "." + module;
+            String[] segments = remainder.split("\\.");
+
+            int layerIndex = -1;
+            for (int index = 0; index < segments.length; index++) {
+                if (MODULE_LAYERS.contains(segments[index])) {
+                    layerIndex = index;
+                    break;
+                }
+            }
+
+            int moduleSegmentCount = layerIndex > 0 ? layerIndex : Math.min(1, segments.length);
+            if (moduleSegmentCount == 0) {
+                return null;
+            }
+
+            return zone + "." + String.join(
+                    ".",
+                    Arrays.copyOfRange(segments, 0, moduleSegmentCount)
+            );
         }
+
         return null;
     }
 }
