@@ -7,16 +7,21 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 class GoldenArchitectureTest {
 
+    private static final String API = "br.com.portalmanager.account.api..";
+    private static final String APPLICATION = "br.com.portalmanager.account.application..";
+    private static final String DOMAIN = "br.com.portalmanager.account.domain..";
+    private static final String PERSISTENCE = "br.com.portalmanager.account.persistence..";
+
     @Test
     void domainMustRemainIndependentFromApplicationAndWeb() {
         var classes = new ClassFileImporter().importPackages("br.com.portalmanager.account");
 
         noClasses()
-                .that().resideInAPackage("..domain..")
+                .that().resideInAPackage(DOMAIN)
                 .should().dependOnClassesThat().resideInAnyPackage(
-                        "..api..",
-                        "..application..",
-                        "..persistence..",
+                        API,
+                        APPLICATION,
+                        PERSISTENCE,
                         "org.springframework.web.."
                 )
                 .check(classes);
@@ -27,8 +32,8 @@ class GoldenArchitectureTest {
         var classes = new ClassFileImporter().importPackages("br.com.portalmanager.account");
 
         noClasses()
-                .that().resideInAPackage("..api..")
-                .should().dependOnClassesThat().resideInAPackage("..persistence..")
+                .that().resideInAPackage(API)
+                .should().dependOnClassesThat().resideInAPackage(PERSISTENCE)
                 .check(classes);
     }
 
@@ -37,8 +42,8 @@ class GoldenArchitectureTest {
         var classes = new ClassFileImporter().importPackages("br.com.portalmanager.account");
 
         noClasses()
-                .that().resideInAPackage("..application..")
-                .should().dependOnClassesThat().resideInAPackage("..api..")
+                .that().resideInAPackage(APPLICATION)
+                .should().dependOnClassesThat().resideInAPackage(API)
                 .check(classes);
     }
 }
