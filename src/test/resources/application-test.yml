@@ -1,11 +1,11 @@
 platform:
   authorization:
-    enabled: false
+    enabled: true
+    service-url: http://127.0.0.1:9
   messaging:
     enabled: true
     default-locale: pt-BR
     cache:
       enabled: false
-
   audit:
     enabled: false
