@@ -2,6 +2,7 @@ package br.com.portalmanager.account.persistence;
 
 import br.com.portalmanager.account.domain.Account;
 import br.com.portalmanager.account.domain.AccountLifecycle;
+import br.com.portalmanager.account.domain.AccountType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,9 +22,14 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @EntityGraph(attributePaths = "approvers")
     Optional<Account> findByIdAndLifecycle(Long id, AccountLifecycle lifecycle);
 
-    Optional<Account> findByNameAndLifecycle(String name, AccountLifecycle lifecycle);
+    @EntityGraph(attributePaths = "approvers")
+    List<Account> findByLifecycleOrderByIdAsc(AccountLifecycle lifecycle);
 
-    List<Account> findByLifecycle(AccountLifecycle lifecycle);
+    @EntityGraph(attributePaths = "approvers")
+    List<Account> findByLifecycleAndAccountTypeOrderByIdAsc(
+            AccountLifecycle lifecycle,
+            AccountType accountType
+    );
 
     boolean existsByName(String name);
 

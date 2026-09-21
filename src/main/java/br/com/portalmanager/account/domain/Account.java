@@ -103,8 +103,43 @@ public class Account {
         this.updatedAt = now;
     }
 
+    public void update(
+            AccountType accountType,
+            String name,
+            String description,
+            String requester,
+            String acronym,
+            String settings,
+            String authorizerGroup,
+            String emailGroup,
+            LocalDateTime now) {
+        this.accountType = accountType;
+        this.name = name;
+        this.description = description;
+        this.requester = requester;
+        this.acronym = acronym;
+        this.settings = settings;
+        this.authorizerGroup = authorizerGroup;
+        this.emailGroup = emailGroup;
+        this.updatedAt = now;
+    }
+
     public void addApprover(String functional, String email) {
         approvers.add(new AccountApprover(functional, email, this));
+    }
+
+    public void clearApprovers() {
+        approvers.clear();
+    }
+
+    public void deactivate(LocalDateTime now) {
+        this.lifecycle = AccountLifecycle.INACTIVE;
+        this.updatedAt = now;
+    }
+
+    public void restore(LocalDateTime now) {
+        this.lifecycle = AccountLifecycle.ACTIVE;
+        this.updatedAt = now;
     }
 
     public void updateDescription(String description, LocalDateTime updatedAt) {
@@ -112,65 +147,21 @@ public class Account {
         this.updatedAt = updatedAt;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public Long getVersion() {
-        return version;
-    }
-
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    public AccountType getAccountType() {
-        return accountType;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getRequester() {
-        return requester;
-    }
-
-    public String getAcronym() {
-        return acronym;
-    }
-
-    public String getSettings() {
-        return settings;
-    }
-
-    public String getAuthorizerGroup() {
-        return authorizerGroup;
-    }
-
-    public String getEmailGroup() {
-        return emailGroup;
-    }
-
-    public boolean isOnboarding() {
-        return onboarding;
-    }
-
-    public AccountLifecycle getLifecycle() {
-        return lifecycle;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
+    public Long getId() { return id; }
+    public Long getVersion() { return version; }
+    public String getIdentifier() { return identifier; }
+    public AccountType getAccountType() { return accountType; }
+    public String getName() { return name; }
+    public String getDescription() { return description; }
+    public String getRequester() { return requester; }
+    public String getAcronym() { return acronym; }
+    public String getSettings() { return settings; }
+    public String getAuthorizerGroup() { return authorizerGroup; }
+    public String getEmailGroup() { return emailGroup; }
+    public boolean isOnboarding() { return onboarding; }
+    public AccountLifecycle getLifecycle() { return lifecycle; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 
     public Set<AccountApprover> getApprovers() {
         return Collections.unmodifiableSet(approvers);
