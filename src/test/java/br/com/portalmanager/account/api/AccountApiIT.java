@@ -73,7 +73,14 @@ class AccountApiIT {
 
         delete("/api/v1/accounts/" + managerId).statusCode(204);
 
-        get("/api/v1/accounts?active=true&typeName=%20admin%20")
+        given()
+                .port(port)
+                .accept(ContentType.JSON)
+                .queryParam("active", true)
+                .queryParam("typeName", " admin ")
+                .when()
+                .get("/api/v1/accounts")
+                .then()
                 .statusCode(200)
                 .body("id", hasItem(adminId))
                 .body("id", not(hasItem(managerId)))
