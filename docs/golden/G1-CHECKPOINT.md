@@ -1,182 +1,185 @@
-# G1 Checkpoint — Skeleton + Foundation
+# G1 Checkpoint — Skeleton + Foundation consolidada
 
-**Estado:** CONCLUÍDA E REVALIDADA APÓS PATCH DA FOUNDATION  
-**Data:** 2026-09-20  
-**Bootstrap commit:** `3a5eb731d121aacbc56e97deea744811fee491fb`
+**Estado:** CONCLUÍDA E REVALIDADA  
+**Data da revalidação:** 2026-09-20
 
 ## Objetivo
 
-Provar que `account-service` nasce como aplicação nova sobre a Foundation, sem dependência estrutural do legado, consumindo todos os artefatos remotamente e sem infraestrutura implícita que o serviço não escolheu.
+Provar que `account-service` nasce como aplicação nova sobre a Foundation consolidada, sem dependência estrutural do legado, sem instalação local da Foundation e consumindo exclusivamente os artifacts oficiais publicados remotamente.
 
-## Baseline corrente validado
+## Baseline oficial validado
 
-- repository: `BrunoBS/account-service`;
-- package root: `com.empresa.golden`;
-- artifact: `com.empresa.golden:account-service:0.1.0-SNAPSHOT`;
+- repository consumidor: `BrunoBS/account-service`;
+- package root da aplicação: `com.empresa.golden`;
+- artifact da aplicação: `com.empresa.golden:account-service:0.1.0-SNAPSHOT`;
 - Java 25;
 - Spring Boot 4.1.1;
-- `com.empresa.platform:platform-parent:1.0.2`;
-- `com.empresa.platform:platform-dependencies:1.0.2`;
-- `com.empresa.platform:platform-starter:1.0.1`;
-- `com.empresa.platform:platform-test-support:1.0.1`;
-- GitHub Packages como integração remota;
-- autenticação de leitura via `PLATFORM_PACKAGES_TOKEN`.
+- Maven >= 3.9.9;
+- `br.com.portalmanager.core:platform-parent:1.0.0`;
+- `br.com.portalmanager.core:platform-dependencies:1.0.0`;
+- `br.com.portalmanager.core:platform-libraries-bom:1.0.0`;
+- `br.com.portalmanager.core:platform-starter:1.0.0`;
+- `br.com.portalmanager.core:platform-test-support:1.0.0`.
+
+## Repositório e registry da Foundation
+
+Fonte oficial:
+
+```text
+BrunoBS/platform-libraries
+```
+
+Registry único do consumidor:
+
+```text
+https://maven.pkg.github.com/brunobs/platform-libraries
+```
+
+O `account-service` não consulta outro registry da Foundation.
+
+## Modelo Maven validado
+
+O parent governa build, Java, plugins, testes e gates.
+
+O BOM das capabilities é importado explicitamente:
+
+```text
+platform-parent:1.0.0
+        +
+platform-libraries-bom:1.0.0
+        ↓
+platform-starter:1.0.0
+platform-test-support:1.0.0
+```
+
+As capabilities são declaradas sem versão individual.
+
+## Namespace
+
+O consumidor utiliza o namespace oficial da Foundation:
+
+```text
+br.com.portalmanager.core
+```
+
+O import de `PlatformIntegrationTest` foi migrado para:
+
+```java
+import br.com.portalmanager.core.testing.annotation.PlatformIntegrationTest;
+```
+
+Não existe camada de compatibilidade com o namespace provisório anterior.
 
 ## Guardrails confirmados
 
 - zero dependências/imports de `platform-crud`;
 - nenhum `BaseCrud*` ou equivalente introduzido;
 - nenhum código de produção copiado de `account-api`;
-- nenhuma persistência adicionada em G1;
-- capabilities opcionais permanecem fora do POM até existirem casos de uso reais;
-- nenhum `mvn install` local entre repositórios foi usado como solução ou evidência de integração;
-- `platform-test-support` básico não deve ativar JDBC, MySQL, Kafka ou Testcontainers no consumidor.
+- nenhuma persistência adicionada durante G1;
+- capabilities opcionais permanecem explícitas;
+- infraestrutura pesada de teste continua opt-in;
+- nenhuma exclusão manual de `DataSourceAutoConfiguration` é necessária;
+- nenhuma instalação local da Foundation é aceita como prova de integração.
 
-## GAP-0001 — distribuição remota das libraries
+## Evidência de migração do consumidor
 
-A primeira validação da Golden comprovou que `platform-parent:1.0.1` era resolvido remotamente, mas os JARs `platform-starter:1.0.0` e `platform-test-support:1.0.0` ainda não estavam publicados no registry de `platform-libraries`.
+Commit de migração:
 
-A correção adicionou distribuição própria e workflow de publicação ao `platform-libraries`.
+`eb1004e9b05325f6755838a9a5daef7c5af51586`
 
-Evidências históricas:
+GitHub Actions Verify #16:
 
-- `platform-libraries` Publish #2 — run `35534990418`: **success**;
-- `platform-libraries` Verify #48 — run `35534990434`: **success**;
-- `account-service` Verify #7 — run `35535402633`: **BUILD SUCCESS**.
+- run `35546160937`;
+- parent no namespace oficial;
+- BOM das capabilities importado;
+- starter/test-support no namespace oficial;
+- registry único;
+- resultado: **success**.
 
-## GAP-0002 — infraestrutura de teste carregada implicitamente
+## Prova com repository Maven isolado
 
-Após o GAP-0001, o startup do skeleton chegou aos testes e revelou que `platform-test-support:1.0.0` exportava transitivamente infraestrutura como `spring-boot-starter-jdbc`.
+Commit de CI:
 
-Como a G1 não possui banco, o Spring Boot detectou JDBC no classpath e tentou criar um `DataSource`. Foi usado temporariamente no profile de teste:
+`ee0f0a053b457eeba613398258cb81eee1f46ce0`
 
-```yaml
-spring:
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
-```
+GitHub Actions Verify #17:
 
-Esse workaround foi rejeitado como padrão da Golden. O comportamento correto é:
-
-```text
-não declarou infraestrutura
-→ infraestrutura não entra no classpath
-→ auto-configuração correspondente não é ativada
-```
-
-### Correção da Foundation
-
-Foi realizado patch versionado, sem sobrescrever releases Maven existentes:
+- run `35546171874`;
+- repository Maven local isolado em `${RUNNER_TEMP}/account-service-m2`;
+- nenhum cache Maven do workflow utilizado;
+- comando:
 
 ```text
-platform-build          1.0.1 → 1.0.2
-platform-parent         1.0.1 → 1.0.2
-platform-dependencies   1.0.1 → 1.0.2
-platform-libraries      1.0.0 → 1.0.1
-capabilities libraries  1.0.0 → 1.0.1
+mvn --settings .github/maven-settings.xml \
+    --batch-mode \
+    --no-transfer-progress \
+    -Dmaven.repo.local="${RUNNER_TEMP}/account-service-m2" \
+    clean verify
 ```
 
-No `platform-test-support:1.0.1`, passaram a ser dependências Maven opcionais:
+Resultado:
 
-- `spring-boot-starter-jdbc`;
-- `mysql-connector-j`;
-- `spring-boot-testcontainers`;
-- `spring-boot-starter-kafka`;
-- Testcontainers MySQL;
-- Testcontainers Kafka;
-- Testcontainers JUnit Jupiter.
-
-As capacidades `@WithMySql` e `@WithKafka` permanecem disponíveis, mas a aplicação que realmente as usar declara a infraestrutura correspondente.
-
-Foi adicionado o teste `InfrastructureDependencyOptionalityTest` para proteger esse contrato.
-
-### Evidências da Foundation
-
-`platform-build` Publish #12:
-
-- run `35535997475`;
-- release `1.0.2`;
-- Maven Enforcer e dependency convergence: sucesso;
-- reactor: **BUILD SUCCESS**.
-
-`platform-libraries` Verify #50:
-
-- run `35536158485`;
-- release train `1.0.1`;
-- `InfrastructureDependencyOptionalityTest`: 1 teste, 0 falhas, 0 erros;
-- `platform-test-support`: 35 testes, 0 falhas, 0 erros;
-- reactor: **BUILD SUCCESS**.
-
-`platform-libraries` Publish #3:
-
-- run `35536158484`;
-- release train `1.0.1`;
-- reactor: **BUILD SUCCESS**.
-
-Os workflows de publicação foram novamente estabilizados em `workflow_dispatch` após os releases.
-
-## Prova final no consumidor sem banco
-
-Commit:
-
-`ba2b7fcdd90fa9a35b5e0ff01a14a0b38423fbf8`
-
-Alterações relevantes no `account-service`:
-
-- parent atualizado para `platform-parent:1.0.2`;
-- versions das libraries herdadas do parent como `1.0.1`;
-- removido completamente o exclude de `DataSourceAutoConfiguration`;
-- nenhuma dependência JDBC/MySQL foi adicionada.
-
-GitHub Actions Verify #11:
-
-- run `35536464540`;
-- Java 25: sucesso;
-- `RequireJavaVersion`: passou;
-- `RequireMavenVersion`: passou;
-- `DependencyConvergence`: passou;
+- `RequireJavaVersion`: passed;
+- `RequireMavenVersion`: passed;
+- `RequireProperty`: passed;
+- `BanDuplicatePomDependencyVersions`: passed;
+- `DependencyConvergence`: passed;
 - `AccountServiceApplicationIT`: 1 teste, 0 falhas, 0 erros;
-- `mvn clean verify`: **BUILD SUCCESS**.
+- execução do test-support registrada sob `br.com.portalmanager.core.testing`;
+- `BUILD SUCCESS`.
 
-Portanto o consumidor sem persistência inicia normalmente sem configuração negativa de JDBC.
+Como o repository Maven utilizado estava isolado e o build não possui checkout/install local da Foundation, o sucesso comprova resolução remota do parent, BOM e capabilities necessários ao consumidor.
 
-## Topologia remota corrente validada
+## Topologia remota validada
 
 ```text
-platform-build 1.0.2
-  ↓ publish
-GitHub Packages / platform-build
-  ↓ resolve platform-parent:1.0.2
-platform-libraries 1.0.1
-  ↓ publish
+BrunoBS/platform-libraries
+        ↓ publish
 GitHub Packages / platform-libraries
-  ↓ resolve libraries 1.0.1
+        ↓
+platform-parent:1.0.0
+platform-dependencies:1.0.0
+platform-libraries-bom:1.0.0
+platform-starter:1.0.0
+platform-test-support:1.0.0
+        ↓
 account-service
-  ↓
+        ↓
+repository Maven local isolado
+        ↓
 mvn clean verify
-  ↓
+        ↓
 BUILD SUCCESS
 ```
 
 ## Critérios de saída G1
 
-- [x] Java 25 / Spring Boot 4.1.1;
-- [x] `platform-parent:1.0.2` remoto;
-- [x] `platform-starter:1.0.1` remoto;
-- [x] `platform-test-support:1.0.1` remoto;
+- [x] namespace oficial `br.com.portalmanager.core`;
+- [x] `platform-parent:1.0.0`;
+- [x] `platform-libraries-bom:1.0.0`;
+- [x] `platform-starter:1.0.0`;
+- [x] `platform-test-support:1.0.0`;
+- [x] apenas o registry oficial de `platform-libraries`;
+- [x] resolução remota em repository Maven isolado;
 - [x] aplicação mínima compila;
-- [x] contexto Spring Boot inicia sem banco;
-- [x] nenhuma exclusão manual de DataSource necessária;
-- [x] infraestrutura de teste pesada é opt-in;
+- [x] contexto Spring Boot inicia;
 - [x] Maven Enforcer verde;
 - [x] dependency convergence verde;
 - [x] GitHub Actions verde;
-- [x] nenhum `mvn install` local entre repositórios;
-- [x] gaps encontrados pela G1 documentados e corrigidos.
+- [x] nenhum `mvn install` local da Foundation;
+- [x] nenhum `platform-crud`;
+- [x] documentação de consumo atualizada.
 
-## Decisão
+## FOUNDATION-GOLDEN-V1
 
-A **G1 — Skeleton + consumo da Foundation permanece concluída após revalidação do patch**.
+A Golden Reference fornece a prova downstream final de que a Foundation consolidada publicada pode ser consumida remotamente por uma aplicação real.
 
-A G2 está tecnicamente desbloqueada, mas não foi iniciada por esta correção.
+Para o consumidor Golden, o checkpoint `FOUNDATION-GOLDEN-V1` está formalmente validado.
+
+## Próxima etapa
+
+A **G1 — Skeleton + consumo da Foundation está concluída**.
+
+A próxima onda do plano é G2 — Persistência e modelo mínimo. Antes de implementar persistência, permanecem as decisões específicas da Golden já registradas no plano, especialmente ferramenta de migrations e modelagem final do lifecycle de Account.
+
+Nenhuma alteração na Foundation é autorizada por este checkpoint.
