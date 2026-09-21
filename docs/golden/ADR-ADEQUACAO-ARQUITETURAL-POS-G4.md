@@ -1,6 +1,6 @@
 # ADR — Adequação Arquitetural Pós-G4
 
-- **Status:** Proposto para execução
+- **Status:** Aceito
 - **Data:** 2026-09-21
 - **Baseline funcional:** G4 concluída
 - **Baseline técnico analisado:** `BrunoBS/account-service` / `main` / `b49949638818f1229c78dfb93b0b6238e1a5e1fe`
@@ -293,15 +293,48 @@ Rejeitada por misturar persistência do módulo com detalhes internos de outra c
 - `AuthorizationMock.session.accountId` e equivalentes da Foundation permanecem Account quando o termo pertence ao contrato de identidade/autorização externo ao domínio Workspace.
 - o nome do repositório GitHub permanece `account-service` nesta atividade.
 
+## Resultado aplicado
+
+A execução confirmou a arquitetura proposta sem necessidade de reabrir a Foundation.
+
+Estrutura de produção resultante:
+
+```text
+br.com.itau.portalmanager.workspace
+├── WorkspaceServiceApplication
+├── foundation
+│   ├── catalog.domain
+│   └── messaging
+├── core
+│   └── workspace
+│       ├── domain
+│       ├── repository
+│       ├── integration.tagging
+│       └── usecase
+└── input
+    └── web.workspace
+```
+
+Não existe Feature concreta no baseline pós-G4; por isso nenhum pacote vazio foi criado.
+
+O antigo `AccountService` foi substituído por seis Use Cases explícitos. O `WorkspaceRepository` passou a acessar somente a persistência do próprio módulo. A busca reversa de tags foi isolada em `WorkspaceTagSearchIntegration`, preservando `platform-libraries` sem alteração.
+
+A migration `V3__rename_account_domain_to_workspace.sql` foi aplicada sobre V1/V2 em MySQL 8, renomeando schema ativo e convertendo `tags.owner_type` para `WORKSPACE`.
+
+Os contratos ativos passaram a utilizar `Workspace` em Java, HTTP, payload, audit, tagging, mensagens e identidade da aplicação. Permaneceram apenas as exceções históricas/técnicas registradas nesta decisão.
+
 ## Evidências
 
 - baseline atual: `b49949638818f1229c78dfb93b0b6238e1a5e1fe`;
 - Verify #70 / run `35636832562`: `BUILD SUCCESS`;
 - Java 25.0.4+1;
 - Maven Enforcer: Java, Maven, property, duplicate dependency versions e dependency convergence aprovados;
-- 6 testes unitários/arquiteturais;
-- 20 testes de integração;
-- 0 falhas / 0 erros;
+- baseline: 6 testes unitários/arquiteturais + 20 testes de integração, 0 falhas / 0 erros;
+- implementação: Verify #72 / run `35664191912`: `BUILD SUCCESS`;
+- 34 fontes principais e 9 fontes de teste compiladas com Java 25;
+- 11 testes unitários/arquiteturais, incluindo 8 fitness functions;
+- 20 testes de integração equivalentes ao baseline funcional;
+- 31 testes totais, 0 falhas / 0 erros;
+- Flyway aplicou V1, V2 e V3 e encerrou em schema version `v3`;
 - plano de execução: `docs/golden/PLANO-ADEQUACAO-ARQUITETURAL-POS-G4.md`.
 
-O status será atualizado para **Aceito** após a execução e validação final.
