@@ -1,49 +1,54 @@
 # Golden Reference — API Conventions
 
-**Baseline:** G4 concluída.
+**Baseline funcional:** G4 concluída.  
+**Adequação arquitetural:** pós-G4 / domínio ativo `Workspace`.
 
 ## Base path
 
 ```text
-/api/v1/accounts
+/api/v1/workspaces
 ```
 
-## Contratos
+O contrato `/api/v1/accounts` pertence ao baseline histórico G4 e não é mantido como alias na nova Golden Reference.
+
+## Contratos Web
 
 A Golden não reutiliza entidade JPA nem um DTO único para todas as operações.
 
 ```text
-CreateAccountRequest
-UpdateAccountRequest
-AccountResponse
+CreateWorkspaceRequest
+UpdateWorkspaceRequest
+WorkspaceResponse
 ```
 
-A entidade `Account` permanece interna.
+A entidade `Workspace` permanece interna ao Core. Request/Response pertencem a `input.web.workspace`; Input/Output pertencem aos Use Cases.
 
 ## Create
 
 ```http
-POST /api/v1/accounts
+POST /api/v1/workspaces
 ```
 
 Retorno: `201 Created`.
 
 O servidor gera id técnico, identifier, version, lifecycle ACTIVE, onboarding=false e timestamps.
 
+Payload usa `workspaceType` com os valores atualmente suportados `ADMIN | MANAGER`.
+
 ## Get
 
 ```http
-GET /api/v1/accounts/{accountId}
+GET /api/v1/workspaces/{workspaceId}
 ```
 
-Somente Account ACTIVE é visível.
+Somente Workspace ACTIVE é visível.
 
-Inexistente ou INACTIVE retorna `404` com código `ACCOUNT-0001`.
+Inexistente ou INACTIVE retorna `404` com código `WORKSPACE-0001`.
 
 ## List
 
 ```http
-GET /api/v1/accounts?active=true&typeName=ADMIN
+GET /api/v1/workspaces?active=true&typeName=ADMIN
 ```
 
 Regras:
@@ -51,32 +56,31 @@ Regras:
 - `active` default = `true`;
 - `active=false` lista INACTIVE;
 - `typeName` é opcional;
-- typeName ignora case e whitespace;
-- tipo inválido retorna 400 com detalhe em `typeName`.
-
-Filtro `tagName` foi implementado em G4 via `platform-tagging`. Resumo simplificado permanece fora do slice atual.
+- `typeName` ignora case e whitespace;
+- tipo inválido retorna 400 com detalhe em `typeName`;
+- `tagName` pesquisa tags manuais e de sistema após normalização por `platform-tagging`.
 
 ## Update
 
 ```http
-PUT /api/v1/accounts/{accountId}
+PUT /api/v1/workspaces/{workspaceId}
 ```
 
 O request contém `version`.
 
 Semântica:
 
-- opera somente sobre Account ACTIVE;
+- opera somente sobre Workspace ACTIVE;
 - manter o próprio nome é permitido;
-- nome usado por outra Account é rejeitado;
+- nome usado por outro Workspace é rejeitado;
 - approvers são substituídos;
 - stale version retorna `409 / GLOBAL-0009`;
 - JPA `@Version` continua protegendo concorrência real.
 
-## Deactivate
+## Inactivate
 
 ```http
-DELETE /api/v1/accounts/{accountId}
+DELETE /api/v1/workspaces/{workspaceId}
 ```
 
 Não remove fisicamente o registro:
@@ -89,12 +93,12 @@ ACTIVE → INACTIVE
 ## Restore
 
 ```http
-POST /api/v1/accounts/{accountId}/restore
+POST /api/v1/workspaces/{workspaceId}/restore
 ```
 
-Somente Account INACTIVE pode ser restaurada.
+Somente Workspace INACTIVE pode ser restaurado.
 
-Restore inválido retorna `400 / ACCOUNT-0002`.
+Restore inválido retorna `400 / WORKSPACE-0002`.
 
 ## Normalização
 
@@ -108,14 +112,9 @@ Erros de negócio usam `platform-messaging` e `ApiErrorResponse`.
 
 Validações de campo retornam `400 / GLOBAL-0001` com `details[].field`.
 
-Not found específico de Account usa `ACCOUNT-0001`.
+Not found específico de Workspace usa `WORKSPACE-0001`.
 
-## Capabilities futuras
-
-G3 não define contratos de authorization, audit, tagging, catalog administrável ou onboarding.
-
-
-## G4 — Authorization
+## Authorization
 
 Todos os endpoints passam pela capability `platform-authorization`.
 
@@ -125,20 +124,22 @@ Todos os endpoints passam pela capability `platform-authorization`.
 | list | OPEN |
 | get por id | DEV |
 | update | ADM |
-| deactivate | ADM |
+| inactivate | ADM |
 | restore | ADM |
 
 No contrato atual da Foundation, `OPEN` não significa anônimo: o interceptor ainda exige `X-Correlation-Id` e token Bearer.
 
-Leituras usam `@ResourceVisibility` sobre `AccountResult`:
+Leituras usam `@ResourceVisibility` sobre `WorkspaceOutput`:
 
 - OWNER ignora filtro de visibilidade;
-- usuário com authorizer compatível vê o Account;
+- usuário com authorizer compatível vê o Workspace;
 - usuário sem authorizer compatível recebe 403 no recurso unitário;
 - coleções são filtradas;
-- Account sem `authorizerGroup` fica visível apenas para OWNER.
+- Workspace sem `authorizerGroup` fica visível apenas para OWNER.
 
-## G4 — Tagging
+O campo técnico `accountId` do UserContext/Authorization pertence ao contrato da Foundation e não representa o agregado Workspace; por isso não é renomeado nesta atividade.
+
+## Tagging
 
 Create/update aceitam `tags` manuais.
 
@@ -149,26 +150,30 @@ A resposta devolve somente tags manuais normalizadas. Tags de sistema são manti
 - authorizerGroup;
 - acronym.
 
-Owner técnico de tags:
+Owner técnico ativo de tags:
 
 ```text
-owner_type = ACCOUNT
-owner_id   = Account.identifier
+owner_type = WORKSPACE
+owner_id   = Workspace.identifier
 ```
 
-`tagName` usa a normalização de `platform-tagging` e pesquisa tags manuais e de sistema.
+A migration V3 converte registros existentes de `owner_type = ACCOUNT` para `WORKSPACE`.
+
+`tagName` usa a normalização de `platform-tagging` e pesquisa tags manuais e de sistema. A busca reversa por owner é encapsulada em `core.workspace.integration.tagging`, pois essa operação não existe na API pública atual de `TagManager`.
 
 Update reconcilia tags, removendo valores de sistema obsoletos e criando os atuais. Restore também reconcilia as tags de sistema preservando as manuais.
 
-## G4 — Audit
+## Audit
 
 As mutações publicam eventos via `platform-audit`:
 
 ```text
-create     → ACCOUNT / INSERT
-update     → ACCOUNT / UPDATE
-deactivate → ACCOUNT / DELETE
-restore    → ACCOUNT / RESTORE
+create     → WORKSPACE / INSERT
+update     → WORKSPACE / UPDATE
+inactivate → WORKSPACE / DELETE
+restore    → WORKSPACE / RESTORE
 ```
+
+Novos eventos usam `workspace-service` como service name. Eventos históricos `ACCOUNT` não são reescritos.
 
 O serviço de audit é configurado externamente por `AUDIT_SERVICE_URL`.
