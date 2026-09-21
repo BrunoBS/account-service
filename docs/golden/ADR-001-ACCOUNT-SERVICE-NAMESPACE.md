@@ -23,7 +23,7 @@ Esse namespace não representa a identidade definitiva do serviço e não deve s
 A Foundation consolidada possui namespace próprio e separado:
 
 ```text
-br.com.portalmanager.core
+br.com.portalmanager.platform
 ```
 
 Account é domínio de aplicação e não pertence ao namespace `core` da Foundation.
@@ -56,13 +56,13 @@ br.com.portalmanager.account.configuration
 ## Separação de namespaces
 
 ```text
-br.com.portalmanager.core.*      → Foundation
+br.com.portalmanager.platform.*      → Foundation
 br.com.portalmanager.account.*   → account-service
 ```
 
 A Golden é o papel arquitetural deste serviço, não um namespace funcional. Portanto não será criado `br.com.portalmanager.golden.*`.
 
-Também não será utilizado `br.com.portalmanager.core.account.*`, pois Account não pertence à Foundation.
+Também não será utilizado `br.com.portalmanager.platform.account.*`, pois Account não pertence à Foundation.
 
 ## Consequências
 
@@ -87,7 +87,7 @@ artifactId    : account-service
 Java root     : br.com.portalmanager.account
 ```
 
-A Foundation permanece separada em `br.com.portalmanager.core`.
+A Foundation permanece separada em `br.com.portalmanager.platform`.
 
 ## Consequência adicional
 

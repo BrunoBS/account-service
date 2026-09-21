@@ -50,7 +50,7 @@ Baseline oficial:
 - Java 25;
 - Spring Boot 4.1.1;
 - Maven >= 3.9.9;
-- `br.com.portalmanager.core:platform-parent:1.0.0`;
+- `br.com.portalmanager.platform:platform-parent:1.0.0`;
 - GitHub Packages como repositório Maven remoto oficial;
 - `platform-starter:1.0.0`;
 - `platform-crud` ausente da Foundation.
@@ -59,7 +59,7 @@ O starter obrigatório contém apenas:
 
 ```text
 platform-starter
-├── platform-logging
+├── platform-observability
 ├── platform-messaging
 └── platform-authorization
 ```
@@ -69,7 +69,7 @@ Capabilities explícitas:
 - `platform-audit`;
 - `platform-catalog`;
 - `platform-tagging`;
-- `platform-test-support` em escopo de teste.
+- `platform-testing` em escopo de teste.
 
 A Golden não deve modificar a Foundation por preferência arquitetural. Caso seja encontrado um gap real, ele deverá ser registrado com evidência e discutido separadamente antes de qualquer alteração.
 
@@ -269,7 +269,7 @@ Regras principais:
 - parent `platform-parent:1.0.0` + BOM `platform-libraries-bom:1.0.0`;
 - `platform-starter` como baseline;
 - audit/catalog/tagging adicionados explicitamente apenas quando usados;
-- `platform-test-support` em escopo de teste;
+- `platform-testing` em escopo de teste;
 - nenhuma dependência ou import de `platform-crud`;
 - nenhum `mvn install` local da Foundation como mecanismo oficial de integração.
 
@@ -343,7 +343,7 @@ database vazio
 
 ### Arquitetura
 
-Usar `platform-test-support` onde fizer sentido e complementar com regras específicas da Golden, incluindo:
+Usar `platform-testing` onde fizer sentido e complementar com regras específicas da Golden, incluindo:
 
 - controller não acessa repository diretamente;
 - domínio não depende de web;
@@ -426,7 +426,7 @@ Provar:
 - resolução remota da Foundation;
 - `platform-starter`;
 - aplicação mínima inicia;
-- `platform-test-support`;
+- `platform-testing`;
 - CI;
 - `mvn clean verify`.
 
