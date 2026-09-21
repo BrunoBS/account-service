@@ -4,6 +4,11 @@ Serviço de referência para o domínio de Account da Golden Platform.
 
 Este repositório implementa a fase `GOLDEN-REFERENCE-V1` sobre o checkpoint `FOUNDATION-GOLDEN-V1`.
 
+## Identidade
+
+- Maven: `br.com.portalmanager:account-service:0.1.0-SNAPSHOT`
+- Java package root: `br.com.portalmanager.account`
+
 ## Baseline
 
 - Java 25

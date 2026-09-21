@@ -71,8 +71,24 @@ Também não será utilizado `br.com.portalmanager.core.account.*`, pois Account
 - testes arquiteturais futuros devem considerar esse root;
 - nenhuma camada de compatibilidade com `com.empresa.golden` será mantida.
 
-## Fora de escopo desta decisão
+## Coordenada Maven da aplicação
 
-Esta ADR define o **package Java** da aplicação.
+Além do package Java, foi aprovada a identidade Maven do serviço:
 
-Ela não altera o namespace Maven da Foundation e não cria decisão adicional sobre coordenadas Maven do `account-service` além do que já estiver explicitamente aprovado no projeto.
+```text
+br.com.portalmanager:account-service:0.1.0-SNAPSHOT
+```
+
+Portanto:
+
+```text
+Maven groupId : br.com.portalmanager
+artifactId    : account-service
+Java root     : br.com.portalmanager.account
+```
+
+A Foundation permanece separada em `br.com.portalmanager.core`.
+
+## Consequência adicional
+
+O namespace provisório `com.empresa.golden` é removido também da coordenada Maven da aplicação.

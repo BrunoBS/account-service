@@ -21,10 +21,11 @@ Evidência:
 
 ## 2. Namespace da aplicação
 
-Package root Java aprovado antes da implementação da G2:
+Identidade aprovada antes da implementação da G2:
 
 ```text
-br.com.portalmanager.account
+Maven: br.com.portalmanager:account-service:0.1.0-SNAPSHOT
+Java:  br.com.portalmanager.account
 ```
 
 O namespace da aplicação permanece separado da Foundation (`br.com.portalmanager.core`).

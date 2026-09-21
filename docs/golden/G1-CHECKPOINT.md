@@ -11,7 +11,7 @@ Provar que `account-service` nasce como aplicação nova sobre a Foundation cons
 
 - repository consumidor: `BrunoBS/account-service`;
 - package root da aplicação: `br.com.portalmanager.account`;
-- artifact da aplicação: `com.empresa.golden:account-service:0.1.0-SNAPSHOT`;
+- artifact da aplicação: `br.com.portalmanager:account-service:0.1.0-SNAPSHOT`;
 - Java 25;
 - Spring Boot 4.1.1;
 - Maven >= 3.9.9;

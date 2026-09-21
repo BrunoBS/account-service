@@ -162,7 +162,7 @@ Não há evidência, neste checkpoint, que justifique arquitetura multi-module.
 
 O repositório deve ser novo e separado da `account-api`, preservando o legado como referência comparável.
 
-Repositório definido: `BrunoBS/account-service`. Package root Java oficial: `br.com.portalmanager.account`.
+Repositório definido: `BrunoBS/account-service`. Coordenada Maven da aplicação: `br.com.portalmanager:account-service:0.1.0-SNAPSHOT`. Package root Java oficial: `br.com.portalmanager.account`.
 
 ### 7.2 Organização por feature
 
