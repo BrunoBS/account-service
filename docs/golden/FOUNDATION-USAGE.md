@@ -131,6 +131,15 @@ Infraestrutura pesada permanece opt-in. Consumir `platform-test-support` sozinho
 
 Quando a Golden realmente usar `@WithMySql` ou `@WithKafka`, deve declarar explicitamente as dependências de teste necessárias.
 
+Para MySQL com o baseline Testcontainers 2.x gerenciado pelo Spring Boot 4.1.1, a Golden declara:
+
+```text
+spring-boot-testcontainers
+org.testcontainers:testcontainers-mysql
+```
+
+A coordenada antiga `org.testcontainers:mysql` não deve ser usada no baseline atual.
+
 ## 7. Capabilities opcionais
 
 ### platform-audit
@@ -152,6 +161,16 @@ Já chega pelo starter. Regras dependentes de Account permanecem explícitas no 
 ### platform-messaging
 
 Já chega pelo starter. Erros e mensagens específicas de Account usam os contratos da Foundation sem duplicar mecanismo transversal.
+
+Na G3, a aplicação possui DataSource próprio de Account. Como a auto-configuração JDBC de Messaging é ativada na presença de `JdbcTemplate`, a Golden declara explicitamente um `NoOpApiMessageRepository` para indicar que **o banco de Account não é o catálogo corporativo de mensagens**.
+
+Com isso, a resolução usa os bundles classpath, incluindo:
+
+```text
+META-INF/platform-messages/account-service_pt_BR.properties
+```
+
+Essa é uma decisão explícita de integração do consumidor; não cria uma implementação paralela de messaging.
 
 ### platform-logging
 

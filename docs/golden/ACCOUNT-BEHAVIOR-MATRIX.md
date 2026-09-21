@@ -20,10 +20,10 @@
 |---|---|---|---|---|
 | Create | Criar Account e gerar id técnico no servidor | COMPORTAMENTO OBSERVADO | PRESERVAR | O id enviado pelo cliente não deve controlar a identidade persistida. |
 | Create | Gerar identifier único | COMPORTAMENTO OBSERVADO | PRESERVAR | Implementação pode usar UUID tipado em vez de String, conforme modelagem. |
-| Create | Lifecycle inicial ACTIVE | REGRA/COMPORTAMENTO | PRESERVAR INTENÇÃO | Representação de lifecycle ainda será decidida. |
+| Create | Lifecycle inicial ACTIVE | REGRA/COMPORTAMENTO | PRESERVAR | Resolvido em G2: `AccountLifecycle.ACTIVE` explícito no domínio. |
 | Create | onboarding inicia falso | COMPORTAMENTO OBSERVADO | PRESERVAR | Mantém o fluxo não-CRUD. |
 | Create | registrar fase ACCOUNT_REGISTRATION como concluída | COMPORTAMENTO OBSERVADO | PRESERVAR | Implementação explícita, sem hook CRUD. |
-| Create | authorizerGroup nulo vira `""` | COMPORTAMENTO OBSERVADO | REAVALIAR | Pode ser melhor representar ausência como `null`; compatibilidade funcional precisa ser decidida. |
+| Create | authorizerGroup nulo vira `""` | COMPORTAMENTO OBSERVADO | REDESENHAR | G3 preserva ausência como `null`; não replica normalização legada para string vazia. |
 | Validation | AccountType somente ADMIN/MANAGER | REGRA DE NEGÓCIO | PRESERVAR | CATALOG é inválido para Account. |
 | Validation | name obrigatório 3..100 | REGRA/COMPORTAMENTO | PRESERVAR | Validar após normalização. |
 | Validation | description 10..500 | REGRA/COMPORTAMENTO | PRESERVAR |  |
@@ -39,7 +39,7 @@
 | Query | listar ACTIVE por padrão | COMPORTAMENTO OBSERVADO | PRESERVAR | Contrato exato do default será registrado em API conventions. |
 | Query | listar INACTIVE com `active=false` | COMPORTAMENTO OBSERVADO | PRESERVAR |  |
 | Query | filtrar por AccountType ignorando case e whitespace | COMPORTAMENTO OBSERVADO | PRESERVAR |  |
-| Query | filtrar por tag normalizada | COMPORTAMENTO OBSERVADO | PRESERVAR | Usar normalização da capability quando apropriado. |
+| Query | filtrar por tag normalizada | COMPORTAMENTO OBSERVADO | PRESERVAR | Adiado para G4, quando `platform-tagging` entrar por caso real. |
 | Query | `simplify=true` com contadores de Environment/Publisher/Application | COMPORTAMENTO OBSERVADO | ADIAR | Dependência indevida para o slice mínimo da V1. |
 | Get | get por id trata INACTIVE como não encontrado | COMPORTAMENTO OBSERVADO | PRESERVAR | Mesmo comportamento usado pelo onboarding. |
 | Update | atualizar Account existente | COMPORTAMENTO OBSERVADO | PRESERVAR | Caso de uso explícito. |

@@ -446,6 +446,8 @@ Implementar somente o modelo aprovado pela G0:
 
 ### G3 — Ciclo de vida explícito de Account
 
+**Estado:** CONCLUÍDA
+
 Implementar:
 
 - create;
@@ -573,9 +575,9 @@ Cobertura do comportamento aprovado em `ACCOUNT-BEHAVIOR-MATRIX.md`.
 Antes de avançar de forma definitiva para a implementação, registrar decisão sobre:
 
 1. ~~nome do novo repositório e package root~~ — definido: `BrunoBS/account-service` / `br.com.portalmanager.account`;
-2. ferramenta de migrations;
-3. política de compatibilidade de API com `account-api`;
-4. uso ou não de `ResourceVisibility`;
-5. modelagem de lifecycle de Account: domínio explícito vs catálogo persistido.
+2. ~~ferramenta de migrations~~ — definida: Flyway (`ADR-002-G2-PERSISTENCE-BASELINE.md`);
+3. ~~política de compatibilidade de API com `account-api`~~ — definida: preservar comportamento aprovado, sem compromisso de wire compatibility total (`ADR-003-G3-ACCOUNT-API.md`);
+4. uso ou não de `ResourceVisibility` — permanece pendente para G4;
+5. ~~modelagem de lifecycle de Account~~ — definida: estado explícito `ACTIVE | INACTIVE` no domínio (`ADR-002-G2-PERSISTENCE-BASELINE.md`).
 
 Essas decisões não autorizam alterações na Foundation.
