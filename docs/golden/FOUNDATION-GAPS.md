@@ -33,39 +33,33 @@ Esses problemas foram corrigidos antes da consolidação definitiva e não repre
 
 ## OBS-0001 — versão efetiva do Testcontainers
 
-**Estado:** OBSERVAÇÃO; não classificada como gap aberto  
+**Estado:** RESOLVIDA  
 **Detectada em:** G2  
-**Evidência:** account-service Verify #26, run `35547295205`
+**Evidência original:** account-service Verify #26, run `35547295205`
 
-O runtime registrou:
+O runtime da Golden registrou Testcontainers `2.0.5`, gerenciado por Spring Boot 4.1.1.
 
-```text
-Testcontainers version: 2.0.5
-```
+A Foundation possuía gestão duplicada por meio de uma propriedade/import explícito do BOM do Testcontainers. Essa duplicidade foi removida no `main` de `BrunoBS/platform-libraries`.
 
-No código atual da Foundation, `platform-dependencies:1.0.0` declara:
+### Correção consolidada
 
-```text
-testcontainers.version = 1.21.4
-```
+`platform-dependencies:1.0.0` agora:
 
-Spring Boot 4.1.1, por sua vez, gerencia Testcontainers 2.0.5.
+- mantém `spring-boot-dependencies:4.1.1` como fonte tecnológica;
+- não declara `testcontainers.version`;
+- não importa `testcontainers-bom` separadamente.
 
-### Impacto observado
+A versão efetiva permanece `2.0.5`, alinhada ao Spring Boot 4.1.1.
 
-Nenhum impacto funcional na G2:
+### Evidência da Foundation
 
-- MySQL Testcontainer iniciou;
-- migration Flyway passou;
-- testes de persistência passaram;
-- dependency convergence passou;
-- build ficou verde.
+- commit `bd00859a066c3bd47350e12b240556d860472875`;
+- Verify #92, run `35548702093`: **success**;
+- Publish Maven packages #7, run `35548960128`: **BUILD SUCCESS**.
 
-### Classificação atual
+### Decisão
 
-Não alterar a Foundation a partir desta observação isolada.
-
-Antes de qualquer proposta de correção, deve ser verificado separadamente se a propriedade da Foundation é intencional/efetiva no BOM consolidado e qual versão constitui o contrato oficial desejado.
+Observação encerrada. Não há gap aberto relacionado a Testcontainers.
 
 ## Regra para novos gaps
 
