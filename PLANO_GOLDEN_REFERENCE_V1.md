@@ -5,6 +5,8 @@
 **Fase atual:** Golden Reference  
 **Data de início:** 2026-09-20
 
+> **Atualização pós-G4 — 2026-09-21:** o conceito de negócio anteriormente denominado `Account` foi renomeado para `Workspace`, e a arquitetura de packages foi substituída pelo padrão registrado em `docs/golden/ADR-ADEQUACAO-ARQUITETURAL-POS-G4.md` e `docs/golden/PLANO-ADEQUACAO-ARQUITETURAL-POS-G4.md`. As referências a Account nas seções G0–G4 abaixo são preservadas como registro histórico do plano e das evidências produzidas naquele momento; não definem a nomenclatura ou arquitetura ativa pós-G4.
+
 ## 1. Objetivo
 
 Construir uma aplicação real de referência sobre a Foundation estabilizada da Golden Platform e provar, em código executável, como novos serviços devem utilizar:
