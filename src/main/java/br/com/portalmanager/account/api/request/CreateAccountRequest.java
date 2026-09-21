@@ -13,7 +13,8 @@ public record CreateAccountRequest(
         String authorizerGroup,
         String settings,
         String emailGroup,
-        List<ApproverRequest> approvers
+        List<ApproverRequest> approvers,
+        List<String> tags
 ) {
     public CreateAccountCommand toCommand() {
         return new CreateAccountCommand(
@@ -27,7 +28,8 @@ public record CreateAccountRequest(
                 emailGroup,
                 approvers == null ? null : approvers.stream()
                         .map(value -> value == null ? null : value.toCommand())
-                        .toList()
+                        .toList(),
+                tags
         );
     }
 }
