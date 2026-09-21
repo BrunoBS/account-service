@@ -123,9 +123,12 @@ class GoldenArchitectureTest {
         noClasses()
                 .that().resideInAPackage(INPUT)
                 .should().dependOnClassesThat().resideInAnyPackage(
-                        "..domain..",
-                        "..repository..",
-                        "..integration.."
+                        ROOT + ".core..domain..",
+                        ROOT + ".core..repository..",
+                        ROOT + ".core..integration..",
+                        ROOT + ".feature..domain..",
+                        ROOT + ".feature..repository..",
+                        ROOT + ".feature..integration.."
                 )
                 .check(classes);
     }
