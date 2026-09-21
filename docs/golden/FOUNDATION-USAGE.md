@@ -1,6 +1,6 @@
 # Golden Reference — Foundation Usage
 
-**Fase:** G1 revalidada para a Foundation consolidada  
+**Fase:** G1 revalidada para a Foundation consolidada; atualizado após G4 para o domínio Workspace  
 **Status:** baseline de consumo atualizado  
 **Objetivo:** registrar como a Golden Reference consome a Foundation oficial sem reabrir decisões arquiteturais da Foundation.
 
@@ -144,30 +144,30 @@ A coordenada antiga `org.testcontainers:mysql` não deve ser usada no baseline a
 
 ### platform-audit
 
-Adicionar somente quando as mutações reais de Account forem implementadas.
+Adicionar somente quando as mutações reais de Workspace forem implementadas.
 
 ### platform-catalog
 
-Usar somente para conceitos realmente administráveis. `AccountType` permanece o principal candidato do slice.
+Usar somente para conceitos realmente administráveis. `WorkspaceType` permanece o principal candidato do slice.
 
 ### platform-tagging
 
-Usar para tags manuais e de sistema de Account, sem reimplementar normalização transversal.
+Usar para tags manuais e de sistema de Workspace, sem reimplementar normalização transversal.
 
 ### platform-authorization
 
-Já chega pelo starter. Regras dependentes de Account permanecem explícitas no domínio/aplicação.
+Já chega pelo starter. Regras dependentes de Workspace permanecem explícitas no domínio/aplicação.
 
 ### platform-messaging
 
-Já chega pelo starter. Erros e mensagens específicas de Account usam os contratos da Foundation sem duplicar mecanismo transversal.
+Já chega pelo starter. Erros e mensagens específicas de Workspace usam os contratos da Foundation sem duplicar mecanismo transversal.
 
-Na G3, a aplicação possui DataSource próprio de Account. Como a auto-configuração JDBC de Messaging é ativada na presença de `JdbcTemplate`, a Golden declara explicitamente um `NoOpApiMessageRepository` para indicar que **o banco de Account não é o catálogo corporativo de mensagens**.
+Na G3, a aplicação possui DataSource próprio de Workspace. Como a auto-configuração JDBC de Messaging é ativada na presença de `JdbcTemplate`, a Golden declara explicitamente um `NoOpApiMessageRepository` para indicar que **o banco de Workspace não é o catálogo corporativo de mensagens**.
 
 Com isso, a resolução usa os bundles classpath, incluindo:
 
 ```text
-META-INF/platform-messages/account-service_pt_BR.properties
+META-INF/platform-messages/workspace-service_pt_BR.properties
 ```
 
 Essa é uma decisão explícita de integração do consumidor; não cria uma implementação paralela de messaging.
@@ -266,7 +266,7 @@ A Golden usa:
 
 - `@AuthorizationRequired` para policy OPEN/DEV/ADM;
 - `@ResourceVisibility` nas leituras;
-- `AuthorizableResource` em `AccountResult`;
+- `AuthorizableResource` em `WorkspaceOutput`;
 - `@WithMockAuthorization` para testes HTTP reais.
 
 ### Tagging
@@ -300,19 +300,19 @@ AUDIT_ENABLED
 AUDIT_SERVICE_URL
 ```
 
-O profile de teste geral desabilita audit; `AccountAuditIT` habilita a auto-configuração e injeta um `AuditPublisher` capturável para provar os eventos sem serviço externo.
+O profile de teste geral desabilita audit; `WorkspaceAuditIT` habilita a auto-configuração e injeta um `AuditPublisher` capturável para provar os eventos sem serviço externo.
 
 ### Catalog
 
 `platform-catalog` foi avaliado na G4 e **não foi adicionado**.
 
-`AccountType` continua sendo `ADMIN | MANAGER` explícito porque não existe requisito atual de criação/edição de tipos em runtime. Introduzir catálogo persistido agora criaria comportamento administrável não solicitado.
+`WorkspaceType` continua sendo `ADMIN | MANAGER` explícito porque não existe requisito atual de criação/edição de tipos em runtime. Introduzir catálogo persistido agora criaria comportamento administrável não solicitado.
 
 ### Messaging e Logging
 
 Permanecem pelo starter e já estão exercitados:
 
-- messaging resolve erros globais/Account pelo provider classpath, com `NoOpApiMessageRepository` explícito para o banco de Account;
+- messaging resolve erros globais/Workspace pelo provider classpath, com `NoOpApiMessageRepository` explícito para o banco de Workspace;
 - logging produz saída estruturada e recebe MDC preenchido pelo fluxo de authorization.
 
 Nenhum framework paralelo foi criado.
