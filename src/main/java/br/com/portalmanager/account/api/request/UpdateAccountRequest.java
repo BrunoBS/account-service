@@ -14,7 +14,8 @@ public record UpdateAccountRequest(
         String authorizerGroup,
         String settings,
         String emailGroup,
-        List<ApproverRequest> approvers
+        List<ApproverRequest> approvers,
+        List<String> tags
 ) {
     public UpdateAccountCommand toCommand() {
         return new UpdateAccountCommand(
@@ -29,7 +30,8 @@ public record UpdateAccountRequest(
                 emailGroup,
                 approvers == null ? null : approvers.stream()
                         .map(value -> value == null ? null : value.toCommand())
-                        .toList()
+                        .toList(),
+                tags
         );
     }
 }
