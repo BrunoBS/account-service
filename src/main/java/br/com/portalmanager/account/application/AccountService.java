@@ -10,8 +10,6 @@ import br.com.portalmanager.account.persistence.AccountRepository;
 import br.com.portalmanager.core.messaging.exception.NotFoundException;
 import br.com.portalmanager.core.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.core.messaging.exception.ValidationException;
-import br.com.portalmanager.core.messaging.message.PlatformMessageKeys;
-import br.com.portalmanager.core.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -127,7 +125,7 @@ public class AccountService {
     @Transactional
     public AccountResult restore(Long id) {
         Account account = repository.findByIdAndLifecycle(id, AccountLifecycle.INACTIVE)
-                .orElseThrow(this::invalidRestore);
+                .orElseThrow(() -> new ValidationException(AccountMessageKeys.RESTORE_INVALID));
 
         account.restore(LocalDateTime.now());
         return AccountResult.from(repository.saveAndFlush(account));
@@ -135,12 +133,6 @@ public class AccountService {
 
     private Account findActive(Long id) {
         return repository.findByIdAndLifecycle(id, AccountLifecycle.ACTIVE)
-                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.RESOURCE_NOT_FOUND));
-    }
-
-    private ValidationException invalidRestore() {
-        ValidationResult result = new ValidationResult();
-        result.addLiteralError("lifecycle", "Somente contas inativas podem ser restauradas.");
-        return new ValidationException(result);
+                .orElseThrow(() -> new NotFoundException(AccountMessageKeys.NOT_FOUND));
     }
 }

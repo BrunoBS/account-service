@@ -179,7 +179,7 @@ class AccountApiIT {
 
         get("/api/v1/accounts/" + id)
                 .statusCode(404)
-                .body("code", equalTo("GLOBAL-0005"));
+                .body("code", equalTo("ACCOUNT-0001"));
 
         post("/api/v1/accounts/" + id + "/restore")
                 .statusCode(200)
@@ -189,7 +189,7 @@ class AccountApiIT {
 
         post("/api/v1/accounts/" + id + "/restore")
                 .statusCode(400)
-                .body("code", equalTo("GLOBAL-0001"));
+                .body("code", equalTo("ACCOUNT-0002"));
     }
 
     @Test
@@ -206,11 +206,11 @@ class AccountApiIT {
 
         put("/api/v1/accounts/999999", update)
                 .statusCode(404)
-                .body("code", equalTo("GLOBAL-0005"));
+                .body("code", equalTo("ACCOUNT-0001"));
 
         delete("/api/v1/accounts/999999")
                 .statusCode(404)
-                .body("code", equalTo("GLOBAL-0005"));
+                .body("code", equalTo("ACCOUNT-0001"));
     }
 
     private Integer create(String name, String type) {
