@@ -2,11 +2,15 @@
 
 ## Status
 
-Accepted.
+Superseded.
 
 ## Data
 
 2026-09-20
+
+## Supersessão
+
+Esta decisão registra o namespace utilizado entre G1 e G4. Foi substituída em 2026-09-21 por `ADR-ADEQUACAO-ARQUITETURAL-POS-G4.md`, que adota `Workspace` como conceito de domínio e `br.com.itau.portalmanager.workspace` como root Java ativo. O texto abaixo permanece inalterado como evidência histórica.
 
 ## Contexto
 
