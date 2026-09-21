@@ -3,6 +3,16 @@ spring:
     name: account-service
   main:
     banner-mode: "off"
+  datasource:
+    url: ${ACCOUNT_DB_URL:jdbc:mysql://localhost:3306/account_service}
+    username: ${ACCOUNT_DB_USERNAME:account}
+    password: ${ACCOUNT_DB_PASSWORD:account}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
 
 platform:
   authorization:
