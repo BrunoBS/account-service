@@ -164,6 +164,10 @@ Já chega pelo starter. Erros e mensagens específicas de Workspace usam os cont
 
 Na G3, a aplicação possui DataSource próprio de Workspace. Como a auto-configuração JDBC de Messaging é ativada na presença de `JdbcTemplate`, a Golden declara explicitamente um `NoOpApiMessageRepository` para indicar que **o banco de Workspace não é o catálogo corporativo de mensagens**.
 
+Após o review pós-G4, esse wiring reside no **composition root** como
+`br.com.itau.portalmanager.workspace.WorkspaceMessagingConfiguration`. Ele não pertence
+à application foundation macrozone. A decisão está registrada no ADR-006.
+
 Com isso, a resolução usa os bundles classpath, incluindo:
 
 ```text
@@ -316,3 +320,21 @@ Permanecem pelo starter e já estão exercitados:
 - logging produz saída estruturada e recebe MDC preenchido pelo fluxo de authorization.
 
 Nenhum framework paralelo foi criado.
+
+
+## 14. Terminologia de Foundation após o review pós-G4
+
+Para evitar ambiguidade:
+
+- **Golden Platform Foundation** = `platform-build + platform-libraries`;
+- **application foundation macrozone** = package
+  `br.com.itau.portalmanager.workspace.foundation`.
+
+A segunda não é um depósito de configurações Spring transversais. Wiring técnico do
+consumidor fica no composition root quando não pertence a uma macrozona funcional.
+
+A busca reversa de tags continua encapsulada em
+`core.workspace.integration.tagging.WorkspaceTagSearchIntegration`. Como a API pública
+de `TagManager` não oferece essa consulta, a integração conhece provisoriamente a tabela
+`tags`. Isso é dívida documentada do consumidor e não um gap aberto que autorize
+alteração da Golden Platform Foundation nesta atividade.

@@ -1,6 +1,6 @@
 # ADR — Adequação Arquitetural Pós-G4
 
-- **Status:** Aceito
+- **Status:** Aceito após review corretivo
 - **Data:** 2026-09-21
 - **Baseline funcional:** G4 concluída
 - **Baseline técnico analisado:** `BrunoBS/account-service` / `main` / `b49949638818f1229c78dfb93b0b6238e1a5e1fe`
@@ -61,7 +61,7 @@ br.com.itau.portalmanager.workspace
 
 Não serão criados pacotes vazios. Enquanto não existir uma Feature real, `feature` poderá não possuir classes concretas.
 
-A classe de bootstrap `WorkspaceServiceApplication` poderá permanecer diretamente no package root para preservar o component scan, sem constituir uma quinta macrozona.
+O package root exato também funciona como **composition root**. Conforme o ADR-006, ele pode conter a classe `WorkspaceServiceApplication` e classes `@Configuration` de wiring técnico do consumidor, sem constituir uma quinta macrozona. As macrozonas não dependem dessas classes de composição.
 
 ### Foundation
 
@@ -69,13 +69,13 @@ No baseline real desta adequação, Foundation local conterá somente responsabi
 
 ```text
 foundation
-├── catalog
-│   └── domain
-│       ├── WorkspaceType
-│       └── LifecycleType
-└── messaging
-    └── MessagingConfiguration
+└── catalog
+    └── domain
+        ├── WorkspaceType
+        └── LifecycleType
 ```
+
+O wiring de messaging não pertence à application foundation macrozone. `WorkspaceMessagingConfiguration` reside no composition root, conforme `ADR-006-COMPOSITION-ROOT-E-SUPERFICIE-PUBLICA.md`.
 
 `WorkspaceType` e `LifecycleType` permanecem enums fechados. Esta reorganização não implica adoção de `platform-catalog` nem mudança funcional dos valores existentes.
 
@@ -302,9 +302,9 @@ Estrutura de produção resultante:
 ```text
 br.com.itau.portalmanager.workspace
 ├── WorkspaceServiceApplication
+├── WorkspaceMessagingConfiguration
 ├── foundation
-│   ├── catalog.domain
-│   └── messaging
+│   └── catalog.domain
 ├── core
 │   └── workspace
 │       ├── domain
@@ -338,3 +338,64 @@ Os contratos ativos passaram a utilizar `Workspace` em Java, HTTP, payload, audi
 - Flyway aplicou V1, V2 e V3 e encerrou em schema version `v3`;
 - plano de execução: `docs/golden/PLANO-ADEQUACAO-ARQUITETURAL-POS-G4.md`.
 
+
+
+## Review corretivo pós-implementação
+
+Após a primeira conclusão técnica, foi executado um review completo da fase. O review
+identificou gaps que não alteravam o comportamento funcional, mas impediam considerar o
+estado anterior como referência arquitetural definitiva.
+
+### Findings e correções
+
+1. **Wiring técnico classificado por exclusão em Foundation**  
+   `MessagingConfiguration` havia sido movida para `foundation.messaging` apenas para
+   evitar uma quinta zona. A decisão foi corrigida pelo ADR-006: wiring Spring específico
+   do consumidor reside no composition root. A classe ativa é
+   `WorkspaceMessagingConfiguration`.
+
+2. **Fitness function de Domain enfraquecida**  
+   A regra antiga que impedia Domain de depender de orquestração/persistência/Web havia
+   sido perdida. O ArchUnit agora impede `domain -> usecase/repository/integration/input`
+   e `domain -> org.springframework.web`.
+
+3. **Boundary Input insuficiente**  
+   Input agora é impedido de acessar diretamente Domain/Repository/Integration de módulos
+   Core/Feature. Foundation permanece consumível conforme a direção macro permitida.
+
+4. **Cross-module incompleto**  
+   A identificação de módulos passou a considerar o caminho até
+   `domain/usecase/repository/integration`, distinguindo módulos aninhados como
+   `core.configuration.workspace` e `core.configuration.application`.
+   Colaboração cross-module é permitida somente por contratos de Use Case
+   (`*UseCase`, `*Input`, `*Output`).
+
+5. **Migration validada somente em banco vazio**  
+   Foi criado `DatabaseUpgradeMigrationIT`, que sobe o schema até V2, insere Account,
+   Approver e Tag reais, executa V3 e comprova preservação dos dados, conversão
+   `ACCOUNT -> WORKSPACE` e cascade da FK renomeada.
+
+### Evidência final do review
+
+- commit da decisão: `95982e2d1ade0822d5acc4eefd4d4253fc7e80bc`;
+- commit estrutural/testes: `a33b47ff349b4aa2cafa21a78491cc8f45fe2d7d`;
+- ajuste da fitness function de Input: `fcb364c6c16b4e098ae32c85422778d7b612e0af`;
+- Verify #81 / run `35668223125`: falhou corretamente ao revelar uma regra de Input
+  excessivamente ampla, que confundia `foundation.catalog.domain` com internals de
+  módulo;
+- Verify #82 / run `35668527818`: **BUILD SUCCESS**;
+- 34 fontes principais e 10 fontes de teste;
+- 11 fitness functions + 3 testes unitários = 14 testes Surefire;
+- 21 testes de integração Failsafe;
+- 35 testes totais, 0 falhas, 0 erros;
+- `DatabaseUpgradeMigrationIT`: V2 com dados -> V3 validado em MySQL 8.
+
+### Pendências não resolvidas por falta de decisão vigente
+
+- o `groupId` Maven da aplicação permanece `br.com.portalmanager`; o projeto não
+  contém decisão suficiente para alterá-lo automaticamente para acompanhar o namespace
+  Java. O tema deve ser decidido antes do checkpoint `GOLDEN-REFERENCE-V1`;
+- a busca reversa de tags continua conhecendo o contrato físico da tabela `tags`; é
+  dívida aceita e coberta por integração, não autorização para reabrir
+  `platform-libraries`;
+- o nome físico do repositório continua histórico, conforme decisão anterior.

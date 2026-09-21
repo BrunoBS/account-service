@@ -121,7 +121,7 @@ br.com.portalmanager.account
 | JPQL contra `Tag` | `core.workspace.integration.tagging` | remover/refatorar | integração externa não pertence ao repository | contrato tabela tags |
 | `AccountSystemTagProvider` | `core.workspace.domain.WorkspaceSystemTagProvider` | mover/renomear | regra de tags de sistema é do domínio | sem dependência externa |
 | `AccountTagOwnerType.ACCOUNT` | owner `WORKSPACE` | substituir | domínio renomeado | dados existentes em tags |
-| `configuration.MessagingConfiguration` | `foundation.messaging` | mover | elimina quinta zona | bean loading |
+| `configuration.MessagingConfiguration` | composition root / `WorkspaceMessagingConfiguration` | mover/renomear | wiring técnico do consumidor; ADR-006 | bean loading |
 | `/api/v1/accounts` | `/api/v1/workspaces` | alterar | contrato alinhado ao domínio | breaking HTTP |
 | JSON `accountType` | `workspaceType` | alterar | contrato alinhado ao domínio | breaking HTTP |
 | audit `ACCOUNT` | `WORKSPACE` | alterar | taxonomia alinhada | eventos futuros |
@@ -205,7 +205,7 @@ Ações:
 - criar package root `br.com.itau.portalmanager.workspace`;
 - renomear bootstrap para `WorkspaceServiceApplication`;
 - mover enums para `foundation.catalog.domain`;
-- mover MessagingConfiguration para `foundation.messaging`;
+- mover/renomear `MessagingConfiguration` para `WorkspaceMessagingConfiguration` no composition root;
 - atualizar artifactId/app name/configuração ativa para Workspace.
 
 Critério:
@@ -401,13 +401,12 @@ Foram executadas as ondas A1–A6:
 ```text
 br.com.itau.portalmanager.workspace
 ├── WorkspaceServiceApplication
+├── WorkspaceMessagingConfiguration
 ├── foundation
-│   ├── catalog
-│   │   └── domain
-│   │       ├── LifecycleType
-│   │       └── WorkspaceType
-│   └── messaging
-│       └── MessagingConfiguration
+│   └── catalog
+│       └── domain
+│           ├── LifecycleType
+│           └── WorkspaceType
 ├── core
 │   └── workspace
 │       ├── domain
@@ -460,16 +459,19 @@ A V3:
 
 ### Governança automatizada
 
-`GoldenArchitectureTest` protege oito fitness functions:
+`GoldenArchitectureTest` protege onze fitness functions/regras executáveis:
 
 1. topologia permitida;
-2. Foundation sem dependências para zonas superiores;
-3. Core sem Feature/Input;
-4. zonas internas sem Input;
-5. RestController sem Repository;
-6. RestController sem Integration;
-7. Domain sem Integration;
-8. módulos de negócio sem acesso a Repository/Domain interno de outro módulo.
+2. composition root restrito a bootstrap/configuração;
+3. Foundation sem dependências para zonas superiores;
+4. Core sem Feature/Input;
+5. zonas internas sem Input;
+6. Domain sem UseCase/Repository/Integration/Input/Spring Web;
+7. Input sem bypass para Domain/Repository/Integration de Core/Feature;
+8. RestController sem Repository;
+9. RestController sem Integration;
+10. colaboração cross-module somente por contratos de Use Case;
+11. identificação correta de módulos de negócio aninhados.
 
 ### Validação
 
@@ -504,3 +506,41 @@ Não permanece arquitetura ativa híbrida Account/Workspace.
 - `feature` não possui classes porque não existe Feature real no baseline pós-G4; criar pacote vazio violaria a diretriz do padrão.
 - o repositório GitHub não foi renomeado, pois isso é mudança administrativa externa sem necessidade para a adequação arquitetural.
 - a integração de busca de tags usa leitura SQL explícita da tabela administrada pela capability porque `TagManager` não expõe busca reversa por tag; a Foundation não foi modificada nesta atividade.
+
+
+## 13. Review corretivo da fase
+
+O review posterior à primeira execução reabriu a conclusão técnica e corrigiu quatro gaps
+antes do checkpoint:
+
+- wiring Spring do consumidor saiu de `foundation.messaging` e passou ao composition
+  root, por decisão explícita no ADR-006;
+- fitness functions recuperaram a independência de Domain e fortaleceram Input e
+  colaboração cross-module;
+- módulos aninhados passaram a ser identificados corretamente;
+- migration V3 ganhou teste de upgrade com dados reais, além do teste de banco vazio.
+
+### Evidência
+
+Verify #82 / run `35668527818`:
+
+- Java 25;
+- 34 fontes principais;
+- 10 fontes de teste;
+- 11 testes arquiteturais;
+- 3 testes unitários;
+- 21 testes de integração;
+- 35 testes totais;
+- 0 falhas / 0 erros;
+- MySQL 8;
+- Flyway V2 com dados -> V3 validado;
+- **BUILD SUCCESS**.
+
+### Pendências para checkpoint
+
+- decidir o `groupId` Maven oficial da aplicação/serviços Golden;
+- manter registrada a dívida do SQL físico de busca reversa de tags;
+- metadados administrativos do repositório podem ser ajustados sem alterar a arquitetura.
+
+**Status final desta atividade:** implementação e review corretivo concluídos; PR permanece
+em review antes do checkpoint.

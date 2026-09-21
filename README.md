@@ -26,6 +26,8 @@ A aplicação utiliza as macrozonas:
 
 ```text
 br.com.itau.portalmanager.workspace
+├── WorkspaceServiceApplication            # composition root
+├── WorkspaceMessagingConfiguration        # wiring técnico do consumidor
 ├── foundation
 ├── core
 ├── feature
@@ -36,7 +38,8 @@ Pacotes vazios não são criados apenas para completar a árvore.
 
 Princípios principais:
 
-- Foundation fornece capacidades; este serviço demonstra padrões de aplicação.
+- Golden Platform Foundation fornece capabilities; este serviço demonstra padrões de aplicação.
+- A application foundation macrozone é distinta da Golden Platform Foundation e não recebe wiring Spring por conveniência.
 - `platform-crud` não é permitido.
 - regras de Workspace permanecem explícitas no serviço.
 - comunicação interna entre módulos ocorre por Use Cases públicos.
@@ -65,3 +68,14 @@ mvn --settings .github/maven-settings.xml --batch-mode --no-transfer-progress cl
 Não é permitido usar checkout ou `mvn install` local da Foundation como evidência de integração.
 
 A documentação da Golden está em [`docs/golden`](docs/golden).
+
+
+## Pendências antes do checkpoint GOLDEN-REFERENCE-V1
+
+- definir explicitamente o `groupId` Maven oficial para serviços Golden; a coordenada
+  atual permanece `br.com.portalmanager:workspace-service` até decisão;
+- manter visível a dívida da busca reversa de tags baseada no contrato físico da tabela
+  `tags`.
+
+A adequação pós-G4 passou por review corretivo e está validada no Verify #82
+(run `35668527818`), com 35 testes verdes.
