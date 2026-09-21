@@ -71,6 +71,11 @@
 
         <dependency>
             <groupId>br.com.portalmanager.core</groupId>
+            <artifactId>platform-audit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>br.com.portalmanager.core</groupId>
             <artifactId>platform-test-support</artifactId>
             <scope>test</scope>
         </dependency>
