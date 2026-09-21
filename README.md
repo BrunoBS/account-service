@@ -1,13 +1,14 @@
-# account-service
+# workspace-service
 
-Serviço de referência para o domínio de Account da Golden Platform.
+Serviço de referência para o domínio de Workspace da Golden Platform.
 
 Este repositório implementa a fase `GOLDEN-REFERENCE-V1` sobre o checkpoint `FOUNDATION-GOLDEN-V1`.
 
 ## Identidade
 
-- Maven: `br.com.portalmanager:account-service:0.1.0-SNAPSHOT`
-- Java package root: `br.com.portalmanager.account`
+- Maven: `br.com.portalmanager:workspace-service:0.1.0-SNAPSHOT`
+- Java package root: `br.com.itau.portalmanager.workspace`
+- hospedagem atual: `BrunoBS/account-service` (nome histórico do repositório; não representa o domínio ativo)
 
 ## Baseline
 
@@ -19,13 +20,31 @@ Este repositório implementa a fase `GOLDEN-REFERENCE-V1` sobre o checkpoint `FO
 - `br.com.portalmanager.platform:platform-starter:1.0.0`
 - `br.com.portalmanager.platform:platform-testing:1.0.0`
 
-## Princípios
+## Arquitetura
+
+A aplicação utiliza as macrozonas:
+
+```text
+br.com.itau.portalmanager.workspace
+├── foundation
+├── core
+├── feature
+└── input
+```
+
+Pacotes vazios não são criados apenas para completar a árvore.
+
+Princípios principais:
 
 - Foundation fornece capacidades; este serviço demonstra padrões de aplicação.
 - `platform-crud` não é permitido.
-- regras de Account permanecem explícitas no serviço.
+- regras de Workspace permanecem explícitas no serviço.
+- comunicação interna entre módulos ocorre por Use Cases públicos.
+- Request/Response pertencem à Web; Input/Output pertencem aos Use Cases.
+- Repository representa persistência do próprio módulo.
+- Integration representa fronteira externa ao módulo.
 - capabilities opcionais da Foundation só entram com caso de uso real.
-- `account-api` é referência funcional do legado, não base estrutural desta aplicação.
+- `account-api` é referência funcional histórica, não base estrutural desta aplicação.
 
 ## Foundation remota
 

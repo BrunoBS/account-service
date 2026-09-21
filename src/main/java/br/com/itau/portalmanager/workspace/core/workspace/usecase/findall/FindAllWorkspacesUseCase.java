@@ -1,0 +1,75 @@
+package br.com.itau.portalmanager.workspace.core.workspace.usecase.findall;
+
+import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
+import br.com.itau.portalmanager.workspace.core.workspace.domain.validation.WorkspaceValidator;
+import br.com.itau.portalmanager.workspace.core.workspace.repository.WorkspaceRepository;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.WorkspaceOutput;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceNormalizer;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.LifecycleType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.WorkspaceType;
+import br.com.portalmanager.platform.authorization.annotation.ResourceVisibility;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class FindAllWorkspacesUseCase {
+
+    private final WorkspaceRepository repository;
+    private final WorkspaceNormalizer normalizer;
+    private final WorkspaceValidator validator;
+    private final WorkspaceTaggingSupport taggingSupport;
+
+    public FindAllWorkspacesUseCase(
+            WorkspaceRepository repository,
+            WorkspaceNormalizer normalizer,
+            WorkspaceValidator validator,
+            WorkspaceTaggingSupport taggingSupport
+    ) {
+        this.repository = repository;
+        this.normalizer = normalizer;
+        this.validator = validator;
+        this.taggingSupport = taggingSupport;
+    }
+
+    @ResourceVisibility
+    @Transactional(readOnly = true)
+    public List<WorkspaceOutput> execute(FindAllWorkspacesInput input) {
+        LifecycleType lifecycle = input != null && Boolean.FALSE.equals(input.active())
+                ? LifecycleType.INACTIVE
+                : LifecycleType.ACTIVE;
+
+        String normalizedType = normalizer.normalizeTypeFilter(input == null ? null : input.typeName());
+        String normalizedTag = normalizer.normalizeTagFilter(input == null ? null : input.tagName());
+        validator.validateTypeFilter(normalizedType);
+
+        WorkspaceType workspaceType = normalizedType == null
+                ? null
+                : WorkspaceType.valueOf(normalizedType);
+
+        List<Workspace> workspaces;
+        if (normalizedTag == null) {
+            workspaces = repository.findFiltered(lifecycle, workspaceType);
+        } else {
+            List<String> identifiers = taggingSupport.findIdentifiersByTag(normalizedTag);
+            if (identifiers.isEmpty()) {
+                return List.of();
+            }
+            workspaces = repository.findFilteredByIdentifiers(lifecycle, workspaceType, identifiers);
+        }
+
+        Map<String, List<String>> manualTags = taggingSupport.findManualByIdentifiers(
+                workspaces.stream().map(Workspace::getIdentifier).toList()
+        );
+
+        return workspaces.stream()
+                .map(workspace -> WorkspaceOutput.from(
+                        workspace,
+                        manualTags.getOrDefault(workspace.getIdentifier(), List.of())
+                ))
+                .toList();
+    }
+}
