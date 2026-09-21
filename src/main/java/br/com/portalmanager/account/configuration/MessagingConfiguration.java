@@ -1,7 +1,7 @@
 package br.com.portalmanager.account.configuration;
 
-import br.com.portalmanager.core.messaging.repository.ApiMessageRepository;
-import br.com.portalmanager.core.messaging.repository.NoOpApiMessageRepository;
+import br.com.portalmanager.platform.messaging.repository.ApiMessageRepository;
+import br.com.portalmanager.platform.messaging.repository.NoOpApiMessageRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

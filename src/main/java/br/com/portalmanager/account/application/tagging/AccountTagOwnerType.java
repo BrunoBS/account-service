@@ -1,6 +1,6 @@
 package br.com.portalmanager.account.application.tagging;
 
-import br.com.portalmanager.core.tagging.model.TagOwnerType;
+import br.com.portalmanager.platform.tagging.model.TagOwnerType;
 
 public enum AccountTagOwnerType implements TagOwnerType {
     ACCOUNT;
