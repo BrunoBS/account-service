@@ -39,7 +39,7 @@
 | Query | listar ACTIVE por padrão | COMPORTAMENTO OBSERVADO | PRESERVAR | Contrato exato do default será registrado em API conventions. |
 | Query | listar INACTIVE com `active=false` | COMPORTAMENTO OBSERVADO | PRESERVAR |  |
 | Query | filtrar por AccountType ignorando case e whitespace | COMPORTAMENTO OBSERVADO | PRESERVAR |  |
-| Query | filtrar por tag normalizada | COMPORTAMENTO OBSERVADO | PRESERVAR | Adiado para G4, quando `platform-tagging` entrar por caso real. |
+| Query | filtrar por tag normalizada | COMPORTAMENTO OBSERVADO | PRESERVAR | Implementado em G4 com `platform-tagging` e `TagNormalizer`. |
 | Query | `simplify=true` com contadores de Environment/Publisher/Application | COMPORTAMENTO OBSERVADO | ADIAR | Dependência indevida para o slice mínimo da V1. |
 | Get | get por id trata INACTIVE como não encontrado | COMPORTAMENTO OBSERVADO | PRESERVAR | Mesmo comportamento usado pelo onboarding. |
 | Update | atualizar Account existente | COMPORTAMENTO OBSERVADO | PRESERVAR | Caso de uso explícito. |
@@ -51,18 +51,18 @@
 | Delete | id inexistente retorna not found | COMPORTAMENTO OBSERVADO | PRESERVAR |  |
 | Restore | apenas Account INACTIVE pode ser restaurada | REGRA/COMPORTAMENTO | PRESERVAR | Conta ACTIVE em restore é inválida. |
 | Restore | restaurar preserva identidade e nome | COMPORTAMENTO OBSERVADO | PRESERVAR |  |
-| Tagging | persistir tags manuais | COMPORTAMENTO OBSERVADO | PRESERVAR | Caso real de `platform-tagging`. |
-| Tagging | normalizar/deduplicar tags | COMPORTAMENTO OBSERVADO | PRESERVAR | Delegar à capability atual quando compatível. |
-| Tagging | gerar tags de sistema a partir de identifier/name/authorizerGroup/acronym | COMPORTAMENTO OBSERVADO | PRESERVAR INTENÇÃO | Revisar conjunto final após modelagem. |
-| Tagging | tags de sistema não são devolvidas como tags manuais | COMPORTAMENTO OBSERVADO | PRESERVAR | Evitar misturar origem. |
-| Tagging | update remove tags de sistema antigas e recalcula novas | COMPORTAMENTO OBSERVADO | PRESERVAR | `TagManager.reconcile` suporta reconciliação. |
-| Auth | requisição sem autenticação pode ser rejeitada mesmo em endpoint OPEN | COMPORTAMENTO OBSERVADO | REAVALIAR | Exato significado operacional de OPEN deve ser confirmado com capability atual. |
+| Tagging | persistir tags manuais | COMPORTAMENTO OBSERVADO | PRESERVAR | Implementado em G4 via `TagManager.reconcile`. |
+| Tagging | normalizar/deduplicar tags | COMPORTAMENTO OBSERVADO | PRESERVAR | Delegado ao `platform-tagging` em G4. |
+| Tagging | gerar tags de sistema a partir de identifier/name/authorizerGroup/acronym | COMPORTAMENTO OBSERVADO | PRESERVAR INTENÇÃO | Conjunto confirmado e implementado em G4. |
+| Tagging | tags de sistema não são devolvidas como tags manuais | COMPORTAMENTO OBSERVADO | PRESERVAR | Comprovado em G4. |
+| Tagging | update remove tags de sistema antigas e recalcula novas | COMPORTAMENTO OBSERVADO | PRESERVAR | Implementado e testado em G4 com `TagManager.reconcile`. |
+| Auth | requisição sem autenticação pode ser rejeitada mesmo em endpoint OPEN | COMPORTAMENTO OBSERVADO | PRESERVAR | Confirmado em G4: OPEN é policy de autorização, mas interceptor exige correlation id + Bearer token. |
 | Auth | owner possui acesso ao recurso | COMPORTAMENTO OBSERVADO | PRESERVAR INTENÇÃO | `UserSession.isOwner()`. |
 | Auth | authorizer group correto possui acesso | COMPORTAMENTO OBSERVADO | PRESERVAR INTENÇÃO | Regra do domínio/aplicação deve permanecer explícita. |
 | Auth | usuário sem grupo apropriado recebe forbidden | COMPORTAMENTO OBSERVADO | PRESERVAR INTENÇÃO |  |
-| Auth | matriz OPEN/DEV/ADM por endpoint | COMPORTAMENTO OBSERVADO | REAVALIAR | Não copiar por inércia. |
-| Auth | `@ResourceVisibility` em leitura/listagem | PADRÃO A SER REAVALIADO | REAVALIAR | Não incluir automaticamente. |
-| Audit | auditar create/update/delete/restore/onboarding update | COMPORTAMENTO OBSERVADO | PRESERVAR INTENÇÃO | Usar `platform-audit` explicitamente. |
+| Auth | matriz OPEN/DEV/ADM por endpoint | COMPORTAMENTO OBSERVADO | PRESERVAR | Reavaliada em G4: create/list OPEN, get DEV, mutações ADM. |
+| Auth | `@ResourceVisibility` em leitura/listagem | PADRÃO A SER REAVALIADO | PRESERVAR | Adotado em G4 porque `authorizerGroup` é caso real de visibilidade de Account. |
+| Audit | auditar create/update/delete/restore/onboarding update | COMPORTAMENTO OBSERVADO | PRESERVAR INTENÇÃO | G4 implementa create/update/delete/restore; onboarding update permanece para G5. |
 | Onboarding | consultar progresso somente para Account ACTIVE | COMPORTAMENTO OBSERVADO | PRESERVAR | Inativa/inexistente → not found. |
 | Onboarding | conclusão exige lista não vazia | COMPORTAMENTO OBSERVADO | PRESERVAR | Evita conclusão vazia. |
 | Onboarding | conclusão exige todos os status `COMPLETED` | REGRA/COMPORTAMENTO | PRESERVAR |  |

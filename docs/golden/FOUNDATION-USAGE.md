@@ -254,3 +254,65 @@ há defeito reproduzível da Foundation?
 ```
 
 A Foundation não deve ser alterada nesta etapa sem evidência técnica concreta e decisão explícita.
+
+
+## 13. Uso efetivo na G4
+
+### Authorization
+
+Continua chegando pelo `platform-starter`.
+
+A Golden usa:
+
+- `@AuthorizationRequired` para policy OPEN/DEV/ADM;
+- `@ResourceVisibility` nas leituras;
+- `AuthorizableResource` em `AccountResult`;
+- `@WithMockAuthorization` para testes HTTP reais.
+
+### Tagging
+
+Dependência explícita:
+
+```xml
+<dependency>
+    <groupId>br.com.portalmanager.core</groupId>
+    <artifactId>platform-tagging</artifactId>
+</dependency>
+```
+
+A capability fornece entidade/repository/manager, mas a Golden mantém a evolução física do próprio banco. Por isso a tabela `tags` é criada pela migration `V2__create_tags.sql`.
+
+### Audit
+
+Dependência explícita:
+
+```xml
+<dependency>
+    <groupId>br.com.portalmanager.core</groupId>
+    <artifactId>platform-audit</artifactId>
+</dependency>
+```
+
+Configuração de produção:
+
+```text
+AUDIT_ENABLED
+AUDIT_SERVICE_URL
+```
+
+O profile de teste geral desabilita audit; `AccountAuditIT` habilita a auto-configuração e injeta um `AuditPublisher` capturável para provar os eventos sem serviço externo.
+
+### Catalog
+
+`platform-catalog` foi avaliado na G4 e **não foi adicionado**.
+
+`AccountType` continua sendo `ADMIN | MANAGER` explícito porque não existe requisito atual de criação/edição de tipos em runtime. Introduzir catálogo persistido agora criaria comportamento administrável não solicitado.
+
+### Messaging e Logging
+
+Permanecem pelo starter e já estão exercitados:
+
+- messaging resolve erros globais/Account pelo provider classpath, com `NoOpApiMessageRepository` explícito para o banco de Account;
+- logging produz saída estruturada e recebe MDC preenchido pelo fluxo de authorization.
+
+Nenhum framework paralelo foi criado.

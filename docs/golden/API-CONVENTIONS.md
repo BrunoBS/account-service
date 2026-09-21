@@ -1,6 +1,6 @@
 # Golden Reference — API Conventions
 
-**Baseline:** G3 concluída.
+**Baseline:** G4 concluída.
 
 ## Base path
 
@@ -54,7 +54,7 @@ Regras:
 - typeName ignora case e whitespace;
 - tipo inválido retorna 400 com detalhe em `typeName`.
 
-Filtros de tag e resumo simplificado entram somente quando suas capabilities/domínios forem implementados.
+Filtro `tagName` foi implementado em G4 via `platform-tagging`. Resumo simplificado permanece fora do slice atual.
 
 ## Update
 
@@ -113,3 +113,62 @@ Not found específico de Account usa `ACCOUNT-0001`.
 ## Capabilities futuras
 
 G3 não define contratos de authorization, audit, tagging, catalog administrável ou onboarding.
+
+
+## G4 — Authorization
+
+Todos os endpoints passam pela capability `platform-authorization`.
+
+| Operação | Policy |
+|---|---|
+| create | OPEN |
+| list | OPEN |
+| get por id | DEV |
+| update | ADM |
+| deactivate | ADM |
+| restore | ADM |
+
+No contrato atual da Foundation, `OPEN` não significa anônimo: o interceptor ainda exige `X-Correlation-Id` e token Bearer.
+
+Leituras usam `@ResourceVisibility` sobre `AccountResult`:
+
+- OWNER ignora filtro de visibilidade;
+- usuário com authorizer compatível vê o Account;
+- usuário sem authorizer compatível recebe 403 no recurso unitário;
+- coleções são filtradas;
+- Account sem `authorizerGroup` fica visível apenas para OWNER.
+
+## G4 — Tagging
+
+Create/update aceitam `tags` manuais.
+
+A resposta devolve somente tags manuais normalizadas. Tags de sistema são mantidas internamente a partir de:
+
+- identifier;
+- name;
+- authorizerGroup;
+- acronym.
+
+Owner técnico de tags:
+
+```text
+owner_type = ACCOUNT
+owner_id   = Account.identifier
+```
+
+`tagName` usa a normalização de `platform-tagging` e pesquisa tags manuais e de sistema.
+
+Update reconcilia tags, removendo valores de sistema obsoletos e criando os atuais. Restore também reconcilia as tags de sistema preservando as manuais.
+
+## G4 — Audit
+
+As mutações publicam eventos via `platform-audit`:
+
+```text
+create     → ACCOUNT / INSERT
+update     → ACCOUNT / UPDATE
+deactivate → ACCOUNT / DELETE
+restore    → ACCOUNT / RESTORE
+```
+
+O serviço de audit é configurado externamente por `AUDIT_SERVICE_URL`.

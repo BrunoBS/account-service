@@ -466,6 +466,8 @@ Critério central: CRUD real e explícito sem abstração CRUD genérica.
 
 ### G4 — Capabilities transversais
 
+**Estado:** CONCLUÍDA
+
 Adicionar somente casos reais:
 
 - authorization;
@@ -577,7 +579,7 @@ Antes de avançar de forma definitiva para a implementação, registrar decisão
 1. ~~nome do novo repositório e package root~~ — definido: `BrunoBS/account-service` / `br.com.portalmanager.account`;
 2. ~~ferramenta de migrations~~ — definida: Flyway (`ADR-002-G2-PERSISTENCE-BASELINE.md`);
 3. ~~política de compatibilidade de API com `account-api`~~ — definida: preservar comportamento aprovado, sem compromisso de wire compatibility total (`ADR-003-G3-ACCOUNT-API.md`);
-4. uso ou não de `ResourceVisibility` — permanece pendente para G4;
+4. ~~uso ou não de `ResourceVisibility`~~ — definido em G4: usado em leituras de Account com `authorizerGroup` (`ADR-004-G4-TRANSVERSAL-CAPABILITIES.md`);
 5. ~~modelagem de lifecycle de Account~~ — definida: estado explícito `ACTIVE | INACTIVE` no domínio (`ADR-002-G2-PERSISTENCE-BASELINE.md`).
 
 Essas decisões não autorizam alterações na Foundation.
