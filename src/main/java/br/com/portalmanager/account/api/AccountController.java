@@ -6,6 +6,9 @@ import br.com.portalmanager.account.api.response.AccountResponse;
 import br.com.portalmanager.account.application.AccountService;
 import br.com.portalmanager.core.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.core.authorization.model.AuthorizationLevel;
+import br.com.portalmanager.core.audit.annotation.AuditField;
+import br.com.portalmanager.core.audit.annotation.AuditFieldSource;
+import br.com.portalmanager.core.audit.annotation.Auditable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,6 +35,11 @@ public class AccountController {
 
     @PostMapping
     @AuthorizationRequired(level = AuthorizationLevel.OPEN)
+    @Auditable(
+            resource = "ACCOUNT",
+            action = "INSERT",
+            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "id")
+    )
     public ResponseEntity<AccountResponse> create(@RequestBody CreateAccountRequest request) {
         AccountResponse response = AccountResponse.from(service.create(request.toCommand()));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -57,6 +65,11 @@ public class AccountController {
 
     @PutMapping("/{accountId}")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
+    @Auditable(
+            resource = "ACCOUNT",
+            action = "UPDATE",
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "accountId")
+    )
     public AccountResponse update(
             @PathVariable Long accountId,
             @RequestBody UpdateAccountRequest request
@@ -66,6 +79,11 @@ public class AccountController {
 
     @DeleteMapping("/{accountId}")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
+    @Auditable(
+            resource = "ACCOUNT",
+            action = "DELETE",
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "accountId")
+    )
     public ResponseEntity<Void> deactivate(@PathVariable Long accountId) {
         service.deactivate(accountId);
         return ResponseEntity.noContent().build();
@@ -73,6 +91,11 @@ public class AccountController {
 
     @PostMapping("/{accountId}/restore")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
+    @Auditable(
+            resource = "ACCOUNT",
+            action = "RESTORE",
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "accountId")
+    )
     public AccountResponse restore(@PathVariable Long accountId) {
         return AccountResponse.from(service.restore(accountId));
     }
