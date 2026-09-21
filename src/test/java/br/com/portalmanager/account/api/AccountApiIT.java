@@ -1,10 +1,14 @@
 package br.com.portalmanager.account.api;
 
 import br.com.portalmanager.core.testing.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.core.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.core.testing.annotation.WithMySql;
+import br.com.portalmanager.core.testing.authorization.AuthorizationMock;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
 import java.util.ArrayList;
@@ -23,10 +27,20 @@ import static org.hamcrest.Matchers.nullValue;
 
 @PlatformIntegrationTest
 @WithMySql
+@WithMockAuthorization
 class AccountApiIT {
 
     @LocalServerPort
     private int port;
+
+    @Autowired
+    private AuthorizationMock authorizationMock;
+
+    @BeforeEach
+    void authorizeAsOwner() {
+        authorizationMock.reset();
+        authorizationMock.allow(session -> session.groups("PM5_OWNER"));
+    }
 
     @Test
     void shouldCreateNormalizeAndReadActiveAccount() {
@@ -75,6 +89,8 @@ class AccountApiIT {
 
         given()
                 .port(port)
+                .header("X-Correlation-Id", "account-api-it")
+                .header("Authorization", "Bearer account-api-it")
                 .accept(ContentType.JSON)
                 .queryParam("active", true)
                 .queryParam("typeName", " admin ")
@@ -234,6 +250,7 @@ class AccountApiIT {
                 "functional", "F1000",
                 "email", "approver@portalmanager.com"
         )));
+        request.put("tags", List.of());
         return request;
     }
 
@@ -246,6 +263,8 @@ class AccountApiIT {
     private ValidatableResponse get(String path) {
         return given()
                 .port(port)
+                .header("X-Correlation-Id", "account-api-it")
+                .header("Authorization", "Bearer account-api-it")
                 .accept(ContentType.JSON)
                 .when()
                 .get(path)
@@ -255,6 +274,8 @@ class AccountApiIT {
     private ValidatableResponse post(Map<String, Object> body) {
         return given()
                 .port(port)
+                .header("X-Correlation-Id", "account-api-it")
+                .header("Authorization", "Bearer account-api-it")
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
                 .body(body)
@@ -266,6 +287,8 @@ class AccountApiIT {
     private ValidatableResponse post(String path) {
         return given()
                 .port(port)
+                .header("X-Correlation-Id", "account-api-it")
+                .header("Authorization", "Bearer account-api-it")
                 .accept(ContentType.JSON)
                 .when()
                 .post(path)
@@ -275,6 +298,8 @@ class AccountApiIT {
     private ValidatableResponse put(String path, Map<String, Object> body) {
         return given()
                 .port(port)
+                .header("X-Correlation-Id", "account-api-it")
+                .header("Authorization", "Bearer account-api-it")
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
                 .body(body)
@@ -286,6 +311,8 @@ class AccountApiIT {
     private ValidatableResponse delete(String path) {
         return given()
                 .port(port)
+                .header("X-Correlation-Id", "account-api-it")
+                .header("Authorization", "Bearer account-api-it")
                 .accept(ContentType.JSON)
                 .when()
                 .delete(path)
