@@ -42,9 +42,10 @@ public class AccountController {
     @GetMapping
     public List<AccountResponse> findAll(
             @RequestParam(defaultValue = "true") Boolean active,
-            @RequestParam(required = false) String typeName
+            @RequestParam(required = false) String typeName,
+            @RequestParam(required = false) String tagName
     ) {
-        return service.findAll(active, typeName).stream()
+        return service.findAll(active, typeName, tagName).stream()
                 .map(AccountResponse::from)
                 .toList();
     }
