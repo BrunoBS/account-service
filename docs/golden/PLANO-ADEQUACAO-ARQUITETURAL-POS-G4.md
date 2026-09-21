@@ -367,12 +367,103 @@ No CI, o Maven repository permanece isolado.
 
 ## 12. Resultado da execução
 
-A preencher após implementação com:
+### Commits e branch
 
-- commits executados;
-- árvore final;
-- migrations aplicadas;
-- lista de arquivos movidos/alterados;
-- testes e CI;
-- exceções conscientes;
-- ocorrências Account remanescentes e classificação.
+- branch: `refactor/architectural-alignment-post-g4`;
+- ADR inicial: `75d1aae2e58b9320298c820794cd74206b1a874b`;
+- plano inicial: `4ac97ef58f614339e727934d5b9442e5d26e2549`;
+- refactor estrutural: `c1e4a56d97f94e89e38d7ddf1b0c9fab5f66b6ef`.
+
+### Estrutura final relevante
+
+```text
+br.com.itau.portalmanager.workspace
+├── WorkspaceServiceApplication
+├── foundation
+│   ├── catalog
+│   │   └── domain
+│   │       ├── LifecycleType
+│   │       └── WorkspaceType
+│   └── messaging
+│       └── MessagingConfiguration
+├── core
+│   └── workspace
+│       ├── domain
+│       │   └── validation
+│       ├── repository
+│       ├── integration
+│       │   └── tagging
+│       └── usecase
+│           ├── create
+│           ├── findall
+│           ├── findbyid
+│           ├── inactivate
+│           ├── model
+│           ├── restore
+│           ├── support
+│           └── update
+└── input
+    └── web
+        └── workspace
+            ├── request
+            └── response
+```
+
+Não há pacote `feature` concreto porque não existe Feature real neste baseline. Nenhuma quinta macrozona foi criada.
+
+### Alterações realizadas
+
+- `Account` -> `Workspace` no domínio ativo;
+- `AccountService` removido e substituído por seis Use Cases;
+- Request/Response movidos para Input/Web;
+- Input/Output separados dos contratos HTTP;
+- `AccountRepository` -> `WorkspaceRepository`;
+- JPQL direto contra `Tag` removido do Repository;
+- busca reversa de tags movida para `WorkspaceTagSearchIntegration`;
+- `AccountType` -> `WorkspaceType` e lifecycle movidos para Foundation/Catalog local;
+- `/api/v1/accounts` -> `/api/v1/workspaces`;
+- JSON `accountType` -> `workspaceType`;
+- audit `ACCOUNT` -> `WORKSPACE`;
+- tag owner `ACCOUNT` -> `WORKSPACE`;
+- `account-service` -> `workspace-service` na identidade ativa da aplicação;
+- mensagens `ACCOUNT-xxxx` -> `WORKSPACE-xxxx`;
+- migration V3 para schema físico;
+- documentação ativa atualizada;
+- ADR histórico de namespace marcado como superado.
+
+### Validação
+
+Verify #72 / run `35664191912` executou o fluxo oficial com Maven repository isolado e terminou em `BUILD SUCCESS`.
+
+Resultados:
+
+- Java 25;
+- 34 fontes principais compiladas;
+- 9 fontes de teste compiladas;
+- 8 testes arquiteturais;
+- 3 testes unitários de normalização;
+- 20 testes de integração;
+- 31 testes totais;
+- 0 falhas;
+- 0 erros;
+- Flyway V1 -> V2 -> V3 aplicado com sucesso;
+- Hibernate validou o schema Workspace;
+- authorization, resource visibility, tagging e audit verdes.
+
+### Account remanescente — classificação final
+
+Permanecem conscientemente:
+
+1. V1/V2 e documentação G0–G4: registro histórico;
+2. V3: contém nomes antigos somente para executar a transição física;
+3. `AuthorizationMock.session.accountId(...)`: contrato técnico da Foundation, não o agregado Workspace;
+4. assertions de migration sobre `accounts/account_approvers`: comprovam que as tabelas legadas não existem após V3;
+5. `BrunoBS/account-service` e `BrunoBS/account-api`: nomes de repositórios externos/históricos.
+
+Não permanece package, classe, endpoint, payload, entidade, repository ou serviço ativo de negócio com nomenclatura Account.
+
+### Exceções
+
+Não houve exceção arquitetural adicional além das já aprovadas no ADR.
+
+A Foundation não foi alterada.
