@@ -4,6 +4,8 @@ import br.com.portalmanager.account.api.request.CreateAccountRequest;
 import br.com.portalmanager.account.api.request.UpdateAccountRequest;
 import br.com.portalmanager.account.api.response.AccountResponse;
 import br.com.portalmanager.account.application.AccountService;
+import br.com.portalmanager.core.authorization.annotation.AuthorizationRequired;
+import br.com.portalmanager.core.authorization.model.AuthorizationLevel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,17 +31,20 @@ public class AccountController {
     }
 
     @PostMapping
+    @AuthorizationRequired(level = AuthorizationLevel.OPEN)
     public ResponseEntity<AccountResponse> create(@RequestBody CreateAccountRequest request) {
         AccountResponse response = AccountResponse.from(service.create(request.toCommand()));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{accountId}")
+    @AuthorizationRequired(level = AuthorizationLevel.DEV)
     public AccountResponse findById(@PathVariable Long accountId) {
         return AccountResponse.from(service.findById(accountId));
     }
 
     @GetMapping
+    @AuthorizationRequired(level = AuthorizationLevel.OPEN)
     public List<AccountResponse> findAll(
             @RequestParam(defaultValue = "true") Boolean active,
             @RequestParam(required = false) String typeName,
@@ -51,6 +56,7 @@ public class AccountController {
     }
 
     @PutMapping("/{accountId}")
+    @AuthorizationRequired(level = AuthorizationLevel.ADM)
     public AccountResponse update(
             @PathVariable Long accountId,
             @RequestBody UpdateAccountRequest request
@@ -59,12 +65,14 @@ public class AccountController {
     }
 
     @DeleteMapping("/{accountId}")
+    @AuthorizationRequired(level = AuthorizationLevel.ADM)
     public ResponseEntity<Void> deactivate(@PathVariable Long accountId) {
         service.deactivate(accountId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{accountId}/restore")
+    @AuthorizationRequired(level = AuthorizationLevel.ADM)
     public AccountResponse restore(@PathVariable Long accountId) {
         return AccountResponse.from(service.restore(accountId));
     }
