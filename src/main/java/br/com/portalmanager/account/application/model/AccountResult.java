@@ -3,7 +3,7 @@ package br.com.portalmanager.account.application.model;
 import br.com.portalmanager.account.domain.Account;
 import br.com.portalmanager.account.domain.AccountLifecycle;
 import br.com.portalmanager.account.domain.AccountType;
-import br.com.portalmanager.core.authorization.resource.AuthorizableResource;
+import br.com.portalmanager.platform.authorization.resource.AuthorizableResource;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;

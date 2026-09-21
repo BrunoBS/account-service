@@ -3,7 +3,7 @@ package br.com.portalmanager.account.application;
 import br.com.portalmanager.account.application.model.ApproverCommand;
 import br.com.portalmanager.account.application.model.CreateAccountCommand;
 import br.com.portalmanager.account.application.model.UpdateAccountCommand;
-import br.com.portalmanager.core.tagging.TagNormalizer;
+import br.com.portalmanager.platform.tagging.TagNormalizer;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

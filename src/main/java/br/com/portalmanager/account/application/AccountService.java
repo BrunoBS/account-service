@@ -9,11 +9,11 @@ import br.com.portalmanager.account.domain.Account;
 import br.com.portalmanager.account.domain.AccountLifecycle;
 import br.com.portalmanager.account.domain.AccountType;
 import br.com.portalmanager.account.persistence.AccountRepository;
-import br.com.portalmanager.core.authorization.annotation.ResourceVisibility;
-import br.com.portalmanager.core.messaging.exception.NotFoundException;
-import br.com.portalmanager.core.messaging.exception.ResourceVersionConflictException;
-import br.com.portalmanager.core.messaging.exception.ValidationException;
-import br.com.portalmanager.core.tagging.TagManager;
+import br.com.portalmanager.platform.authorization.annotation.ResourceVisibility;
+import br.com.portalmanager.platform.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.messaging.exception.ResourceVersionConflictException;
+import br.com.portalmanager.platform.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.tagging.TagManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
