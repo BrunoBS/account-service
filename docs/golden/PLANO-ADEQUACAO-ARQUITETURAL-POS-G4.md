@@ -367,14 +367,36 @@ No CI, o Maven repository permanece isolado.
 
 ## 12. Resultado da execução
 
-### Commits e branch
+**Status:** CONCLUÍDO
 
-- branch: `refactor/architectural-alignment-post-g4`;
-- ADR inicial: `75d1aae2e58b9320298c820794cd74206b1a874b`;
-- plano inicial: `4ac97ef58f614339e727934d5b9442e5d26e2549`;
-- refactor estrutural: `c1e4a56d97f94e89e38d7ddf1b0c9fab5f66b6ef`.
+### Implementação
 
-### Estrutura final relevante
+Commit estrutural:
+
+```text
+c1e4a56d97f94e89e38d7ddf1b0c9fab5f66b6ef
+```
+
+Foram executadas as ondas A1–A6:
+
+- namespace ativo alterado para `br.com.itau.portalmanager.workspace`;
+- identidade Maven/aplicação alterada para `workspace-service`;
+- macrozonas concretas organizadas em `foundation`, `core` e `input`;
+- `feature` não foi criada vazia;
+- agregado `Account` renomeado para `Workspace`;
+- `AccountService` removido e substituído por Use Cases por intenção;
+- Request/Response movidos para `input.web.workspace`;
+- Input/Output mantidos no espaço de Use Cases;
+- persistência do Workspace isolada no `WorkspaceRepository`;
+- busca reversa de tags retirada do Repository e explicitada em `integration.tagging`;
+- audit resource alterado para `WORKSPACE`;
+- owner type de tagging alterado para `WORKSPACE`;
+- endpoint alterado para `/api/v1/workspaces`;
+- JSON `accountType` alterado para `workspaceType`;
+- migration V3 adicionada sem reescrever V1/V2;
+- fitness functions ampliadas.
+
+### Árvore final relevante
 
 ```text
 br.com.itau.portalmanager.workspace
@@ -389,10 +411,16 @@ br.com.itau.portalmanager.workspace
 ├── core
 │   └── workspace
 │       ├── domain
-│       │   └── validation
-│       ├── repository
+│       │   ├── validation
+│       │   ├── Workspace
+│       │   ├── WorkspaceApprover
+│       │   ├── WorkspaceMessageKeys
+│       │   └── WorkspaceSystemTags
 │       ├── integration
 │       │   └── tagging
+│       │       └── WorkspaceTagSearchIntegration
+│       ├── repository
+│       │   └── WorkspaceRepository
 │       └── usecase
 │           ├── create
 │           ├── findall
@@ -406,64 +434,73 @@ br.com.itau.portalmanager.workspace
     └── web
         └── workspace
             ├── request
-            └── response
+            ├── response
+            └── WorkspaceController
 ```
 
-Não há pacote `feature` concreto porque não existe Feature real neste baseline. Nenhuma quinta macrozona foi criada.
+### Persistência
 
-### Alterações realizadas
+Flyway final:
 
-- `Account` -> `Workspace` no domínio ativo;
-- `AccountService` removido e substituído por seis Use Cases;
-- Request/Response movidos para Input/Web;
-- Input/Output separados dos contratos HTTP;
-- `AccountRepository` -> `WorkspaceRepository`;
-- JPQL direto contra `Tag` removido do Repository;
-- busca reversa de tags movida para `WorkspaceTagSearchIntegration`;
-- `AccountType` -> `WorkspaceType` e lifecycle movidos para Foundation/Catalog local;
-- `/api/v1/accounts` -> `/api/v1/workspaces`;
-- JSON `accountType` -> `workspaceType`;
-- audit `ACCOUNT` -> `WORKSPACE`;
-- tag owner `ACCOUNT` -> `WORKSPACE`;
-- `account-service` -> `workspace-service` na identidade ativa da aplicação;
-- mensagens `ACCOUNT-xxxx` -> `WORKSPACE-xxxx`;
-- migration V3 para schema físico;
-- documentação ativa atualizada;
-- ADR histórico de namespace marcado como superado.
+```text
+V1 create account schema        (histórica, preservada)
+V2 create tags                  (histórica, preservada)
+V3 rename account domain to workspace
+```
+
+A V3:
+
+- renomeia `accounts` para `workspaces`;
+- renomeia `account_approvers` para `workspace_approvers`;
+- renomeia `account_type` para `workspace_type`;
+- renomeia `account_id` para `workspace_id`;
+- renomeia índices/constraints aplicáveis;
+- recria a FK com nomenclatura Workspace;
+- converte `tags.owner_type = ACCOUNT` para `WORKSPACE`.
+
+### Governança automatizada
+
+`GoldenArchitectureTest` protege oito fitness functions:
+
+1. topologia permitida;
+2. Foundation sem dependências para zonas superiores;
+3. Core sem Feature/Input;
+4. zonas internas sem Input;
+5. RestController sem Repository;
+6. RestController sem Integration;
+7. Domain sem Integration;
+8. módulos de negócio sem acesso a Repository/Domain interno de outro módulo.
 
 ### Validação
 
-Verify #72 / run `35664191912` executou o fluxo oficial com Maven repository isolado e terminou em `BUILD SUCCESS`.
+GitHub Actions Verify #72, run `35664191912`:
 
-Resultados:
-
-- Java 25;
-- 34 fontes principais compiladas;
-- 9 fontes de teste compiladas;
+- 34 fontes principais;
+- 9 fontes de teste;
 - 8 testes arquiteturais;
-- 3 testes unitários de normalização;
+- 3 testes unitários;
 - 20 testes de integração;
-- 31 testes totais;
+- 31 testes no total;
 - 0 falhas;
 - 0 erros;
-- Flyway V1 -> V2 -> V3 aplicado com sucesso;
-- Hibernate validou o schema Workspace;
-- authorization, resource visibility, tagging e audit verdes.
+- Flyway V1 → V2 → V3 em MySQL 8.0;
+- `BUILD SUCCESS`.
 
-### Account remanescente — classificação final
+### Exceções conscientes / Account remanescente
 
-Permanecem conscientemente:
+Permanecem somente:
 
-1. V1/V2 e documentação G0–G4: registro histórico;
-2. V3: contém nomes antigos somente para executar a transição física;
-3. `AuthorizationMock.session.accountId(...)`: contrato técnico da Foundation, não o agregado Workspace;
-4. assertions de migration sobre `accounts/account_approvers`: comprovam que as tabelas legadas não existem após V3;
-5. `BrunoBS/account-service` e `BrunoBS/account-api`: nomes de repositórios externos/históricos.
+- V1/V2 históricas, para preservar o histórico Flyway;
+- referências a nomes antigos dentro da V3, necessárias para executar a renomeação;
+- `DatabaseMigrationIT`, que cita `accounts` e `account_approvers` para provar que não existem após V3;
+- `accountId` do UserContext/Authorization da Foundation, pois é contrato técnico externo ao agregado Workspace;
+- documentação histórica G0–G4;
+- nome físico do repositório `BrunoBS/account-service`.
 
-Não permanece package, classe, endpoint, payload, entidade, repository ou serviço ativo de negócio com nomenclatura Account.
+Não permanece arquitetura ativa híbrida Account/Workspace.
 
-### Exceções
+### Divergências mantidas
 
-Não houve exceção arquitetural adicional além das já aprovadas no ADR.
-
-A Foundation não foi alterada.
+- `feature` não possui classes porque não existe Feature real no baseline pós-G4; criar pacote vazio violaria a diretriz do padrão.
+- o repositório GitHub não foi renomeado, pois isso é mudança administrativa externa sem necessidade para a adequação arquitetural.
+- a integração de busca de tags usa leitura SQL explícita da tabela administrada pela capability porque `TagManager` não expõe busca reversa por tag; a Foundation não foi modificada nesta atividade.
