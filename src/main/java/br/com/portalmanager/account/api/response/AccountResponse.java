@@ -21,7 +21,8 @@ public record AccountResponse(
         String lifecycle,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        List<ApproverResponse> approvers
+        List<ApproverResponse> approvers,
+        List<String> tags
 ) {
     public static AccountResponse from(AccountResult result) {
         return new AccountResponse(
@@ -40,7 +41,8 @@ public record AccountResponse(
                 result.lifecycle().name(),
                 result.createdAt(),
                 result.updatedAt(),
-                result.approvers().stream().map(ApproverResponse::from).toList()
+                result.approvers().stream().map(ApproverResponse::from).toList(),
+                result.tags()
         );
     }
 }
