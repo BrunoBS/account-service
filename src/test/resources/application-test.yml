@@ -6,3 +6,6 @@ platform:
     default-locale: pt-BR
     cache:
       enabled: false
+
+  audit:
+    enabled: false
