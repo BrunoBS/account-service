@@ -135,19 +135,19 @@ Busca no repositório após a implementação:
 - `ddl-auto=update`: ausente;
 - namespace provisório `com.empresa`: ausente do código ativo.
 
-## Observação de dependências
+## Observação de dependências — resolvida
 
 O run #26 registrou `Testcontainers version: 2.0.5`.
 
-A Foundation consolidada declara uma propriedade `testcontainers.version=1.21.4` em `platform-dependencies`, enquanto Spring Boot 4.1.1 gerencia Testcontainers 2.0.5.
+Após a G2, a Foundation removeu a gestão duplicada de Testcontainers de `platform-dependencies` e manteve Spring Boot 4.1.1 como fonte tecnológica da versão efetiva.
 
-Isso não afetou a G2:
+Evidência da correção:
 
-- dependency convergence passou;
-- Testcontainers/MySQL executou normalmente;
-- build ficou verde.
+- Foundation commit `bd00859a066c3bd47350e12b240556d860472875`;
+- Verify #92, run `35548702093`: sucesso;
+- Publish #7, run `35548960128`: sucesso.
 
-A discrepância foi registrada apenas como observação para análise separada; nenhuma alteração na Foundation foi feita nesta onda.
+A versão efetiva permanece `2.0.5`. A observação `OBS-0001` está encerrada e não bloqueia a Golden.
 
 ## Critérios de saída
 
