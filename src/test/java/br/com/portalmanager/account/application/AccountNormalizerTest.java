@@ -26,7 +26,8 @@ class AccountNormalizerTest {
                 List.of(new ApproverCommand(
                         " F1234 ",
                         " approver@portalmanager.com "
-                ))
+                )),
+                List.of(" Manual Tag ")
         ));
 
         assertThat(normalized.accountType()).isEqualTo("MANAGER");
@@ -39,10 +40,16 @@ class AccountNormalizerTest {
         assertThat(normalized.approvers()).containsExactly(
                 new ApproverCommand("F1234", "approver@portalmanager.com")
         );
+        assertThat(normalized.tags()).containsExactly(" Manual Tag ");
     }
 
     @Test
     void shouldIgnoreBlankTypeFilter() {
         assertThat(normalizer.normalizeTypeFilter("   ")).isNull();
+    }
+
+    @Test
+    void shouldDelegateTagFilterNormalizationToFoundation() {
+        assertThat(normalizer.normalizeTagFilter("  Minha   Tag  ")).isEqualTo("minha-tag");
     }
 }
