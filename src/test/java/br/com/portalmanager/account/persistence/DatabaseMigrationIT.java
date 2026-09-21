@@ -16,9 +16,9 @@ class DatabaseMigrationIT {
     private JdbcTemplate jdbcTemplate;
 
     @Test
-    void shouldApplyInitialMigrationOnEmptyMySqlDatabase() {
+    void shouldApplyGoldenMigrationsOnEmptyMySqlDatabase() {
         Integer migrationCount = jdbcTemplate.queryForObject(
-                "select count(*) from flyway_schema_history where version = '1' and success = 1",
+                "select count(*) from flyway_schema_history where version in ('1', '2') and success = 1",
                 Integer.class
         );
 
@@ -42,8 +42,19 @@ class DatabaseMigrationIT {
                 Integer.class
         );
 
-        assertThat(migrationCount).isEqualTo(1);
+        Integer tagsTableCount = jdbcTemplate.queryForObject(
+                """
+                select count(*)
+                  from information_schema.tables
+                 where table_schema = database()
+                   and table_name = 'tags'
+                """,
+                Integer.class
+        );
+
+        assertThat(migrationCount).isEqualTo(2);
         assertThat(accountTableCount).isEqualTo(1);
         assertThat(approverTableCount).isEqualTo(1);
+        assertThat(tagsTableCount).isEqualTo(1);
     }
 }
