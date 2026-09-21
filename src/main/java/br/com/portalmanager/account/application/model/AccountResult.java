@@ -3,6 +3,7 @@ package br.com.portalmanager.account.application.model;
 import br.com.portalmanager.account.domain.Account;
 import br.com.portalmanager.account.domain.AccountLifecycle;
 import br.com.portalmanager.account.domain.AccountType;
+import br.com.portalmanager.core.authorization.resource.AuthorizableResource;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -24,9 +25,15 @@ public record AccountResult(
         AccountLifecycle lifecycle,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        List<ApproverResult> approvers
-) {
+        List<ApproverResult> approvers,
+        List<String> tags
+) implements AuthorizableResource {
+
     public static AccountResult from(Account account) {
+        return from(account, List.of());
+    }
+
+    public static AccountResult from(Account account, List<String> manualTags) {
         List<ApproverResult> approvers = account.getApprovers().stream()
                 .map(value -> new ApproverResult(value.getFunctional(), value.getEmail()))
                 .sorted(Comparator.comparing(ApproverResult::functional)
@@ -49,7 +56,13 @@ public record AccountResult(
                 account.getLifecycle(),
                 account.getCreatedAt(),
                 account.getUpdatedAt(),
-                approvers
+                approvers,
+                manualTags == null ? List.of() : List.copyOf(manualTags)
         );
+    }
+
+    @Override
+    public String getAuthorizerGroup() {
+        return authorizerGroup;
     }
 }
