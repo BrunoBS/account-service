@@ -1,7 +1,7 @@
 package br.com.portalmanager.account;
 
-import br.com.portalmanager.core.testing.annotation.PlatformIntegrationTest;
-import br.com.portalmanager.core.testing.annotation.WithMySql;
+import br.com.portalmanager.platform.testing.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.testing.annotation.WithMySql;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;

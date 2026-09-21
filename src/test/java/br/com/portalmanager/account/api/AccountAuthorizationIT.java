@@ -1,9 +1,9 @@
 package br.com.portalmanager.account.api;
 
-import br.com.portalmanager.core.testing.annotation.PlatformIntegrationTest;
-import br.com.portalmanager.core.testing.annotation.WithMockAuthorization;
-import br.com.portalmanager.core.testing.annotation.WithMySql;
-import br.com.portalmanager.core.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.testing.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.testing.annotation.WithMockAuthorization;
+import br.com.portalmanager.platform.testing.annotation.WithMySql;
+import br.com.portalmanager.platform.testing.authorization.AuthorizationMock;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
