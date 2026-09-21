@@ -23,3 +23,8 @@ platform:
     default-locale: pt-BR
     cache:
       enabled: false
+  audit:
+    enabled: ${AUDIT_ENABLED:true}
+    service-url: ${AUDIT_SERVICE_URL:}
+    service-name: account-service
+    fail-on-error: false
