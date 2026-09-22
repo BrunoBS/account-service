@@ -13,10 +13,10 @@ import java.util.regex.Pattern;
 @Component
 public class WorkspaceValidator {
 
-    private final WorkspaceTypeService workspaceTypeService;
-
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+
+    private final WorkspaceTypeService workspaceTypeService;
 
     public WorkspaceValidator(WorkspaceTypeService workspaceTypeService) {
         this.workspaceTypeService = workspaceTypeService;
@@ -25,40 +25,27 @@ public class WorkspaceValidator {
     public void validateForCreate(WorkspaceValidationData data, boolean nameDuplicate) {
         ValidationResult result = new ValidationResult();
 
-        if (data == null) {
-            result.addError("request", WorkspaceMessageKeys.NAME_REQUIRED);
+        if (!validateRequest(data, result)) {
             rejectIfInvalid(result);
             return;
         }
 
         validateCommon(data, result);
-
-        if (nameDuplicate) {
-            result.addError("name", WorkspaceMessageKeys.NAME_DUPLICATE);
-        }
-
+        validateDuplicateName(nameDuplicate, result);
         rejectIfInvalid(result);
     }
 
     public void validateForUpdate(WorkspaceValidationData data, boolean nameDuplicate) {
         ValidationResult result = new ValidationResult();
 
-        if (data == null) {
-            result.addError("request", WorkspaceMessageKeys.NAME_REQUIRED);
+        if (!validateRequest(data, result)) {
             rejectIfInvalid(result);
             return;
         }
 
-        if (data.version() == null || data.version() < 0) {
-            result.addError("version", WorkspaceMessageKeys.VERSION_REQUIRED);
-        }
-
+        validateVersion(data.version(), result);
         validateCommon(data, result);
-
-        if (nameDuplicate) {
-            result.addError("name", WorkspaceMessageKeys.NAME_DUPLICATE);
-        }
-
+        validateDuplicateName(nameDuplicate, result);
         rejectIfInvalid(result);
     }
 
@@ -74,37 +61,84 @@ public class WorkspaceValidator {
         rejectIfInvalid(result);
     }
 
+    private boolean validateRequest(WorkspaceValidationData data, ValidationResult result) {
+        if (data != null) {
+            return true;
+        }
+
+        result.addError("request", WorkspaceMessageKeys.NAME_REQUIRED);
+        return false;
+    }
+
     private void validateCommon(WorkspaceValidationData data, ValidationResult result) {
-        if (!isValidWorkspaceType(data.workspaceType())) {
+        validateWorkspaceType(data.workspaceType(), result);
+        validateName(data.name(), result);
+        validateDescription(data.description(), result);
+        validateRequester(data.requester(), result);
+        validateAcronym(data.acronym(), result);
+        validateEmailGroup(data.emailGroup(), result);
+        validateApprovers(data.approvers(), result);
+    }
+
+    private void validateWorkspaceType(String workspaceType, ValidationResult result) {
+        if (!isValidWorkspaceType(workspaceType)) {
             result.addError("workspaceType", WorkspaceMessageKeys.WORKSPACE_TYPE_INVALID);
         }
+    }
 
-        if (data.name() == null || data.name().isBlank()) {
+    private void validateName(String name, ValidationResult result) {
+        if (name == null || name.isBlank()) {
             result.addError("name", WorkspaceMessageKeys.NAME_REQUIRED);
-        } else if (data.name().length() < 3 || data.name().length() > 100) {
+            return;
+        }
+
+        if (name.length() < 3 || name.length() > 100) {
             result.addError("name", WorkspaceMessageKeys.NAME_SIZE);
         }
+    }
 
-        if (data.description() == null || data.description().isBlank()
-                || data.description().length() < 10 || data.description().length() > 500) {
+    private void validateDescription(String description, ValidationResult result) {
+        if (description == null
+                || description.isBlank()
+                || description.length() < 10
+                || description.length() > 500) {
             result.addError("description", WorkspaceMessageKeys.DESCRIPTION_SIZE);
         }
+    }
 
-        if (data.requester() == null || data.requester().isBlank() || data.requester().length() < 5) {
+    private void validateRequester(String requester, ValidationResult result) {
+        if (requester == null || requester.isBlank() || requester.length() < 5) {
             result.addError("requester", WorkspaceMessageKeys.REQUESTER_SIZE);
         }
+    }
 
-        if (data.acronym() == null || data.acronym().isBlank()) {
+    private void validateAcronym(String acronym, ValidationResult result) {
+        if (acronym == null || acronym.isBlank()) {
             result.addError("acronym", WorkspaceMessageKeys.ACRONYM_REQUIRED);
-        } else if (data.acronym().length() > 5) {
+            return;
+        }
+
+        if (acronym.length() > 5) {
             result.addError("acronym", WorkspaceMessageKeys.ACRONYM_SIZE);
         }
+    }
 
-        if (!isEmail(data.emailGroup())) {
+    private void validateEmailGroup(String emailGroup, ValidationResult result) {
+        if (!isEmail(emailGroup)) {
             result.addError("emailGroup", WorkspaceMessageKeys.EMAIL_INVALID);
         }
+    }
 
-        validateApprovers(data.approvers(), result);
+    private void validateVersion(Long version, ValidationResult result) {
+        if (version == null || version < 0) {
+            result.addError("version", WorkspaceMessageKeys.VERSION_REQUIRED);
+        }
+    }
+
+    private void validateDuplicateName(boolean nameDuplicate, ValidationResult result) {
+        if (nameDuplicate) {
+            result.addError("name", WorkspaceMessageKeys.NAME_DUPLICATE);
+        }
     }
 
     private void validateApprovers(List<ApproverData> approvers, ValidationResult result) {
@@ -114,21 +148,24 @@ public class WorkspaceValidator {
         }
 
         for (int index = 0; index < approvers.size(); index++) {
-            ApproverData approver = approvers.get(index);
-            String path = "approvers[" + index + "]";
+            validateApprover(approvers.get(index), index, result);
+        }
+    }
 
-            if (approver == null) {
-                result.addError(path, WorkspaceMessageKeys.APPROVERS_REQUIRED);
-                continue;
-            }
+    private void validateApprover(ApproverData approver, int index, ValidationResult result) {
+        String path = "approvers[" + index + "]";
 
-            if (approver.functional() == null || approver.functional().isBlank()) {
-                result.addError(path + ".functional", WorkspaceMessageKeys.APPROVER_FUNCTIONAL_REQUIRED);
-            }
+        if (approver == null) {
+            result.addError(path, WorkspaceMessageKeys.APPROVERS_REQUIRED);
+            return;
+        }
 
-            if (!isEmail(approver.email())) {
-                result.addError(path + ".email", WorkspaceMessageKeys.EMAIL_INVALID);
-            }
+        if (approver.functional() == null || approver.functional().isBlank()) {
+            result.addError(path + ".functional", WorkspaceMessageKeys.APPROVER_FUNCTIONAL_REQUIRED);
+        }
+
+        if (!isEmail(approver.email())) {
+            result.addError(path + ".email", WorkspaceMessageKeys.EMAIL_INVALID);
         }
     }
 
