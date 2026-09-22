@@ -76,6 +76,7 @@ class DatabaseUpgradeMigrationIT {
         assertThat(tableCount(jdbc, "workspace_approvers")).isEqualTo(1);
         assertThat(tableCount(jdbc, "type_workspaces")).isEqualTo(1);
         assertThat(tableCount(jdbc, "type_schema_scopes")).isEqualTo(1);
+        assertThat(tableCount(jdbc, "type_life_cycle")).isEqualTo(1);
 
         assertThat(jdbc.queryForObject(
                 "select workspace_type_code from workspaces where id = 100",
@@ -88,7 +89,7 @@ class DatabaseUpgradeMigrationIT {
         )).isEqualTo(3L);
 
         assertThat(jdbc.queryForObject(
-                "select lifecycle from workspaces where id = 100",
+                "select lifecycle_code from workspaces where id = 100",
                 String.class
         )).isEqualTo("INACTIVE");
 
