@@ -4,10 +4,7 @@ import br.com.portalmanager.platform.catalog.model.BaseCatalogEntity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(
-        name = "type_onboardings",
-        uniqueConstraints = @UniqueConstraint(name = "uk_type_onboardings_name", columnNames = "name")
-)
+@Table(name = "type_onboardings")
 public class OnboardingPhase extends BaseCatalogEntity {
 
     @Column(name = "orientation", nullable = false, length = 255)

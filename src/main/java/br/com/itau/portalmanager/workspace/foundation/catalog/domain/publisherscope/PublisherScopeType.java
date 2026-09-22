@@ -3,12 +3,8 @@ package br.com.itau.portalmanager.workspace.foundation.catalog.domain.publishers
 import br.com.portalmanager.platform.catalog.model.BaseCatalogEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(
-        name = "type_publisher_scopes",
-        uniqueConstraints = @UniqueConstraint(name = "uk_type_publisher_scopes_name", columnNames = "name")
-)
+@Table(name = "type_publisher_scopes")
 public class PublisherScopeType extends BaseCatalogEntity {
 }
