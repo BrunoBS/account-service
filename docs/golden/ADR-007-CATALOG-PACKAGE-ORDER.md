@@ -56,7 +56,7 @@ foundation/catalog/support/CatalogSchemaValidationSupport.java
 Controllers permanecem em:
 
 ```text
-input/web/catalog/<catalogo>
+entrypoint/web/catalog/<catalogo>
 ```
 
 ## Consequências

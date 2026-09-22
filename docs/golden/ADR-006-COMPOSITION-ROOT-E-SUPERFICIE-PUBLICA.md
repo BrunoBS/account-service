@@ -14,7 +14,7 @@ br.com.itau.portalmanager.workspace
 ├── foundation
 ├── core
 ├── feature
-└── input
+└── entrypoint
 ```
 
 Durante a execução, a antiga `configuration.MessagingConfiguration` foi movida para
@@ -39,7 +39,7 @@ A arquitetura precisava responder explicitamente:
 3. qual é a superfície pública permitida para colaboração entre módulos.
 
 Sem essa decisão, configurações técnicas poderiam ser distribuídas arbitrariamente em
-`foundation`, `core`, `input` ou em uma nova zona, e helpers públicos de um módulo
+`foundation`, `core`, `entrypoint` ou em uma nova zona, e helpers públicos de um módulo
 poderiam ser consumidos por outro módulo sem passar por Use Cases.
 
 ## Decisão
@@ -60,9 +60,9 @@ Ele pode conter somente:
 - classes `@Configuration` de wiring/bootstrap técnico específico do consumidor.
 
 Isso não cria uma quinta macrozona. Subpackages novos diretamente abaixo do root
-continuam restritos a `foundation`, `core`, `feature` e `input`.
+continuam restritos a `foundation`, `core`, `feature` e `entrypoint`.
 
-Classes do composition root não são domínio, Core, Feature, Input nem Application
+Classes do composition root não são domínio, Core, Feature, Entrypoint nem Application
 Foundation. Elas existem apenas para compor o runtime.
 
 As macrozonas internas não devem depender dessas classes de wiring.
@@ -157,7 +157,7 @@ da aplicação, e a capability real já é fornecida pela Golden Platform Founda
 Rejeitada para o baseline atual. Seria mudança da topologia macro e não é necessária para
 o caso concreto.
 
-### Colocar wiring em `input`
+### Colocar wiring em `entrypoint`
 
 Rejeitada. Wiring de runtime não é porta de entrada.
 

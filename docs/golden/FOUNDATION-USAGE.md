@@ -355,7 +355,7 @@ Todo catálogo concreto termina em `type`. Assim, mesmo a entidade histórica
 
 Packages técnicos compartilhados, como `support`, permanecem fora dessa regra.
 
-input/web/catalog
+entrypoint/web/catalog
 └── <catalogo>
 ```
 
