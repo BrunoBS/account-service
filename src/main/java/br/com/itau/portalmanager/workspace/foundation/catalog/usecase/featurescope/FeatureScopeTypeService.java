@@ -2,8 +2,7 @@ package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.featuresc
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.domain.featurescope.FeatureScopeType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.repository.featurescope.FeatureScopeTypeRepository;
-import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaDefaults;
-import br.com.itau.portalmanager.workspace.foundation.schema.usecase.SchemaValidator;
+import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.service.DynamicCatalogService;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
@@ -14,12 +13,12 @@ public class FeatureScopeTypeService extends DynamicCatalogService<FeatureScopeT
     public FeatureScopeTypeService(
             FeatureScopeTypeRepository repository,
             ObjectMapper objectMapper,
-            SchemaValidator settingsValidator) {
+            CatalogSchemaValidationSupport settingsValidator) {
         super(
                 repository,
                 objectMapper,
                 FeatureScopeType.class,
-                (dto, result) -> settingsValidator.validateJson(SchemaDefaults.DEFAULT_JSON_SCHEMA, dto.settings(), "settings", result)
+                (dto, result) -> settingsValidator.validateSettings(dto.settings(), result)
         );
     }
 }
