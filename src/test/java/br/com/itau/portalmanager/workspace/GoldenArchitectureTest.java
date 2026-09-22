@@ -23,11 +23,14 @@ class GoldenArchitectureTest {
 
     private static final String ROOT = "br.com.itau.portalmanager.workspace";
     private static final String FOUNDATION = ROOT + ".foundation..";
+    private static final String FOUNDATION_CATALOG = ROOT + ".foundation.catalog..";
     private static final String CORE = ROOT + ".core..";
     private static final String FEATURE = ROOT + ".feature..";
     private static final String INPUT = ROOT + ".input..";
     private static final Set<String> MODULE_LAYERS =
             Set.of("domain", "usecase", "repository", "integration");
+    private static final Set<String> CATALOG_LAYERS =
+            Set.of("domain", "usecase", "repository");
 
     private final com.tngtech.archunit.core.domain.JavaClasses classes =
             new ClassFileImporter()
@@ -77,6 +80,32 @@ class GoldenArchitectureTest {
         noClasses()
                 .that().resideInAnyPackage(FOUNDATION, CORE, FEATURE, INPUT)
                 .should().dependOnClassesThat().resideInAPackage(ROOT)
+                .check(classes);
+    }
+
+    @Test
+    void foundationCatalogMustFollowApprovedInternalStructure() {
+        String prefix = ROOT + ".foundation.catalog.";
+
+        var invalidLayers = classes.stream()
+                .map(JavaClass::getPackageName)
+                .filter(packageName -> packageName.startsWith(prefix))
+                .map(packageName -> packageName.substring(prefix.length()))
+                .map(relative -> relative.substring(0, relative.indexOf('.') < 0
+                        ? relative.length()
+                        : relative.indexOf('.')))
+                .filter(layer -> !CATALOG_LAYERS.contains(layer))
+                .distinct()
+                .toList();
+
+        assertThat(invalidLayers).isEmpty();
+    }
+
+    @Test
+    void restControllersMustResideInInput() {
+        classes()
+                .that().areAnnotatedWith(RestController.class)
+                .should().resideInAPackage(INPUT)
                 .check(classes);
     }
 
