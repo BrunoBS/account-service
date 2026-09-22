@@ -67,7 +67,10 @@ class GoldenArchitectureTest {
 
         assertThat(rootClasses)
                 .extracting(JavaClass::getSimpleName)
-                .containsExactly("WorkspaceServiceApplication");
+                .containsExactlyInAnyOrder(
+                        "WorkspaceServiceApplication",
+                        "WorkspaceMessagingConfiguration"
+                );
 
         assertThat(rootClasses).allSatisfy(javaClass -> {
             boolean bootstrap = javaClass.isAnnotatedWith(SpringBootApplication.class);
