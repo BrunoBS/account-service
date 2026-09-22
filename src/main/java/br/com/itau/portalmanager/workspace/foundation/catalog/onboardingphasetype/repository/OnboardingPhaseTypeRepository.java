@@ -5,5 +5,5 @@ import br.com.portalmanager.platform.catalog.repository.CatalogRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface OnboardingPhaseTypeTypeRepository extends CatalogRepository<OnboardingPhaseType> {
+public interface OnboardingPhaseTypeRepository extends CatalogRepository<OnboardingPhaseType> {
 }
