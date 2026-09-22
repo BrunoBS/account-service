@@ -1,6 +1,6 @@
 package br.com.itau.portalmanager.workspace.core.workspace.usecase.support;
 
-import br.com.itau.portalmanager.workspace.core.workspace.usecase.create.CreateWorkspaceInput;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.ApproverInput;
 import org.junit.jupiter.api.Test;
 
