@@ -35,12 +35,10 @@ input/web/catalog
 br.com.itau.portalmanager.workspace
 ├── foundation
 │   └── catalog
-│       ├── domain
-│       │   └── <catalog>
-│       ├── repository
-│       │   └── <catalog>
-│       └── usecase
-│           └── <catalog>
+│       └── <catalogo>
+│           ├── domain
+│           ├── repository
+│           └── usecase
 └── input
     └── web
         └── catalog
@@ -133,7 +131,7 @@ Foram migrados para a application Foundation:
 - `foundation/schema/usecase/SchemaValidator`.
 
 Catalog possui somente o adapter
-`foundation/catalog/usecase/support/CatalogSchemaValidationSupport`, que converte o
+`foundation/catalog/support/CatalogSchemaValidationSupport`, que converte o
 resultado de Schema para `CatalogValidationResult`.
 
 **Atenção:** `json-schema-validator:3.0.7` é uma nova dependência direta do
@@ -223,9 +221,10 @@ A implementação foi revisada contra o padrão arquitetural vigente e contra o
 ```text
 foundation
 ├── catalog
-│   ├── domain/<catalogo>
-│   ├── usecase/<catalogo>
-│   └── repository/<catalogo>
+│   └── <catalogo>
+│       ├── domain
+│       ├── repository
+│       └── usecase
 └── schema
     ├── domain
     └── usecase
@@ -235,8 +234,9 @@ input
     └── catalog/<catalogo>
 ```
 
-A alternativa `foundation/catalog/<catalogo>/domain` não foi adotada, pois o padrão
-oficial define `foundation/catalog/domain|usecase|repository`.
+A organização adotada é **catalog-first**: cada catálogo é um módulo interno de
+`foundation/catalog` e, dentro dele, aparecem as layers
+`domain|repository|usecase`.
 
 ### Estratégias finais
 
