@@ -1,6 +1,6 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.repository;
+package br.com.itau.portalmanager.workspace.foundation.catalog.onboardingphasetype.repository;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.domain.OnboardingPhase;
+import br.com.itau.portalmanager.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhase;
 import br.com.portalmanager.platform.catalog.repository.BaseCatalogRepository;
 import org.springframework.stereotype.Repository;
 
