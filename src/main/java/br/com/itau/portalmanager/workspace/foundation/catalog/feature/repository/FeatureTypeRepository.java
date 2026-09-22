@@ -8,6 +8,5 @@ import java.util.List;
 
 @Repository
 public interface FeatureTypeRepository extends BaseCatalogRepository<FeatureType> {
-    boolean existsByNameAndFeatureScopeIdAndIdNot(String name, Long featureScopeId, Long id);
     List<FeatureType> findByNameInAndActiveTrue(List<String> names);
 }
