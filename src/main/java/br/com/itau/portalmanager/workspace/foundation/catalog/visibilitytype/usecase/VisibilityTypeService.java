@@ -1,8 +1,8 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.visibility.usecase;
+package br.com.itau.portalmanager.workspace.foundation.catalog.visibilitytype.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.visibility.domain.VisibilityType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.visibility.domain.VisibilityTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.visibility.repository.VisibilityTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.visibilitytype.domain.VisibilityType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.visibilitytype.domain.VisibilityTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.visibilitytype.repository.VisibilityTypeRepository;
 import br.com.itau.portalmanager.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
