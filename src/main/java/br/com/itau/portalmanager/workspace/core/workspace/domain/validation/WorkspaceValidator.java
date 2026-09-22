@@ -1,7 +1,7 @@
 package br.com.itau.portalmanager.workspace.core.workspace.domain.validation;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.WorkspaceMessageKeys;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.WorkspaceType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.workspace.WorkspaceTypeEnum;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;
@@ -131,7 +131,7 @@ public class WorkspaceValidator {
         }
 
         try {
-            WorkspaceType.valueOf(value);
+            WorkspaceTypeEnum.valueOf(value);
             return true;
         } catch (IllegalArgumentException exception) {
             return false;

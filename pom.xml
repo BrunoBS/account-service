@@ -76,6 +76,17 @@
 
         <dependency>
             <groupId>br.com.portalmanager.platform</groupId>
+            <artifactId>platform-catalog</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>3.0.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>br.com.portalmanager.platform</groupId>
             <artifactId>platform-testing</artifactId>
             <scope>test</scope>
         </dependency>

@@ -6,8 +6,8 @@ import br.com.itau.portalmanager.workspace.core.workspace.repository.WorkspaceRe
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.WorkspaceOutput;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceNormalizer;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.LifecycleType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.WorkspaceType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.lifecycle.LifecycleTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.workspace.WorkspaceTypeEnum;
 import br.com.portalmanager.platform.authorization.annotation.ResourceVisibility;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,17 +38,17 @@ public class FindAllWorkspacesUseCase {
     @ResourceVisibility
     @Transactional(readOnly = true)
     public List<WorkspaceOutput> execute(FindAllWorkspacesInput input) {
-        LifecycleType lifecycle = input != null && Boolean.FALSE.equals(input.active())
-                ? LifecycleType.INACTIVE
-                : LifecycleType.ACTIVE;
+        LifecycleTypeEnum lifecycle = input != null && Boolean.FALSE.equals(input.active())
+                ? LifecycleTypeEnum.INACTIVE
+                : LifecycleTypeEnum.ACTIVE;
 
         String normalizedType = normalizer.normalizeTypeFilter(input == null ? null : input.typeName());
         String normalizedTag = normalizer.normalizeTagFilter(input == null ? null : input.tagName());
         validator.validateTypeFilter(normalizedType);
 
-        WorkspaceType workspaceType = normalizedType == null
+        WorkspaceTypeEnum workspaceType = normalizedType == null
                 ? null
-                : WorkspaceType.valueOf(normalizedType);
+                : WorkspaceTypeEnum.valueOf(normalizedType);
 
         List<Workspace> workspaces;
         if (normalizedTag == null) {

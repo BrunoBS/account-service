@@ -6,7 +6,7 @@ import br.com.itau.portalmanager.workspace.core.workspace.repository.WorkspaceRe
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.WorkspaceOutput;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceNormalizer;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.WorkspaceType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.workspace.WorkspaceTypeEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +43,7 @@ public class CreateWorkspaceUseCase {
 
         LocalDateTime now = LocalDateTime.now();
         Workspace workspace = new Workspace(
-                WorkspaceType.valueOf(input.workspaceType()),
+                WorkspaceTypeEnum.valueOf(input.workspaceType()),
                 input.name(),
                 input.description(),
                 input.requester(),

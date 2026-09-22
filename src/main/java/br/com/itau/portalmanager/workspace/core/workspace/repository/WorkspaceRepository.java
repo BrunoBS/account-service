@@ -1,8 +1,8 @@
 package br.com.itau.portalmanager.workspace.core.workspace.repository;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.LifecycleType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.WorkspaceType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.lifecycle.LifecycleTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.workspace.WorkspaceTypeEnum;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,7 +21,7 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
     Optional<Workspace> findDetailedById(@Param("id") Long id);
 
     @EntityGraph(attributePaths = "approvers")
-    Optional<Workspace> findByIdAndLifecycle(Long id, LifecycleType lifecycle);
+    Optional<Workspace> findByIdAndLifecycle(Long id, LifecycleTypeEnum lifecycle);
 
     @EntityGraph(attributePaths = "approvers")
     @Query("""
@@ -32,8 +32,8 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
              order by w.id
             """)
     List<Workspace> findFiltered(
-            @Param("lifecycle") LifecycleType lifecycle,
-            @Param("workspaceType") WorkspaceType workspaceType
+            @Param("lifecycle") LifecycleTypeEnum lifecycle,
+            @Param("workspaceType") WorkspaceTypeEnum workspaceType
     );
 
     @EntityGraph(attributePaths = "approvers")
@@ -46,8 +46,8 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
              order by w.id
             """)
     List<Workspace> findFilteredByIdentifiers(
-            @Param("lifecycle") LifecycleType lifecycle,
-            @Param("workspaceType") WorkspaceType workspaceType,
+            @Param("lifecycle") LifecycleTypeEnum lifecycle,
+            @Param("workspaceType") WorkspaceTypeEnum workspaceType,
             @Param("identifiers") Collection<String> identifiers
     );
 

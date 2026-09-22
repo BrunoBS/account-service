@@ -7,7 +7,7 @@ import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.Workspac
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceFinder;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceNormalizer;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.WorkspaceType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.workspace.WorkspaceTypeEnum;
 import br.com.portalmanager.platform.messaging.exception.ResourceVersionConflictException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +53,7 @@ public class UpdateWorkspaceUseCase {
         }
 
         workspace.update(
-                WorkspaceType.valueOf(input.workspaceType()),
+                WorkspaceTypeEnum.valueOf(input.workspaceType()),
                 input.name(),
                 input.description(),
                 input.requester(),
