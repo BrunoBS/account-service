@@ -4,7 +4,8 @@ import br.com.itau.portalmanager.workspace.foundation.catalog.domain.feature.Fea
 import br.com.itau.portalmanager.workspace.foundation.catalog.domain.featurescope.FeatureScopeType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.repository.feature.FeatureTypeRepository;
 import br.com.itau.portalmanager.workspace.foundation.catalog.repository.featurescope.FeatureScopeTypeRepository;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.support.CatalogSettingsSchemaValidator;
+import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaDefaults;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.SchemaValidator;
 import br.com.portalmanager.platform.catalog.validation.BaseRelatedCatalogValidator;
 import br.com.portalmanager.platform.catalog.validation.CatalogValidationResult;
 import org.springframework.stereotype.Component;
@@ -14,12 +15,12 @@ public class FeatureTypeValidator extends BaseRelatedCatalogValidator<FeatureTyp
 
     private final FeatureTypeRepository repository;
     private final FeatureScopeTypeRepository scopeRepository;
-    private final CatalogSettingsSchemaValidator settingsValidator;
+    private final SchemaValidator settingsValidator;
 
     public FeatureTypeValidator(
             FeatureTypeRepository repository,
             FeatureScopeTypeRepository scopeRepository,
-            CatalogSettingsSchemaValidator settingsValidator) {
+            SchemaValidator settingsValidator) {
         super(repository);
         this.repository = repository;
         this.scopeRepository = scopeRepository;
@@ -28,7 +29,7 @@ public class FeatureTypeValidator extends BaseRelatedCatalogValidator<FeatureTyp
 
     @Override
     protected void validateSettings(FeatureTypeDTO dto, CatalogValidationResult result) {
-        settingsValidator.validate(dto.settings(), "settings", result);
+        settingsValidator.validateJson(SchemaDefaults.DEFAULT_JSON_SCHEMA, dto.settings(), "settings", result);
     }
 
     @Override protected Long relatedValue(FeatureTypeDTO dto) { return dto.featureScopeId(); }

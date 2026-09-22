@@ -1,16 +1,16 @@
 package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.onboarding;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.domain.onboarding.OnboardingPhase;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.support.CatalogSettingsSchemaValidator;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.SchemaValidator;
 import br.com.portalmanager.platform.catalog.mapper.BaseCatalogMapper;
 import org.springframework.stereotype.Component;
 
 @Component
 public class OnboardingPhaseMapper extends BaseCatalogMapper<OnboardingPhaseDTO, OnboardingPhase> {
 
-    private final CatalogSettingsSchemaValidator settingsValidator;
+    private final SchemaValidator settingsValidator;
 
-    public OnboardingPhaseMapper(CatalogSettingsSchemaValidator settingsValidator) {
+    public OnboardingPhaseMapper(SchemaValidator settingsValidator) {
         super(OnboardingPhase.class);
         this.settingsValidator = settingsValidator;
     }
