@@ -116,7 +116,28 @@ class GoldenArchitectureTest {
     }
 
     @Test
-    void typeCatalogModuleMustMatchDomainTypeName() {
+    void concreteCatalogModulesMustBeExplicitTypes() {
+        String prefix = ROOT + ".foundation.catalog.";
+
+        var invalidModules = classes.stream()
+                .map(JavaClass::getPackageName)
+                .filter(packageName -> packageName.startsWith(prefix))
+                .map(packageName -> packageName.substring(prefix.length()))
+                .map(relative -> relative.substring(0, relative.indexOf('.') < 0
+                        ? relative.length()
+                        : relative.indexOf('.')))
+                .filter(module -> !module.equals("support"))
+                .filter(module -> !module.endsWith("type"))
+                .distinct()
+                .toList();
+
+        assertThat(invalidModules)
+                .as("Concrete catalog modules must end with 'type'")
+                .isEmpty();
+    }
+
+    @Test
+    void typeDomainNameMustMatchCatalogModuleName() {
         String prefix = ROOT + ".foundation.catalog.";
 
         var invalidTypes = classes.stream()
@@ -133,7 +154,7 @@ class GoldenArchitectureTest {
                 .toList();
 
         assertThat(invalidTypes)
-                .as("Type catalogs must use foundation.catalog.<type-name-lowercase>.<layer>")
+                .as("Type domain names must match their catalog module names")
                 .isEmpty();
     }
 
