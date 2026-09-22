@@ -2,7 +2,6 @@ package br.com.itau.portalmanager.workspace.core.workspace.usecase.support;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
 import br.com.itau.portalmanager.workspace.core.workspace.domain.WorkspaceSystemTags;
-import br.com.itau.portalmanager.workspace.core.workspace.integration.tagging.WorkspaceTagSearchIntegration;
 import br.com.portalmanager.platform.tagging.TagManager;
 import br.com.portalmanager.platform.tagging.model.TagOwnerType;
 import org.springframework.stereotype.Component;
@@ -17,14 +16,9 @@ public class WorkspaceTaggingSupport {
     private static final TagOwnerType WORKSPACE_OWNER = () -> "WORKSPACE";
 
     private final TagManager tagManager;
-    private final WorkspaceTagSearchIntegration searchIntegration;
 
-    public WorkspaceTaggingSupport(
-            TagManager tagManager,
-            WorkspaceTagSearchIntegration searchIntegration
-    ) {
+    public WorkspaceTaggingSupport(TagManager tagManager) {
         this.tagManager = tagManager;
-        this.searchIntegration = searchIntegration;
     }
 
     public void reconcile(Workspace workspace, List<String> manualTags) {
@@ -45,6 +39,6 @@ public class WorkspaceTaggingSupport {
     }
 
     public List<String> findIdentifiersByTag(String normalizedTag) {
-        return searchIntegration.findOwnerIdsByTag(normalizedTag);
+        return tagManager.findOwnerIdsByTag(WORKSPACE_OWNER, normalizedTag);
     }
 }
