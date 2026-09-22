@@ -1,5 +1,6 @@
 package br.com.itau.portalmanager.workspace.core.workspace.usecase.support;
 
+import br.com.itau.portalmanager.workspace.core.workspace.domain.LifecycleTypeCode;
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
 import br.com.itau.portalmanager.workspace.core.workspace.domain.WorkspaceMessageKeys;
 import br.com.itau.portalmanager.workspace.core.workspace.repository.WorkspaceRepository;
@@ -17,12 +18,12 @@ public class WorkspaceFinder {
     }
 
     public Workspace findActive(Long id) {
-        return repository.findByIdAndLifecycleValue(id, "ACTIVE")
+        return repository.findByIdAndLifecycleValue(id, LifecycleTypeCode.active().value())
                 .orElseThrow(() -> new NotFoundException(WorkspaceMessageKeys.NOT_FOUND));
     }
 
     public Workspace findInactiveForRestore(Long id) {
-        return repository.findByIdAndLifecycleValue(id, "INACTIVE")
+        return repository.findByIdAndLifecycleValue(id, LifecycleTypeCode.inactive().value())
                 .orElseThrow(() -> new ValidationException(WorkspaceMessageKeys.RESTORE_INVALID));
     }
 }
