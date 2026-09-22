@@ -73,3 +73,10 @@ input/web/catalog/<catalogo>
 Onde a árvore de referência genérica sugerir `catalog/domain|usecase|repository`,
 este ADR especializa a estrutura interna de Catalog e prevalece para os catálogos
 concretos da Golden Reference.
+
+
+## Nomenclatura dos módulos
+
+A ordem catalog-first definida neste ADR é complementada pelo
+`ADR-008-CATALOG-TYPE-PACKAGE-NAMING.md`, que define a convenção de nomes dos
+módulos concretos de catálogo.

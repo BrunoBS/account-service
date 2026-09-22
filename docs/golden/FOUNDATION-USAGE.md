@@ -336,25 +336,30 @@ A estrutura da aplicação é:
 
 ```text
 foundation/catalog
-└── <catalogo>
+└── <catalogo-type>
     ├── domain
     ├── repository
     └── usecase
+```
 
-Quando a entidade principal é `*Type`, o nome do módulo inclui `type`:
+Quando a entidade principal é `*Type`, o nome do módulo corresponde ao nome completo
+da entidade em minúsculas:
 
 ```text
 ApplicationScopeType -> applicationscopetype
-FeatureType          -> featuretype
-SchemaType           -> schematype
-WorkspaceType        -> workspacetype
+FeatureType           -> featuretype
+SchemaType            -> schematype
+WorkspaceType         -> workspacetype
 ```
 
 Todo catálogo concreto termina em `type`. Assim, mesmo a entidade histórica
-`OnboardingPhase` pertence ao módulo `onboardingphasetype`.
+`OnboardingPhase` permanece no módulo já existente `onboardingphasetype`.
 
 Packages técnicos compartilhados, como `support`, permanecem fora dessa regra.
 
+Os controllers continuam independentes dessa convenção:
+
+```text
 input/web/catalog
 └── <catalogo>
 ```

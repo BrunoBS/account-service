@@ -2,47 +2,36 @@
 
 - **Status:** ACEITO
 - **Data:** 2026-09-22
-- **Escopo:** Golden Reference / `foundation.catalog`
+- **Escopo:** Golden Reference / application foundation macrozone
 
 ## Contexto
 
-A ordem interna de Catalog já é definida pelo ADR-007 como catalog-first:
+O ADR-007 definiu a organização catalog-first:
 
 ```text
-foundation/catalog/<catalogo>/
-├── domain
-├── repository
-└── usecase
+foundation/catalog/<catalogo>/{domain,repository,usecase}
 ```
 
-Os catálogos concretos da Golden usam majoritariamente entidades cujo nome termina em
-`Type`, como `ApplicationScopeType`, `FeatureType`, `LifecycleType` e
-`WorkspaceType`.
-
-Usar packages como `applicationscope`, `feature` ou `workspace` elimina do nome
-do módulo justamente a informação de que a responsabilidade é um catálogo de tipos.
+Os módulos de catálogo representam tipos administráveis. O nome do package deve tornar
+essa natureza explícita e evitar nomes ambíguos como `applicationscope`,
+`workspace` ou `lifecycle`.
 
 ## Decisão
 
-Todo **catálogo concreto** dentro de `foundation.catalog` deve ser nomeado como um
-`type`, portanto seu módulo deve terminar em `type`.
+Todo módulo concreto dentro de `foundation.catalog` deve terminar em `type`.
 
-Quando a entidade principal já termina em `Type`, o módulo usa o nome completo da
-entidade em lowercase, preservando o sufixo `type`.
-
-Exemplos:
+Quando a entidade principal já termina em `Type`, o nome do módulo deve corresponder
+ao nome completo da entidade em minúsculas:
 
 ```text
-ApplicationScopeType -> foundation.catalog.applicationscopetype
-AuthorizationType    -> foundation.catalog.authorizationtype
-FeatureScopeType     -> foundation.catalog.featurescopetype
-FeatureType          -> foundation.catalog.featuretype
-LifecycleType        -> foundation.catalog.lifecycletype
-SchemaType           -> foundation.catalog.schematype
-WorkspaceType        -> foundation.catalog.workspacetype
+ApplicationScopeType -> applicationscopetype
+AuthorizationType    -> authorizationtype
+FeatureScopeType     -> featurescopetype
+WorkspaceType        -> workspacetype
+SchemaType           -> schematype
 ```
 
-A estrutura completa permanece:
+A estrutura permanece catalog-first:
 
 ```text
 foundation/catalog/applicationscopetype/
@@ -51,40 +40,29 @@ foundation/catalog/applicationscopetype/
 └── usecase
 ```
 
-## Catálogos com nome histórico sem Type
-
-Mesmo quando o nome histórico da entidade principal não termina em `Type`, o módulo
-continua explicitando que se trata de um catálogo de tipos.
-
-Exemplo:
+Módulos que já atendem à convenção permanecem inalterados. Por exemplo:
 
 ```text
-OnboardingPhase -> foundation.catalog.onboardingphasetype
+SchemaType       -> schematype
+OnboardingPhase  -> onboardingphasetype
 ```
 
-Packages compartilhados que não representam um catálogo concreto permanecem naturais:
+A decisão não altera os packages HTTP:
 
 ```text
-foundation.catalog.support
+input/web/catalog/<catalogo>
 ```
 
-## Consequências
+Packages técnicos compartilhados, como `foundation.catalog.support`, não representam
+catálogos concretos e ficam fora dessa convenção.
 
-- packages antigos como `foundation.catalog.applicationscope`,
-  `foundation.catalog.feature` e `foundation.catalog.workspace` deixam de ser usados;
-- `schematype` permanece inalterado, pois já expressava corretamente a convenção;
-- `onboarding` passa a `onboardingphasetype`;
-- controllers Web não são renomeados por esta decisão; a regra é específica de
-  `foundation.catalog`;
-- fitness function deve falhar quando uma entidade de domínio `*Type` estiver em um
-  módulo cujo nome não corresponda ao nome completo da entidade em lowercase.
+## Proteção arquitetural
 
-## Relação com ADR-007
+A Golden mantém duas fitness functions complementares:
 
-O ADR-007 continua definindo a **ordem**:
+- `concreteCatalogModulesMustBeExplicitTypes`: todo módulo concreto termina em
+  `type`;
+- `typeDomainNameMustMatchCatalogModuleName`: quando a entidade é `*Type`, o módulo
+  corresponde ao nome completo da entidade em minúsculas.
 
-```text
-catalogo -> layer
-```
-
-Este ADR define a **nomenclatura do módulo do catálogo**.
+Essas regras devem falhar o build caso a nomenclatura volte a ficar ambígua.
