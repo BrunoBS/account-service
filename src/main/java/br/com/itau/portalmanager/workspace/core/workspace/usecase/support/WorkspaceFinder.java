@@ -3,7 +3,7 @@ package br.com.itau.portalmanager.workspace.core.workspace.usecase.support;
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
 import br.com.itau.portalmanager.workspace.core.workspace.domain.WorkspaceMessageKeys;
 import br.com.itau.portalmanager.workspace.core.workspace.repository.WorkspaceRepository;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.lifecycle.LifecycleTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycle.domain.LifecycleTypeEnum;
 import br.com.portalmanager.platform.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import org.springframework.stereotype.Component;
