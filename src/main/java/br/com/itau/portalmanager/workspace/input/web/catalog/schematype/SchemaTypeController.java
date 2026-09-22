@@ -1,0 +1,27 @@
+package br.com.itau.portalmanager.workspace.input.web.catalog.schematype;
+
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.schematype.SchemaType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.schematype.SchemaTypeService;
+import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.schematype.SchemaTypeDTO;
+import br.com.portalmanager.platform.catalog.web.BaseCatalogController;
+import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/v1/schema-type")
+@AuthorizationRequired(level = AuthorizationLevel.OWNER)
+public class SchemaTypeController extends BaseCatalogController<SchemaTypeDTO, SchemaType> {
+
+    private final SchemaTypeService service;
+
+    public SchemaTypeController(SchemaTypeService service) {
+        this.service = service;
+    }
+
+    @Override
+    protected SchemaTypeService getService() {
+        return service;
+    }
+}

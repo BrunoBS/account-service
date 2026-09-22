@@ -1,7 +1,7 @@
 package br.com.itau.portalmanager.workspace.core.workspace.domain;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.LifecycleType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.WorkspaceType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.lifecycle.LifecycleTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.workspace.WorkspaceTypeEnum;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,7 +38,7 @@ public class Workspace {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "workspace_type", nullable = false, length = 20)
-    private WorkspaceType workspaceType;
+    private WorkspaceTypeEnum workspaceType;
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
@@ -66,7 +66,7 @@ public class Workspace {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "lifecycle", nullable = false, length = 20)
-    private LifecycleType lifecycle;
+    private LifecycleTypeEnum lifecycle;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -81,7 +81,7 @@ public class Workspace {
     }
 
     public Workspace(
-            WorkspaceType workspaceType,
+            WorkspaceTypeEnum workspaceType,
             String name,
             String description,
             String requester,
@@ -100,13 +100,13 @@ public class Workspace {
         this.authorizerGroup = authorizerGroup;
         this.emailGroup = emailGroup;
         this.onboarding = false;
-        this.lifecycle = LifecycleType.ACTIVE;
+        this.lifecycle = LifecycleTypeEnum.ACTIVE;
         this.createdAt = now;
         this.updatedAt = now;
     }
 
     public void update(
-            WorkspaceType workspaceType,
+            WorkspaceTypeEnum workspaceType,
             String name,
             String description,
             String requester,
@@ -135,12 +135,12 @@ public class Workspace {
     }
 
     public void inactivate(LocalDateTime now) {
-        this.lifecycle = LifecycleType.INACTIVE;
+        this.lifecycle = LifecycleTypeEnum.INACTIVE;
         this.updatedAt = now;
     }
 
     public void restore(LocalDateTime now) {
-        this.lifecycle = LifecycleType.ACTIVE;
+        this.lifecycle = LifecycleTypeEnum.ACTIVE;
         this.updatedAt = now;
     }
 
@@ -152,7 +152,7 @@ public class Workspace {
     public Long getId() { return id; }
     public Long getVersion() { return version; }
     public String getIdentifier() { return identifier; }
-    public WorkspaceType getWorkspaceType() { return workspaceType; }
+    public WorkspaceTypeEnum getWorkspaceType() { return workspaceType; }
     public String getName() { return name; }
     public String getDescription() { return description; }
     public String getRequester() { return requester; }
@@ -161,7 +161,7 @@ public class Workspace {
     public String getAuthorizerGroup() { return authorizerGroup; }
     public String getEmailGroup() { return emailGroup; }
     public boolean isOnboarding() { return onboarding; }
-    public LifecycleType getLifecycle() { return lifecycle; }
+    public LifecycleTypeEnum getLifecycle() { return lifecycle; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 

@@ -7,6 +7,8 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Configuration;
@@ -23,11 +25,14 @@ class GoldenArchitectureTest {
 
     private static final String ROOT = "br.com.itau.portalmanager.workspace";
     private static final String FOUNDATION = ROOT + ".foundation..";
+    private static final String FOUNDATION_CATALOG = ROOT + ".foundation.catalog..";
     private static final String CORE = ROOT + ".core..";
     private static final String FEATURE = ROOT + ".feature..";
     private static final String INPUT = ROOT + ".input..";
     private static final Set<String> MODULE_LAYERS =
             Set.of("domain", "usecase", "repository", "integration");
+    private static final Set<String> FOUNDATION_CAPABILITY_LAYERS =
+            Set.of("domain", "usecase", "repository");
 
     private final com.tngtech.archunit.core.domain.JavaClasses classes =
             new ClassFileImporter()
@@ -77,6 +82,44 @@ class GoldenArchitectureTest {
         noClasses()
                 .that().resideInAnyPackage(FOUNDATION, CORE, FEATURE, INPUT)
                 .should().dependOnClassesThat().resideInAPackage(ROOT)
+                .check(classes);
+    }
+
+    @Test
+    void foundationCapabilitiesMustFollowApprovedInternalStructure() {
+        for (String capability : new String[]{"catalog", "schema"}) {
+            String prefix = ROOT + ".foundation." + capability + ".";
+
+            var invalidLayers = classes.stream()
+                    .map(JavaClass::getPackageName)
+                    .filter(packageName -> packageName.startsWith(prefix))
+                    .map(packageName -> packageName.substring(prefix.length()))
+                    .map(relative -> relative.substring(0, relative.indexOf('.') < 0
+                            ? relative.length()
+                            : relative.indexOf('.')))
+                    .filter(layer -> !FOUNDATION_CAPABILITY_LAYERS.contains(layer))
+                    .distinct()
+                    .toList();
+
+            assertThat(invalidLayers)
+                    .as("invalid internal layers for foundation." + capability)
+                    .isEmpty();
+        }
+    }
+
+    @Test
+    void restControllersMustResideInInput() {
+        classes()
+                .that().areAnnotatedWith(RestController.class)
+                .should().resideInAPackage(INPUT)
+                .check(classes);
+    }
+
+    @Test
+    void schemaMustNotDependOnCatalog() {
+        noClasses()
+                .that().resideInAPackage(ROOT + ".foundation.schema..")
+                .should().dependOnClassesThat().resideInAPackage(FOUNDATION_CATALOG)
                 .check(classes);
     }
 
@@ -131,6 +174,26 @@ class GoldenArchitectureTest {
                         ROOT + ".feature..integration.."
                 )
                 .check(classes);
+    }
+
+    @Test
+    void catalogControllersMustRequireOwnerAuthorization() {
+        String catalogWebPrefix = ROOT + ".input.web.catalog";
+
+        var catalogControllers = classes.stream()
+                .filter(javaClass -> javaClass.getPackageName().startsWith(catalogWebPrefix))
+                .filter(javaClass -> javaClass.isAnnotatedWith(RestController.class))
+                .toList();
+
+        assertThat(catalogControllers).isNotEmpty();
+        assertThat(catalogControllers).allSatisfy(javaClass -> {
+            assertThat(javaClass.isAnnotatedWith(AuthorizationRequired.class))
+                    .as(javaClass.getName() + " must declare @AuthorizationRequired")
+                    .isTrue();
+            assertThat(javaClass.getAnnotationOfType(AuthorizationRequired.class).level())
+                    .as(javaClass.getName() + " must require OWNER")
+                    .isEqualTo(AuthorizationLevel.OWNER);
+        });
     }
 
     @Test

@@ -29,7 +29,7 @@ class DatabaseUpgradeMigrationIT {
     private Flyway flyway;
 
     @Test
-    void shouldUpgradePopulatedV2SchemaToV3WithoutLosingWorkspaceData() {
+    void shouldUpgradePopulatedV2SchemaToLatestWithoutLosingWorkspaceData() {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
 
         assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("2");
@@ -74,6 +74,8 @@ class DatabaseUpgradeMigrationIT {
         assertThat(tableCount(jdbc, "account_approvers")).isZero();
         assertThat(tableCount(jdbc, "workspaces")).isEqualTo(1);
         assertThat(tableCount(jdbc, "workspace_approvers")).isEqualTo(1);
+        assertThat(tableCount(jdbc, "type_workspaces")).isEqualTo(1);
+        assertThat(tableCount(jdbc, "type_schema_scopes")).isEqualTo(1);
 
         assertThat(jdbc.queryForObject(
                 "select workspace_type from workspaces where id = 100",

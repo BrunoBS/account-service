@@ -148,7 +148,20 @@ Adicionar somente quando as mutações reais de Workspace forem implementadas.
 
 ### platform-catalog
 
-Usar somente para conceitos realmente administráveis. `WorkspaceType` permanece o principal candidato do slice.
+Dependência explícita a partir da migração dos catálogos legados:
+
+```xml
+<dependency>
+    <groupId>br.com.portalmanager.platform</groupId>
+    <artifactId>platform-catalog</artifactId>
+</dependency>
+```
+
+A Golden usa a capability como infraestrutura de CRUD de catálogo, sem copiar sua
+implementação e sem reintroduzir `platform-crud`.
+
+Os catálogos concretos pertencem à **application foundation macrozone** em
+`foundation/catalog`.
 
 ### platform-tagging
 
@@ -206,7 +219,9 @@ Conforme o slice aprovado, a Golden poderá declarar explicitamente:
 - Validation;
 - MySQL;
 - ferramenta de migrations aprovada;
-- dependências de teste específicas exigidas por persistência.
+- dependências de teste específicas exigidas por persistência;
+- `com.networknt:json-schema-validator:3.0.7`, necessária para preservar a validação
+  de `settings` dos catálogos migrados.
 
 Essas dependências entram porque o serviço precisa delas, não por transitividade implícita da Foundation.
 
@@ -308,9 +323,31 @@ O profile de teste geral desabilita audit; `WorkspaceAuditIT` habilita a auto-co
 
 ### Catalog
 
-`platform-catalog` foi avaliado na G4 e **não foi adicionado**.
+`platform-catalog` passou a ser capability efetivamente consumida.
 
-`WorkspaceType` continua sendo `ADMIN | MANAGER` explícito porque não existe requisito atual de criação/edição de tipos em runtime. Introduzir catálogo persistido agora criaria comportamento administrável não solicitado.
+Foram migrados 16 catálogos do `account-api`:
+
+- 12 usando `EnumCatalogService`;
+- `FeatureScopeType` usando `DynamicCatalogService`;
+- `FeatureType`, `SchemaType` e `OnboardingPhase` usando
+  `BaseCatalogService`.
+
+A estrutura da aplicação é:
+
+```text
+foundation/catalog
+├── domain
+├── usecase
+└── repository
+
+input/web/catalog
+└── <catalogo>
+```
+
+`AccountType` foi migrado conceitualmente para `WorkspaceType`.
+
+Os catálogos não foram movidos para `platform-libraries`; a lib fornece a capability,
+enquanto a Golden declara os catálogos concretos.
 
 ### Messaging e Logging
 
@@ -338,3 +375,40 @@ A busca reversa de tags continua encapsulada em
 de `TagManager` não oferece essa consulta, a integração conhece provisoriamente a tabela
 `tags`. Isso é dívida documentada do consumidor e não um gap aberto que autorize
 alteração da Golden Platform Foundation nesta atividade.
+
+
+## 15. Catalog -> Schema na Application Foundation
+
+A migração dos catálogos trouxe uma dependência funcional do legado: validação de
+`settings` com JSON Schema Draft 2020-12.
+
+A implementação foi organizada conforme a direção já definida na arquitetura:
+
+```text
+foundation.catalog
+        ↓
+foundation.schema
+```
+
+Componentes locais:
+
+```text
+foundation.schema.domain.SchemaDefaults
+foundation.schema.usecase.SchemaValidator
+foundation.catalog.usecase.support.CatalogSchemaValidationSupport
+```
+
+`SchemaValidator` não depende de Catalog.
+
+A dependência externa utilizada é:
+
+```text
+com.networknt:json-schema-validator:3.0.7
+```
+
+Ela permanece explicitamente no consumidor. Isso **não** constitui alteração da Golden
+Platform Foundation (`platform-build + platform-libraries`) e não autoriza promover a
+dependência para a Foundation da plataforma sem decisão própria.
+
+O review final da migração está documentado em
+`REVIEW-MIGRACAO-CATALOGOS-FOUNDATION.md`.

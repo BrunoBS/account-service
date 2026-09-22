@@ -166,7 +166,7 @@ class WorkspaceApiIT {
     @Test
     void shouldReturnValidationDetailsForInvalidPayload() {
         Map<String, Object> invalid = new LinkedHashMap<>();
-        invalid.put("workspaceType", "CATALOG");
+        invalid.put("workspaceType", "INVALID");
         invalid.put("name", " A ");
         invalid.put("description", " curta ");
         invalid.put("requester", " x ");
@@ -209,7 +209,7 @@ class WorkspaceApiIT {
 
     @Test
     void shouldRejectInvalidTypeFilter() {
-        get("/api/v1/workspaces?typeName=CATALOG")
+        get("/api/v1/workspaces?typeName=INVALID")
                 .statusCode(400)
                 .body("code", equalTo("GLOBAL-0001"))
                 .body("details.field", hasItem("typeName"));
