@@ -116,6 +116,28 @@ class GoldenArchitectureTest {
     }
 
     @Test
+    void typeCatalogModuleMustMatchDomainTypeName() {
+        String prefix = ROOT + ".foundation.catalog.";
+
+        var invalidTypes = classes.stream()
+                .filter(javaClass -> javaClass.getPackageName().startsWith(prefix))
+                .filter(javaClass -> javaClass.getPackageName().contains(".domain"))
+                .filter(javaClass -> javaClass.getSimpleName().endsWith("Type"))
+                .filter(javaClass -> {
+                    String relative = javaClass.getPackageName().substring(prefix.length());
+                    String module = relative.substring(0, relative.indexOf('.'));
+                    String expected = javaClass.getSimpleName().toLowerCase(java.util.Locale.ROOT);
+                    return !module.equals(expected);
+                })
+                .map(JavaClass::getName)
+                .toList();
+
+        assertThat(invalidTypes)
+                .as("Type catalogs must use foundation.catalog.<type-name-lowercase>.<layer>")
+                .isEmpty();
+    }
+
+    @Test
     void schemaMustFollowApprovedInternalStructure() {
         String prefix = ROOT + ".foundation.schema.";
 
