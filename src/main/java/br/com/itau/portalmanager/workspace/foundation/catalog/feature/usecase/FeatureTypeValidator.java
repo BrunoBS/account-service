@@ -1,10 +1,10 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.feature;
+package br.com.itau.portalmanager.workspace.foundation.catalog.feature.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.feature.FeatureType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.featurescope.FeatureScopeType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.repository.feature.FeatureTypeRepository;
-import br.com.itau.portalmanager.workspace.foundation.catalog.repository.featurescope.FeatureScopeTypeRepository;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.support.CatalogSchemaValidationSupport;
+import br.com.itau.portalmanager.workspace.foundation.catalog.feature.domain.FeatureType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.featurescope.domain.FeatureScopeType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.feature.repository.FeatureTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.featurescope.repository.FeatureScopeTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.validation.BaseRelatedCatalogValidator;
 import br.com.portalmanager.platform.catalog.validation.CatalogValidationResult;
 import org.springframework.stereotype.Component;

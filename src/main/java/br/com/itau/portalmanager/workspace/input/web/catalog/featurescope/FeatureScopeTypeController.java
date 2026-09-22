@@ -1,7 +1,7 @@
 package br.com.itau.portalmanager.workspace.input.web.catalog.featurescope;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.featurescope.FeatureScopeType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.featurescope.FeatureScopeTypeService;
+import br.com.itau.portalmanager.workspace.foundation.catalog.featurescope.domain.FeatureScopeType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.featurescope.usecase.FeatureScopeTypeService;
 import br.com.portalmanager.platform.catalog.web.CatalogController;
 import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;

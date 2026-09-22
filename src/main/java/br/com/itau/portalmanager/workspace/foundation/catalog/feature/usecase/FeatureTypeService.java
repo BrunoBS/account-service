@@ -1,9 +1,9 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.feature;
+package br.com.itau.portalmanager.workspace.foundation.catalog.feature.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.feature.FeatureType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.featurescope.FeatureScopeType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.repository.feature.FeatureTypeRepository;
-import br.com.itau.portalmanager.workspace.foundation.catalog.repository.featurescope.FeatureScopeTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.feature.domain.FeatureType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.featurescope.domain.FeatureScopeType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.feature.repository.FeatureTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.featurescope.repository.FeatureScopeTypeRepository;
 import br.com.portalmanager.platform.catalog.message.CatalogMessageKeys;
 import br.com.portalmanager.platform.catalog.service.BaseCatalogService;
 import br.com.portalmanager.platform.messaging.exception.NotFoundException;

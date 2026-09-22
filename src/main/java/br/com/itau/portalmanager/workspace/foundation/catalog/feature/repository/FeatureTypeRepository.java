@@ -1,6 +1,6 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.repository.feature;
+package br.com.itau.portalmanager.workspace.foundation.catalog.feature.repository;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.feature.FeatureType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.feature.domain.FeatureType;
 import br.com.portalmanager.platform.catalog.repository.BaseCatalogRepository;
 import org.springframework.stereotype.Repository;
 
