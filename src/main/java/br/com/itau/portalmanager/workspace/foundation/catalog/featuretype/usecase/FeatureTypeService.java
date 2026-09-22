@@ -30,6 +30,6 @@ public class FeatureTypeService extends EnumCatalogService<FeatureType, FeatureT
     }
 
     public List<FeatureType> findActiveByNames(List<String> names) {
-        return repository.findByNameInAndActiveTrue(names);
+        return repository.findByCodeInAndActiveTrue(names);
     }
 }

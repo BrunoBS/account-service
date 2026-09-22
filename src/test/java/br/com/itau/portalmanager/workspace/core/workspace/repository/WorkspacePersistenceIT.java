@@ -2,12 +2,13 @@ package br.com.itau.portalmanager.workspace.core.workspace.repository;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
+import br.com.itau.portalmanager.workspace.core.workspace.domain.WorkspaceTypeCode;
 import br.com.portalmanager.platform.testing.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.testing.annotation.WithMySql;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.RollbackException;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
@@ -21,10 +22,24 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class WorkspacePersistenceIT {
 
     @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
     private WorkspaceRepository workspaceRepository;
 
     @Autowired
     private EntityManagerFactory entityManagerFactory;
+
+    @org.junit.jupiter.api.BeforeEach
+    void seedWorkspaceTypeCatalog() {
+        seedWorkspaceTypes();
+    }
+
+    private void seedWorkspaceTypes() {
+        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')");
+        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('MANAGER', 'Manager', 'Management workspace', 2, true, '{}')");
+        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('CATALOG', 'Catalog', 'Catalog workspace', 3, true, '{}')");
+    }
 
     @Test
     void shouldPersistWorkspaceWithApproversAndDefaultLifecycle() {
@@ -36,7 +51,7 @@ class WorkspacePersistenceIT {
 
         assertThat(reloaded.getIdentifier()).hasSize(36);
         assertThat(reloaded.getVersion()).isNotNull();
-        assertThat(reloaded.getWorkspaceType()).isEqualTo(WorkspaceTypeEnum.ADMIN);
+        assertThat(reloaded.getWorkspaceType()).isEqualTo(WorkspaceTypeCode.of("ADMIN"));
         assertThat(reloaded.getLifecycle()).isEqualTo(LifecycleTypeEnum.ACTIVE);
         assertThat(reloaded.isOnboarding()).isFalse();
         assertThat(reloaded.getApprovers()).singleElement().satisfies(approver -> {
@@ -93,7 +108,7 @@ class WorkspacePersistenceIT {
 
     private Workspace newWorkspace(String name, String description) {
         return new Workspace(
-                WorkspaceTypeEnum.ADMIN,
+                WorkspaceTypeCode.of("ADMIN"),
                 name,
                 description,
                 "requester",

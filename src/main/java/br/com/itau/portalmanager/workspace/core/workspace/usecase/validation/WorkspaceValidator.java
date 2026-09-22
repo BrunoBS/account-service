@@ -1,7 +1,8 @@
 package br.com.itau.portalmanager.workspace.core.workspace.usecase.validation;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.WorkspaceMessageKeys;
-import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
+import br.com.itau.portalmanager.workspace.core.workspace.domain.WorkspaceTypeCode;
+import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.repository.WorkspaceTypeRepository;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;
@@ -12,8 +13,14 @@ import java.util.regex.Pattern;
 @Component
 public class WorkspaceValidator {
 
+    private final WorkspaceTypeRepository workspaceTypeRepository;
+
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+
+    public WorkspaceValidator(WorkspaceTypeRepository workspaceTypeRepository) {
+        this.workspaceTypeRepository = workspaceTypeRepository;
+    }
 
     public void validateForCreate(WorkspaceValidationData data, boolean nameDuplicate) {
         ValidationResult result = new ValidationResult();
@@ -126,16 +133,8 @@ public class WorkspaceValidator {
     }
 
     private boolean isValidWorkspaceType(String value) {
-        if (value == null) {
-            return false;
-        }
-
-        try {
-            WorkspaceTypeEnum.valueOf(value);
-            return true;
-        } catch (IllegalArgumentException exception) {
-            return false;
-        }
+        return WorkspaceTypeCode.isValidFormat(value)
+                && workspaceTypeRepository.findByCodeAndActiveTrue(value).isPresent();
     }
 
     private boolean isEmail(String value) {

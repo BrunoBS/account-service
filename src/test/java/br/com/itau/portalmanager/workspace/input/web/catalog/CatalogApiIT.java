@@ -18,7 +18,6 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.notNullValue;
 
 @PlatformIntegrationTest
 @WithMySql
@@ -40,7 +39,6 @@ class CatalogApiIT {
     @Test
     void shouldExposeCompleteCrudForStandardAndDynamicCatalogs() {
         List<CatalogCase> catalogs = List.of(
-                new CatalogCase("/api/v1/workspace-type", "ADMIN"),
                 new CatalogCase("/api/v1/application-scope-type", "BACKEND"),
                 new CatalogCase("/api/v1/authorization-type", "DEV"),
                 new CatalogCase("/api/v1/environment-type", "DEFAULT"),
@@ -61,42 +59,40 @@ class CatalogApiIT {
         int order = 1;
         for (CatalogCase catalog : catalogs) {
             Map<String, Object> create = standardBody(
-                    catalog.name(),
-                    catalog.name() + " label",
-                    "Descrição válida de " + catalog.name(),
+                    catalog.code(),
+                    catalog.code() + " label",
+                    "Descrição válida de " + catalog.code(),
                     order++
             );
 
-            Integer id = post(catalog.path(), create)
+            String code = post(catalog.path(), create)
                     .statusCode(201)
-                    .body("id", notNullValue())
-                    .body("name", equalTo(catalog.name()))
+                    .body("code", equalTo(catalog.code()))
                     .extract()
-                    .path("id");
+                    .path("code");
 
-            get(catalog.path() + "/" + id)
+            get(catalog.path() + "/" + code)
                     .statusCode(200)
-                    .body("id", equalTo(id))
-                    .body("name", equalTo(catalog.name()));
+                    .body("code", equalTo(code));
 
             Map<String, Object> update = standardBody(
-                    catalog.name(),
-                    catalog.name() + " atualizado",
-                    "Descrição atualizada de " + catalog.name(),
+                    catalog.code(),
+                    catalog.code() + " atualizado",
+                    "Descrição atualizada de " + catalog.code(),
                     order++
             );
 
-            put(catalog.path() + "/" + id, update)
+            put(catalog.path() + "/" + code, update)
                     .statusCode(200)
-                    .body("id", equalTo(id))
-                    .body("label", equalTo(catalog.name() + " atualizado"));
+                    .body("code", equalTo(code))
+                    .body("label", equalTo(catalog.code() + " atualizado"));
 
-            delete(catalog.path() + "/" + id).statusCode(204);
+            delete(catalog.path() + "/" + code).statusCode(204);
 
-            post(catalog.path() + "/" + id + "/restore")
+            post(catalog.path() + "/" + code + "/restore")
                     .statusCode(200)
-                    .body("id", equalTo(id))
-                    .body("name", equalTo(catalog.name()));
+                    .body("code", equalTo(code))
+                    .body("code", equalTo(catalog.code()));
         }
     }
 
@@ -110,13 +106,14 @@ class CatalogApiIT {
         );
         schema.put("settings", Map.of("scopes", "WORKSPACE"));
 
-        Integer schemaId = post("/api/v1/schema-type", schema)
+        String schemaCode = post("/api/v1/schema-type", schema)
                 .statusCode(201)
+                .body("code", equalTo("APPLICATION"))
                 .body("settings.scopes", equalTo("WORKSPACE"))
                 .extract()
-                .path("id");
+                .path("code");
 
-        get("/api/v1/schema-type/" + schemaId)
+        get("/api/v1/schema-type/" + schemaCode)
                 .statusCode(200)
                 .body("settings.scopes", equalTo("WORKSPACE"));
 
@@ -156,7 +153,7 @@ class CatalogApiIT {
                 standardBody("UNKNOWN", "Unknown", "Descrição válida de tipo desconhecido", 1)
         )
                 .statusCode(400)
-                .body("details.field", hasItem("name"));
+                .body("details.field", hasItem("code"));
 
         Map<String, Object> invalidSettings = standardBody(
                 "MANAGER",
@@ -177,21 +174,21 @@ class CatalogApiIT {
         authorizationMock.allow(session -> session.groups("USER"));
 
         post(
-                "/api/v1/workspace-type",
-                standardBody("CATALOG", "Catalog", "Descrição válida de catalog", 1)
+                "/api/v1/application-scope-type",
+                standardBody("BACKEND", "Backend", "Descrição válida de backend", 1)
         ).statusCode(201);
 
         authorizationMock.verifyCalledWithPolicy("OWNER");
     }
 
     private Map<String, Object> standardBody(
-            String name,
+            String code,
             String label,
             String description,
             Integer sortOrder
     ) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("name", name);
+        body.put("code", code);
         body.put("label", label);
         body.put("description", description);
         body.put("sortOrder", sortOrder);
@@ -243,6 +240,6 @@ class CatalogApiIT {
                 .accept(ContentType.JSON);
     }
 
-    private record CatalogCase(String path, String name) {
+    private record CatalogCase(String path, String code) {
     }
 }

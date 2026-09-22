@@ -7,6 +7,7 @@ import br.com.portalmanager.platform.testing.authorization.AuthorizationMock;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
@@ -27,10 +28,14 @@ class WorkspaceAuthorizationIT {
     private int port;
 
     @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
     private AuthorizationMock authorizationMock;
 
     @BeforeEach
     void resetAsOwner() {
+        seedWorkspaceTypes();
         allowOwner();
     }
 
@@ -157,4 +162,10 @@ class WorkspaceAuthorizationIT {
                 .header("Authorization", "Bearer authorization-it")
                 .accept(ContentType.JSON);
     }
+    private void seedWorkspaceTypes() {
+        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')");
+        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('MANAGER', 'Manager', 'Management workspace', 2, true, '{}')");
+        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('CATALOG', 'Catalog', 'Catalog workspace', 3, true, '{}')");
+    }
+
 }

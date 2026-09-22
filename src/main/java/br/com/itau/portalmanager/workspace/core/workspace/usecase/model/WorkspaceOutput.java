@@ -2,7 +2,6 @@ package br.com.itau.portalmanager.workspace.core.workspace.usecase.model;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
 import br.com.portalmanager.platform.authorization.resource.AuthorizableResource;
 
 import java.time.LocalDateTime;
@@ -13,7 +12,7 @@ public record WorkspaceOutput(
         Long id,
         Long version,
         String identifier,
-        WorkspaceTypeEnum workspaceType,
+        String workspaceType,
         String name,
         String description,
         String requester,
@@ -40,7 +39,7 @@ public record WorkspaceOutput(
                 workspace.getId(),
                 workspace.getVersion(),
                 workspace.getIdentifier(),
-                workspace.getWorkspaceType(),
+                workspace.getWorkspaceType().value(),
                 workspace.getName(),
                 workspace.getDescription(),
                 workspace.getRequester(),

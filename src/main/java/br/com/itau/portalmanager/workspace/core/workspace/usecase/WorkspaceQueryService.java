@@ -9,7 +9,6 @@ import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.Worksp
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
 import br.com.portalmanager.platform.authorization.annotation.ResourceVisibility;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,19 +57,17 @@ public class WorkspaceQueryService {
         String normalizedTag = normalizer.normalizeTagFilter(input == null ? null : input.tagName());
         validator.validateTypeFilter(normalizedType);
 
-        WorkspaceTypeEnum workspaceType = normalizedType == null
-                ? null
-                : WorkspaceTypeEnum.valueOf(normalizedType);
+        String workspaceTypeCode = normalizedType;
 
         List<Workspace> workspaces;
         if (normalizedTag == null) {
-            workspaces = repository.findFiltered(lifecycle, workspaceType);
+            workspaces = repository.findFiltered(lifecycle, workspaceTypeCode);
         } else {
             List<String> identifiers = taggingSupport.findIdentifiersByTag(normalizedTag);
             if (identifiers.isEmpty()) {
                 return List.of();
             }
-            workspaces = repository.findFilteredByIdentifiers(lifecycle, workspaceType, identifiers);
+            workspaces = repository.findFilteredByIdentifiers(lifecycle, workspaceTypeCode, identifiers);
         }
 
         Map<String, List<String>> manualTags = taggingSupport.findManualByIdentifiers(

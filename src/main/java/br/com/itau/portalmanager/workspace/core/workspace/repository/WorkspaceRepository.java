@@ -2,7 +2,6 @@ package br.com.itau.portalmanager.workspace.core.workspace.repository;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,12 +27,12 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
             select distinct w
               from Workspace w
              where w.lifecycle = :lifecycle
-               and (:workspaceType is null or w.workspaceType = :workspaceType)
+               and (:workspaceTypeCode is null or w.workspaceType.value = :workspaceTypeCode)
              order by w.id
             """)
     List<Workspace> findFiltered(
             @Param("lifecycle") LifecycleTypeEnum lifecycle,
-            @Param("workspaceType") WorkspaceTypeEnum workspaceType
+            @Param("workspaceTypeCode") String workspaceTypeCode
     );
 
     @EntityGraph(attributePaths = "approvers")
@@ -41,13 +40,13 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
             select distinct w
               from Workspace w
              where w.lifecycle = :lifecycle
-               and (:workspaceType is null or w.workspaceType = :workspaceType)
+               and (:workspaceTypeCode is null or w.workspaceType.value = :workspaceTypeCode)
                and w.identifier in :identifiers
              order by w.id
             """)
     List<Workspace> findFilteredByIdentifiers(
             @Param("lifecycle") LifecycleTypeEnum lifecycle,
-            @Param("workspaceType") WorkspaceTypeEnum workspaceType,
+            @Param("workspaceTypeCode") String workspaceTypeCode,
             @Param("identifiers") Collection<String> identifiers
     );
 

@@ -29,7 +29,7 @@ public record WorkspaceResponse(
                 output.id(),
                 output.version(),
                 output.identifier(),
-                output.workspaceType().name(),
+                output.workspaceType(),
                 output.name(),
                 output.description(),
                 output.requester(),

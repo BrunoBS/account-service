@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -41,6 +42,9 @@ class WorkspaceAuditIT {
     @Autowired
     private CapturingAuditPublisher auditPublisher;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @DynamicPropertySource
     static void auditProperties(DynamicPropertyRegistry registry) {
         registry.add("platform.audit.enabled", () -> true);
@@ -49,6 +53,7 @@ class WorkspaceAuditIT {
 
     @BeforeEach
     void setUp() {
+        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')");
         authorizationMock.reset();
         authorizationMock.allow(session -> session
                 .groups("PM5_OWNER")
