@@ -1,5 +1,6 @@
 package br.com.itau.portalmanager.workspace.core.workspace.usecase;
 
+import br.com.itau.portalmanager.workspace.core.workspace.domain.LifecycleTypeCode;
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
 import br.com.itau.portalmanager.workspace.core.workspace.repository.WorkspaceRepository;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
@@ -49,8 +50,8 @@ public class WorkspaceQueryService {
     @Transactional(readOnly = true)
     public List<WorkspaceOutput> findAll(FindAllWorkspacesInput input) {
         String lifecycleCode = input != null && Boolean.FALSE.equals(input.active())
-                ? "INACTIVE"
-                : "ACTIVE";
+                ? LifecycleTypeCode.inactive().value()
+                : LifecycleTypeCode.active().value();
 
         String normalizedType = normalizer.normalizeTypeFilter(input == null ? null : input.typeName());
         String normalizedTag = normalizer.normalizeTagFilter(input == null ? null : input.tagName());
