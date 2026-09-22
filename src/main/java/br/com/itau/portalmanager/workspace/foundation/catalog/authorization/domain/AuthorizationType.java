@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.domain.authorization;
+package br.com.itau.portalmanager.workspace.foundation.catalog.authorization.domain;
 
 import br.com.portalmanager.platform.catalog.model.BaseCatalogEntity;
 import jakarta.persistence.Entity;

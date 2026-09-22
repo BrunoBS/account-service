@@ -1,6 +1,6 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.repository.environment;
+package br.com.itau.portalmanager.workspace.foundation.catalog.environment.repository;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.environment.EnvironmentType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.environment.domain.EnvironmentType;
 import br.com.portalmanager.platform.catalog.repository.BaseCatalogRepository;
 import org.springframework.stereotype.Repository;
 
