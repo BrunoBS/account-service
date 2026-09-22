@@ -31,15 +31,15 @@ br.com.itau.portalmanager.workspace
 ├── WorkspaceMessagingConfiguration        # wiring técnico do consumidor
 ├── foundation
 │   ├── catalog
-│   │   ├── workspace
+│   │   ├── workspacetype
 │   │   │   ├── domain
 │   │   │   ├── repository
 │   │   │   └── usecase
-│   │   ├── lifecycle
+│   │   ├── lifecycletype
 │   │   │   ├── domain
 │   │   │   ├── repository
 │   │   │   └── usecase
-│   │   └── <catalogo>
+│   │   └── <catalog-type>
 │   │       ├── domain
 │   │       ├── repository
 │   │       └── usecase
@@ -83,6 +83,18 @@ A validação de `settings` utiliza
 ser reavaliada quando a capability Schema for consolidada integralmente.
 
 Não existe dependência de `platform-crud`.
+
+Para catálogos cuja entidade principal termina em `Type`, o módulo em
+`foundation.catalog` preserva esse sufixo no package. Exemplos:
+
+```text
+ApplicationScopeType -> foundation.catalog.applicationscopetype
+WorkspaceType        -> foundation.catalog.workspacetype
+SchemaType           -> foundation.catalog.schematype
+```
+
+Catálogos cuja entidade principal não é `*Type` não recebem o sufixo artificialmente,
+como `OnboardingPhase -> foundation.catalog.onboarding`.
 
 ## Foundation remota
 

@@ -341,6 +341,18 @@ foundation/catalog
     ├── repository
     └── usecase
 
+Quando a entidade principal é `*Type`, o nome do módulo inclui `type`:
+
+```text
+ApplicationScopeType -> applicationscopetype
+FeatureType          -> featuretype
+SchemaType           -> schematype
+WorkspaceType        -> workspacetype
+```
+
+Entidades que não são `*Type` mantêm o nome natural do catálogo, por exemplo
+`OnboardingPhase -> onboarding`.
+
 input/web/catalog
 └── <catalogo>
 ```
