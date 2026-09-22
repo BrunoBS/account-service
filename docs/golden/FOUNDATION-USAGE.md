@@ -350,8 +350,10 @@ SchemaType           -> schematype
 WorkspaceType        -> workspacetype
 ```
 
-Entidades que não são `*Type` mantêm o nome natural do catálogo, por exemplo
-`OnboardingPhase -> onboarding`.
+Todo catálogo concreto termina em `type`. Assim, mesmo a entidade histórica
+`OnboardingPhase` pertence ao módulo `onboardingphasetype`.
+
+Packages técnicos compartilhados, como `support`, permanecem fora dessa regra.
 
 input/web/catalog
 └── <catalogo>

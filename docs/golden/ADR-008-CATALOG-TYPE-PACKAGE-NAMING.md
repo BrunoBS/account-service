@@ -51,17 +51,16 @@ foundation/catalog/applicationscopetype/
 
 ## Exceções
 
-A regra não adiciona `type` artificialmente a catálogos cuja entidade principal não
-termina em `Type`.
+Todos os módulos concretos de catálogo terminam em `type`, inclusive quando o nome
+histórico da entidade principal não termina em `Type`.
 
 Exemplo:
 
 ```text
-OnboardingPhase -> foundation.catalog.onboarding
+OnboardingPhase -> foundation.catalog.onboardingphasetype
 ```
 
-Packages compartilhados que não representam um catálogo concreto também permanecem
-naturais:
+Packages compartilhados que não representam um catálogo concreto permanecem naturais:
 
 ```text
 foundation.catalog.support
@@ -72,6 +71,7 @@ foundation.catalog.support
 - packages antigos como `foundation.catalog.applicationscope`,
   `foundation.catalog.feature` e `foundation.catalog.workspace` deixam de ser usados;
 - `schematype` permanece inalterado, pois já expressava corretamente a convenção;
+- `onboarding` passa a `onboardingphasetype`;
 - controllers Web não são renomeados por esta decisão; a regra é específica de
   `foundation.catalog`;
 - fitness function deve falhar quando uma entidade de domínio `*Type` estiver em um

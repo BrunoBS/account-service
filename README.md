@@ -93,8 +93,12 @@ WorkspaceType        -> foundation.catalog.workspacetype
 SchemaType           -> foundation.catalog.schematype
 ```
 
-Catálogos cuja entidade principal não é `*Type` não recebem o sufixo artificialmente,
-como `OnboardingPhase -> foundation.catalog.onboarding`.
+Todos os módulos concretos de catálogo terminam em `type`. Mesmo quando o nome
+histórico da entidade não termina em `Type`, o módulo explicita a natureza catalogar.
+Exemplo: `OnboardingPhase -> foundation.catalog.onboardingphasetype`.
+
+Packages técnicos compartilhados, como `foundation.catalog.support`, não representam
+catálogos concretos e não seguem essa convenção.
 
 ## Foundation remota
 
