@@ -31,7 +31,7 @@ class GoldenArchitectureTest {
     private static final String INPUT = ROOT + ".input..";
     private static final Set<String> MODULE_LAYERS =
             Set.of("domain", "usecase", "repository", "integration");
-    private static final Set<String> CATALOG_LAYERS =
+    private static final Set<String> FOUNDATION_CAPABILITY_LAYERS =
             Set.of("domain", "usecase", "repository");
 
     private final com.tngtech.archunit.core.domain.JavaClasses classes =
@@ -86,21 +86,25 @@ class GoldenArchitectureTest {
     }
 
     @Test
-    void foundationCatalogMustFollowApprovedInternalStructure() {
-        String prefix = ROOT + ".foundation.catalog.";
+    void foundationCapabilitiesMustFollowApprovedInternalStructure() {
+        for (String capability : new String[]{"catalog", "schema"}) {
+            String prefix = ROOT + ".foundation." + capability + ".";
 
-        var invalidLayers = classes.stream()
-                .map(JavaClass::getPackageName)
-                .filter(packageName -> packageName.startsWith(prefix))
-                .map(packageName -> packageName.substring(prefix.length()))
-                .map(relative -> relative.substring(0, relative.indexOf('.') < 0
-                        ? relative.length()
-                        : relative.indexOf('.')))
-                .filter(layer -> !CATALOG_LAYERS.contains(layer))
-                .distinct()
-                .toList();
+            var invalidLayers = classes.stream()
+                    .map(JavaClass::getPackageName)
+                    .filter(packageName -> packageName.startsWith(prefix))
+                    .map(packageName -> packageName.substring(prefix.length()))
+                    .map(relative -> relative.substring(0, relative.indexOf('.') < 0
+                            ? relative.length()
+                            : relative.indexOf('.')))
+                    .filter(layer -> !FOUNDATION_CAPABILITY_LAYERS.contains(layer))
+                    .distinct()
+                    .toList();
 
-        assertThat(invalidLayers).isEmpty();
+            assertThat(invalidLayers)
+                    .as("invalid internal layers for foundation." + capability)
+                    .isEmpty();
+        }
     }
 
     @Test
