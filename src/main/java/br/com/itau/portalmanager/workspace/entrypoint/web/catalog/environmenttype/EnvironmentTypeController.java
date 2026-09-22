@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.environment;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.environmenttype;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.environmenttype.domain.EnvironmentType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.environmenttype.usecase.EnvironmentTypeService;

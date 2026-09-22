@@ -1,7 +1,7 @@
-package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.language;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.featuretype;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.languagetype.domain.LanguageType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.languagetype.usecase.LanguageTypeService;
+import br.com.itau.portalmanager.workspace.foundation.catalog.featuretype.domain.FeatureType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.featuretype.usecase.FeatureTypeService;
 import br.com.portalmanager.platform.catalog.web.CatalogController;
 import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;
@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/language-type")
+@RequestMapping("/api/v1/feature-type")
 @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-public class LanguageTypeController extends CatalogController<LanguageType> {
+public class FeatureTypeController extends CatalogController<FeatureType> {
 
-    public LanguageTypeController(LanguageTypeService service) {
+    public FeatureTypeController(FeatureTypeService service) {
         super(service);
     }
 }

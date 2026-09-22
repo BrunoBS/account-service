@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.infrastructure;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.infrastructuretype;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.infrastructuretype.domain.InfrastructureType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.infrastructuretype.usecase.InfrastructureTypeService;
