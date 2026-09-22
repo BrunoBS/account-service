@@ -1,11 +1,8 @@
-package br.com.itau.portalmanager.workspace.core.workspace.usecase.update;
-
-import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.ApproverInput;
+package br.com.itau.portalmanager.workspace.core.workspace.usecase.model;
 
 import java.util.List;
 
-public record UpdateWorkspaceInput(
-        Long version,
+public record CreateWorkspaceInput(
         String workspaceType,
         String name,
         String description,

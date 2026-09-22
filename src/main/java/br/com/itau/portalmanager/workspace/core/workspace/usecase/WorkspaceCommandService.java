@@ -1,22 +1,25 @@
-package br.com.itau.portalmanager.workspace.core.workspace.usecase.update;
+package br.com.itau.portalmanager.workspace.core.workspace.usecase;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
-import br.com.itau.portalmanager.workspace.core.workspace.domain.validation.WorkspaceValidator;
 import br.com.itau.portalmanager.workspace.core.workspace.repository.WorkspaceRepository;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.WorkspaceOutput;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceFinder;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceNormalizer;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
 import br.com.portalmanager.platform.messaging.exception.ResourceVersionConflictException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 @Service
-public class UpdateWorkspaceUseCase {
+public class WorkspaceCommandService {
 
     private final WorkspaceRepository repository;
     private final WorkspaceFinder finder;
@@ -24,7 +27,7 @@ public class UpdateWorkspaceUseCase {
     private final WorkspaceValidator validator;
     private final WorkspaceTaggingSupport taggingSupport;
 
-    public UpdateWorkspaceUseCase(
+    public WorkspaceCommandService(
             WorkspaceRepository repository,
             WorkspaceFinder finder,
             WorkspaceNormalizer normalizer,
@@ -39,7 +42,38 @@ public class UpdateWorkspaceUseCase {
     }
 
     @Transactional
-    public WorkspaceOutput execute(Long id, UpdateWorkspaceInput rawInput) {
+    public WorkspaceOutput create(CreateWorkspaceInput rawInput) {
+        CreateWorkspaceInput input = normalizer.normalize(rawInput);
+        boolean nameDuplicate = input != null
+                && input.name() != null
+                && repository.existsByName(input.name());
+
+        validator.validateForCreate(normalizer.toValidationData(input), nameDuplicate);
+
+        LocalDateTime now = LocalDateTime.now();
+        Workspace workspace = new Workspace(
+                WorkspaceTypeEnum.valueOf(input.workspaceType()),
+                input.name(),
+                input.description(),
+                input.requester(),
+                input.acronym(),
+                input.settings(),
+                input.authorizerGroup(),
+                input.emailGroup(),
+                now
+        );
+
+        input.approvers().forEach(
+                approver -> workspace.addApprover(approver.functional(), approver.email())
+        );
+
+        Workspace saved = repository.saveAndFlush(workspace);
+        taggingSupport.reconcile(saved, input.tags());
+        return WorkspaceOutput.from(saved, taggingSupport.findManual(saved));
+    }
+
+    @Transactional
+    public WorkspaceOutput update(Long id, UpdateWorkspaceInput rawInput) {
         Workspace workspace = finder.findActive(id);
         UpdateWorkspaceInput input = normalizer.normalize(rawInput);
         boolean nameDuplicate = input != null
@@ -70,6 +104,24 @@ public class UpdateWorkspaceUseCase {
 
         Workspace saved = repository.saveAndFlush(workspace);
         taggingSupport.reconcile(saved, input.tags());
+        return WorkspaceOutput.from(saved, taggingSupport.findManual(saved));
+    }
+
+    @Transactional
+    public void inactivate(Long id) {
+        Workspace workspace = finder.findActive(id);
+        workspace.inactivate(LocalDateTime.now());
+        repository.saveAndFlush(workspace);
+    }
+
+    @Transactional
+    public WorkspaceOutput restore(Long id) {
+        Workspace workspace = finder.findInactiveForRestore(id);
+        List<String> manualTags = taggingSupport.findManual(workspace);
+
+        workspace.restore(LocalDateTime.now());
+        Workspace saved = repository.saveAndFlush(workspace);
+        taggingSupport.reconcile(saved, manualTags);
         return WorkspaceOutput.from(saved, taggingSupport.findManual(saved));
     }
 }

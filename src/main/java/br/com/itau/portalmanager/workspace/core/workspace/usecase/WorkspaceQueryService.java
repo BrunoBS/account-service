@@ -1,11 +1,13 @@
-package br.com.itau.portalmanager.workspace.core.workspace.usecase.findall;
+package br.com.itau.portalmanager.workspace.core.workspace.usecase;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
-import br.com.itau.portalmanager.workspace.core.workspace.domain.validation.WorkspaceValidator;
 import br.com.itau.portalmanager.workspace.core.workspace.repository.WorkspaceRepository;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.WorkspaceOutput;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceFinder;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceNormalizer;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeEnum;
 import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
 import br.com.portalmanager.platform.authorization.annotation.ResourceVisibility;
@@ -16,20 +18,23 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class FindAllWorkspacesUseCase {
+public class WorkspaceQueryService {
 
     private final WorkspaceRepository repository;
+    private final WorkspaceFinder finder;
     private final WorkspaceNormalizer normalizer;
     private final WorkspaceValidator validator;
     private final WorkspaceTaggingSupport taggingSupport;
 
-    public FindAllWorkspacesUseCase(
+    public WorkspaceQueryService(
             WorkspaceRepository repository,
+            WorkspaceFinder finder,
             WorkspaceNormalizer normalizer,
             WorkspaceValidator validator,
             WorkspaceTaggingSupport taggingSupport
     ) {
         this.repository = repository;
+        this.finder = finder;
         this.normalizer = normalizer;
         this.validator = validator;
         this.taggingSupport = taggingSupport;
@@ -37,7 +42,14 @@ public class FindAllWorkspacesUseCase {
 
     @ResourceVisibility
     @Transactional(readOnly = true)
-    public List<WorkspaceOutput> execute(FindAllWorkspacesInput input) {
+    public WorkspaceOutput findById(Long id) {
+        Workspace workspace = finder.findActive(id);
+        return WorkspaceOutput.from(workspace, taggingSupport.findManual(workspace));
+    }
+
+    @ResourceVisibility
+    @Transactional(readOnly = true)
+    public List<WorkspaceOutput> findAll(FindAllWorkspacesInput input) {
         LifecycleTypeEnum lifecycle = input != null && Boolean.FALSE.equals(input.active())
                 ? LifecycleTypeEnum.INACTIVE
                 : LifecycleTypeEnum.ACTIVE;

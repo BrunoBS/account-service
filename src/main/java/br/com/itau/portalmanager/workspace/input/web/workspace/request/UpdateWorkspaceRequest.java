@@ -1,6 +1,6 @@
 package br.com.itau.portalmanager.workspace.input.web.workspace.request;
 
-import br.com.itau.portalmanager.workspace.core.workspace.usecase.update.UpdateWorkspaceInput;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
 
 import java.util.List;
 

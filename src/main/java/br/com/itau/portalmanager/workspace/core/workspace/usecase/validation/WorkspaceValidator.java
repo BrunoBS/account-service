@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.core.workspace.domain.validation;
+package br.com.itau.portalmanager.workspace.core.workspace.usecase.validation;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.WorkspaceMessageKeys;
 import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;

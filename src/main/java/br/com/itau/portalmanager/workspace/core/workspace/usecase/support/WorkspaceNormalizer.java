@@ -1,10 +1,10 @@
 package br.com.itau.portalmanager.workspace.core.workspace.usecase.support;
 
-import br.com.itau.portalmanager.workspace.core.workspace.domain.validation.ApproverData;
-import br.com.itau.portalmanager.workspace.core.workspace.domain.validation.WorkspaceValidationData;
-import br.com.itau.portalmanager.workspace.core.workspace.usecase.create.CreateWorkspaceInput;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.validation.ApproverData;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.validation.WorkspaceValidationData;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.ApproverInput;
-import br.com.itau.portalmanager.workspace.core.workspace.usecase.update.UpdateWorkspaceInput;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
 import br.com.portalmanager.platform.tagging.TagNormalizer;
 import org.springframework.stereotype.Component;
 
