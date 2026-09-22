@@ -1,8 +1,8 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.environment.usecase;
+package br.com.itau.portalmanager.workspace.foundation.catalog.environmenttype.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.environment.domain.EnvironmentType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.environment.domain.EnvironmentTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.environment.repository.EnvironmentTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.environmenttype.domain.EnvironmentType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.environmenttype.domain.EnvironmentTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.environmenttype.repository.EnvironmentTypeRepository;
 import br.com.itau.portalmanager.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;

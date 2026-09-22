@@ -1,8 +1,8 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.authorization.usecase;
+package br.com.itau.portalmanager.workspace.foundation.catalog.authorizationtype.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.authorization.domain.AuthorizationType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.authorization.domain.AuthorizationTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.authorization.repository.AuthorizationTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.authorizationtype.domain.AuthorizationType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.authorizationtype.repository.AuthorizationTypeRepository;
 import br.com.itau.portalmanager.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
