@@ -1,6 +1,6 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.repository.tagorigin;
+package br.com.itau.portalmanager.workspace.foundation.catalog.tagorigin.repository;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.tagorigin.TagOriginType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.tagorigin.domain.TagOriginType;
 import br.com.portalmanager.platform.catalog.repository.BaseCatalogRepository;
 import org.springframework.stereotype.Repository;
 

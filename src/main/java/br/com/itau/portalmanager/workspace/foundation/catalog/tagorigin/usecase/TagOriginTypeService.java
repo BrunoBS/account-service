@@ -1,9 +1,9 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.tagorigin;
+package br.com.itau.portalmanager.workspace.foundation.catalog.tagorigin.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.tagorigin.TagOriginType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.tagorigin.TagOriginTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.repository.tagorigin.TagOriginTypeRepository;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.support.CatalogSchemaValidationSupport;
+import br.com.itau.portalmanager.workspace.foundation.catalog.tagorigin.domain.TagOriginType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.tagorigin.domain.TagOriginTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.tagorigin.repository.TagOriginTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;

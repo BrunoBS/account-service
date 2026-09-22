@@ -1,6 +1,6 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.repository.visibility;
+package br.com.itau.portalmanager.workspace.foundation.catalog.visibility.repository;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.visibility.VisibilityType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.visibility.domain.VisibilityType;
 import br.com.portalmanager.platform.catalog.repository.BaseCatalogRepository;
 import org.springframework.stereotype.Repository;
 

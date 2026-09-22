@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.domain.visibility;
+package br.com.itau.portalmanager.workspace.foundation.catalog.visibility.domain;
 
 import br.com.portalmanager.platform.catalog.model.CatalogEnum;
 

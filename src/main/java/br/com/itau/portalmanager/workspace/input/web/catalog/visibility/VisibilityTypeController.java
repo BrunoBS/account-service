@@ -1,7 +1,7 @@
 package br.com.itau.portalmanager.workspace.input.web.catalog.visibility;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.visibility.VisibilityType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.visibility.VisibilityTypeService;
+import br.com.itau.portalmanager.workspace.foundation.catalog.visibility.domain.VisibilityType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.visibility.usecase.VisibilityTypeService;
 import br.com.portalmanager.platform.catalog.web.CatalogController;
 import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;
