@@ -1,9 +1,9 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.workspace;
+package br.com.itau.portalmanager.workspace.foundation.catalog.workspace.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.workspace.WorkspaceType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.workspace.WorkspaceTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.repository.workspace.WorkspaceTypeRepository;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.support.CatalogSchemaValidationSupport;
+import br.com.itau.portalmanager.workspace.foundation.catalog.workspace.domain.WorkspaceType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.workspace.domain.WorkspaceTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.workspace.repository.WorkspaceTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
