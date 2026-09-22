@@ -2,13 +2,16 @@ package br.com.itau.portalmanager.workspace.input.web.catalog.infrastructure;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.domain.infrastructure.InfrastructureType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.infrastructure.InfrastructureTypeService;
-import br.com.itau.portalmanager.workspace.input.web.catalog.support.OwnerCatalogController;
+import br.com.portalmanager.platform.catalog.web.CatalogController;
+import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/infrastructure-type")
-public class InfrastructureTypeController extends OwnerCatalogController<InfrastructureType> {
+@AuthorizationRequired(level = AuthorizationLevel.OWNER)
+public class InfrastructureTypeController extends CatalogController<InfrastructureType> {
 
     public InfrastructureTypeController(InfrastructureTypeService service) {
         super(service);
