@@ -61,8 +61,14 @@ public class SchemaValidator {
         }
 
         Schema schema = parseSchema(schemaDefinition, result);
-        if (schema != null && !schema.validate(configNode).isEmpty()) {
-            result.addError(field, JSON_INVALID);
+        if (schema != null) {
+            schema.validate(configNode).forEach(error ->
+                    result.addError(
+                            field,
+                            JSON_INVALID,
+                            Map.of("0", field, "1", error.getMessage())
+                    )
+            );
         }
     }
 
