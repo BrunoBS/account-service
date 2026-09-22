@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.domain.publisherscope;
+package br.com.itau.portalmanager.workspace.foundation.catalog.publisherscope.domain;
 
 import br.com.portalmanager.platform.catalog.model.CatalogEnum;
 

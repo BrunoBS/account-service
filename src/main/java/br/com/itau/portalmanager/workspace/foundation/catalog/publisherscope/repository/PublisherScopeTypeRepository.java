@@ -1,6 +1,6 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.repository.publisherscope;
+package br.com.itau.portalmanager.workspace.foundation.catalog.publisherscope.repository;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.publisherscope.PublisherScopeType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.publisherscope.domain.PublisherScopeType;
 import br.com.portalmanager.platform.catalog.repository.BaseCatalogRepository;
 import org.springframework.stereotype.Repository;
 

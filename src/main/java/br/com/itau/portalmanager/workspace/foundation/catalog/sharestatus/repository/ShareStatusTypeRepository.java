@@ -1,6 +1,6 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.repository.sharestatus;
+package br.com.itau.portalmanager.workspace.foundation.catalog.sharestatus.repository;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.sharestatus.ShareStatusType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.sharestatus.domain.ShareStatusType;
 import br.com.portalmanager.platform.catalog.repository.BaseCatalogRepository;
 import org.springframework.stereotype.Repository;
 
