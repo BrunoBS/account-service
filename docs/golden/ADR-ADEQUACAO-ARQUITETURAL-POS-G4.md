@@ -21,7 +21,7 @@ br.com.portalmanager.account
 └── persistence
 ```
 
-Essa organização preserva separações úteis, mas não representa o padrão arquitetural aprovado para a nova Golden Reference, que adota as macrozonas `foundation`, `core`, `feature` e `input`.
+Essa organização preserva separações úteis, mas não representa o padrão arquitetural aprovado para a nova Golden Reference, que adota as macrozonas `foundation`, `core`, `feature` e `entrypoint`.
 
 A validação do baseline é o GitHub Actions Verify #70, run `35636832562`, que executou Java 25 e:
 
@@ -38,7 +38,7 @@ Resultado: 6 testes unitários/arquiteturais + 20 testes de integração, 0 falh
 ## Problemas encontrados
 
 1. O package root atual (`br.com.portalmanager.account`) não corresponde ao namespace arquitetural alvo `br.com.itau.portalmanager.workspace`.
-2. Não existem as macrozonas `foundation/core/feature/input`.
+2. Não existem as macrozonas `foundation/core/feature/entrypoint`.
 3. `AccountService` concentra seis intenções de negócio no mesmo application service.
 4. `Command/Result` são contratos de aplicação, mas o padrão alvo define `Input/Output` por Use Case.
 5. `AccountRepository.findFiltered` consulta diretamente a entidade `Tag` da capability de tagging, misturando persistência própria com dado administrado por outra capability.
@@ -56,7 +56,7 @@ br.com.itau.portalmanager.workspace
 ├── foundation
 ├── core
 ├── feature
-└── input
+└── entrypoint
 ```
 
 Não serão criados pacotes vazios. Enquanto não existir uma Feature real, `feature` poderá não possuir classes concretas.
@@ -113,10 +113,10 @@ As intenções existentes serão expostas por Use Cases separados:
 
 A entidade JPA continuará no `domain`, conforme o modelo pragmático aprovado.
 
-### Input/Web
+### Entrypoint/Web
 
 ```text
-input.web.workspace
+entrypoint.web.workspace
 ├── request
 ├── response
 └── WorkspaceController
@@ -235,10 +235,10 @@ Nesta fase existe somente `core.workspace`, mas os testes arquiteturais serão e
 
 Os testes arquiteturais serão ampliados para proteger, no mínimo:
 
-1. somente `foundation`, `core`, `feature` e `input` como zonas de primeiro nível abaixo do root;
-2. Foundation não depende de Core/Feature/Input;
-3. Core não depende de Feature/Input;
-4. módulos internos não dependem de Input;
+1. somente `foundation`, `core`, `feature` e `entrypoint` como zonas de primeiro nível abaixo do root;
+2. Foundation não depende de Core/Feature/Entrypoint;
+3. Core não depende de Feature/Entrypoint;
+4. módulos internos não dependem de Entrypoint;
 5. classes `@RestController` não dependem de Repository;
 6. classes `@RestController` não dependem de Integration;
 7. Domain não depende de Integration;
@@ -311,7 +311,7 @@ br.com.itau.portalmanager.workspace
 │       ├── repository
 │       ├── integration.tagging
 │       └── usecase
-└── input
+└── entrypoint
     └── web.workspace
 ```
 
@@ -356,11 +356,11 @@ estado anterior como referência arquitetural definitiva.
 
 2. **Fitness function de Domain enfraquecida**  
    A regra antiga que impedia Domain de depender de orquestração/persistência/Web havia
-   sido perdida. O ArchUnit agora impede `domain -> usecase/repository/integration/input`
+   sido perdida. O ArchUnit agora impede `domain -> usecase/repository/integration/entrypoint`
    e `domain -> org.springframework.web`.
 
-3. **Boundary Input insuficiente**  
-   Input agora é impedido de acessar diretamente Domain/Repository/Integration de módulos
+3. **Boundary Entrypoint insuficiente**  
+   Entrypoint agora é impedido de acessar diretamente Domain/Repository/Integration de módulos
    Core/Feature. Foundation permanece consumível conforme a direção macro permitida.
 
 4. **Cross-module incompleto**  
@@ -379,8 +379,8 @@ estado anterior como referência arquitetural definitiva.
 
 - commit da decisão: `95982e2d1ade0822d5acc4eefd4d4253fc7e80bc`;
 - commit estrutural/testes: `a33b47ff349b4aa2cafa21a78491cc8f45fe2d7d`;
-- ajuste da fitness function de Input: `fcb364c6c16b4e098ae32c85422778d7b612e0af`;
-- Verify #81 / run `35668223125`: falhou corretamente ao revelar uma regra de Input
+- ajuste da fitness function de Entrypoint: `fcb364c6c16b4e098ae32c85422778d7b612e0af`;
+- Verify #81 / run `35668223125`: falhou corretamente ao revelar uma regra de Entrypoint
   excessivamente ampla, que confundia `foundation.catalog.domain` com internals de
   módulo;
 - Verify #82 / run `35668527818`: **BUILD SUCCESS**;
