@@ -232,7 +232,9 @@ class CatalogApiIT {
         post(
                 "/api/v1/workspace-type",
                 standardBody("CATALOG", "Catalog", "Descrição válida de catalog", 1)
-        ).statusCode(403);
+        ).statusCode(201);
+
+        authorizationMock.verifyCalledWithPolicy("OWNER");
     }
 
     private Map<String, Object> standardBody(
