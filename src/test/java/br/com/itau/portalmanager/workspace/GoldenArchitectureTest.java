@@ -33,6 +33,8 @@ class GoldenArchitectureTest {
             Set.of("domain", "usecase", "repository", "integration");
     private static final Set<String> FOUNDATION_CAPABILITY_LAYERS =
             Set.of("domain", "usecase", "repository");
+    private static final Set<String> RESERVED_CATALOG_SEGMENTS =
+            Set.of("domain", "usecase", "repository");
 
     private final com.tngtech.archunit.core.domain.JavaClasses classes =
             new ClassFileImporter()
@@ -86,25 +88,51 @@ class GoldenArchitectureTest {
     }
 
     @Test
-    void foundationCapabilitiesMustFollowApprovedInternalStructure() {
-        for (String capability : new String[]{"catalog", "schema"}) {
-            String prefix = ROOT + ".foundation." + capability + ".";
+    void catalogMustBeOrganizedByCatalogBeforeLayer() {
+        String prefix = ROOT + ".foundation.catalog.";
 
-            var invalidLayers = classes.stream()
-                    .map(JavaClass::getPackageName)
-                    .filter(packageName -> packageName.startsWith(prefix))
-                    .map(packageName -> packageName.substring(prefix.length()))
-                    .map(relative -> relative.substring(0, relative.indexOf('.') < 0
-                            ? relative.length()
-                            : relative.indexOf('.')))
-                    .filter(layer -> !FOUNDATION_CAPABILITY_LAYERS.contains(layer))
-                    .distinct()
-                    .toList();
+        var invalidPackages = classes.stream()
+                .map(JavaClass::getPackageName)
+                .filter(packageName -> packageName.startsWith(prefix))
+                .map(packageName -> packageName.substring(prefix.length()))
+                .filter(relative -> !relative.equals("support"))
+                .filter(relative -> !relative.startsWith("support."))
+                .filter(relative -> {
+                    String[] segments = relative.split("\\.");
+                    if (segments.length < 2) {
+                        return true;
+                    }
+                    String catalog = segments[0];
+                    String layer = segments[1];
+                    return RESERVED_CATALOG_SEGMENTS.contains(catalog)
+                            || !FOUNDATION_CAPABILITY_LAYERS.contains(layer);
+                })
+                .distinct()
+                .toList();
 
-            assertThat(invalidLayers)
-                    .as("invalid internal layers for foundation." + capability)
-                    .isEmpty();
-        }
+        assertThat(invalidPackages)
+                .as("Catalog packages must follow catalog/<catalog>/domain|usecase|repository")
+                .isEmpty();
+    }
+
+    @Test
+    void schemaMustFollowApprovedInternalStructure() {
+        String prefix = ROOT + ".foundation.schema.";
+
+        var invalidLayers = classes.stream()
+                .map(JavaClass::getPackageName)
+                .filter(packageName -> packageName.startsWith(prefix))
+                .map(packageName -> packageName.substring(prefix.length()))
+                .map(relative -> relative.substring(0, relative.indexOf('.') < 0
+                        ? relative.length()
+                        : relative.indexOf('.')))
+                .filter(layer -> !FOUNDATION_CAPABILITY_LAYERS.contains(layer))
+                .distinct()
+                .toList();
+
+        assertThat(invalidLayers)
+                .as("invalid internal layers for foundation.schema")
+                .isEmpty();
     }
 
     @Test
