@@ -105,7 +105,7 @@ public class Workspace {
     }
 
     public void update(
-            WorkspaceTypeEnum workspaceType,
+            WorkspaceTypeCode workspaceType,
             String name,
             String description,
             String requester,
