@@ -28,6 +28,7 @@ public class CatalogSettingsSchemaValidator {
 
     private static final String VALUE_REQUIRED = "catalog.settings.value.required";
     private static final String PERSISTED_JSON_INVALID = "catalog.settings.persisted.json.invalid";
+    private static final String INVALID = "catalog.settings.invalid";
 
     private final ObjectMapper objectMapper;
     private final Schema schema;
@@ -51,8 +52,8 @@ public class CatalogSettingsSchemaValidator {
             return;
         }
 
-        for (Error error : schema.validate(settings)) {
-            result.addError(field, error.getMessage());
+        if (!schema.validate(settings).isEmpty()) {
+            result.addError(field, INVALID);
         }
     }
 
