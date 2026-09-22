@@ -1,10 +1,10 @@
 package br.com.itau.portalmanager.workspace.core.workspace.domain;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -36,9 +36,8 @@ public class Workspace {
     @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false)
     private String identifier;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "workspace_type", nullable = false, length = 20)
-    private WorkspaceTypeEnum workspaceType;
+    @Embedded
+    private WorkspaceTypeCode workspaceType;
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
@@ -81,7 +80,7 @@ public class Workspace {
     }
 
     public Workspace(
-            WorkspaceTypeEnum workspaceType,
+            WorkspaceTypeCode workspaceType,
             String name,
             String description,
             String requester,
@@ -152,7 +151,7 @@ public class Workspace {
     public Long getId() { return id; }
     public Long getVersion() { return version; }
     public String getIdentifier() { return identifier; }
-    public WorkspaceTypeEnum getWorkspaceType() { return workspaceType; }
+    public WorkspaceTypeCode getWorkspaceType() { return workspaceType; }
     public String getName() { return name; }
     public String getDescription() { return description; }
     public String getRequester() { return requester; }
