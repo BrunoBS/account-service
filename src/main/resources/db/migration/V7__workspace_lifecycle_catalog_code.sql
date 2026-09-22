@@ -1,3 +1,6 @@
+ALTER TABLE workspaces
+    DROP CHECK ck_workspaces_lifecycle;
+
 INSERT IGNORE INTO type_life_cycle
     (code, label, description, sort_order, is_active, settings)
 VALUES
