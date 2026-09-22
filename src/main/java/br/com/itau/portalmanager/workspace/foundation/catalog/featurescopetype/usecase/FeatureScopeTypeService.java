@@ -1,7 +1,7 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.featurescope.usecase;
+package br.com.itau.portalmanager.workspace.foundation.catalog.featurescopetype.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.featurescope.domain.FeatureScopeType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.featurescope.repository.FeatureScopeTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.featurescopetype.domain.FeatureScopeType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.featurescopetype.repository.FeatureScopeTypeRepository;
 import br.com.itau.portalmanager.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.service.DynamicCatalogService;
 import org.springframework.stereotype.Service;

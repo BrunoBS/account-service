@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.infrastructure.domain;
+package br.com.itau.portalmanager.workspace.foundation.catalog.infrastructuretype.domain;
 
 import br.com.portalmanager.platform.catalog.model.BaseCatalogEntity;
 import jakarta.persistence.Entity;
