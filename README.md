@@ -48,7 +48,7 @@ br.com.itau.portalmanager.workspace
 │       └── usecase
 ├── core
 ├── feature
-└── input
+└── entrypoint
     └── web
         └── catalog
 ```
