@@ -7,7 +7,7 @@ import br.com.portalmanager.platform.testing.authorization.AuthorizationMock;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.jdbc.Sql;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
@@ -23,17 +23,20 @@ import static org.hamcrest.Matchers.not;
 @PlatformIntegrationTest
 @WithMySql
 @WithMockAuthorization
-@Sql("/sql/workspace-type-catalog.sql")
 class WorkspaceTaggingIT {
 
     @LocalServerPort
     private int port;
 
     @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
     private AuthorizationMock authorizationMock;
 
     @BeforeEach
     void authorizeAsOwner() {
+        seedWorkspaceTypes();
         authorizationMock.reset();
         authorizationMock.allow(session -> session.groups("PM5_OWNER"));
     }
@@ -161,4 +164,10 @@ class WorkspaceTaggingIT {
                 .header("Authorization", "Bearer tagging-it")
                 .accept(ContentType.JSON);
     }
+    private void seedWorkspaceTypes() {
+        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')");
+        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('MANAGER', 'Manager', 'Management workspace', 2, true, '{}')");
+        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('CATALOG', 'Catalog', 'Catalog workspace', 3, true, '{}')");
+    }
+
 }
