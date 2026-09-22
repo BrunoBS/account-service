@@ -8,6 +8,7 @@ import br.com.portalmanager.platform.testing.annotation.WithMySql;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.RollbackException;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
@@ -18,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @PlatformIntegrationTest
 @WithMySql
+@Sql("/sql/workspace-type-catalog.sql")
 class WorkspacePersistenceIT {
 
     @Autowired
