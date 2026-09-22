@@ -3,12 +3,8 @@ package br.com.itau.portalmanager.workspace.foundation.catalog.domain.applicatio
 import br.com.portalmanager.platform.catalog.model.BaseCatalogEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(
-        name = "type_application_scopes",
-        uniqueConstraints = @UniqueConstraint(name = "uk_type_application_scopes_name", columnNames = "name")
-)
+@Table(name = "type_application_scopes")
 public class ApplicationScopeType extends BaseCatalogEntity {
 }
