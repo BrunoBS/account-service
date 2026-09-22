@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.input.web.catalog.lifecycle;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.lifecycle;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.usecase.LifecycleTypeService;

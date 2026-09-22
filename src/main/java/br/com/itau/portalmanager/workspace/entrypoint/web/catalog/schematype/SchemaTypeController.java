@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.input.web.catalog.schematype;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.schematype;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.schematype.domain.SchemaType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.schematype.usecase.SchemaTypeService;

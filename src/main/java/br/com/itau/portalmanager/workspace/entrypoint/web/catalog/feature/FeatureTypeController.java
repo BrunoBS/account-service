@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.input.web.catalog.feature;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.feature;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.featuretype.domain.FeatureType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.featuretype.usecase.FeatureTypeService;

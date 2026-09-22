@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.input.web.catalog.schemascope;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.schemascope;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.usecase.SchemaScopeTypeService;

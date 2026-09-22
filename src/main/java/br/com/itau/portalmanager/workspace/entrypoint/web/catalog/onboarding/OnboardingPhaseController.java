@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.input.web.catalog.onboarding;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.onboarding;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhase;
 import br.com.itau.portalmanager.workspace.foundation.catalog.onboardingphasetype.usecase.OnboardingPhaseService;

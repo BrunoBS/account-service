@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.input.web.catalog.tagorigin;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.tagorigin;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.tagorigintype.domain.TagOriginType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.tagorigintype.usecase.TagOriginTypeService;

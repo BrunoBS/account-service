@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.input.web.catalog.authorization;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.authorization;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.authorizationtype.domain.AuthorizationType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.authorizationtype.usecase.AuthorizationTypeService;

@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.input.web.catalog.language;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.language;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.languagetype.domain.LanguageType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.languagetype.usecase.LanguageTypeService;

@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.input.web.catalog.applicationscope;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.applicationscope;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.applicationscopetype.usecase.ApplicationScopeTypeService;

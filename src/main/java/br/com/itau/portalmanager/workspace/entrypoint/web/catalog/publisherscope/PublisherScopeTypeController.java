@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.input.web.catalog.publisherscope;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.publisherscope;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.publisherscopetype.domain.PublisherScopeType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.publisherscopetype.usecase.PublisherScopeTypeService;
