@@ -1,0 +1,59 @@
+package br.com.itau.portalmanager.workspace.core.workspace.domain;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+
+import java.util.Objects;
+import java.util.regex.Pattern;
+
+@Embeddable
+public class WorkspaceTypeCode {
+
+    private static final Pattern CODE_PATTERN = Pattern.compile("^[A-Z][A-Z0-9_]{0,49}$");
+
+    @Column(name = "workspace_type_code", nullable = false, length = 50)
+    private String value;
+
+    protected WorkspaceTypeCode() {
+    }
+
+    private WorkspaceTypeCode(String value) {
+        if (value == null || !CODE_PATTERN.matcher(value).matches()) {
+            throw new IllegalArgumentException("Invalid workspace type code: " + value);
+        }
+        this.value = value;
+    }
+
+    public static WorkspaceTypeCode of(String value) {
+        return new WorkspaceTypeCode(value);
+    }
+
+    public String value() {
+        return value;
+    }
+
+    public static boolean isValidFormat(String value) {
+        return value != null && CODE_PATTERN.matcher(value).matches();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof WorkspaceTypeCode that)) {
+            return false;
+        }
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
+}
