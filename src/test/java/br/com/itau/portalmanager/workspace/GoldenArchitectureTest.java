@@ -67,10 +67,7 @@ class GoldenArchitectureTest {
 
         assertThat(rootClasses)
                 .extracting(JavaClass::getSimpleName)
-                .containsExactlyInAnyOrder(
-                        "WorkspaceServiceApplication",
-                        "WorkspaceMessagingConfiguration"
-                );
+                .containsExactly("WorkspaceServiceApplication");
 
         assertThat(rootClasses).allSatisfy(javaClass -> {
             boolean bootstrap = javaClass.isAnnotatedWith(SpringBootApplication.class);
@@ -344,7 +341,8 @@ class GoldenArchitectureTest {
         }
 
         String simpleName = target.getSimpleName();
-        return simpleName.endsWith("UseCase")
+        return simpleName.endsWith("CommandService")
+                || simpleName.endsWith("QueryService")
                 || simpleName.endsWith("Input")
                 || simpleName.endsWith("Output");
     }
