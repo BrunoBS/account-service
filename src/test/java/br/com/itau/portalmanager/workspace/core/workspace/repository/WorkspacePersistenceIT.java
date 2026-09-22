@@ -59,7 +59,7 @@ class WorkspacePersistenceIT {
         assertThat(reloaded.getIdentifier()).hasSize(36);
         assertThat(reloaded.getVersion()).isNotNull();
         assertThat(reloaded.getWorkspaceType()).isEqualTo(WorkspaceTypeCode.of("ADMIN"));
-        assertThat(reloaded.getLifecycle()).isEqualTo(LifecycleTypeCode.of("ACTIVE"));
+        assertThat(reloaded.getLifecycle()).isEqualTo(LifecycleTypeCode.active());
         assertThat(reloaded.isOnboarding()).isFalse();
         assertThat(reloaded.getApprovers()).singleElement().satisfies(approver -> {
             assertThat(approver.getFunctional()).isEqualTo("123456");
