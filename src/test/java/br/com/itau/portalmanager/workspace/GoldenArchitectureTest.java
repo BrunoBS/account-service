@@ -248,6 +248,27 @@ class GoldenArchitectureTest {
     }
 
     @Test
+    void catalogEntrypointModulesMustBeExplicitTypes() {
+        String prefix = ROOT + ".entrypoint.web.catalog.";
+
+        var invalidModules = classes.stream()
+                .filter(javaClass -> javaClass.getPackageName().startsWith(prefix))
+                .filter(javaClass -> javaClass.isAnnotatedWith(RestController.class))
+                .map(JavaClass::getPackageName)
+                .map(packageName -> packageName.substring(prefix.length()))
+                .map(relative -> relative.substring(0, relative.indexOf('.') < 0
+                        ? relative.length()
+                        : relative.indexOf('.')))
+                .filter(module -> !module.endsWith("type"))
+                .distinct()
+                .toList();
+
+        assertThat(invalidModules)
+                .as("Catalog entrypoint modules must end with 'type'")
+                .isEmpty();
+    }
+
+    @Test
     void catalogControllersMustRequireOwnerAuthorization() {
         String catalogWebPrefix = ROOT + ".entrypoint.web.catalog";
 
