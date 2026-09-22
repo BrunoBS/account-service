@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.visibility;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.visibilitytype;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.visibilitytype.domain.VisibilityType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.visibilitytype.usecase.VisibilityTypeService;

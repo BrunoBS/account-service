@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.sharestatus;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog.sharestatustype;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.sharestatustype.domain.ShareStatusType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.sharestatustype.usecase.ShareStatusTypeService;
