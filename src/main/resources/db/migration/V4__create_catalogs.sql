@@ -16,36 +16,31 @@ CREATE TABLE type_workspaces (
     sort_order INT NOT NULL,
     is_active BOOLEAN NOT NULL,
     settings TEXT NOT NULL,
-    CONSTRAINT pk_type_workspaces PRIMARY KEY (id),
-    CONSTRAINT uk_type_workspaces_name UNIQUE (name)
+    CONSTRAINT pk_type_workspaces PRIMARY KEY (id)
 );
 
 CREATE TABLE type_application_scopes (
     id BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(50) NOT NULL, label VARCHAR(100) NOT NULL,
     description TEXT, sort_order INT NOT NULL, is_active BOOLEAN NOT NULL, settings TEXT NOT NULL,
-    CONSTRAINT pk_type_application_scopes PRIMARY KEY (id),
-    CONSTRAINT uk_type_application_scopes_name UNIQUE (name)
+    CONSTRAINT pk_type_application_scopes PRIMARY KEY (id)
 );
 
 CREATE TABLE type_authorizations (
     id BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(50) NOT NULL, label VARCHAR(100) NOT NULL,
     description TEXT, sort_order INT NOT NULL, is_active BOOLEAN NOT NULL, settings TEXT NOT NULL,
-    CONSTRAINT pk_type_authorizations PRIMARY KEY (id),
-    CONSTRAINT uk_type_authorizations_name UNIQUE (name)
+    CONSTRAINT pk_type_authorizations PRIMARY KEY (id)
 );
 
 CREATE TABLE type_environments (
     id BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(50) NOT NULL, label VARCHAR(100) NOT NULL,
     description TEXT, sort_order INT NOT NULL, is_active BOOLEAN NOT NULL, settings TEXT NOT NULL,
-    CONSTRAINT pk_type_environments PRIMARY KEY (id),
-    CONSTRAINT uk_type_environments_name UNIQUE (name)
+    CONSTRAINT pk_type_environments PRIMARY KEY (id)
 );
 
 CREATE TABLE type_feature_scopes (
     id BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(50) NOT NULL, label VARCHAR(100) NOT NULL,
     description TEXT, sort_order INT NOT NULL, is_active BOOLEAN NOT NULL, settings TEXT NOT NULL,
-    CONSTRAINT pk_type_feature_scopes PRIMARY KEY (id),
-    CONSTRAINT uk_type_feature_scopes_name UNIQUE (name)
+    CONSTRAINT pk_type_feature_scopes PRIMARY KEY (id)
 );
 
 CREATE TABLE type_features (
@@ -60,58 +55,50 @@ CREATE TABLE type_features (
 CREATE TABLE type_infrastructures (
     id BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(50) NOT NULL, label VARCHAR(100) NOT NULL,
     description TEXT, sort_order INT NOT NULL, is_active BOOLEAN NOT NULL, settings TEXT NOT NULL,
-    CONSTRAINT pk_type_infrastructures PRIMARY KEY (id),
-    CONSTRAINT uk_type_infrastructures_name UNIQUE (name)
+    CONSTRAINT pk_type_infrastructures PRIMARY KEY (id)
 );
 
 CREATE TABLE type_languages (
     id BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(50) NOT NULL, label VARCHAR(100) NOT NULL,
     description TEXT, sort_order INT NOT NULL, is_active BOOLEAN NOT NULL, settings TEXT NOT NULL,
-    CONSTRAINT pk_type_languages PRIMARY KEY (id),
-    CONSTRAINT uk_type_languages_name UNIQUE (name)
+    CONSTRAINT pk_type_languages PRIMARY KEY (id)
 );
 
 CREATE TABLE type_life_cycle (
     id BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(50) NOT NULL, label VARCHAR(100) NOT NULL,
     description TEXT, sort_order INT NOT NULL, is_active BOOLEAN NOT NULL, settings TEXT NOT NULL,
-    CONSTRAINT pk_type_life_cycle PRIMARY KEY (id),
-    CONSTRAINT uk_type_life_cycle_name UNIQUE (name)
+    CONSTRAINT pk_type_life_cycle PRIMARY KEY (id)
 );
 
 CREATE TABLE type_tag_origins (
     id BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(50) NOT NULL, label VARCHAR(100) NOT NULL,
     description TEXT, sort_order INT NOT NULL, is_active BOOLEAN NOT NULL, settings TEXT NOT NULL,
-    CONSTRAINT pk_type_tag_origins PRIMARY KEY (id),
-    CONSTRAINT uk_type_tag_origins_name UNIQUE (name)
+    CONSTRAINT pk_type_tag_origins PRIMARY KEY (id)
 );
 
 CREATE TABLE type_visibilities (
     id BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(50) NOT NULL, label VARCHAR(100) NOT NULL,
     description TEXT, sort_order INT NOT NULL, is_active BOOLEAN NOT NULL, settings TEXT NOT NULL,
-    CONSTRAINT pk_type_visibilities PRIMARY KEY (id),
-    CONSTRAINT uk_type_visibilities_name UNIQUE (name)
+    CONSTRAINT pk_type_visibilities PRIMARY KEY (id)
 );
 
 CREATE TABLE type_onboardings (
     id BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(50) NOT NULL, label VARCHAR(100) NOT NULL,
     description TEXT, sort_order INT NOT NULL, is_active BOOLEAN NOT NULL, settings TEXT NOT NULL,
     orientation VARCHAR(255) NOT NULL,
-    CONSTRAINT pk_type_onboardings PRIMARY KEY (id),
-    CONSTRAINT uk_type_onboardings_name UNIQUE (name)
+    CONSTRAINT pk_type_onboardings PRIMARY KEY (id)
 );
 
 CREATE TABLE type_publisher_scopes (
     id BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(50) NOT NULL, label VARCHAR(100) NOT NULL,
     description TEXT, sort_order INT NOT NULL, is_active BOOLEAN NOT NULL, settings TEXT NOT NULL,
-    CONSTRAINT pk_type_publisher_scopes PRIMARY KEY (id),
-    CONSTRAINT uk_type_publisher_scopes_name UNIQUE (name)
+    CONSTRAINT pk_type_publisher_scopes PRIMARY KEY (id)
 );
 
 CREATE TABLE type_schema_scopes (
     id BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(50) NOT NULL, label VARCHAR(100) NOT NULL,
     description TEXT, sort_order INT NOT NULL, is_active BOOLEAN NOT NULL, settings TEXT NOT NULL,
-    CONSTRAINT pk_type_schema_scopes PRIMARY KEY (id),
-    CONSTRAINT uk_type_schema_scopes_name UNIQUE (name)
+    CONSTRAINT pk_type_schema_scopes PRIMARY KEY (id)
 );
 
 CREATE TABLE type_schemas (
@@ -126,6 +113,5 @@ CREATE TABLE type_schemas (
 CREATE TABLE type_sharing_statuses (
     id BIGINT NOT NULL AUTO_INCREMENT, name VARCHAR(50) NOT NULL, label VARCHAR(100) NOT NULL,
     description TEXT, sort_order INT NOT NULL, is_active BOOLEAN NOT NULL, settings TEXT NOT NULL,
-    CONSTRAINT pk_type_sharing_statuses PRIMARY KEY (id),
-    CONSTRAINT uk_type_sharing_statuses_name UNIQUE (name)
+    CONSTRAINT pk_type_sharing_statuses PRIMARY KEY (id)
 );
