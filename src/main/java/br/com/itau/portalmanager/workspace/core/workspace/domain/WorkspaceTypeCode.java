@@ -4,12 +4,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 @Embeddable
 public class WorkspaceTypeCode {
-
-    private static final Pattern CODE_PATTERN = Pattern.compile("^[A-Z][A-Z0-9_]{0,49}$");
 
     @Column(name = "workspace_type_code", nullable = false, length = 50)
     private String value;
@@ -18,10 +15,7 @@ public class WorkspaceTypeCode {
     }
 
     private WorkspaceTypeCode(String value) {
-        if (value == null || !CODE_PATTERN.matcher(value).matches()) {
-            throw new IllegalArgumentException("Invalid workspace type code: " + value);
-        }
-        this.value = value;
+        this.value = SemanticCode.requireValid(value, "workspace type");
     }
 
     public static WorkspaceTypeCode of(String value) {
@@ -33,7 +27,7 @@ public class WorkspaceTypeCode {
     }
 
     public static boolean isValidFormat(String value) {
-        return value != null && CODE_PATTERN.matcher(value).matches();
+        return SemanticCode.isValid(value);
     }
 
     @Override
