@@ -7,7 +7,7 @@ import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.Workspac
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceFinder;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceNormalizer;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
-import br.com.itau.portalmanager.workspace.foundation.catalog.workspace.domain.WorkspaceTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
 import br.com.portalmanager.platform.messaging.exception.ResourceVersionConflictException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

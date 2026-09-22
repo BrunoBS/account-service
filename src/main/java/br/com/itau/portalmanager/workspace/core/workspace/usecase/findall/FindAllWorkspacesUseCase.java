@@ -6,8 +6,8 @@ import br.com.itau.portalmanager.workspace.core.workspace.repository.WorkspaceRe
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.WorkspaceOutput;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceNormalizer;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
-import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycle.domain.LifecycleTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.workspace.domain.WorkspaceTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
 import br.com.portalmanager.platform.authorization.annotation.ResourceVisibility;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
