@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.language.domain;
+package br.com.itau.portalmanager.workspace.foundation.catalog.languagetype.domain;
 
 import br.com.portalmanager.platform.catalog.model.CatalogEnum;
 

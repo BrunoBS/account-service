@@ -1,8 +1,8 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.publisherscope.usecase;
+package br.com.itau.portalmanager.workspace.foundation.catalog.publisherscopetype.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.publisherscope.domain.PublisherScopeType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.publisherscope.domain.PublisherScopeTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.publisherscope.repository.PublisherScopeTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.publisherscopetype.domain.PublisherScopeType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.publisherscopetype.domain.PublisherScopeTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.publisherscopetype.repository.PublisherScopeTypeRepository;
 import br.com.itau.portalmanager.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;

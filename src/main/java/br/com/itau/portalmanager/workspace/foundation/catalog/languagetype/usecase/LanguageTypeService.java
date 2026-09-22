@@ -1,8 +1,8 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.language.usecase;
+package br.com.itau.portalmanager.workspace.foundation.catalog.languagetype.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.language.domain.LanguageType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.language.domain.LanguageTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.language.repository.LanguageTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.languagetype.domain.LanguageType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.languagetype.domain.LanguageTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.languagetype.repository.LanguageTypeRepository;
 import br.com.itau.portalmanager.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
