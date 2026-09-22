@@ -78,7 +78,7 @@ class DatabaseUpgradeMigrationIT {
         assertThat(tableCount(jdbc, "type_schema_scopes")).isEqualTo(1);
 
         assertThat(jdbc.queryForObject(
-                "select workspace_type from workspaces where id = 100",
+                "select workspace_type_code from workspaces where id = 100",
                 String.class
         )).isEqualTo("ADMIN");
 
