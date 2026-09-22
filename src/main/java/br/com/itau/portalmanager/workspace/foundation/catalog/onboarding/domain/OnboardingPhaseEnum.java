@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.domain.onboarding;
+package br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.domain;
 
 import br.com.portalmanager.platform.catalog.model.CatalogEnum;
 

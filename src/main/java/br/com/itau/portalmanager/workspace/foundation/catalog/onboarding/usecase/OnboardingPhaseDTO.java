@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.onboarding;
+package br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.usecase;
 
 import br.com.portalmanager.platform.catalog.dto.BaseCatalogDTO;
 import tools.jackson.databind.JsonNode;

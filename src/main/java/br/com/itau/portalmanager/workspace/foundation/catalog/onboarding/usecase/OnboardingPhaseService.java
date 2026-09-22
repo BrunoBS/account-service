@@ -1,7 +1,7 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.onboarding;
+package br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.onboarding.OnboardingPhase;
-import br.com.itau.portalmanager.workspace.foundation.catalog.repository.onboarding.OnboardingPhaseRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.domain.OnboardingPhase;
+import br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.repository.OnboardingPhaseRepository;
 import br.com.portalmanager.platform.catalog.service.BaseCatalogService;
 import org.springframework.stereotype.Service;
 

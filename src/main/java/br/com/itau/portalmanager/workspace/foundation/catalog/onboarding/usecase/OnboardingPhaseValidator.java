@@ -1,8 +1,8 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.onboarding;
+package br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.onboarding.OnboardingPhaseEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.repository.onboarding.OnboardingPhaseRepository;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.support.CatalogSchemaValidationSupport;
+import br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.domain.OnboardingPhaseEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.repository.OnboardingPhaseRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.validation.CatalogValidationResult;
 import br.com.portalmanager.platform.catalog.validation.EnumCatalogValidator;
 import org.springframework.stereotype.Component;

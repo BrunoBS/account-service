@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.support;
+package br.com.itau.portalmanager.workspace.foundation.catalog.support;
 
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaDefaults;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.SchemaValidator;
