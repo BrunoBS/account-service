@@ -45,13 +45,16 @@ class CatalogApiIT {
                 new CatalogCase("/api/v1/authorization-type", "DEV"),
                 new CatalogCase("/api/v1/environment-type", "DEFAULT"),
                 new CatalogCase("/api/v1/feature-scope", "WORKSPACE"),
+                new CatalogCase("/api/v1/feature-type", "MENU"),
                 new CatalogCase("/api/v1/infrastructure-type", "VM"),
                 new CatalogCase("/api/v1/language-type", "JAVA"),
                 new CatalogCase("/api/v1/lifecycle-type", "ACTIVE"),
+                new CatalogCase("/api/v1/onboarding-type", "WORKSPACE_REGISTRATION"),
                 new CatalogCase("/api/v1/tag-origin-type", "MANUAL"),
                 new CatalogCase("/api/v1/visibility-type", "PRIVATE"),
                 new CatalogCase("/api/v1/publisher-scope-type", "WORKSPACE"),
                 new CatalogCase("/api/v1/schema-scope", "PLATFORM"),
+                new CatalogCase("/api/v1/schema-type", "WORKSPACE"),
                 new CatalogCase("/api/v1/share-status-type", "NOT_REQUESTED")
         );
 
@@ -98,108 +101,52 @@ class CatalogApiIT {
     }
 
     @Test
-    void shouldPreserveFeatureTypeAdvancedCrud() {
-        Integer scopeId = post(
-                "/api/v1/feature-scope",
-                standardBody("APPLICATION", "Application", "Escopo de aplicação", 1)
-        ).statusCode(201).extract().path("id");
+    void shouldPersistCatalogSpecificConfigurationInSettings() {
+        Map<String, Object> schema = standardBody(
+                "APPLICATION",
+                "Application",
+                "Descrição válida de schema application",
+                1
+        );
+        schema.put("settings", Map.of("scopes", "WORKSPACE"));
+
+        Integer schemaId = post("/api/v1/schema-type", schema)
+                .statusCode(201)
+                .body("settings.scopes", equalTo("WORKSPACE"))
+                .extract()
+                .path("id");
+
+        get("/api/v1/schema-type/" + schemaId)
+                .statusCode(200)
+                .body("settings.scopes", equalTo("WORKSPACE"));
 
         Map<String, Object> feature = standardBody(
-                "MENU",
-                "Menu",
-                "Descrição válida da feature menu",
-                1
+                "ROUTE",
+                "Route",
+                "Descrição válida da feature route",
+                2
         );
-        feature.put("featureScopeId", scopeId);
-        feature.put("featureScopeName", "APPLICATION");
-        feature.put("available", true);
+        feature.put("settings", Map.of(
+                "scopes", "APPLICATION",
+                "available", true
+        ));
 
-        Integer id = post("/api/v1/feature-type", feature)
+        post("/api/v1/feature-type", feature)
                 .statusCode(201)
-                .body("featureScopeId", equalTo(scopeId))
-                .body("featureScopeName", equalTo("APPLICATION"))
-                .body("available", equalTo(true))
-                .extract()
-                .path("id");
+                .body("settings.scopes", equalTo("APPLICATION"))
+                .body("settings.available", equalTo(true));
 
-        get("/api/v1/feature-type?featureScopeName=APPLICATION&available=true")
-                .statusCode(200)
-                .body("name", hasItem("MENU"));
-
-        feature.put("label", "Menu atualizado");
-        feature.put("available", false);
-
-        put("/api/v1/feature-type/" + id, feature)
-                .statusCode(200)
-                .body("label", equalTo("Menu atualizado"))
-                .body("available", equalTo(false));
-
-        delete("/api/v1/feature-type/" + id).statusCode(204);
-        post("/api/v1/feature-type/" + id + "/restore").statusCode(200);
-    }
-
-    @Test
-    void shouldPreserveSchemaTypeAdvancedCrud() {
-        post(
-                "/api/v1/schema-scope",
-                standardBody("WORKSPACE", "Workspace", "Escopo de schema do workspace", 1)
-        ).statusCode(201);
-
-        Map<String, Object> schema = standardBody(
-                "WORKSPACE",
-                "Workspace",
-                "Descrição válida do schema workspace",
-                1
-        );
-        schema.put("scope", "WORKSPACE");
-
-        Integer id = post("/api/v1/schema-type", schema)
-                .statusCode(201)
-                .body("scope", equalTo("WORKSPACE"))
-                .extract()
-                .path("id");
-
-        get("/api/v1/schema-type?scope=WORKSPACE")
-                .statusCode(200)
-                .body("name", hasItem("WORKSPACE"));
-
-        schema.put("label", "Workspace atualizado");
-        put("/api/v1/schema-type/" + id, schema)
-                .statusCode(200)
-                .body("label", equalTo("Workspace atualizado"))
-                .body("scope", equalTo("WORKSPACE"));
-
-        delete("/api/v1/schema-type/" + id).statusCode(204);
-        post("/api/v1/schema-type/" + id + "/restore").statusCode(200);
-    }
-
-    @Test
-    void shouldPreserveOnboardingAdvancedCrud() {
         Map<String, Object> onboarding = standardBody(
-                "WORKSPACE_REGISTRATION",
-                "Workspace registration",
+                "WORKSPACE_FIRST_ENVIRONMENT",
+                "Workspace first environment",
                 "Descrição válida da fase de onboarding",
-                1
+                3
         );
-        onboarding.put("orientation", "Orientação inicial");
+        onboarding.put("settings", Map.of("orientation", "Orientação inicial"));
 
-        Integer id = post("/api/v1/onboarding-type", onboarding)
+        post("/api/v1/onboarding-type", onboarding)
                 .statusCode(201)
-                .body("orientation", equalTo("Orientação inicial"))
-                .extract()
-                .path("id");
-
-        onboarding.put("label", "Workspace registration updated");
-        onboarding.put("orientation", "Nova orientação");
-
-        put("/api/v1/onboarding-type/" + id, onboarding)
-                .statusCode(200)
-                .body("orientation", equalTo("Nova orientação"));
-
-        delete("/api/v1/onboarding-type/" + id).statusCode(204);
-        post("/api/v1/onboarding-type/" + id + "/restore")
-                .statusCode(200)
-                .body("orientation", equalTo("Nova orientação"));
+                .body("settings.orientation", equalTo("Orientação inicial"));
     }
 
     @Test
