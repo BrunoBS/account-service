@@ -1,16 +1,16 @@
 package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.schematype;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.domain.schematype.SchemaType;
-import br.com.itau.portalmanager.workspace.foundation.schema.usecase.SchemaValidator;
+import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.mapper.BaseCatalogMapper;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SchemaTypeMapper extends BaseCatalogMapper<SchemaTypeDTO, SchemaType> {
 
-    private final SchemaValidator settingsValidator;
+    private final CatalogSchemaValidationSupport settingsValidator;
 
-    public SchemaTypeMapper(SchemaValidator settingsValidator) {
+    public SchemaTypeMapper(CatalogSchemaValidationSupport settingsValidator) {
         super(SchemaType.class);
         this.settingsValidator = settingsValidator;
     }
