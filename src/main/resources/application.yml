@@ -1,12 +1,12 @@
 spring:
   application:
-    name: account-service
+    name: workspace-service
   main:
     banner-mode: "off"
   datasource:
-    url: ${ACCOUNT_DB_URL:jdbc:mysql://localhost:3306/account_service}
-    username: ${ACCOUNT_DB_USERNAME:account}
-    password: ${ACCOUNT_DB_PASSWORD:account}
+    url: ${WORKSPACE_DB_URL:jdbc:mysql://localhost:3306/workspace_service}
+    username: ${WORKSPACE_DB_USERNAME:workspace}
+    password: ${WORKSPACE_DB_PASSWORD:workspace}
   jpa:
     open-in-view: false
     hibernate:
@@ -26,5 +26,5 @@ platform:
   audit:
     enabled: ${AUDIT_ENABLED:true}
     service-url: ${AUDIT_SERVICE_URL:}
-    service-name: account-service
+    service-name: workspace-service
     fail-on-error: false

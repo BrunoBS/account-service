@@ -1,0 +1,50 @@
+package br.com.itau.portalmanager.workspace.core.workspace.usecase.support;
+
+import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
+import br.com.itau.portalmanager.workspace.core.workspace.domain.WorkspaceSystemTags;
+import br.com.itau.portalmanager.workspace.core.workspace.integration.tagging.WorkspaceTagSearchIntegration;
+import br.com.portalmanager.platform.tagging.TagManager;
+import br.com.portalmanager.platform.tagging.model.TagOwnerType;
+import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+@Component
+public class WorkspaceTaggingSupport {
+
+    private static final TagOwnerType WORKSPACE_OWNER = () -> "WORKSPACE";
+
+    private final TagManager tagManager;
+    private final WorkspaceTagSearchIntegration searchIntegration;
+
+    public WorkspaceTaggingSupport(
+            TagManager tagManager,
+            WorkspaceTagSearchIntegration searchIntegration
+    ) {
+        this.tagManager = tagManager;
+        this.searchIntegration = searchIntegration;
+    }
+
+    public void reconcile(Workspace workspace, List<String> manualTags) {
+        tagManager.reconcile(
+                WORKSPACE_OWNER,
+                workspace.getIdentifier(),
+                manualTags,
+                WorkspaceSystemTags.resolve(workspace)
+        );
+    }
+
+    public List<String> findManual(Workspace workspace) {
+        return tagManager.findManual(WORKSPACE_OWNER, workspace.getIdentifier());
+    }
+
+    public Map<String, List<String>> findManualByIdentifiers(Collection<String> identifiers) {
+        return tagManager.findManualByOwners(WORKSPACE_OWNER, identifiers);
+    }
+
+    public List<String> findIdentifiersByTag(String normalizedTag) {
+        return searchIntegration.findOwnerIdsByTag(normalizedTag);
+    }
+}

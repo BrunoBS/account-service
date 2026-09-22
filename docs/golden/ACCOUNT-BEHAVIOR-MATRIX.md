@@ -4,6 +4,8 @@
 **Fonte funcional:** `BrunoBS/account-api` (`main`)  
 **Objetivo:** separar comportamento a preservar de implementação a redesenhar.
 
+> **Nota pós-G4:** `Account` é a nomenclatura histórica desta matriz de G0. Os comportamentos PRESERVAR/REDESENHAR aplicáveis continuam válidos para o agregado atualmente denominado `Workspace`; o arquivo não define a nomenclatura ativa pós-G4.
+
 ## Legenda
 
 | Decisão | Significado |

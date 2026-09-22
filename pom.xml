@@ -12,12 +12,12 @@
     </parent>
 
     <groupId>br.com.portalmanager</groupId>
-    <artifactId>account-service</artifactId>
+    <artifactId>workspace-service</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>account-service</name>
-    <description>Golden Reference para o domínio de Account.</description>
+    <name>workspace-service</name>
+    <description>Golden Reference para o domínio de Workspace.</description>
 
     <dependencyManagement>
         <dependencies>
