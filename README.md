@@ -19,6 +19,7 @@ Este repositório implementa a fase `GOLDEN-REFERENCE-V1` sobre o checkpoint `FO
 - `br.com.portalmanager.platform:platform-libraries-bom:1.0.0`
 - `br.com.portalmanager.platform:platform-starter:1.0.0`
 - `br.com.portalmanager.platform:platform-testing:1.0.0`
+- `br.com.portalmanager.platform:platform-catalog:1.0.0`
 
 ## Arquitetura
 
@@ -29,9 +30,18 @@ br.com.itau.portalmanager.workspace
 ├── WorkspaceServiceApplication            # composition root
 ├── WorkspaceMessagingConfiguration        # wiring técnico do consumidor
 ├── foundation
+│   ├── catalog
+│   │   ├── domain
+│   │   ├── usecase
+│   │   └── repository
+│   └── schema
+│       ├── domain
+│       └── usecase
 ├── core
 ├── feature
 └── input
+    └── web
+        └── catalog
 ```
 
 Pacotes vazios não são criados apenas para completar a árvore.
@@ -48,6 +58,22 @@ Princípios principais:
 - Integration representa fronteira externa ao módulo.
 - capabilities opcionais da Foundation só entram com caso de uso real.
 - `account-api` é referência funcional histórica, não base estrutural desta aplicação.
+
+## Catálogos
+
+A Golden migrou os 16 CRUDs de catálogo da referência funcional histórica para a
+application Foundation, reutilizando `platform-catalog`:
+
+- 12 `EnumCatalogService`;
+- 1 `DynamicCatalogService`;
+- 3 `BaseCatalogService` para contratos avançados.
+
+A validação de `settings` utiliza
+`com.networknt:json-schema-validator:3.0.7`, organizada em
+`foundation/schema`. Essa é uma dependência direta consciente do consumidor e deve
+ser reavaliada quando a capability Schema for consolidada integralmente.
+
+Não existe dependência de `platform-crud`.
 
 ## Foundation remota
 
@@ -77,5 +103,6 @@ A documentação da Golden está em [`docs/golden`](docs/golden).
 - manter visível a dívida da busca reversa de tags baseada no contrato físico da tabela
   `tags`.
 
-A adequação pós-G4 passou por review corretivo e está validada no Verify #82
-(run `35668527818`), com 35 testes verdes.
+A adequação pós-G4 permanece como baseline. A migração dos catálogos foi validada no
+Verify #110 (run `35674577937`), head
+`3cd68f9aa0470b4689b8d360100747d13a21de31`, com 45 testes verdes.

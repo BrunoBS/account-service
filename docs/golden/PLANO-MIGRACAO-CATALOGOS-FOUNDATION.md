@@ -5,7 +5,7 @@
 - **Baseline:** `21d3b0474be6057ea663800e6bcdb93447d5410e`
 - **Origem funcional:** `BrunoBS/account-api@main`
 - **Destino:** `BrunoBS/account-service`
-- **Status:** EM EXECUÇÃO
+- **Status:** CONCLUÍDO APÓS REVIEW
 
 ## 1. Objetivo
 
@@ -109,20 +109,37 @@ A versão permanece fornecida pelo BOM da Golden Platform Foundation.
 
 ### JSON Schema validator
 
-O legado valida `settings` dos catálogos com JSON Schema Draft 2020-12. O
-`account-service` ainda não possui essa dependência.
+O legado valida `settings` dos catálogos com JSON Schema Draft 2020-12.
 
-Para preservar esse comportamento será migrada a dependência:
+Para preservar esse comportamento foi migrada a dependência direta:
 
 ```text
 com.networknt:json-schema-validator:3.0.7
 ```
 
-e um validator local compatível com `CatalogValidationResult`.
+A dependência funcional foi organizada conforme a arquitetura vigente:
 
-**Atenção:** esta é uma nova dependência direta do `account-service`. Ela não altera
-`platform-libraries` nem `platform-build` nesta atividade. Deve ser reavaliada quando
-a capability Foundation Schema for implementada de forma completa.
+```text
+foundation.catalog
+        ↓
+foundation.schema
+        ↓
+com.networknt:json-schema-validator
+```
+
+Foram migrados para a application Foundation:
+
+- `foundation/schema/domain/SchemaDefaults`;
+- `foundation/schema/usecase/SchemaValidator`.
+
+Catalog possui somente o adapter
+`foundation/catalog/usecase/support/CatalogSchemaValidationSupport`, que converte o
+resultado de Schema para `CatalogValidationResult`.
+
+**Atenção:** `json-schema-validator:3.0.7` é uma nova dependência direta do
+`account-service`. Ela não foi adicionada a `platform-libraries` nem a
+`platform-build`. Deve ser reavaliada quando a capability Schema for consolidada de
+forma completa.
 
 ## 8. Persistência
 
@@ -194,3 +211,70 @@ A migração deve provar:
 - alterar a implementação da Golden Platform Foundation sem evidência concreta;
 - implementar a capability completa de Schema;
 - migrar CRUDs do legado que não sejam catálogos nesta onda.
+
+
+## 13. Resultado final do review
+
+A implementação foi revisada contra o padrão arquitetural vigente e contra o
+`account-api` funcional.
+
+### Estrutura confirmada
+
+```text
+foundation
+├── catalog
+│   ├── domain/<catalogo>
+│   ├── usecase/<catalogo>
+│   └── repository/<catalogo>
+└── schema
+    ├── domain
+    └── usecase
+
+input
+└── web
+    └── catalog/<catalogo>
+```
+
+A alternativa `foundation/catalog/<catalogo>/domain` não foi adotada, pois o padrão
+oficial define `foundation/catalog/domain|usecase|repository`.
+
+### Estratégias finais
+
+- 12 catálogos usam `EnumCatalogService`;
+- 1 catálogo, `FeatureScopeType`, usa `DynamicCatalogService`;
+- 3 catálogos, `FeatureType`, `SchemaType` e `OnboardingPhase`, permanecem em
+  `BaseCatalogService` por possuírem contrato/campos/relações adicionais.
+
+### Findings corrigidos durante o review
+
+- referências residuais aos enums antigos foram removidas;
+- o contrato de messaging das mensagens de Schema foi alinhado ao provider classpath;
+- a policy OWNER foi validada pelo contrato real do `AuthorizationMock`;
+- `UNIQUE(name)` físico introduzido inicialmente nos catálogos simples foi removido
+  para preservar o legado; somente FeatureType e SchemaType mantêm unicidade composta;
+- `description` voltou a ser nullable na migration, conforme `BaseCatalogEntity`;
+- a dependência de validação JSON foi movida para `foundation.schema`;
+- a direção interna `Schema -> Catalog` foi eliminada e passou a ser protegida por
+  fitness function;
+- não existe dependência ou import de `platform-crud`.
+
+### Evidência técnica
+
+Verify #110 / run `35674577937`, head
+`3cd68f9aa0470b4689b8d360100747d13a21de31`:
+
+- 121 fontes principais;
+- 11 fontes de teste;
+- 15 fitness functions arquiteturais;
+- 3 testes unitários;
+- 27 testes de integração;
+- 45 testes totais;
+- 0 falhas;
+- 0 erros;
+- Flyway V1 -> V4 validado;
+- upgrade V2 populada -> V4 validado;
+- 16 endpoints de catálogo exercitados;
+- **BUILD SUCCESS**.
+
+**Status:** implementação, testes e review concluídos. Merge/checkpoint permanecem fora
+desta execução.
