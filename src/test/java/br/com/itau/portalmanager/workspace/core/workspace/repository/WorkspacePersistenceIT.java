@@ -8,7 +8,7 @@ import br.com.portalmanager.platform.testing.annotation.WithMySql;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.RollbackException;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.jdbc.Sql;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
@@ -19,14 +19,27 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @PlatformIntegrationTest
 @WithMySql
-@Sql("/sql/workspace-type-catalog.sql")
 class WorkspacePersistenceIT {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private WorkspaceRepository workspaceRepository;
 
     @Autowired
     private EntityManagerFactory entityManagerFactory;
+
+    @org.junit.jupiter.api.BeforeEach
+    void seedWorkspaceTypeCatalog() {
+        seedWorkspaceTypes();
+    }
+
+    private void seedWorkspaceTypes() {
+        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')");
+        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('MANAGER', 'Manager', 'Management workspace', 2, true, '{}')");
+        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('CATALOG', 'Catalog', 'Catalog workspace', 3, true, '{}')");
+    }
 
     @Test
     void shouldPersistWorkspaceWithApproversAndDefaultLifecycle() {
