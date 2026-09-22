@@ -116,6 +116,14 @@ class GoldenArchitectureTest {
     }
 
     @Test
+    void schemaMustNotDependOnCatalog() {
+        noClasses()
+                .that().resideInAPackage(ROOT + ".foundation.schema..")
+                .should().dependOnClassesThat().resideInAPackage(FOUNDATION_CATALOG)
+                .check(classes);
+    }
+
+    @Test
     void foundationMustNotDependOnHigherZones() {
         noClasses()
                 .that().resideInAPackage(FOUNDATION)
