@@ -1,6 +1,7 @@
 package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.schematype;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.domain.schemascope.SchemaScopeType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.schematype.SchemaType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.repository.schemascope.SchemaScopeTypeRepository;
 import br.com.itau.portalmanager.workspace.foundation.catalog.repository.schematype.SchemaTypeRepository;
 import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.support.CatalogSettingsSchemaValidator;

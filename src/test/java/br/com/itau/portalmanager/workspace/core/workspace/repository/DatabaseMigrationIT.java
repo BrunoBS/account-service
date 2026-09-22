@@ -18,7 +18,7 @@ class DatabaseMigrationIT {
     @Test
     void shouldApplyGoldenMigrationsAndExposeWorkspaceSchema() {
         Integer migrationCount = jdbcTemplate.queryForObject(
-                "select count(*) from flyway_schema_history where version in ('1', '2', '3') and success = 1",
+                "select count(*) from flyway_schema_history where version in ('1', '2', '3', '4') and success = 1",
                 Integer.class
         );
 
@@ -28,7 +28,11 @@ class DatabaseMigrationIT {
         Integer legacyWorkspaceTableCount = tableCount("accounts");
         Integer legacyApproverTableCount = tableCount("account_approvers");
 
-        assertThat(migrationCount).isEqualTo(3);
+        assertThat(migrationCount).isEqualTo(4);
+        assertThat(tableCount("type_workspaces")).isEqualTo(1);
+        assertThat(tableCount("type_features")).isEqualTo(1);
+        assertThat(tableCount("type_schemas")).isEqualTo(1);
+        assertThat(tableCount("type_onboardings")).isEqualTo(1);
         assertThat(workspaceTableCount).isEqualTo(1);
         assertThat(approverTableCount).isEqualTo(1);
         assertThat(tagsTableCount).isEqualTo(1);

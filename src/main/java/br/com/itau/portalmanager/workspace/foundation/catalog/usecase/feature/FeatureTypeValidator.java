@@ -1,5 +1,6 @@
 package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.feature;
 
+import br.com.itau.portalmanager.workspace.foundation.catalog.domain.feature.FeatureType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.domain.featurescope.FeatureScopeType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.repository.feature.FeatureTypeRepository;
 import br.com.itau.portalmanager.workspace.foundation.catalog.repository.featurescope.FeatureScopeTypeRepository;
