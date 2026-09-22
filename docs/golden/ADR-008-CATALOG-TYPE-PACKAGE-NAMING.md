@@ -24,9 +24,11 @@ do módulo justamente a informação de que a responsabilidade é um catálogo d
 
 ## Decisão
 
-Quando a entidade principal de um catálogo termina em `Type`, o módulo dentro de
-`foundation.catalog` deve usar o nome completo da entidade em lowercase, preservando
-o sufixo `type`.
+Todo **catálogo concreto** dentro de `foundation.catalog` deve ser nomeado como um
+`type`, portanto seu módulo deve terminar em `type`.
+
+Quando a entidade principal já termina em `Type`, o módulo usa o nome completo da
+entidade em lowercase, preservando o sufixo `type`.
 
 Exemplos:
 
@@ -49,10 +51,10 @@ foundation/catalog/applicationscopetype/
 └── usecase
 ```
 
-## Exceções
+## Catálogos com nome histórico sem Type
 
-Todos os módulos concretos de catálogo terminam em `type`, inclusive quando o nome
-histórico da entidade principal não termina em `Type`.
+Mesmo quando o nome histórico da entidade principal não termina em `Type`, o módulo
+continua explicitando que se trata de um catálogo de tipos.
 
 Exemplo:
 
