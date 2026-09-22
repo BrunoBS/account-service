@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface FeatureTypeRepository extends CatalogRepository<FeatureType> {
-    List<FeatureType> findByNameInAndActiveTrue(List<String> names);
+    List<FeatureType> findByCodeInAndActiveTrue(List<String> codes);
 }
