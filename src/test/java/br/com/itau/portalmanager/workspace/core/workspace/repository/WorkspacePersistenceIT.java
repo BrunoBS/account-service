@@ -2,7 +2,7 @@ package br.com.itau.portalmanager.workspace.core.workspace.repository;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
+import br.com.itau.portalmanager.workspace.core.workspace.domain.WorkspaceTypeCode;
 import br.com.portalmanager.platform.testing.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.testing.annotation.WithMySql;
 import jakarta.persistence.EntityManagerFactory;
@@ -36,7 +36,7 @@ class WorkspacePersistenceIT {
 
         assertThat(reloaded.getIdentifier()).hasSize(36);
         assertThat(reloaded.getVersion()).isNotNull();
-        assertThat(reloaded.getWorkspaceType()).isEqualTo(WorkspaceTypeEnum.ADMIN);
+        assertThat(reloaded.getWorkspaceType()).isEqualTo(WorkspaceTypeCode.of("ADMIN"));
         assertThat(reloaded.getLifecycle()).isEqualTo(LifecycleTypeEnum.ACTIVE);
         assertThat(reloaded.isOnboarding()).isFalse();
         assertThat(reloaded.getApprovers()).singleElement().satisfies(approver -> {
@@ -93,7 +93,7 @@ class WorkspacePersistenceIT {
 
     private Workspace newWorkspace(String name, String description) {
         return new Workspace(
-                WorkspaceTypeEnum.ADMIN,
+                WorkspaceTypeCode.of("ADMIN"),
                 name,
                 description,
                 "requester",
