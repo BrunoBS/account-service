@@ -28,7 +28,7 @@ class GoldenArchitectureTest {
     private static final String FOUNDATION_CATALOG = ROOT + ".foundation.catalog..";
     private static final String CORE = ROOT + ".core..";
     private static final String FEATURE = ROOT + ".feature..";
-    private static final String INPUT = ROOT + ".input..";
+    private static final String ENTRYPOINT = ROOT + ".entrypoint..";
     private static final Set<String> MODULE_LAYERS =
             Set.of("domain", "usecase", "repository", "integration");
     private static final Set<String> FOUNDATION_CAPABILITY_LAYERS =
@@ -43,7 +43,7 @@ class GoldenArchitectureTest {
 
     @Test
     void onlyApprovedArchitecturalZonesMayExist() {
-        Set<String> allowed = Set.of("foundation", "core", "feature", "input");
+        Set<String> allowed = Set.of("foundation", "core", "feature", "entrypoint");
 
         var invalidPackages = classes.stream()
                 .map(JavaClass::getPackageName)
@@ -82,7 +82,7 @@ class GoldenArchitectureTest {
         });
 
         noClasses()
-                .that().resideInAnyPackage(FOUNDATION, CORE, FEATURE, INPUT)
+                .that().resideInAnyPackage(FOUNDATION, CORE, FEATURE, ENTRYPOINT)
                 .should().dependOnClassesThat().resideInAPackage(ROOT)
                 .check(classes);
     }
@@ -179,10 +179,10 @@ class GoldenArchitectureTest {
     }
 
     @Test
-    void restControllersMustResideInInput() {
+    void restControllersMustResideInEntrypoint() {
         classes()
                 .that().areAnnotatedWith(RestController.class)
-                .should().resideInAPackage(INPUT)
+                .should().resideInAPackage(ENTRYPOINT)
                 .check(classes);
     }
 
@@ -198,7 +198,7 @@ class GoldenArchitectureTest {
     void foundationMustNotDependOnHigherZones() {
         noClasses()
                 .that().resideInAPackage(FOUNDATION)
-                .should().dependOnClassesThat().resideInAnyPackage(CORE, FEATURE, INPUT)
+                .should().dependOnClassesThat().resideInAnyPackage(CORE, FEATURE, ENTRYPOINT)
                 .check(classes);
     }
 
@@ -206,7 +206,7 @@ class GoldenArchitectureTest {
     void coreMustNotDependOnFeatureOrInput() {
         noClasses()
                 .that().resideInAPackage(CORE)
-                .should().dependOnClassesThat().resideInAnyPackage(FEATURE, INPUT)
+                .should().dependOnClassesThat().resideInAnyPackage(FEATURE, ENTRYPOINT)
                 .check(classes);
     }
 
@@ -214,7 +214,7 @@ class GoldenArchitectureTest {
     void internalZonesMustNotDependOnInput() {
         noClasses()
                 .that().resideInAnyPackage(FOUNDATION, CORE, FEATURE)
-                .should().dependOnClassesThat().resideInAPackage(INPUT)
+                .should().dependOnClassesThat().resideInAPackage(ENTRYPOINT)
                 .check(classes);
     }
 
@@ -226,16 +226,16 @@ class GoldenArchitectureTest {
                         "..usecase..",
                         "..repository..",
                         "..integration..",
-                        INPUT,
+                        ENTRYPOINT,
                         "org.springframework.web.."
                 )
                 .check(classes);
     }
 
     @Test
-    void inputMustNotBypassUseCasesIntoModuleInternals() {
+    void entrypointMustNotBypassUseCasesIntoModuleInternals() {
         noClasses()
-                .that().resideInAPackage(INPUT)
+                .that().resideInAPackage(ENTRYPOINT)
                 .should().dependOnClassesThat().resideInAnyPackage(
                         ROOT + ".core..domain..",
                         ROOT + ".core..repository..",
@@ -249,7 +249,7 @@ class GoldenArchitectureTest {
 
     @Test
     void catalogControllersMustRequireOwnerAuthorization() {
-        String catalogWebPrefix = ROOT + ".input.web.catalog";
+        String catalogWebPrefix = ROOT + ".entrypoint.web.catalog";
 
         var catalogControllers = classes.stream()
                 .filter(javaClass -> javaClass.getPackageName().startsWith(catalogWebPrefix))

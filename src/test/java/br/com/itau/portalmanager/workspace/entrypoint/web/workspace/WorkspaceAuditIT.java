@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.input.web.workspace;
+package br.com.itau.portalmanager.workspace.entrypoint.web.workspace;
 
 import br.com.portalmanager.platform.audit.model.AuditEventRequest;
 import br.com.portalmanager.platform.audit.publisher.AuditPublisher;

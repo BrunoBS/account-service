@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.input.web.catalog;
+package br.com.itau.portalmanager.workspace.entrypoint.web.catalog;
 
 import br.com.portalmanager.platform.testing.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.testing.annotation.WithMockAuthorization;

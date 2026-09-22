@@ -1,11 +1,10 @@
-package br.com.itau.portalmanager.workspace.input.web.workspace.request;
+package br.com.itau.portalmanager.workspace.entrypoint.web.workspace.request;
 
-import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 
 import java.util.List;
 
-public record UpdateWorkspaceRequest(
-        Long version,
+public record CreateWorkspaceRequest(
         String workspaceType,
         String name,
         String description,
@@ -17,9 +16,8 @@ public record UpdateWorkspaceRequest(
         List<ApproverRequest> approvers,
         List<String> tags
 ) {
-    public UpdateWorkspaceInput toInput() {
-        return new UpdateWorkspaceInput(
-                version,
+    public CreateWorkspaceInput toInput() {
+        return new CreateWorkspaceInput(
                 workspaceType,
                 name,
                 description,

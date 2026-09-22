@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.input.web.workspace.response;
+package br.com.itau.portalmanager.workspace.entrypoint.web.workspace.response;
 
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.ApproverOutput;
 

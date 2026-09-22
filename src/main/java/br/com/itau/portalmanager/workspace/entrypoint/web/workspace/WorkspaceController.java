@@ -1,11 +1,11 @@
-package br.com.itau.portalmanager.workspace.input.web.workspace;
+package br.com.itau.portalmanager.workspace.entrypoint.web.workspace;
 
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.WorkspaceCommandService;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.WorkspaceQueryService;
-import br.com.itau.portalmanager.workspace.input.web.workspace.request.CreateWorkspaceRequest;
-import br.com.itau.portalmanager.workspace.input.web.workspace.request.UpdateWorkspaceRequest;
-import br.com.itau.portalmanager.workspace.input.web.workspace.response.WorkspaceResponse;
+import br.com.itau.portalmanager.workspace.entrypoint.web.workspace.request.CreateWorkspaceRequest;
+import br.com.itau.portalmanager.workspace.entrypoint.web.workspace.request.UpdateWorkspaceRequest;
+import br.com.itau.portalmanager.workspace.entrypoint.web.workspace.response.WorkspaceResponse;
 import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.audit.annotation.AuditField;
