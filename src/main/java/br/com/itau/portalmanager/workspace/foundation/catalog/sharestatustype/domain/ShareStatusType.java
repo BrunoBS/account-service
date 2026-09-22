@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.sharestatus.domain;
+package br.com.itau.portalmanager.workspace.foundation.catalog.sharestatustype.domain;
 
 import br.com.portalmanager.platform.catalog.model.BaseCatalogEntity;
 import jakarta.persistence.Entity;

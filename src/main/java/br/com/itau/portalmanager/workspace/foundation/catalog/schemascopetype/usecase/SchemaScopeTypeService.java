@@ -1,8 +1,8 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.schemascope.usecase;
+package br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.schemascope.domain.SchemaScopeType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.schemascope.domain.SchemaScopeTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.schemascope.repository.SchemaScopeTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.repository.SchemaScopeTypeRepository;
 import br.com.itau.portalmanager.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.tagorigin.domain;
+package br.com.itau.portalmanager.workspace.foundation.catalog.tagorigintype.domain;
 
 import br.com.portalmanager.platform.catalog.model.CatalogEnum;
 
