@@ -336,7 +336,7 @@ A estrutura da aplicação é:
 
 ```text
 foundation/catalog
-└── <catalogo>
+└── <catalogtype>
     ├── domain
     ├── repository
     └── usecase
@@ -427,3 +427,23 @@ dependência para a Foundation da plataforma sem decisão própria.
 
 O review final da migração está documentado em
 `REVIEW-MIGRACAO-CATALOGOS-FOUNDATION.md`.
+
+
+## 16. Naming dos módulos concretos de Catalog
+
+Os catálogos representam tipos administráveis. Para tornar essa semântica visível
+também no package Java, o primeiro segmento abaixo de `foundation.catalog` termina
+em `type`:
+
+```text
+foundation.catalog.applicationscopetype
+foundation.catalog.featuretype
+foundation.catalog.featurescopetype
+foundation.catalog.workspacetype
+foundation.catalog.schematype
+```
+
+Packages que já expressavam Type, como `schematype`, permanecem inalterados.
+
+`foundation.catalog.support` é exceção consciente porque contém suporte compartilhado,
+não um catálogo concreto.

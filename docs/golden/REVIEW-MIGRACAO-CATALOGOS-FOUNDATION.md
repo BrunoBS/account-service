@@ -51,7 +51,7 @@ Estrutura final:
 ```text
 foundation
 ├── catalog
-│   └── <catalogo>
+│   └── <catalogtype>
 │       ├── domain
 │       ├── repository
 │       └── usecase
@@ -65,7 +65,7 @@ input
 ```
 
 A organização correta é **catalog-first** dentro de Catalog:
-`catalog/<catalogo>/domain|repository|usecase`.
+`catalog/<catalogtype>/domain|repository|usecase`.
 
 Não existem classes Java de catálogo ativas em Core/Feature.
 
@@ -217,3 +217,10 @@ A migração dos CRUDs de catálogo está tecnicamente concluída e aderente à 
 arquitetural definida. Não foi criado substituto para `platform-crud`; a Golden usa
 `platform-catalog` como capability e mantém seus catálogos concretos na application
 Foundation.
+
+
+## Naming dos módulos
+
+O review estrutural posterior consolidou que todo catálogo concreto em
+`foundation.catalog` deve explicitar `type` no nome do módulo. A regra é protegida
+por fitness function e detalhada no ADR-008.

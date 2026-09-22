@@ -159,6 +159,27 @@ class GoldenArchitectureTest {
     }
 
     @Test
+    void concreteCatalogModulesMustExposeTypeSemanticsInPackageName() {
+        String prefix = ROOT + ".foundation.catalog.";
+
+        var invalidCatalogModules = classes.stream()
+                .map(JavaClass::getPackageName)
+                .filter(packageName -> packageName.startsWith(prefix))
+                .map(packageName -> packageName.substring(prefix.length()))
+                .map(relative -> relative.substring(0, relative.indexOf('.') < 0
+                        ? relative.length()
+                        : relative.indexOf('.')))
+                .filter(module -> !module.equals("support"))
+                .filter(module -> !module.endsWith("type"))
+                .distinct()
+                .toList();
+
+        assertThat(invalidCatalogModules)
+                .as("Concrete catalog modules must end with 'type'")
+                .isEmpty();
+    }
+
+    @Test
     void schemaMustFollowApprovedInternalStructure() {
         String prefix = ROOT + ".foundation.schema.";
 

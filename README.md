@@ -31,11 +31,11 @@ br.com.itau.portalmanager.workspace
 ├── WorkspaceMessagingConfiguration        # wiring técnico do consumidor
 ├── foundation
 │   ├── catalog
-│   │   ├── workspacetype
+│   │   ├── workspacetypetype
 │   │   │   ├── domain
 │   │   │   ├── repository
 │   │   │   └── usecase
-│   │   ├── lifecycletype
+│   │   ├── lifecycletypetype
 │   │   │   ├── domain
 │   │   │   ├── repository
 │   │   │   └── usecase
@@ -83,6 +83,10 @@ A validação de `settings` utiliza
 ser reavaliada quando a capability Schema for consolidada integralmente.
 
 Não existe dependência de `platform-crud`.
+
+Os módulos concretos em `foundation.catalog` tornam explícita a semântica de catálogo
+de tipo no próprio package: `applicationscopetype`, `featuretype`,
+`workspacetype`, etc. Packages já explícitos, como `schematype`, são preservados.
 
 Para catálogos cuja entidade principal termina em `Type`, o módulo em
 `foundation.catalog` preserva esse sufixo no package. Exemplos:

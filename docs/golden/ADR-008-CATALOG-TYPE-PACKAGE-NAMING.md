@@ -1,90 +1,61 @@
-# ADR-008 — Nomenclatura dos módulos de Catalog Type
+# ADR-008 — Naming dos módulos concretos de Catalog como Type
 
 - **Status:** ACEITO
 - **Data:** 2026-09-22
-- **Escopo:** Golden Reference / `foundation.catalog`
+- **Escopo:** Golden Reference / application foundation macrozone
 
 ## Contexto
 
-A ordem interna de Catalog já é definida pelo ADR-007 como catalog-first:
-
-```text
-foundation/catalog/<catalogo>/
-├── domain
-├── repository
-└── usecase
-```
-
-Os catálogos concretos da Golden usam majoritariamente entidades cujo nome termina em
-`Type`, como `ApplicationScopeType`, `FeatureType`, `LifecycleType` e
-`WorkspaceType`.
-
-Usar packages como `applicationscope`, `feature` ou `workspace` elimina do nome
-do módulo justamente a informação de que a responsabilidade é um catálogo de tipos.
+Os módulos sob `foundation.catalog` representam catálogos administráveis de tipos.
+A estrutura catalog-first definida pelo ADR-007 resolve ownership e organização, mas
+nomes como `applicationscope`, `feature` ou `workspace` não deixam essa natureza
+explícita na leitura do package.
 
 ## Decisão
 
-Todo **catálogo concreto** dentro de `foundation.catalog` deve ser nomeado como um
-`type`, portanto seu módulo deve terminar em `type`.
-
-Quando a entidade principal já termina em `Type`, o módulo usa o nome completo da
-entidade em lowercase, preservando o sufixo `type`.
+Todo módulo concreto de catálogo abaixo de `foundation.catalog` deve explicitar
+`type` no próprio nome do package.
 
 Exemplos:
 
 ```text
-ApplicationScopeType -> foundation.catalog.applicationscopetype
-AuthorizationType    -> foundation.catalog.authorizationtype
-FeatureScopeType     -> foundation.catalog.featurescopetype
-FeatureType          -> foundation.catalog.featuretype
-LifecycleType        -> foundation.catalog.lifecycletype
-SchemaType           -> foundation.catalog.schematype
-WorkspaceType        -> foundation.catalog.workspacetype
+foundation.catalog.applicationscopetype
+foundation.catalog.authorizationtype
+foundation.catalog.environmenttype
+foundation.catalog.featurescopetype
+foundation.catalog.featuretype
+foundation.catalog.lifecycletype
+foundation.catalog.workspacetype
 ```
 
-A estrutura completa permanece:
+Quando o package já explicita essa semântica, ele permanece como está:
 
 ```text
-foundation/catalog/applicationscopetype/
+foundation.catalog.schematype
+```
+
+A estrutura interna continua:
+
+```text
+foundation/catalog/<catalogtype>/
 ├── domain
 ├── repository
 └── usecase
 ```
 
-## Catálogos com nome histórico sem Type
+## Exceções
 
-Mesmo quando o nome histórico da entidade principal não termina em `Type`, o módulo
-continua explicitando que se trata de um catálogo de tipos.
+`foundation.catalog.support` não representa catálogo concreto e, portanto, não recebe
+o sufixo `type`.
 
-Exemplo:
-
-```text
-OnboardingPhase -> foundation.catalog.onboardingphasetype
-```
-
-Packages compartilhados que não representam um catálogo concreto permanecem naturais:
-
-```text
-foundation.catalog.support
-```
+A decisão é específica para `foundation.catalog`; ela não obriga renomear packages de
+controllers em `input.web.catalog`.
 
 ## Consequências
 
-- packages antigos como `foundation.catalog.applicationscope`,
-  `foundation.catalog.feature` e `foundation.catalog.workspace` deixam de ser usados;
-- `schematype` permanece inalterado, pois já expressava corretamente a convenção;
-- `onboarding` passa a `onboardingphasetype`;
-- controllers Web não são renomeados por esta decisão; a regra é específica de
-  `foundation.catalog`;
-- fitness function deve falhar quando uma entidade de domínio `*Type` estiver em um
-  módulo cujo nome não corresponda ao nome completo da entidade em lowercase.
-
-## Relação com ADR-007
-
-O ADR-007 continua definindo a **ordem**:
-
-```text
-catalogo -> layer
-```
-
-Este ADR define a **nomenclatura do módulo do catálogo**.
+- entidades `*Type` ficam agrupadas em módulos cujo nome termina em `type`;
+- a leitura do package distingue imediatamente catálogo de domínio comum;
+- novos catálogos concretos devem seguir a mesma convenção;
+- a fitness function arquitetural falha se surgir módulo concreto de Catalog sem
+  `type` no primeiro segmento;
+- nomes de endpoints HTTP não são afetados.

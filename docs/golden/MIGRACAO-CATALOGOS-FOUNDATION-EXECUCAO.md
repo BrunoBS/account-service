@@ -27,7 +27,7 @@ artificial foi criado para forçá-los ao `EnumCatalogService`.
 br.com.itau.portalmanager.workspace
 ├── foundation
 │   ├── catalog
-│   │   └── <catalogo>
+│   │   └── <catalogtype>
 │   │       ├── domain
 │   │       ├── repository
 │   │       └── usecase
@@ -39,7 +39,7 @@ br.com.itau.portalmanager.workspace
         └── catalog
 ```
 
-Cada catálogo é um módulo interno de `foundation/catalog` e contém suas próprias layers `domain`, `repository` e `usecase`.
+Cada catálogo é um módulo interno de `foundation/catalog` com nome explícito terminado em `type` e contém suas próprias layers `domain`, `repository` e `usecase`.
 
 Nenhum catálogo Java ativo ficou em Core ou Feature.
 
@@ -242,3 +242,18 @@ Verify #110 / run `35674577937`:
 - esta atividade não migra o CRUD completo de Schema, somente a dependência de validação
   necessária aos catálogos;
 - merge e checkpoint dependem do review da PR e da conclusão da branch pós-G4.
+
+
+## Convenção nominal posterior
+
+Após a correção catalog-first, os módulos concretos foram renomeados para tornar
+explícito que representam catálogos de tipos. Exemplos:
+
+```text
+applicationscopetype
+featuretype
+lifecycletype
+workspacetype
+```
+
+`schematype` já atendia à convenção e foi preservado.

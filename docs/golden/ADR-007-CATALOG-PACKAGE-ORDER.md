@@ -25,7 +25,7 @@ Essa ordem não corresponde à organização definida para os módulos concretos
 Catalog deve ser organizado **por catálogo primeiro** e por layer depois:
 
 ```text
-foundation/catalog/<catalogo>/
+foundation/catalog/<catalogtype>/
 ├── domain
 ├── repository
 └── usecase
@@ -62,7 +62,7 @@ input/web/catalog/<catalogo>
 ## Consequências
 
 - a estrutura física e o package Java devem refletir a mesma ordem;
-- novos catálogos devem nascer em `foundation.catalog.<catalogo>.<layer>`;
+- novos catálogos devem nascer em `foundation.catalog.<catalogtype>.<layer>`;
 - fica proibido reintroduzir `foundation.catalog.domain.<catalogo>`,
   `foundation.catalog.repository.<catalogo>` ou
   `foundation.catalog.usecase.<catalogo>`;
@@ -73,3 +73,10 @@ input/web/catalog/<catalogo>
 Onde a árvore de referência genérica sugerir `catalog/domain|usecase|repository`,
 este ADR especializa a estrutura interna de Catalog e prevalece para os catálogos
 concretos da Golden Reference.
+
+
+## Convenção nominal complementar
+
+A ordem catalog-first é complementada pelo ADR-008: módulos concretos de Catalog
+devem tornar explícita a semântica de Type no primeiro segmento abaixo de
+`foundation.catalog`.
