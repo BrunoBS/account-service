@@ -7,6 +7,7 @@ import br.com.portalmanager.platform.testing.authorization.AuthorizationMock;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
@@ -21,6 +22,7 @@ import static org.hamcrest.Matchers.equalTo;
 @PlatformIntegrationTest
 @WithMySql
 @WithMockAuthorization
+@Sql("/sql/workspace-type-catalog.sql")
 class WorkspaceAuthorizationIT {
 
     @LocalServerPort
