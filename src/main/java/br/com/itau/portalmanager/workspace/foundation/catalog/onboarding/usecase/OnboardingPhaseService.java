@@ -1,17 +1,26 @@
 package br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.usecase;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.domain.OnboardingPhase;
+import br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.domain.OnboardingPhaseEnum;
 import br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.repository.OnboardingPhaseRepository;
-import br.com.portalmanager.platform.catalog.service.BaseCatalogService;
+import br.com.itau.portalmanager.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
+import br.com.portalmanager.platform.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
-public class OnboardingPhaseService extends BaseCatalogService<OnboardingPhase, OnboardingPhaseDTO> {
+public class OnboardingPhaseService extends EnumCatalogService<OnboardingPhase, OnboardingPhaseEnum> {
 
     public OnboardingPhaseService(
             OnboardingPhaseRepository repository,
-            OnboardingPhaseMapper mapper,
-            OnboardingPhaseValidator validator) {
-        super(repository, mapper, validator);
+            ObjectMapper objectMapper,
+            CatalogSchemaValidationSupport settingsValidator) {
+        super(
+                repository,
+                objectMapper,
+                OnboardingPhase.class,
+                OnboardingPhaseEnum.class,
+                (dto, result) -> settingsValidator.validateSettings(dto.settings(), result)
+        );
     }
 }
