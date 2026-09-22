@@ -9,7 +9,7 @@ import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.Worksp
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceNormalizer;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.validation.WorkspaceValidator;
-import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
+import br.com.itau.portalmanager.workspace.core.workspace.domain.WorkspaceTypeCode;
 import br.com.portalmanager.platform.messaging.exception.ResourceVersionConflictException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,7 +52,7 @@ public class WorkspaceCommandService {
 
         LocalDateTime now = LocalDateTime.now();
         Workspace workspace = new Workspace(
-                WorkspaceTypeEnum.valueOf(input.workspaceType()),
+                WorkspaceTypeCode.of(input.workspaceType()),
                 input.name(),
                 input.description(),
                 input.requester(),
@@ -87,7 +87,7 @@ public class WorkspaceCommandService {
         }
 
         workspace.update(
-                WorkspaceTypeEnum.valueOf(input.workspaceType()),
+                WorkspaceTypeCode.of(input.workspaceType()),
                 input.name(),
                 input.description(),
                 input.requester(),
