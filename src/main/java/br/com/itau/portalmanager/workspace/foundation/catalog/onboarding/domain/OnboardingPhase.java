@@ -1,15 +1,10 @@
 package br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.domain;
 
 import br.com.portalmanager.platform.catalog.model.BaseCatalogEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "type_onboardings")
 public class OnboardingPhase extends BaseCatalogEntity {
-
-    @Column(name = "orientation", nullable = false, length = 255)
-    private String orientation;
-
-    public String getOrientation() { return orientation; }
-    public void setOrientation(String orientation) { this.orientation = orientation; }
 }
