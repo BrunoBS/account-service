@@ -27,9 +27,10 @@ artificial foi criado para forçá-los ao `EnumCatalogService`.
 br.com.itau.portalmanager.workspace
 ├── foundation
 │   ├── catalog
-│   │   ├── domain
-│   │   ├── usecase
-│   │   └── repository
+│   │   └── <catalogo>
+│   │       ├── domain
+│   │       ├── repository
+│   │       └── usecase
 │   └── schema
 │       ├── domain
 │       └── usecase
@@ -38,7 +39,7 @@ br.com.itau.portalmanager.workspace
         └── catalog
 ```
 
-Dentro de cada layer de Catalog existem subpackages por catálogo.
+Cada catálogo é um módulo interno de `foundation/catalog` e contém suas próprias layers `domain`, `repository` e `usecase`.
 
 Nenhum catálogo Java ativo ficou em Core ou Feature.
 
@@ -100,7 +101,7 @@ foundation.schema.usecase.SchemaValidator
 ```
 
 Catalog depende de Schema por meio de
-`foundation.catalog.usecase.support.CatalogSchemaValidationSupport`.
+`foundation.catalog.support.CatalogSchemaValidationSupport`.
 
 ## Persistência
 

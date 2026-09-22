@@ -1,8 +1,8 @@
 package br.com.itau.portalmanager.workspace.input.web.catalog.feature;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.feature.FeatureType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.feature.FeatureTypeService;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.feature.FeatureTypeDTO;
+import br.com.itau.portalmanager.workspace.foundation.catalog.feature.domain.FeatureType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.feature.usecase.FeatureTypeService;
+import br.com.itau.portalmanager.workspace.foundation.catalog.feature.usecase.FeatureTypeDTO;
 import br.com.portalmanager.platform.catalog.web.BaseCatalogController;
 import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;

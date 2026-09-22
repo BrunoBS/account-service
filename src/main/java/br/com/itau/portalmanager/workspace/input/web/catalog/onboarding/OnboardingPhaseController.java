@@ -1,8 +1,8 @@
 package br.com.itau.portalmanager.workspace.input.web.catalog.onboarding;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.onboarding.OnboardingPhase;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.onboarding.OnboardingPhaseService;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.onboarding.OnboardingPhaseDTO;
+import br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.domain.OnboardingPhase;
+import br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.usecase.OnboardingPhaseService;
+import br.com.itau.portalmanager.workspace.foundation.catalog.onboarding.usecase.OnboardingPhaseDTO;
 import br.com.portalmanager.platform.catalog.web.BaseCatalogController;
 import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;

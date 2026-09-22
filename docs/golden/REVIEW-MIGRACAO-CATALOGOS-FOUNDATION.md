@@ -51,9 +51,10 @@ Estrutura final:
 ```text
 foundation
 ├── catalog
-│   ├── domain/<catalogo>
-│   ├── usecase/<catalogo>
-│   └── repository/<catalogo>
+│   └── <catalogo>
+│       ├── domain
+│       ├── repository
+│       └── usecase
 └── schema
     ├── domain
     └── usecase
@@ -63,8 +64,8 @@ input
     └── catalog/<catalogo>
 ```
 
-O review confirmou que a organização oficial é layer-first dentro de Catalog:
-`catalog/domain|usecase|repository`.
+A organização correta é **catalog-first** dentro de Catalog:
+`catalog/<catalogo>/domain|repository|usecase`.
 
 Não existem classes Java de catálogo ativas em Core/Feature.
 
@@ -131,7 +132,7 @@ foundation.schema.usecase.SchemaValidator
 ```
 
 Catalog adapta o resultado por
-`foundation.catalog.usecase.support.CatalogSchemaValidationSupport`.
+`foundation.catalog.support.CatalogSchemaValidationSupport`.
 
 A direção é:
 

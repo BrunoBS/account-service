@@ -336,9 +336,10 @@ A estrutura da aplicação é:
 
 ```text
 foundation/catalog
-├── domain
-├── usecase
-└── repository
+└── <catalogo>
+    ├── domain
+    ├── repository
+    └── usecase
 
 input/web/catalog
 └── <catalogo>
@@ -395,7 +396,7 @@ Componentes locais:
 ```text
 foundation.schema.domain.SchemaDefaults
 foundation.schema.usecase.SchemaValidator
-foundation.catalog.usecase.support.CatalogSchemaValidationSupport
+foundation.catalog.support.CatalogSchemaValidationSupport
 ```
 
 `SchemaValidator` não depende de Catalog.

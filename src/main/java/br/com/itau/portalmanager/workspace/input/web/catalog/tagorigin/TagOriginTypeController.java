@@ -1,7 +1,7 @@
 package br.com.itau.portalmanager.workspace.input.web.catalog.tagorigin;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.tagorigin.TagOriginType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.tagorigin.TagOriginTypeService;
+import br.com.itau.portalmanager.workspace.foundation.catalog.tagorigin.domain.TagOriginType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.tagorigin.usecase.TagOriginTypeService;
 import br.com.portalmanager.platform.catalog.web.CatalogController;
 import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;

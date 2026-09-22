@@ -1,8 +1,8 @@
 package br.com.itau.portalmanager.workspace.core.workspace.usecase.model;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.lifecycle.LifecycleTypeEnum;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.workspace.WorkspaceTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycle.domain.LifecycleTypeEnum;
+import br.com.itau.portalmanager.workspace.foundation.catalog.workspace.domain.WorkspaceTypeEnum;
 import br.com.portalmanager.platform.authorization.resource.AuthorizableResource;
 
 import java.time.LocalDateTime;

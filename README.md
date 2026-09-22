@@ -31,9 +31,18 @@ br.com.itau.portalmanager.workspace
 ├── WorkspaceMessagingConfiguration        # wiring técnico do consumidor
 ├── foundation
 │   ├── catalog
-│   │   ├── domain
-│   │   ├── usecase
-│   │   └── repository
+│   │   ├── workspace
+│   │   │   ├── domain
+│   │   │   ├── repository
+│   │   │   └── usecase
+│   │   ├── lifecycle
+│   │   │   ├── domain
+│   │   │   ├── repository
+│   │   │   └── usecase
+│   │   └── <catalogo>
+│   │       ├── domain
+│   │       ├── repository
+│   │       └── usecase
 │   └── schema
 │       ├── domain
 │       └── usecase

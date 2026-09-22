@@ -1,7 +1,7 @@
 package br.com.itau.portalmanager.workspace.input.web.catalog.sharestatus;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.sharestatus.ShareStatusType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.sharestatus.ShareStatusTypeService;
+import br.com.itau.portalmanager.workspace.foundation.catalog.sharestatus.domain.ShareStatusType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.sharestatus.usecase.ShareStatusTypeService;
 import br.com.portalmanager.platform.catalog.web.CatalogController;
 import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;
