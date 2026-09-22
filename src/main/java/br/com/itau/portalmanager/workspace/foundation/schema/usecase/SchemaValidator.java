@@ -1,6 +1,5 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.usecase;
 
-import br.com.portalmanager.platform.catalog.validation.CatalogValidationResult;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.messaging.validation.ValidationResult;
 import com.networknt.schema.Schema;
@@ -39,45 +38,16 @@ public class SchemaValidator {
             String schemaDefinition,
             JsonNode configNode,
             String attributeName,
-            CatalogValidationResult result
+            ValidationResult result
     ) {
-        validateJson(schemaDefinition, configNode, attributeName, new ValidationErrorSink() {
-            @Override
-            public void addError(String field, String message) {
-                result.addError(field, message);
-            }
-
-            @Override
-            public void addError(String field, String message, Map<String, Object> parameters) {
-                result.addError(field, message, parameters);
-            }
-        });
+        validateJsonInternal(schemaDefinition, configNode, attributeName, result);
     }
 
-    public void validateJson(
+    private void validateJsonInternal(
             String schemaDefinition,
             JsonNode configNode,
             String attributeName,
             ValidationResult result
-    ) {
-        validateJson(schemaDefinition, configNode, attributeName, new ValidationErrorSink() {
-            @Override
-            public void addError(String field, String message) {
-                result.addError(field, message);
-            }
-
-            @Override
-            public void addError(String field, String message, Map<String, Object> parameters) {
-                result.addError(field, message, parameters);
-            }
-        });
-    }
-
-    private void validateJson(
-            String schemaDefinition,
-            JsonNode configNode,
-            String attributeName,
-            ValidationErrorSink result
     ) {
         String field = attributeName == null ? "settings" : attributeName;
 
@@ -131,7 +101,7 @@ public class SchemaValidator {
         }
     }
 
-    private Schema parseSchema(String schemaDefinition, ValidationErrorSink result) {
+    private Schema parseSchema(String schemaDefinition, ValidationResult result) {
         Schema cached = schemaCache.get(schemaDefinition);
         if (cached != null) {
             return cached;
@@ -148,9 +118,5 @@ public class SchemaValidator {
         }
     }
 
-    private interface ValidationErrorSink {
-        void addError(String field, String message);
-
-        void addError(String field, String message, Map<String, Object> parameters);
-    }
 }
+
