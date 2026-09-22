@@ -7,6 +7,8 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Configuration;
@@ -160,6 +162,26 @@ class GoldenArchitectureTest {
                         ROOT + ".feature..integration.."
                 )
                 .check(classes);
+    }
+
+    @Test
+    void catalogControllersMustRequireOwnerAuthorization() {
+        String catalogWebPrefix = ROOT + ".input.web.catalog";
+
+        var catalogControllers = classes.stream()
+                .filter(javaClass -> javaClass.getPackageName().startsWith(catalogWebPrefix))
+                .filter(javaClass -> javaClass.isAnnotatedWith(RestController.class))
+                .toList();
+
+        assertThat(catalogControllers).isNotEmpty();
+        assertThat(catalogControllers).allSatisfy(javaClass -> {
+            assertThat(javaClass.isAnnotatedWith(AuthorizationRequired.class))
+                    .as(javaClass.getName() + " must declare @AuthorizationRequired")
+                    .isTrue();
+            assertThat(javaClass.getAnnotationOfType(AuthorizationRequired.class).level())
+                    .as(javaClass.getName() + " must require OWNER")
+                    .isEqualTo(AuthorizationLevel.OWNER);
+        });
     }
 
     @Test
