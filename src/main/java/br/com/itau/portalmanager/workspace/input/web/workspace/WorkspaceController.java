@@ -1,12 +1,8 @@
 package br.com.itau.portalmanager.workspace.input.web.workspace;
 
-import br.com.itau.portalmanager.workspace.core.workspace.usecase.create.CreateWorkspaceUseCase;
-import br.com.itau.portalmanager.workspace.core.workspace.usecase.findall.FindAllWorkspacesInput;
-import br.com.itau.portalmanager.workspace.core.workspace.usecase.findall.FindAllWorkspacesUseCase;
-import br.com.itau.portalmanager.workspace.core.workspace.usecase.findbyid.FindWorkspaceByIdUseCase;
-import br.com.itau.portalmanager.workspace.core.workspace.usecase.inactivate.InactivateWorkspaceUseCase;
-import br.com.itau.portalmanager.workspace.core.workspace.usecase.restore.RestoreWorkspaceUseCase;
-import br.com.itau.portalmanager.workspace.core.workspace.usecase.update.UpdateWorkspaceUseCase;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.WorkspaceCommandService;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
+import br.com.itau.portalmanager.workspace.core.workspace.usecase.WorkspaceQueryService;
 import br.com.itau.portalmanager.workspace.input.web.workspace.request.CreateWorkspaceRequest;
 import br.com.itau.portalmanager.workspace.input.web.workspace.request.UpdateWorkspaceRequest;
 import br.com.itau.portalmanager.workspace.input.web.workspace.response.WorkspaceResponse;
@@ -33,27 +29,15 @@ import java.util.List;
 @RequestMapping("/api/v1/workspaces")
 public class WorkspaceController {
 
-    private final CreateWorkspaceUseCase createWorkspace;
-    private final FindWorkspaceByIdUseCase findWorkspaceById;
-    private final FindAllWorkspacesUseCase findAllWorkspaces;
-    private final UpdateWorkspaceUseCase updateWorkspace;
-    private final InactivateWorkspaceUseCase inactivateWorkspace;
-    private final RestoreWorkspaceUseCase restoreWorkspace;
+    private final WorkspaceCommandService commandService;
+    private final WorkspaceQueryService queryService;
 
     public WorkspaceController(
-            CreateWorkspaceUseCase createWorkspace,
-            FindWorkspaceByIdUseCase findWorkspaceById,
-            FindAllWorkspacesUseCase findAllWorkspaces,
-            UpdateWorkspaceUseCase updateWorkspace,
-            InactivateWorkspaceUseCase inactivateWorkspace,
-            RestoreWorkspaceUseCase restoreWorkspace
+            WorkspaceCommandService commandService,
+            WorkspaceQueryService queryService
     ) {
-        this.createWorkspace = createWorkspace;
-        this.findWorkspaceById = findWorkspaceById;
-        this.findAllWorkspaces = findAllWorkspaces;
-        this.updateWorkspace = updateWorkspace;
-        this.inactivateWorkspace = inactivateWorkspace;
-        this.restoreWorkspace = restoreWorkspace;
+        this.commandService = commandService;
+        this.queryService = queryService;
     }
 
     @PostMapping
@@ -64,14 +48,14 @@ public class WorkspaceController {
             resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "id")
     )
     public ResponseEntity<WorkspaceResponse> create(@RequestBody CreateWorkspaceRequest request) {
-        WorkspaceResponse response = WorkspaceResponse.from(createWorkspace.execute(request.toInput()));
+        WorkspaceResponse response = WorkspaceResponse.from(commandService.create(request.toInput()));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{workspaceId}")
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
     public WorkspaceResponse findById(@PathVariable Long workspaceId) {
-        return WorkspaceResponse.from(findWorkspaceById.execute(workspaceId));
+        return WorkspaceResponse.from(queryService.findById(workspaceId));
     }
 
     @GetMapping
@@ -81,7 +65,7 @@ public class WorkspaceController {
             @RequestParam(required = false) String typeName,
             @RequestParam(required = false) String tagName
     ) {
-        return findAllWorkspaces.execute(new FindAllWorkspacesInput(active, typeName, tagName)).stream()
+        return queryService.findAll(new FindAllWorkspacesInput(active, typeName, tagName)).stream()
                 .map(WorkspaceResponse::from)
                 .toList();
     }
@@ -97,7 +81,7 @@ public class WorkspaceController {
             @PathVariable Long workspaceId,
             @RequestBody UpdateWorkspaceRequest request
     ) {
-        return WorkspaceResponse.from(updateWorkspace.execute(workspaceId, request.toInput()));
+        return WorkspaceResponse.from(commandService.update(workspaceId, request.toInput()));
     }
 
     @DeleteMapping("/{workspaceId}")
@@ -108,7 +92,7 @@ public class WorkspaceController {
             resourceId = @AuditField(source = AuditFieldSource.PATH, field = "workspaceId")
     )
     public ResponseEntity<Void> inactivate(@PathVariable Long workspaceId) {
-        inactivateWorkspace.execute(workspaceId);
+        commandService.inactivate(workspaceId);
         return ResponseEntity.noContent().build();
     }
 
@@ -120,6 +104,6 @@ public class WorkspaceController {
             resourceId = @AuditField(source = AuditFieldSource.PATH, field = "workspaceId")
     )
     public WorkspaceResponse restore(@PathVariable Long workspaceId) {
-        return WorkspaceResponse.from(restoreWorkspace.execute(workspaceId));
+        return WorkspaceResponse.from(commandService.restore(workspaceId));
     }
 }
