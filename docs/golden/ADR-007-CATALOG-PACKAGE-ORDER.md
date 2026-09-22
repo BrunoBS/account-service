@@ -34,7 +34,7 @@ foundation/catalog/<catalogo>/
 Exemplo:
 
 ```text
-foundation/catalog/workspace/
+foundation/catalog/workspacetype/
 ├── domain/
 │   ├── WorkspaceType.java
 │   └── WorkspaceTypeEnum.java

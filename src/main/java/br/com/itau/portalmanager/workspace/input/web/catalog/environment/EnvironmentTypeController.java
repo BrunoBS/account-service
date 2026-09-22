@@ -1,7 +1,7 @@
 package br.com.itau.portalmanager.workspace.input.web.catalog.environment;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.environment.domain.EnvironmentType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.environment.usecase.EnvironmentTypeService;
+import br.com.itau.portalmanager.workspace.foundation.catalog.environmenttype.domain.EnvironmentType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.environmenttype.usecase.EnvironmentTypeService;
 import br.com.portalmanager.platform.catalog.web.CatalogController;
 import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;

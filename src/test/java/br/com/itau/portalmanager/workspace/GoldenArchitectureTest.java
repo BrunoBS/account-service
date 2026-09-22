@@ -116,6 +116,49 @@ class GoldenArchitectureTest {
     }
 
     @Test
+    void concreteCatalogModulesMustBeExplicitTypes() {
+        String prefix = ROOT + ".foundation.catalog.";
+
+        var invalidModules = classes.stream()
+                .map(JavaClass::getPackageName)
+                .filter(packageName -> packageName.startsWith(prefix))
+                .map(packageName -> packageName.substring(prefix.length()))
+                .map(relative -> relative.substring(0, relative.indexOf('.') < 0
+                        ? relative.length()
+                        : relative.indexOf('.')))
+                .filter(module -> !module.equals("support"))
+                .filter(module -> !module.endsWith("type"))
+                .distinct()
+                .toList();
+
+        assertThat(invalidModules)
+                .as("Concrete catalog modules must end with 'type'")
+                .isEmpty();
+    }
+
+    @Test
+    void typeDomainNameMustMatchCatalogModuleName() {
+        String prefix = ROOT + ".foundation.catalog.";
+
+        var invalidTypes = classes.stream()
+                .filter(javaClass -> javaClass.getPackageName().startsWith(prefix))
+                .filter(javaClass -> javaClass.getPackageName().contains(".domain"))
+                .filter(javaClass -> javaClass.getSimpleName().endsWith("Type"))
+                .filter(javaClass -> {
+                    String relative = javaClass.getPackageName().substring(prefix.length());
+                    String module = relative.substring(0, relative.indexOf('.'));
+                    String expected = javaClass.getSimpleName().toLowerCase(java.util.Locale.ROOT);
+                    return !module.equals(expected);
+                })
+                .map(JavaClass::getName)
+                .toList();
+
+        assertThat(invalidTypes)
+                .as("Type domain names must match their catalog module names")
+                .isEmpty();
+    }
+
+    @Test
     void schemaMustFollowApprovedInternalStructure() {
         String prefix = ROOT + ".foundation.schema.";
 

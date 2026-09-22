@@ -1,7 +1,7 @@
 package br.com.itau.portalmanager.workspace.input.web.catalog.schemascope;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.schemascope.domain.SchemaScopeType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.schemascope.usecase.SchemaScopeTypeService;
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.usecase.SchemaScopeTypeService;
 import br.com.portalmanager.platform.catalog.web.CatalogController;
 import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;
