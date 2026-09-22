@@ -8,6 +8,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
@@ -27,6 +28,7 @@ import static org.hamcrest.Matchers.nullValue;
 @PlatformIntegrationTest
 @WithMySql
 @WithMockAuthorization
+@Sql("/sql/workspace-type-catalog.sql")
 class WorkspaceApiIT {
 
     @LocalServerPort
