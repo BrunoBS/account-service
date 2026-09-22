@@ -27,7 +27,7 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
             select distinct w
               from Workspace w
              where w.lifecycle = :lifecycle
-               and (:workspaceType is null or w.workspaceType.value = :workspaceTypeCode)
+               and (:workspaceTypeCode is null or w.workspaceType.value = :workspaceTypeCode)
              order by w.id
             """)
     List<Workspace> findFiltered(
@@ -40,7 +40,7 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
             select distinct w
               from Workspace w
              where w.lifecycle = :lifecycle
-               and (:workspaceType is null or w.workspaceType.value = :workspaceTypeCode)
+               and (:workspaceTypeCode is null or w.workspaceType.value = :workspaceTypeCode)
                and w.identifier in :identifiers
              order by w.id
             """)
