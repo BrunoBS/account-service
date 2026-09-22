@@ -1,7 +1,6 @@
 package br.com.itau.portalmanager.workspace.core.workspace.repository;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
-import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeEnum;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,18 +19,22 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
     Optional<Workspace> findDetailedById(@Param("id") Long id);
 
     @EntityGraph(attributePaths = "approvers")
-    Optional<Workspace> findByIdAndLifecycle(Long id, LifecycleTypeEnum lifecycle);
+    @Query("select w from Workspace w where w.id = :id and w.lifecycle.value = :lifecycleCode")
+    Optional<Workspace> findByIdAndLifecycleValue(
+            @Param("id") Long id,
+            @Param("lifecycleCode") String lifecycleCode
+    );
 
     @EntityGraph(attributePaths = "approvers")
     @Query("""
             select distinct w
               from Workspace w
-             where w.lifecycle = :lifecycle
+             where w.lifecycle.value = :lifecycleCode
                and (:workspaceTypeCode is null or w.workspaceType.value = :workspaceTypeCode)
              order by w.id
             """)
     List<Workspace> findFiltered(
-            @Param("lifecycle") LifecycleTypeEnum lifecycle,
+            @Param("lifecycleCode") String lifecycleCode,
             @Param("workspaceTypeCode") String workspaceTypeCode
     );
 
@@ -39,13 +42,13 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
     @Query("""
             select distinct w
               from Workspace w
-             where w.lifecycle = :lifecycle
+             where w.lifecycle.value = :lifecycleCode
                and (:workspaceTypeCode is null or w.workspaceType.value = :workspaceTypeCode)
                and w.identifier in :identifiers
              order by w.id
             """)
     List<Workspace> findFilteredByIdentifiers(
-            @Param("lifecycle") LifecycleTypeEnum lifecycle,
+            @Param("lifecycleCode") String lifecycleCode,
             @Param("workspaceTypeCode") String workspaceTypeCode,
             @Param("identifiers") Collection<String> identifiers
     );

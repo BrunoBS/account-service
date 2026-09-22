@@ -1,7 +1,6 @@
 package br.com.itau.portalmanager.workspace.core.workspace.usecase.model;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
-import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeEnum;
 import br.com.portalmanager.platform.authorization.resource.AuthorizableResource;
 
 import java.time.LocalDateTime;
@@ -21,7 +20,7 @@ public record WorkspaceOutput(
         String settings,
         String emailGroup,
         boolean onboarding,
-        LifecycleTypeEnum lifecycle,
+        String lifecycle,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         List<ApproverOutput> approvers,
@@ -48,7 +47,7 @@ public record WorkspaceOutput(
                 workspace.getSettings(),
                 workspace.getEmailGroup(),
                 workspace.isOnboarding(),
-                workspace.getLifecycle(),
+                workspace.getLifecycle().value(),
                 workspace.getCreatedAt(),
                 workspace.getUpdatedAt(),
                 approvers,

@@ -8,7 +8,6 @@ import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.Worksp
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceNormalizer;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.validation.WorkspaceValidator;
-import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeEnum;
 import br.com.portalmanager.platform.authorization.annotation.ResourceVisibility;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,9 +48,9 @@ public class WorkspaceQueryService {
     @ResourceVisibility
     @Transactional(readOnly = true)
     public List<WorkspaceOutput> findAll(FindAllWorkspacesInput input) {
-        LifecycleTypeEnum lifecycle = input != null && Boolean.FALSE.equals(input.active())
-                ? LifecycleTypeEnum.INACTIVE
-                : LifecycleTypeEnum.ACTIVE;
+        String lifecycleCode = input != null && Boolean.FALSE.equals(input.active())
+                ? "INACTIVE"
+                : "ACTIVE";
 
         String normalizedType = normalizer.normalizeTypeFilter(input == null ? null : input.typeName());
         String normalizedTag = normalizer.normalizeTagFilter(input == null ? null : input.tagName());
@@ -61,13 +60,13 @@ public class WorkspaceQueryService {
 
         List<Workspace> workspaces;
         if (normalizedTag == null) {
-            workspaces = repository.findFiltered(lifecycle, workspaceTypeCode);
+            workspaces = repository.findFiltered(lifecycleCode, workspaceTypeCode);
         } else {
             List<String> identifiers = taggingSupport.findIdentifiersByTag(normalizedTag);
             if (identifiers.isEmpty()) {
                 return List.of();
             }
-            workspaces = repository.findFilteredByIdentifiers(lifecycle, workspaceTypeCode, identifiers);
+            workspaces = repository.findFilteredByIdentifiers(lifecycleCode, workspaceTypeCode, identifiers);
         }
 
         Map<String, List<String>> manualTags = taggingSupport.findManualByIdentifiers(

@@ -1,12 +1,9 @@
 package br.com.itau.portalmanager.workspace.core.workspace.domain;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeEnum;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Embedded;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -63,9 +60,8 @@ public class Workspace {
     @Column(name = "onboarding", nullable = false)
     private boolean onboarding;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "lifecycle", nullable = false, length = 20)
-    private LifecycleTypeEnum lifecycle;
+    @Embedded
+    private LifecycleTypeCode lifecycle;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -99,7 +95,7 @@ public class Workspace {
         this.authorizerGroup = authorizerGroup;
         this.emailGroup = emailGroup;
         this.onboarding = false;
-        this.lifecycle = LifecycleTypeEnum.ACTIVE;
+        this.lifecycle = LifecycleTypeCode.of("ACTIVE");
         this.createdAt = now;
         this.updatedAt = now;
     }
@@ -134,12 +130,12 @@ public class Workspace {
     }
 
     public void inactivate(LocalDateTime now) {
-        this.lifecycle = LifecycleTypeEnum.INACTIVE;
+        this.lifecycle = LifecycleTypeCode.of("INACTIVE");
         this.updatedAt = now;
     }
 
     public void restore(LocalDateTime now) {
-        this.lifecycle = LifecycleTypeEnum.ACTIVE;
+        this.lifecycle = LifecycleTypeCode.of("ACTIVE");
         this.updatedAt = now;
     }
 
@@ -160,7 +156,7 @@ public class Workspace {
     public String getAuthorizerGroup() { return authorizerGroup; }
     public String getEmailGroup() { return emailGroup; }
     public boolean isOnboarding() { return onboarding; }
-    public LifecycleTypeEnum getLifecycle() { return lifecycle; }
+    public LifecycleTypeCode getLifecycle() { return lifecycle; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 
