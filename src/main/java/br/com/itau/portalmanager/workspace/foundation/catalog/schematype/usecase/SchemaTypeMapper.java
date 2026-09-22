@@ -1,7 +1,7 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.schematype;
+package br.com.itau.portalmanager.workspace.foundation.catalog.schematype.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.schematype.SchemaType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.usecase.support.CatalogSchemaValidationSupport;
+import br.com.itau.portalmanager.workspace.foundation.catalog.schematype.domain.SchemaType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.catalog.mapper.BaseCatalogMapper;
 import org.springframework.stereotype.Component;
 

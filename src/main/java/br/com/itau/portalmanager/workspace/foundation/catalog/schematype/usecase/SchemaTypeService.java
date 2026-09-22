@@ -1,9 +1,9 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.usecase.schematype;
+package br.com.itau.portalmanager.workspace.foundation.catalog.schematype.usecase;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.schemascope.SchemaScopeType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.schematype.SchemaType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.repository.schemascope.SchemaScopeTypeRepository;
-import br.com.itau.portalmanager.workspace.foundation.catalog.repository.schematype.SchemaTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemascope.domain.SchemaScopeType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.schematype.domain.SchemaType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemascope.repository.SchemaScopeTypeRepository;
+import br.com.itau.portalmanager.workspace.foundation.catalog.schematype.repository.SchemaTypeRepository;
 import br.com.portalmanager.platform.catalog.message.CatalogMessageKeys;
 import br.com.portalmanager.platform.catalog.service.BaseCatalogService;
 import br.com.portalmanager.platform.messaging.exception.NotFoundException;

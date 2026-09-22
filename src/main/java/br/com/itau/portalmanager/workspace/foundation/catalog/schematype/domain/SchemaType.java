@@ -1,6 +1,6 @@
-package br.com.itau.portalmanager.workspace.foundation.catalog.domain.schematype;
+package br.com.itau.portalmanager.workspace.foundation.catalog.schematype.domain;
 
-import br.com.itau.portalmanager.workspace.foundation.catalog.domain.schemascope.SchemaScopeType;
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemascope.domain.SchemaScopeType;
 import br.com.portalmanager.platform.catalog.model.BaseCatalogEntity;
 import jakarta.persistence.*;
 
