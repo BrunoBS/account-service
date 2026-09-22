@@ -2,7 +2,7 @@ package br.com.itau.portalmanager.workspace.foundation.catalog.onboardingphasety
 
 import br.com.portalmanager.platform.catalog.model.CatalogEnum;
 
-public enum OnboardingPhaseEnum implements CatalogEnum<OnboardingPhaseEnum> {
+public enum OnboardingPhaseTypeTypeEnum implements CatalogEnum<OnboardingPhaseTypeTypeEnum> {
     WORKSPACE_REGISTRATION,
     WORKSPACE_FIRST_ENVIRONMENT,
     FIRST_APPLICATION_REGISTRATION,

@@ -6,5 +6,5 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "type_onboardings")
-public class OnboardingPhase extends CatalogEntity {
+public class OnboardingPhaseType extends CatalogEntity {
 }
