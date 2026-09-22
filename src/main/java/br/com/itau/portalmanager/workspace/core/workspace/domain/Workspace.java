@@ -95,7 +95,7 @@ public class Workspace {
         this.authorizerGroup = authorizerGroup;
         this.emailGroup = emailGroup;
         this.onboarding = false;
-        this.lifecycle = LifecycleTypeCode.of("ACTIVE");
+        this.lifecycle = LifecycleTypeCode.active();
         this.createdAt = now;
         this.updatedAt = now;
     }
@@ -130,12 +130,12 @@ public class Workspace {
     }
 
     public void inactivate(LocalDateTime now) {
-        this.lifecycle = LifecycleTypeCode.of("INACTIVE");
+        this.lifecycle = LifecycleTypeCode.inactive();
         this.updatedAt = now;
     }
 
     public void restore(LocalDateTime now) {
-        this.lifecycle = LifecycleTypeCode.of("ACTIVE");
+        this.lifecycle = LifecycleTypeCode.active();
         this.updatedAt = now;
     }
 
