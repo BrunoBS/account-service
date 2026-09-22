@@ -135,7 +135,7 @@ public class Workspace {
     }
 
     public void restore(LocalDateTime now) {
-        this.lifecycle = LifecycleTypeEnum.ACTIVE;
+        this.lifecycle = LifecycleTypeCode.of("ACTIVE");
         this.updatedAt = now;
     }
 
