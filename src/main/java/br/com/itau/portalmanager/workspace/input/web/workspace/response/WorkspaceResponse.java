@@ -38,7 +38,7 @@ public record WorkspaceResponse(
                 output.settings(),
                 output.emailGroup(),
                 output.onboarding(),
-                output.lifecycle().name(),
+                output.lifecycle(),
                 output.createdAt(),
                 output.updatedAt(),
                 output.approvers().stream().map(ApproverResponse::from).toList(),
