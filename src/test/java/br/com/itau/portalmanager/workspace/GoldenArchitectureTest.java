@@ -68,8 +68,7 @@ class GoldenArchitectureTest {
         assertThat(rootClasses)
                 .extracting(JavaClass::getSimpleName)
                 .containsExactlyInAnyOrder(
-                        "WorkspaceServiceApplication",
-                        "WorkspaceMessagingConfiguration"
+                        "WorkspaceServiceApplication"
                 );
 
         assertThat(rootClasses).allSatisfy(javaClass -> {
