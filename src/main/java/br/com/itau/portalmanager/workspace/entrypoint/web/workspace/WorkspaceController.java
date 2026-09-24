@@ -84,11 +84,11 @@ public class WorkspaceController {
         return WorkspaceResponse.from(commandService.update(identifier, request.toInput()));
     }
 
-    @DeleteMapping("/{identifier}")
+    @PostMapping("/{identifier}/inactivate")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(
             resource = "WORKSPACE",
-            action = "DELETE",
+            action = "INACTIVATE",
             resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
     )
     public ResponseEntity<Void> inactivate(@PathVariable String identifier) {
@@ -105,5 +105,17 @@ public class WorkspaceController {
     )
     public WorkspaceResponse restore(@PathVariable String identifier) {
         return WorkspaceResponse.from(commandService.restore(identifier));
+    }
+
+    @DeleteMapping("/{identifier}")
+    @AuthorizationRequired(level = AuthorizationLevel.ADM)
+    @Auditable(
+            resource = "WORKSPACE",
+            action = "DELETE",
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
+    )
+    public ResponseEntity<Void> delete(@PathVariable String identifier) {
+        commandService.delete(identifier);
+        return ResponseEntity.noContent().build();
     }
 }
