@@ -4,7 +4,7 @@ spring:
   main:
     banner-mode: "off"
   datasource:
-    url: ${WORKSPACE_DB_URL:jdbc:mysql://localhost:3306/workspace_service}
+    url: ${WORKSPACE_DB_URL:jdbc:mysql://localhost:3306/workspace_db}
     username: ${WORKSPACE_DB_USERNAME:workspace}
     password: ${WORKSPACE_DB_PASSWORD:workspace}
   jpa:
@@ -15,16 +15,34 @@ spring:
     enabled: true
 
 platform:
+  observability:
+    logging:
+      levels:
+        br.com.itau.portalmanager.workspace: DEBUG
+        br.com.portalmanager.platform: DEBUG
   authorization:
-    enabled: true
+    enabled: false
     service-url: ${AUTHORIZATION_SERVICE_URL:http://localhost:2020}
+    mock:
+      user-name: bbs
+      email: bruno.barbosa@empresa.com.br
+
+      account-id: '-'
+      application-id: '-'
+      environment-id: '-'
+
+      trace-id: '81f3503a-8153-4b80-9ee8-5ef41e611b31'
+
+      groups:
+        - PM5_OWNER
+
   messaging:
     enabled: true
     default-locale: pt-BR
     cache:
       enabled: false
   audit:
-    enabled: ${AUDIT_ENABLED:true}
+    enabled: ${AUDIT_ENABLED:false}
     service-url: ${AUDIT_SERVICE_URL:}
     service-name: workspace-service
     fail-on-error: false
