@@ -21,6 +21,10 @@ public final class WorkspaceMessageKeys {
             PREFIX + "validation.approver.functional.required";
     public static final String VERSION_REQUIRED = PREFIX + "validation.version.required";
     public static final String TYPE_FILTER_INVALID = PREFIX + "validation.type-filter.invalid";
+    public static final String APPROVER_FUNCTIONAL_DUPLICATE =
+            PREFIX + "validation.approver.functional.duplicate";
+    public static final String APPROVER_EMAIL_DUPLICATE =
+            PREFIX + "validation.approver.email.duplicate";
 
     private WorkspaceMessageKeys() {
     }
