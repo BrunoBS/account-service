@@ -54,14 +54,14 @@ class WorkspaceAuthorizationIT {
 
     @Test
     void shouldApplyOpenDevAndAdmPolicies() {
-        Integer id = post(validCreate("Workspace Policy", "TEAM_POLICY"))
+        String identifier = post(validCreate("Workspace Policy", "TEAM_POLICY"))
                 .statusCode(201)
                 .extract()
-                .path("id");
+                .path("identifier");
         authorizationMock.verifyCalledWithPolicy("OPEN");
 
         allowOwner();
-        Integer version = get("/api/v1/workspaces/" + id)
+        Integer version = get("/api/v1/workspaces/" + identifier)
                 .statusCode(200)
                 .extract()
                 .path("version");
@@ -72,18 +72,18 @@ class WorkspaceAuthorizationIT {
         update.put("version", version);
         update.put("description", "Descrição atualizada para policy");
 
-        put(id, update).statusCode(200);
+        put(identifier, update).statusCode(200);
         authorizationMock.verifyCalledWithPolicy("ADM");
     }
 
     @Test
     void shouldApplyResourceVisibilityForSingleAndCollectionReads() {
-        Integer teamA = post(validCreate("Workspace Team A", "TEAM_A"))
+        String teamA = post(validCreate("Workspace Team A", "TEAM_A"))
                 .statusCode(201)
                 .extract()
                 .path("id");
 
-        Integer teamB = post(validCreate("Workspace Team B", "TEAM_B"))
+        String teamB = post(validCreate("Workspace Team B", "TEAM_B"))
                 .statusCode(201)
                 .extract()
                 .path("id");
@@ -95,11 +95,11 @@ class WorkspaceAuthorizationIT {
 
         get("/api/v1/workspaces/" + teamA)
                 .statusCode(200)
-                .body("id", equalTo(teamA));
+                .body("identifier", equalTo(teamA));
 
         get("/api/v1/workspaces")
                 .statusCode(200)
-                .body("id", containsInAnyOrder(teamA));
+                .body("identifier", containsInAnyOrder(teamA));
 
         get("/api/v1/workspaces/" + teamB)
                 .statusCode(403)
@@ -108,7 +108,7 @@ class WorkspaceAuthorizationIT {
         allowOwner();
         get("/api/v1/workspaces/" + teamB)
                 .statusCode(200)
-                .body("id", equalTo(teamB));
+                .body("identifier", equalTo(teamB));
     }
 
     private void allowOwner() {
@@ -147,12 +147,12 @@ class WorkspaceAuthorizationIT {
                 .then();
     }
 
-    private io.restassured.response.ValidatableResponse put(Integer id, Map<String, Object> body) {
+    private io.restassured.response.ValidatableResponse put(String identifier, Map<String, Object> body) {
         return authorized()
                 .contentType(ContentType.JSON)
                 .body(body)
                 .when()
-                .put("/api/v1/workspaces/" + id)
+                .put("/api/v1/workspaces/" + identifier)
                 .then();
     }
 
