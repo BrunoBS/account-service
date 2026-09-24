@@ -98,6 +98,7 @@ public class WorkspaceCommandService {
                 LocalDateTime.now()
         );
         workspace.clearApprovers();
+        repository.deleteApproversByWorkspaceId(workspace.getId());
         input.approvers().forEach(
                 approver -> workspace.addApprover(approver.functional(), approver.email())
         );
