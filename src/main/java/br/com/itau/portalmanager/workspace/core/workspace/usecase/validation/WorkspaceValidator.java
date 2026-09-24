@@ -1,7 +1,7 @@
 package br.com.itau.portalmanager.workspace.core.workspace.usecase.validation;
 
 import br.com.itau.portalmanager.workspace.core.workspace.domain.WorkspaceMessageKeys;
-import br.com.itau.portalmanager.workspace.core.workspace.domain.WorkspaceTypeCode;
+import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import br.com.itau.portalmanager.workspace.foundation.catalog.workspacetype.usecase.WorkspaceTypeService;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.messaging.validation.ValidationResult;

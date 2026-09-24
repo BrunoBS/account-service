@@ -287,7 +287,7 @@ class MessageApiIT {
     }
 
     @Test
-    void shouldDeleteMessageOnlyWhenInactive() {
+    void shouldQuarantineMessageOnlyWhenInactive() {
         String identifier = createMessage(
                 "workspace.delete.invalid",
                 "WORKSPACE-0003"
@@ -304,8 +304,8 @@ class MessageApiIT {
                 .statusCode(204);
 
         get("/api/v1/messages/" + identifier)
-                .statusCode(404)
-                .body("code", equalTo("MESSAGE-0001"));
+                .statusCode(200)
+                .body("lifecycle", equalTo("QUARANTINED"));
     }
 
     @Test
@@ -451,8 +451,8 @@ class MessageApiIT {
                 VALUES
                     ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}'),
                     ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}'),
-                    ('PENDING_DELETION', 'Pending deletion',
-                     'Pending physical deletion', 3, true, '{}')
+                    ('QUARANTINED', 'Quarantined',
+                     'Quarantined lifecycle state', 3, true, '{}')
                 """);
     }
 

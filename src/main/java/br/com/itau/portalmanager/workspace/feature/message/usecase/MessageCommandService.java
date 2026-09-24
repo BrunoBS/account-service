@@ -150,8 +150,8 @@ public class MessageCommandService {
         if (!message.isInactive()) {
             throw new ValidationException(MessageMessageKeys.DELETE_INVALID);
         }
-        messageRepository.delete(message);
-        messageRepository.flush();
+        message.quarantine(LocalDateTime.now());
+        messageRepository.saveAndFlush(message);
     }
 
     @Transactional
@@ -251,8 +251,8 @@ public class MessageCommandService {
         if (!translation.isInactive()) {
             throw new ValidationException(MessageMessageKeys.TRANSLATION_DELETE_INVALID);
         }
-        translationRepository.delete(translation);
-        translationRepository.flush();
+        translation.quarantine(LocalDateTime.now());
+        translationRepository.saveAndFlush(translation);
     }
 
     private void validateTranslationsForCreate(CreateMessageInput input) {

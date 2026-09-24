@@ -20,7 +20,7 @@ public record MessageOutput(
                 message.getMessageKey(),
                 message.getCode(),
                 message.getHttpStatus(),
-                message.getLifecycleCode(),
+                message.getLifecycle().value(),
                 message.getObservation()
         );
     }

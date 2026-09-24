@@ -293,7 +293,7 @@ class WorkspaceApiIT {
     }
 
     @Test
-    void shouldPhysicallyDeleteOnlyInactiveWorkspace() {
+    void shouldQuarantineOnlyInactiveWorkspace() {
         String identifier = create("Workspace Physical Delete", "ADMIN");
 
         delete("/api/v1/workspaces/" + identifier)
@@ -306,12 +306,12 @@ class WorkspaceApiIT {
         delete("/api/v1/workspaces/" + identifier)
                 .statusCode(204);
 
-        Integer count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM workspaces WHERE identifier = ?",
-                Integer.class,
+        String lifecycle = jdbcTemplate.queryForObject(
+                "SELECT lifecycle_code FROM workspaces WHERE identifier = ?",
+                String.class,
                 identifier
         );
-        org.assertj.core.api.Assertions.assertThat(count).isZero();
+        org.assertj.core.api.Assertions.assertThat(lifecycle).isEqualTo("QUARANTINED");
     }
 
     @Test
@@ -433,7 +433,7 @@ class WorkspaceApiIT {
     private void seedLifecycleTypes() {
         jdbcTemplate.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')");
         jdbcTemplate.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}')");
-        jdbcTemplate.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('PENDING_DELETION', 'Pending deletion', 'Pending physical deletion', 3, true, '{}')");
+        jdbcTemplate.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')");
     }
 
 }

@@ -1,6 +1,5 @@
 package br.com.itau.portalmanager.workspace.core.workspace.usecase;
 
-import br.com.itau.portalmanager.workspace.core.workspace.domain.LifecycleTypeCode;
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
 import br.com.itau.portalmanager.workspace.core.workspace.repository.WorkspaceRepository;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
@@ -9,6 +8,7 @@ import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.Worksp
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceNormalizer;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
 import br.com.itau.portalmanager.workspace.core.workspace.usecase.validation.WorkspaceValidator;
+import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.authorization.annotation.ResourceVisibility;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,67 +18,36 @@ import java.util.Map;
 
 @Service
 public class WorkspaceQueryService {
-
-    private final WorkspaceRepository repository;
-    private final WorkspaceFinder finder;
-    private final WorkspaceNormalizer normalizer;
-    private final WorkspaceValidator validator;
+    private final WorkspaceRepository repository; private final WorkspaceFinder finder;
+    private final WorkspaceNormalizer normalizer; private final WorkspaceValidator validator;
     private final WorkspaceTaggingSupport taggingSupport;
 
-    public WorkspaceQueryService(
-            WorkspaceRepository repository,
-            WorkspaceFinder finder,
-            WorkspaceNormalizer normalizer,
-            WorkspaceValidator validator,
-            WorkspaceTaggingSupport taggingSupport
-    ) {
-        this.repository = repository;
-        this.finder = finder;
-        this.normalizer = normalizer;
-        this.validator = validator;
-        this.taggingSupport = taggingSupport;
+    public WorkspaceQueryService(WorkspaceRepository repository, WorkspaceFinder finder, WorkspaceNormalizer normalizer,
+                                 WorkspaceValidator validator, WorkspaceTaggingSupport taggingSupport) {
+        this.repository=repository; this.finder=finder; this.normalizer=normalizer; this.validator=validator; this.taggingSupport=taggingSupport;
     }
 
-    @ResourceVisibility
-    @Transactional(readOnly = true)
+    @ResourceVisibility @Transactional(readOnly = true)
     public WorkspaceOutput findByIdentifier(String identifier) {
-        Workspace workspace = finder.findActive(identifier);
+        Workspace workspace=finder.findActive(identifier);
         return WorkspaceOutput.from(workspace, taggingSupport.findManual(workspace));
     }
 
-    @ResourceVisibility
-    @Transactional(readOnly = true)
+    @ResourceVisibility @Transactional(readOnly = true)
     public List<WorkspaceOutput> findAll(FindAllWorkspacesInput input) {
-        String lifecycleCode = input != null && Boolean.FALSE.equals(input.active())
-                ? LifecycleTypeCode.inactive().value()
-                : LifecycleTypeCode.active().value();
-
-        String normalizedType = normalizer.normalizeTypeFilter(input == null ? null : input.typeName());
-        String normalizedTag = normalizer.normalizeTagFilter(input == null ? null : input.tagName());
+        String lifecycleCode=input != null && Boolean.FALSE.equals(input.active())
+                ? LifecycleTypeCode.inactive().value() : LifecycleTypeCode.active().value();
+        String normalizedType=normalizer.normalizeTypeFilter(input == null ? null : input.typeName());
+        String normalizedTag=normalizer.normalizeTagFilter(input == null ? null : input.tagName());
         validator.validateTypeFilter(normalizedType);
-
-        String workspaceTypeCode = normalizedType;
-
         List<Workspace> workspaces;
-        if (normalizedTag == null) {
-            workspaces = repository.findFiltered(lifecycleCode, workspaceTypeCode);
-        } else {
-            List<String> identifiers = taggingSupport.findIdentifiersByTag(normalizedTag);
-            if (identifiers.isEmpty()) {
-                return List.of();
-            }
-            workspaces = repository.findFilteredByIdentifiers(lifecycleCode, workspaceTypeCode, identifiers);
+        if (normalizedTag == null) workspaces=repository.findFiltered(lifecycleCode, normalizedType);
+        else {
+            List<String> identifiers=taggingSupport.findIdentifiersByTag(normalizedTag);
+            if (identifiers.isEmpty()) return List.of();
+            workspaces=repository.findFilteredByIdentifiers(lifecycleCode, normalizedType, identifiers);
         }
-
-        Map<String, List<String>> manualTags = taggingSupport.findManualByIdentifiers(
-                workspaces.stream().map(Workspace::getIdentifier).toList()
-        );
-
-        return workspaces.stream()
-                .map(workspace -> WorkspaceOutput.from(
-                        workspace,
-                        manualTags.getOrDefault(workspace.getIdentifier(), List.of())
-                ))
-                .toList();
+        Map<String,List<String>> manualTags=taggingSupport.findManualByIdentifiers(workspaces.stream().map(Workspace::getIdentifier).toList());
+        return workspaces.stream().map(w -> WorkspaceOutput.from(w, manualTags.getOrDefault(w.getIdentifier(), List.of()))).toList();
     }
 }

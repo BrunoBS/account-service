@@ -5,40 +5,24 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface MessageRepository extends JpaRepository<Message, Long> {
-
+public interface MessageRepository extends JpaRepository<Message,Long>{
     Optional<Message> findByIdentifier(String identifier);
-
     @Query("""
-            select m
-              from Message m
+            select m from Message m
              where (:service is null or m.serviceCode = :service)
-               and (:lifecycle is null or m.lifecycleCode = :lifecycle)
+               and (:lifecycle is null or m.lifecycle.value = :lifecycle)
                and (:code is null or m.code = :code)
                and (:messageKey is null or m.messageKey = :messageKey)
              order by m.serviceCode asc, m.messageKey asc
             """)
-    List<Message> findFiltered(
-            @Param("service") String service,
-            @Param("lifecycle") String lifecycle,
-            @Param("code") String code,
-            @Param("messageKey") String messageKey
-    );
-
-    boolean existsByServiceCodeAndMessageKey(String serviceCode, String messageKey);
-
-    boolean existsByServiceCodeAndMessageKeyAndIdNot(
-            String serviceCode,
-            String messageKey,
-            Long id
-    );
-
-    boolean existsByServiceCodeAndCode(String serviceCode, String code);
-
-    boolean existsByServiceCodeAndCodeAndIdNot(String serviceCode, String code, Long id);
+    List<Message> findFiltered(@Param("service") String service,@Param("lifecycle") String lifecycle,
+                               @Param("code") String code,@Param("messageKey") String messageKey);
+    boolean existsByServiceCodeAndMessageKey(String serviceCode,String messageKey);
+    boolean existsByServiceCodeAndMessageKeyAndIdNot(String serviceCode,String messageKey,Long id);
+    boolean existsByServiceCodeAndCode(String serviceCode,String code);
+    boolean existsByServiceCodeAndCodeAndIdNot(String serviceCode,String code,Long id);
 }

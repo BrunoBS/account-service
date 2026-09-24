@@ -19,7 +19,7 @@ public record MessageTranslationOutput(
                 translation.getTitle(),
                 translation.getDetail(),
                 translation.getSuggestion(),
-                translation.getLifecycleCode()
+                translation.getLifecycle().value()
         );
     }
 }
