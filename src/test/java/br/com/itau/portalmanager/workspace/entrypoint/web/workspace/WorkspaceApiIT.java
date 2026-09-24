@@ -92,7 +92,7 @@ class WorkspaceApiIT {
         String adminIdentifier = create("Workspace Admin", "ADMIN");
         String managerIdentifier = create("Workspace Manager", "MANAGER");
 
-        delete("/api/v1/workspaces/" + managerIdentifier).statusCode(204);
+        post("/api/v1/workspaces/" + managerIdentifier + "/inactivate").statusCode(204);
 
         given()
                 .port(port)
@@ -199,7 +199,7 @@ class WorkspaceApiIT {
     void shouldInactivateHideAndRestoreWorkspace() {
         String identifier = create("Workspace Lifecycle", "ADMIN");
 
-        delete("/api/v1/workspaces/" + identifier).statusCode(204);
+        post("/api/v1/workspaces/" + identifier + "/inactivate").statusCode(204);
 
         get("/api/v1/workspaces/" + identifier)
                 .statusCode(404)
@@ -215,6 +215,28 @@ class WorkspaceApiIT {
         post("/api/v1/workspaces/" + identifier + "/restore")
                 .statusCode(400)
                 .body("code", equalTo("WORKSPACE-0002"));
+    }
+
+    @Test
+    void shouldPhysicallyDeleteOnlyInactiveWorkspace() {
+        String identifier = create("Workspace Physical Delete", "ADMIN");
+
+        delete("/api/v1/workspaces/" + identifier)
+                .statusCode(400)
+                .body("code", equalTo("WORKSPACE-0003"));
+
+        post("/api/v1/workspaces/" + identifier + "/inactivate")
+                .statusCode(204);
+
+        delete("/api/v1/workspaces/" + identifier)
+                .statusCode(204);
+
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM workspaces WHERE identifier = ?",
+                Integer.class,
+                identifier
+        );
+        org.assertj.core.api.Assertions.assertThat(count).isZero();
     }
 
     @Test

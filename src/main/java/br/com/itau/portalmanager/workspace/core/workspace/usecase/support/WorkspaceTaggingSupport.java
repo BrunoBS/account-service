@@ -41,4 +41,8 @@ public class WorkspaceTaggingSupport {
     public List<String> findIdentifiersByTag(String normalizedTag) {
         return tagManager.findOwnerIdsByTag(WORKSPACE_OWNER, normalizedTag);
     }
+
+    public void deleteAll(Workspace workspace) {
+        tagManager.deleteAll(WORKSPACE_OWNER, workspace.getIdentifier());
+    }
 }
