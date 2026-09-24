@@ -13,6 +13,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
@@ -41,6 +42,104 @@ class MessageApiIT {
         seedLifecycleTypes();
         authorizationMock.reset();
         authorizationMock.allow(session -> session.groups("PM5_OWNER"));
+    }
+
+    @Test
+    void shouldCreateMessageWithTranslationsInSingleRequest() {
+        Map<String, Object> body = message(
+                "workspace.batch.not-found",
+                "WORKSPACE-0201"
+        );
+        body.put("translations", List.of(
+                translation(
+                        "pt-br",
+                        "Workspace não encontrado",
+                        "Mensagem customizada em português.",
+                        "Revise o identificador informado."
+                ),
+                translation(
+                        "en-us",
+                        "Workspace not found",
+                        "Customized message in English.",
+                        "Review the provided identifier."
+                )
+        ));
+
+        String identifier = post(body)
+                .statusCode(201)
+                .body("service", equalTo("workspace-service"))
+                .extract()
+                .path("identifier");
+
+        Long messageId = jdbcTemplate.queryForObject(
+                "select id from messages where identifier = ?",
+                Long.class,
+                identifier
+        );
+
+        Integer translationCount = jdbcTemplate.queryForObject(
+                "select count(*) from message_translations where message_id = ?",
+                Integer.class,
+                messageId
+        );
+
+        assertThat(translationCount).isEqualTo(2);
+        assertThat(viewCount("workspace-service", "workspace.batch.not-found", "pt_BR"))
+                .isEqualTo(1);
+        assertThat(viewCount("workspace-service", "workspace.batch.not-found", "en_US"))
+                .isEqualTo(1);
+    }
+
+    @Test
+    void shouldIgnoreNullOrEmptyTranslationsWhenCreatingMessage() {
+        Map<String, Object> withNull = message(
+                "workspace.null-translations",
+                "WORKSPACE-0202"
+        );
+        withNull.put("translations", null);
+
+        String nullIdentifier = post(withNull)
+                .statusCode(201)
+                .extract()
+                .path("identifier");
+
+        Map<String, Object> withEmpty = message(
+                "workspace.empty-translations",
+                "WORKSPACE-0203"
+        );
+        withEmpty.put("translations", List.of());
+
+        String emptyIdentifier = post(withEmpty)
+                .statusCode(201)
+                .extract()
+                .path("identifier");
+
+        assertThat(translationCount(nullIdentifier)).isZero();
+        assertThat(translationCount(emptyIdentifier)).isZero();
+    }
+
+    @Test
+    void shouldRollbackMessageWhenInlineTranslationsContainDuplicateLocale() {
+        Map<String, Object> body = message(
+                "workspace.duplicate-inline-locale",
+                "WORKSPACE-0204"
+        );
+        body.put("translations", List.of(
+                translation("pt-br", "Título um", "Detalhe um", "Sugestão um"),
+                translation("pt_BR", "Título dois", "Detalhe dois", "Sugestão dois")
+        ));
+
+        post(body)
+                .statusCode(400)
+                .body("code", equalTo("GLOBAL-0001"))
+                .body("details.field", hasItem("locale"));
+
+        Integer count = jdbcTemplate.queryForObject(
+                "select count(*) from messages where message_key = ?",
+                Integer.class,
+                "workspace.duplicate-inline-locale"
+        );
+        assertThat(count).isZero();
     }
 
     @Test
@@ -197,6 +296,19 @@ class MessageApiIT {
         body.put("detail", detail);
         body.put("suggestion", suggestion);
         return body;
+    }
+
+    private int translationCount(String messageIdentifier) {
+        return jdbcTemplate.queryForObject(
+                """
+                select count(*)
+                  from message_translations mt
+                  join messages m on m.id = mt.message_id
+                 where m.identifier = ?
+                """,
+                Integer.class,
+                messageIdentifier
+        );
     }
 
     private int viewCount(String service, String key, String locale) {

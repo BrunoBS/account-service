@@ -20,7 +20,10 @@ public class MessageNormalizer {
                 trim(input.messageKey()),
                 upper(input.code()),
                 input.httpStatus(),
-                trimOptional(input.observation())
+                trimOptional(input.observation()),
+                input.translations() == null ? null : input.translations().stream()
+                        .map(this::normalize)
+                        .toList()
         );
     }
 

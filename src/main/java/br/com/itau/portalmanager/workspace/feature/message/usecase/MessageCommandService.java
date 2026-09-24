@@ -20,7 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 public class MessageCommandService {
@@ -62,6 +64,7 @@ public class MessageCommandService {
                 && messageRepository.existsByServiceCodeAndCode(input.service(), input.code());
 
         validator.validateForCreate(input, keyDuplicate, codeDuplicate);
+        validateTranslationsForCreate(input);
 
         LocalDateTime now = LocalDateTime.now();
         Message message = new Message(
@@ -72,7 +75,23 @@ public class MessageCommandService {
                 input.observation(),
                 now
         );
-        return MessageOutput.from(messageRepository.saveAndFlush(message));
+        Message saved = messageRepository.saveAndFlush(message);
+
+        if (input.translations() != null && !input.translations().isEmpty()) {
+            input.translations().forEach(translation -> translationRepository.save(
+                    new MessageTranslation(
+                            saved,
+                            translation.locale(),
+                            translation.title(),
+                            translation.detail(),
+                            translation.suggestion(),
+                            now
+                    )
+            ));
+            translationRepository.flush();
+        }
+
+        return MessageOutput.from(saved);
     }
 
     @Transactional
@@ -234,6 +253,20 @@ public class MessageCommandService {
         }
         translationRepository.delete(translation);
         translationRepository.flush();
+    }
+
+    private void validateTranslationsForCreate(CreateMessageInput input) {
+        if (input == null || input.translations() == null || input.translations().isEmpty()) {
+            return;
+        }
+
+        Set<String> locales = new HashSet<>();
+        for (CreateMessageTranslationInput translation : input.translations()) {
+            boolean duplicateLocale = translation != null
+                    && translation.locale() != null
+                    && !locales.add(translation.locale());
+            validator.validateTranslationForCreate(translation, duplicateLocale);
+        }
     }
 
     private void validateVersion(Long currentVersion, Long inputVersion) {
