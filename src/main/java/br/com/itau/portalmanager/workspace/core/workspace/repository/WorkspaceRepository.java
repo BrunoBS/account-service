@@ -3,6 +3,7 @@ package br.com.itau.portalmanager.workspace.core.workspace.repository;
 import br.com.itau.portalmanager.workspace.core.workspace.domain.Workspace;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -59,4 +60,8 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
     boolean existsByName(String name);
 
     boolean existsByNameAndIdNot(String name, Long id);
+
+    @Modifying(flushAutomatically = true)
+    @Query(value = "delete from workspace_approvers where workspace_id = :workspaceId", nativeQuery = true)
+    void deleteApproversByWorkspaceId(@Param("workspaceId") Long workspaceId);
 }
