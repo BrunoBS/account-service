@@ -26,4 +26,15 @@ public class WorkspaceFinder {
         return repository.findByIdentifierAndLifecycleValue(identifier, LifecycleTypeCode.inactive().value())
                 .orElseThrow(() -> new ValidationException(WorkspaceMessageKeys.RESTORE_INVALID));
     }
+
+    public Workspace findInactiveForDeletion(String identifier) {
+        Workspace workspace = repository.findByIdentifier(identifier)
+                .orElseThrow(() -> new NotFoundException(WorkspaceMessageKeys.NOT_FOUND));
+
+        if (!LifecycleTypeCode.inactive().equals(workspace.getLifecycle())) {
+            throw new ValidationException(WorkspaceMessageKeys.DELETE_INVALID);
+        }
+
+        return workspace;
+    }
 }
