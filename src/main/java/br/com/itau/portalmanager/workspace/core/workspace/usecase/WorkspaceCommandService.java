@@ -124,4 +124,12 @@ public class WorkspaceCommandService {
         taggingSupport.reconcile(saved, manualTags);
         return WorkspaceOutput.from(saved, taggingSupport.findManual(saved));
     }
+
+    @Transactional
+    public void delete(String identifier) {
+        Workspace workspace = finder.findInactiveForDeletion(identifier);
+        taggingSupport.deleteAll(workspace);
+        repository.delete(workspace);
+        repository.flush();
+    }
 }
