@@ -172,6 +172,81 @@ class WorkspaceApiIT {
                 .body("details.field", hasItem("name"));
     }
 
+
+    @Test
+    void shouldRejectDuplicateApproverFunctionalOnCreate() {
+        Map<String, Object> request = validCreate("Workspace Functional Duplicado", "ADMIN");
+        request.put("approvers", List.of(
+                Map.of("functional", "F1000", "email", "first@portalmanager.com"),
+                Map.of("functional", "f1000", "email", "second@portalmanager.com")
+        ));
+
+        post(request)
+                .statusCode(400)
+                .body("code", equalTo("GLOBAL-0001"))
+                .body("details.field", hasItem("approvers[1].functional"))
+                .body("details.message", hasItem(
+                        "O funcional informado já foi adicionado como aprovador deste workspace."
+                ));
+    }
+
+    @Test
+    void shouldRejectDuplicateApproverEmailOnCreate() {
+        Map<String, Object> request = validCreate("Workspace Email Duplicado", "ADMIN");
+        request.put("approvers", List.of(
+                Map.of("functional", "F1000", "email", "same@portalmanager.com"),
+                Map.of("functional", "F2000", "email", "SAME@portalmanager.com")
+        ));
+
+        post(request)
+                .statusCode(400)
+                .body("code", equalTo("GLOBAL-0001"))
+                .body("details.field", hasItem("approvers[1].email"))
+                .body("details.message", hasItem(
+                        "O e-mail informado já foi adicionado como aprovador deste workspace."
+                ));
+    }
+
+    @Test
+    void shouldRejectDuplicateApproverFunctionalOnUpdate() {
+        String identifier = create("Workspace Update Functional", "ADMIN");
+        Integer version = get("/api/v1/workspaces/" + identifier)
+                .statusCode(200)
+                .extract()
+                .path("version");
+
+        Map<String, Object> update = validUpdate(version, "Workspace Update Functional", "ADMIN");
+        update.put("approvers", List.of(
+                Map.of("functional", "F3000", "email", "first-update@portalmanager.com"),
+                Map.of("functional", "f3000", "email", "second-update@portalmanager.com")
+        ));
+
+        put("/api/v1/workspaces/" + identifier, update)
+                .statusCode(400)
+                .body("code", equalTo("GLOBAL-0001"))
+                .body("details.field", hasItem("approvers[1].functional"));
+    }
+
+    @Test
+    void shouldRejectDuplicateApproverEmailOnUpdate() {
+        String identifier = create("Workspace Update Email", "ADMIN");
+        Integer version = get("/api/v1/workspaces/" + identifier)
+                .statusCode(200)
+                .extract()
+                .path("version");
+
+        Map<String, Object> update = validUpdate(version, "Workspace Update Email", "ADMIN");
+        update.put("approvers", List.of(
+                Map.of("functional", "F4000", "email", "same-update@portalmanager.com"),
+                Map.of("functional", "F5000", "email", "SAME-UPDATE@portalmanager.com")
+        ));
+
+        put("/api/v1/workspaces/" + identifier, update)
+                .statusCode(400)
+                .body("code", equalTo("GLOBAL-0001"))
+                .body("details.field", hasItem("approvers[1].email"));
+    }
+
     @Test
     void shouldReturnValidationDetailsForInvalidPayload() {
         Map<String, Object> invalid = new LinkedHashMap<>();
