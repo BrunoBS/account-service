@@ -25,7 +25,7 @@ public class MessageTranslation {
     @Version @Column(nullable=false) private Long version;
     @Column(nullable=false,unique=true,length=36,updatable=false) private String identifier;
     @ManyToOne(fetch=FetchType.LAZY,optional=false) @JoinColumn(name="message_id",nullable=false) private Message message;
-    @Column(nullable=false,length=10) private String locale;
+    @Column(nullable=false,length=35) private String locale;
     @Column(nullable=false,length=150) private String title;
     @Column(nullable=false,length=1000) private String detail;
     @Column(nullable=false,length=1000) private String suggestion;

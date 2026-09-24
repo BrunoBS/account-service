@@ -92,11 +92,11 @@ public class MessageNormalizer {
         if (normalized == null) {
             return null;
         }
-        String[] parts = normalized.replace('-', '_').split("_", -1);
-        if (parts.length != 2) {
-            return normalized;
-        }
-        return parts[0].toLowerCase(Locale.ROOT) + "_" + parts[1].toUpperCase(Locale.ROOT);
+
+        Locale locale = Locale.forLanguageTag(normalized.replace('_', '-'));
+        String languageTag = locale.toLanguageTag();
+
+        return "und".equals(languageTag) ? normalized : languageTag;
     }
 
     private String upper(String value) {

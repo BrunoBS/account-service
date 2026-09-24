@@ -84,9 +84,9 @@ class MessageApiIT {
         );
 
         assertThat(translationCount).isEqualTo(2);
-        assertThat(viewCount("workspace-service", "workspace.batch.not-found", "pt_BR"))
+        assertThat(viewCount("workspace-service", "workspace.batch.not-found", "pt-BR"))
                 .isEqualTo(1);
-        assertThat(viewCount("workspace-service", "workspace.batch.not-found", "en_US"))
+        assertThat(viewCount("workspace-service", "workspace.batch.not-found", "en-US"))
                 .isEqualTo(1);
     }
 
@@ -126,7 +126,7 @@ class MessageApiIT {
         );
         body.put("translations", List.of(
                 translation("pt-br", "Título um", "Detalhe um", "Sugestão um"),
-                translation("pt_BR", "Título dois", "Detalhe dois", "Sugestão dois")
+                translation("pt-BR", "Título dois", "Detalhe dois", "Sugestão dois")
         ));
 
         post(body)
@@ -156,19 +156,19 @@ class MessageApiIT {
                         "Revise o identificador informado.")
         )
                 .statusCode(201)
-                .body("locale", equalTo("pt_BR"))
+                .body("locale", equalTo("pt-BR"))
                 .body("lifecycle", equalTo("ACTIVE"))
                 .extract()
                 .path("identifier");
 
-        assertThat(viewCount("workspace-service", "workspace.not-found", "pt_BR"))
+        assertThat(viewCount("workspace-service", "workspace.not-found", "pt-BR"))
                 .isEqualTo(1);
 
         patch("/api/v1/messages/" + messageIdentifier + "/inactivate")
                 .statusCode(200)
                 .body("lifecycle", equalTo("INACTIVE"));
 
-        assertThat(viewCount("workspace-service", "workspace.not-found", "pt_BR"))
+        assertThat(viewCount("workspace-service", "workspace.not-found", "pt-BR"))
                 .isZero();
 
         patch("/api/v1/messages/" + messageIdentifier + "/activate")
@@ -178,7 +178,7 @@ class MessageApiIT {
                 + "/translations/" + translationIdentifier + "/inactivate")
                 .statusCode(200);
 
-        assertThat(viewCount("workspace-service", "workspace.not-found", "pt_BR"))
+        assertThat(viewCount("workspace-service", "workspace.not-found", "pt-BR"))
                 .isZero();
     }
 
@@ -208,7 +208,7 @@ class MessageApiIT {
         get("/api/v1/messages/" + messageIdentifier + "/translations/" + ptIdentifier)
                 .statusCode(200)
                 .body("identifier", equalTo(ptIdentifier))
-                .body("locale", equalTo("pt_BR"));
+                .body("locale", equalTo("pt-BR"));
 
         patch("/api/v1/messages/" + messageIdentifier
                 + "/translations/" + enIdentifier + "/inactivate")
@@ -217,12 +217,12 @@ class MessageApiIT {
         get("/api/v1/messages/" + messageIdentifier + "/translations?locale=pt-br")
                 .statusCode(200)
                 .body("size()", equalTo(1))
-                .body("[0].locale", equalTo("pt_BR"));
+                .body("[0].locale", equalTo("pt-BR"));
 
         get("/api/v1/messages/" + messageIdentifier + "/translations?active=false")
                 .statusCode(200)
                 .body("size()", equalTo(1))
-                .body("[0].locale", equalTo("en_US"));
+                .body("[0].locale", equalTo("en-US"));
     }
 
     @Test
@@ -274,7 +274,7 @@ class MessageApiIT {
 
         postTranslation(
                 messageIdentifier,
-                translation("pt_BR", "E-mail inválido", "Detalhe um", "Sugestão um")
+                translation("pt-BR", "E-mail inválido", "Detalhe um", "Sugestão um")
         ).statusCode(201);
 
         postTranslation(

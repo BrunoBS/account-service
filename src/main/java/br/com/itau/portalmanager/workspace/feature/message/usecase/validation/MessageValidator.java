@@ -20,7 +20,7 @@ public class MessageValidator {
     private static final Pattern CODE_PATTERN =
             Pattern.compile("^[A-Z][A-Z0-9-]{2,49}$");
     private static final Pattern LOCALE_PATTERN =
-            Pattern.compile("^[a-z]{2}_[A-Z]{2}$");
+            Pattern.compile("^[a-z]{2,3}(?:-[A-Z]{2}|-[0-9]{3})?(?:-[A-Za-z0-9]{4,8})*$");
 
     private final ServiceTypeService serviceTypeService;
 
