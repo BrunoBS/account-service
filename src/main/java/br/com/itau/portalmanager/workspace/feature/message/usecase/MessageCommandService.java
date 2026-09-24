@@ -1,6 +1,7 @@
 package br.com.itau.portalmanager.workspace.feature.message.usecase;
 
 import br.com.itau.portalmanager.workspace.feature.message.domain.Message;
+import br.com.itau.portalmanager.workspace.feature.message.domain.MessageMessageKeys;
 import br.com.itau.portalmanager.workspace.feature.message.domain.MessageTranslation;
 import br.com.itau.portalmanager.workspace.feature.message.repository.MessageRepository;
 import br.com.itau.portalmanager.workspace.feature.message.repository.MessageTranslationRepository;
@@ -12,6 +13,7 @@ import br.com.itau.portalmanager.workspace.feature.message.usecase.support.Messa
 import br.com.itau.portalmanager.workspace.feature.message.usecase.support.MessageNormalizer;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.validation.MessageValidator;
 import br.com.portalmanager.platform.messaging.exception.ResourceVersionConflictException;
+import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
