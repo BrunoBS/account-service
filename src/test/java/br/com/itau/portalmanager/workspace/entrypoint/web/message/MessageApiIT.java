@@ -183,6 +183,74 @@ class MessageApiIT {
     }
 
     @Test
+    void shouldFindTranslationByIdentifierAndFilterTranslations() {
+        String messageIdentifier = createMessage(
+                "workspace.translation-query",
+                "WORKSPACE-0205"
+        );
+
+        String ptIdentifier = postTranslation(
+                messageIdentifier,
+                translation("pt-br", "Título PT", "Detalhe PT", "Sugestão PT")
+        )
+                .statusCode(201)
+                .extract()
+                .path("identifier");
+
+        String enIdentifier = postTranslation(
+                messageIdentifier,
+                translation("en-us", "Title EN", "Detail EN", "Suggestion EN")
+        )
+                .statusCode(201)
+                .extract()
+                .path("identifier");
+
+        get("/api/v1/messages/" + messageIdentifier + "/translations/" + ptIdentifier)
+                .statusCode(200)
+                .body("identifier", equalTo(ptIdentifier))
+                .body("locale", equalTo("pt_BR"));
+
+        patch("/api/v1/messages/" + messageIdentifier
+                + "/translations/" + enIdentifier + "/inactivate")
+                .statusCode(200);
+
+        get("/api/v1/messages/" + messageIdentifier + "/translations?locale=pt-br")
+                .statusCode(200)
+                .body("size()", equalTo(1))
+                .body("[0].locale", equalTo("pt_BR"));
+
+        get("/api/v1/messages/" + messageIdentifier + "/translations?active=false")
+                .statusCode(200)
+                .body("size()", equalTo(1))
+                .body("[0].locale", equalTo("en_US"));
+    }
+
+    @Test
+    void shouldFilterMessagesByServiceLifecycleCodeAndMessageKey() {
+        String activeIdentifier = createMessage(
+                "workspace.query.active",
+                "WORKSPACE-0206"
+        );
+        String inactiveIdentifier = createMessage(
+                "workspace.query.inactive",
+                "WORKSPACE-0207"
+        );
+
+        patch("/api/v1/messages/" + inactiveIdentifier + "/inactivate")
+                .statusCode(200);
+
+        get("/api/v1/messages?service=WORKSPACE-SERVICE&active=true&code=workspace-0206")
+                .statusCode(200)
+                .body("size()", equalTo(1))
+                .body("[0].identifier", equalTo(activeIdentifier));
+
+        get("/api/v1/messages?messageKey=workspace.query.inactive&active=false")
+                .statusCode(200)
+                .body("size()", equalTo(1))
+                .body("[0].identifier", equalTo(inactiveIdentifier));
+    }
+
+    @Test
     void shouldRejectDuplicateMessageKeyAndCodeInsideSameService() {
         createMessage("validation.name.required", "WORKSPACE-0102");
 

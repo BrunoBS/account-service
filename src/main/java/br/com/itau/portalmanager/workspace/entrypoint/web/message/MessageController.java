@@ -61,8 +61,13 @@ public class MessageController {
     }
 
     @GetMapping
-    public List<MessageResponse> findAll(@RequestParam(required = false) String service) {
-        return queryService.findAll(service).stream()
+    public List<MessageResponse> findAll(
+            @RequestParam(required = false) String service,
+            @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) String code,
+            @RequestParam(required = false) String messageKey
+    ) {
+        return queryService.findAll(service, active, code, messageKey).stream()
                 .map(MessageResponse::from)
                 .toList();
     }
@@ -112,10 +117,24 @@ public class MessageController {
     }
 
     @GetMapping("/{identifier}/translations")
-    public List<MessageTranslationResponse> findTranslations(@PathVariable String identifier) {
-        return queryService.findTranslations(identifier).stream()
+    public List<MessageTranslationResponse> findTranslations(
+            @PathVariable String identifier,
+            @RequestParam(required = false) String locale,
+            @RequestParam(required = false) Boolean active
+    ) {
+        return queryService.findTranslations(identifier, locale, active).stream()
                 .map(MessageTranslationResponse::from)
                 .toList();
+    }
+
+    @GetMapping("/{identifier}/translations/{translationIdentifier}")
+    public MessageTranslationResponse findTranslation(
+            @PathVariable String identifier,
+            @PathVariable String translationIdentifier
+    ) {
+        return MessageTranslationResponse.from(
+                queryService.findTranslation(identifier, translationIdentifier)
+        );
     }
 
     @PostMapping("/{identifier}/translations")

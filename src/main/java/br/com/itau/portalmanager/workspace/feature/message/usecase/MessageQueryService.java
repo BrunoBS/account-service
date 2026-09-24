@@ -1,6 +1,7 @@
 package br.com.itau.portalmanager.workspace.feature.message.usecase;
 
 import br.com.itau.portalmanager.workspace.feature.message.domain.Message;
+import br.com.itau.portalmanager.workspace.feature.message.domain.MessageTranslation;
 import br.com.itau.portalmanager.workspace.feature.message.repository.MessageRepository;
 import br.com.itau.portalmanager.workspace.feature.message.repository.MessageTranslationRepository;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.MessageOutput;
@@ -38,21 +39,63 @@ public class MessageQueryService {
     }
 
     @Transactional(readOnly = true)
-    public List<MessageOutput> findAll(String service) {
+    public List<MessageOutput> findAll(
+            String service,
+            Boolean active,
+            String code,
+            String messageKey
+    ) {
+        String lifecycle = lifecycle(active);
         String normalizedService = normalizer.normalizeServiceFilter(service);
-        List<Message> messages = normalizedService == null
-                ? messageRepository.findAllByOrderByServiceCodeAscMessageKeyAsc()
-                : messageRepository.findByServiceCodeOrderByMessageKeyAsc(normalizedService);
+        String normalizedCode = normalizer.normalizeCodeFilter(code);
+        String normalizedMessageKey = normalizer.normalizeMessageKeyFilter(messageKey);
 
-        return messages.stream().map(MessageOutput::from).toList();
+        return messageRepository.findFiltered(
+                        normalizedService,
+                        lifecycle,
+                        normalizedCode,
+                        normalizedMessageKey
+                ).stream()
+                .map(MessageOutput::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<MessageTranslationOutput> findTranslations(String messageIdentifier) {
+    public List<MessageTranslationOutput> findTranslations(
+            String messageIdentifier,
+            String locale,
+            Boolean active
+    ) {
         Message message = finder.findMessage(messageIdentifier);
-        return translationRepository.findByMessageIdOrderByLocaleAsc(message.getId())
-                .stream()
+        String normalizedLocale = normalizer.normalizeLocaleFilter(locale);
+        String lifecycle = lifecycle(active);
+
+        return translationRepository.findFiltered(
+                        message.getId(),
+                        normalizedLocale,
+                        lifecycle
+                ).stream()
                 .map(MessageTranslationOutput::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public MessageTranslationOutput findTranslation(
+            String messageIdentifier,
+            String translationIdentifier
+    ) {
+        Message message = finder.findMessage(messageIdentifier);
+        MessageTranslation translation = finder.findTranslation(
+                message,
+                translationIdentifier
+        );
+        return MessageTranslationOutput.from(translation);
+    }
+
+    private String lifecycle(Boolean active) {
+        if (active == null) {
+            return null;
+        }
+        return active ? Message.ACTIVE : Message.INACTIVE;
     }
 }

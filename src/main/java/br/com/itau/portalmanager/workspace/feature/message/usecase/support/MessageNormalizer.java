@@ -70,6 +70,18 @@ public class MessageNormalizer {
         return normalizeService(service);
     }
 
+    public String normalizeMessageKeyFilter(String messageKey) {
+        return trimOptional(messageKey);
+    }
+
+    public String normalizeCodeFilter(String code) {
+        return upper(code);
+    }
+
+    public String normalizeLocaleFilter(String locale) {
+        return normalizeLocale(locale);
+    }
+
     private String normalizeService(String value) {
         String normalized = trimOptional(value);
         return normalized == null ? null : normalized.toLowerCase(Locale.ROOT);
