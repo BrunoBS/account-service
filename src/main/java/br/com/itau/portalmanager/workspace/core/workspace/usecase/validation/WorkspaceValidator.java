@@ -7,7 +7,10 @@ import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 @Component
@@ -147,12 +150,21 @@ public class WorkspaceValidator {
             return;
         }
 
+        Set<String> functionals = new HashSet<>();
+        Set<String> emails = new HashSet<>();
+
         for (int index = 0; index < approvers.size(); index++) {
-            validateApprover(approvers.get(index), index, result);
+            validateApprover(approvers.get(index), index, functionals, emails, result);
         }
     }
 
-    private void validateApprover(ApproverData approver, int index, ValidationResult result) {
+    private void validateApprover(
+            ApproverData approver,
+            int index,
+            Set<String> functionals,
+            Set<String> emails,
+            ValidationResult result
+    ) {
         String path = "approvers[" + index + "]";
 
         if (approver == null) {
@@ -160,12 +172,47 @@ public class WorkspaceValidator {
             return;
         }
 
-        if (approver.functional() == null || approver.functional().isBlank()) {
+        validateApproverFunctional(approver.functional(), path, functionals, result);
+        validateApproverEmail(approver.email(), path, emails, result);
+    }
+
+    private void validateApproverFunctional(
+            String functional,
+            String path,
+            Set<String> functionals,
+            ValidationResult result
+    ) {
+        if (functional == null || functional.isBlank()) {
             result.addError(path + ".functional", WorkspaceMessageKeys.APPROVER_FUNCTIONAL_REQUIRED);
+            return;
         }
 
-        if (!isEmail(approver.email())) {
+        String normalizedFunctional = functional.toUpperCase(Locale.ROOT);
+        if (!functionals.add(normalizedFunctional)) {
+            result.addError(
+                    path + ".functional",
+                    WorkspaceMessageKeys.APPROVER_FUNCTIONAL_DUPLICATE
+            );
+        }
+    }
+
+    private void validateApproverEmail(
+            String email,
+            String path,
+            Set<String> emails,
+            ValidationResult result
+    ) {
+        if (!isEmail(email)) {
             result.addError(path + ".email", WorkspaceMessageKeys.EMAIL_INVALID);
+            return;
+        }
+
+        String normalizedEmail = email.toLowerCase(Locale.ROOT);
+        if (!emails.add(normalizedEmail)) {
+            result.addError(
+                    path + ".email",
+                    WorkspaceMessageKeys.APPROVER_EMAIL_DUPLICATE
+            );
         }
     }
 
