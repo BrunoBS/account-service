@@ -47,24 +47,24 @@ class WorkspaceTaggingIT {
         Map<String, Object> request = validCreate("Workspace Tags", "TAG", "TEAM_A");
         request.put("tags", List.of("  Minha   Tag  ", "minha\tTag", "OUTRA TAG", "   "));
 
-        Integer id = post(request)
+        String identifier = post(request)
                 .statusCode(201)
                 .body("tags", containsInAnyOrder("minha-tag", "outra-tag"))
                 .body("tags", not(hasItem("workspace-tags")))
                 .extract()
-                .path("id");
+                .path("identifier");
 
         getList("Minha Tag")
                 .statusCode(200)
-                .body("id", hasItem(id));
+                .body("identifier", hasItem(identifier));
 
         getList("Workspace Tags")
                 .statusCode(200)
-                .body("id", hasItem(id));
+                .body("identifier", hasItem(identifier));
 
         getList("TEAM_A")
                 .statusCode(200)
-                .body("id", hasItem(id));
+                .body("identifier", hasItem(identifier));
     }
 
     @Test
@@ -73,35 +73,35 @@ class WorkspaceTaggingIT {
         create.put("tags", List.of("manual-tag"));
 
         var created = post(create).statusCode(201).extract();
-        Integer id = created.path("id");
+        String identifier = created.path("identifier");
         Integer version = created.path("version");
 
         Map<String, Object> update = validUpdate(version, "Workspace Atualizado", "ATU", "TEAM_B");
         update.put("tags", List.of("manual-tag"));
 
-        put(id, update)
+        put(identifier, update)
                 .statusCode(200)
                 .body("tags", containsInAnyOrder("manual-tag"));
 
         getList("Workspace Original")
                 .statusCode(200)
-                .body("id", not(hasItem(id)));
+                .body("identifier", not(hasItem(identifier)));
 
         getList("ORG")
                 .statusCode(200)
-                .body("id", not(hasItem(id)));
+                .body("identifier", not(hasItem(identifier)));
 
         getList("Workspace Atualizado")
                 .statusCode(200)
-                .body("id", hasItem(id));
+                .body("identifier", hasItem(identifier));
 
         getList("ATU")
                 .statusCode(200)
-                .body("id", hasItem(id));
+                .body("identifier", hasItem(identifier));
 
         getList("manual-tag")
                 .statusCode(200)
-                .body("id", hasItem(id));
+                .body("identifier", hasItem(identifier));
     }
 
     private Map<String, Object> validCreate(String name, String acronym, String authorizerGroup) {
@@ -141,12 +141,12 @@ class WorkspaceTaggingIT {
                 .then();
     }
 
-    private io.restassured.response.ValidatableResponse put(Integer id, Map<String, Object> body) {
+    private io.restassured.response.ValidatableResponse put(String identifier, Map<String, Object> body) {
         return authorized()
                 .contentType(ContentType.JSON)
                 .body(body)
                 .when()
-                .put("/api/v1/workspaces/" + id)
+                .put("/api/v1/workspaces/" + identifier)
                 .then();
     }
 
