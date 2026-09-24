@@ -19,9 +19,9 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
     Optional<Workspace> findDetailedById(@Param("id") Long id);
 
     @EntityGraph(attributePaths = "approvers")
-    @Query("select w from Workspace w where w.id = :id and w.lifecycle.value = :lifecycleCode")
-    Optional<Workspace> findByIdAndLifecycleValue(
-            @Param("id") Long id,
+    @Query("select w from Workspace w where w.identifier = :identifier and w.lifecycle.value = :lifecycleCode")
+    Optional<Workspace> findByIdentifierAndLifecycleValue(
+            @Param("identifier") String identifier,
             @Param("lifecycleCode") String lifecycleCode
     );
 

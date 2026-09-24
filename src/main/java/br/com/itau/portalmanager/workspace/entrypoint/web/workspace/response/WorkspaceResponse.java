@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record WorkspaceResponse(
-        Long id,
         Long version,
         String identifier,
         String workspaceType,
@@ -26,7 +25,6 @@ public record WorkspaceResponse(
 ) {
     public static WorkspaceResponse from(WorkspaceOutput output) {
         return new WorkspaceResponse(
-                output.id(),
                 output.version(),
                 output.identifier(),
                 output.workspaceType(),

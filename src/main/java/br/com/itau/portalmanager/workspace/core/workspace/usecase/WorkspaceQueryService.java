@@ -41,8 +41,8 @@ public class WorkspaceQueryService {
 
     @ResourceVisibility
     @Transactional(readOnly = true)
-    public WorkspaceOutput findById(Long id) {
-        Workspace workspace = finder.findActive(id);
+    public WorkspaceOutput findByIdentifier(String identifier) {
+        Workspace workspace = finder.findActive(identifier);
         return WorkspaceOutput.from(workspace, taggingSupport.findManual(workspace));
     }
 

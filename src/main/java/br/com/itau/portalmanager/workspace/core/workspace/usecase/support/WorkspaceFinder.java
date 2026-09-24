@@ -17,13 +17,13 @@ public class WorkspaceFinder {
         this.repository = repository;
     }
 
-    public Workspace findActive(Long id) {
-        return repository.findByIdAndLifecycleValue(id, LifecycleTypeCode.active().value())
+    public Workspace findActive(String identifier) {
+        return repository.findByIdentifierAndLifecycleValue(identifier, LifecycleTypeCode.active().value())
                 .orElseThrow(() -> new NotFoundException(WorkspaceMessageKeys.NOT_FOUND));
     }
 
-    public Workspace findInactiveForRestore(Long id) {
-        return repository.findByIdAndLifecycleValue(id, LifecycleTypeCode.inactive().value())
+    public Workspace findInactiveForRestore(String identifier) {
+        return repository.findByIdentifierAndLifecycleValue(identifier, LifecycleTypeCode.inactive().value())
                 .orElseThrow(() -> new ValidationException(WorkspaceMessageKeys.RESTORE_INVALID));
     }
 }
