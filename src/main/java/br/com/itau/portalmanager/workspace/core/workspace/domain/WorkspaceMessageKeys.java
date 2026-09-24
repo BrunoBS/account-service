@@ -6,6 +6,7 @@ public final class WorkspaceMessageKeys {
 
     public static final String NOT_FOUND = PREFIX + "workspace.not-found";
     public static final String RESTORE_INVALID = PREFIX + "workspace.restore.invalid";
+    public static final String DELETE_INVALID = PREFIX + "workspace.delete.invalid";
     public static final String WORKSPACE_TYPE_INVALID = PREFIX + "validation.workspace-type.invalid";
     public static final String NAME_REQUIRED = PREFIX + "validation.name.required";
     public static final String NAME_SIZE = PREFIX + "validation.name.size";
