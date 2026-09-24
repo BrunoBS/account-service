@@ -81,12 +81,12 @@ class WorkspaceAuthorizationIT {
         String teamA = post(validCreate("Workspace Team A", "TEAM_A"))
                 .statusCode(201)
                 .extract()
-                .path("id");
+                .path("identifier");
 
         String teamB = post(validCreate("Workspace Team B", "TEAM_B"))
                 .statusCode(201)
                 .extract()
-                .path("id");
+                .path("identifier");
 
         authorizationMock.reset();
         authorizationMock.allow(session -> session
