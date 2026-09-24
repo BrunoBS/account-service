@@ -37,6 +37,8 @@ class MessageApiIT {
 
     @BeforeEach
     void authorizeAsOwner() {
+        seedServiceTypes();
+        seedLifecycleTypes();
         authorizationMock.reset();
         authorizationMock.allow(session -> session.groups("PM5_OWNER"));
     }
@@ -250,6 +252,28 @@ class MessageApiIT {
 
     private ValidatableResponse delete(String path) {
         return authorized().when().delete(path).then();
+    }
+
+    private void seedServiceTypes() {
+        jdbcTemplate.update("""
+                INSERT IGNORE INTO type_services
+                    (code, label, description, sort_order, is_active, settings)
+                VALUES
+                    ('workspace-service', 'Workspace Service',
+                     'Workspace and platform administration service', 1, true, '{}')
+                """);
+    }
+
+    private void seedLifecycleTypes() {
+        jdbcTemplate.update("""
+                INSERT IGNORE INTO type_life_cycle
+                    (code, label, description, sort_order, is_active, settings)
+                VALUES
+                    ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}'),
+                    ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}'),
+                    ('PENDING_DELETION', 'Pending deletion',
+                     'Pending physical deletion', 3, true, '{}')
+                """);
     }
 
     private io.restassured.specification.RequestSpecification authorized() {
