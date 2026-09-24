@@ -73,12 +73,12 @@ public class WorkspaceCommandService {
     }
 
     @Transactional
-    public WorkspaceOutput update(Long id, UpdateWorkspaceInput rawInput) {
-        Workspace workspace = finder.findActive(id);
+    public WorkspaceOutput update(String identifier, UpdateWorkspaceInput rawInput) {
+        Workspace workspace = finder.findActive(identifier);
         UpdateWorkspaceInput input = normalizer.normalize(rawInput);
         boolean nameDuplicate = input != null
                 && input.name() != null
-                && repository.existsByNameAndIdNot(input.name(), id);
+                && repository.existsByNameAndIdNot(input.name(), workspace.getId());
 
         validator.validateForUpdate(normalizer.toValidationData(input), nameDuplicate);
 
@@ -108,15 +108,15 @@ public class WorkspaceCommandService {
     }
 
     @Transactional
-    public void inactivate(Long id) {
-        Workspace workspace = finder.findActive(id);
+    public void inactivate(String identifier) {
+        Workspace workspace = finder.findActive(identifier);
         workspace.inactivate(LocalDateTime.now());
         repository.saveAndFlush(workspace);
     }
 
     @Transactional
-    public WorkspaceOutput restore(Long id) {
-        Workspace workspace = finder.findInactiveForRestore(id);
+    public WorkspaceOutput restore(String identifier) {
+        Workspace workspace = finder.findInactiveForRestore(identifier);
         List<String> manualTags = taggingSupport.findManual(workspace);
 
         workspace.restore(LocalDateTime.now());
