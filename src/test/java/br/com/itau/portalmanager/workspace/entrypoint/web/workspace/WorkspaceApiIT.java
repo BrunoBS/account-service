@@ -60,9 +60,10 @@ class WorkspaceApiIT {
                 "email", "  approver@portalmanager.com  "
         )));
 
-        Integer id = post(request)
+        String identifier = post(request)
                 .statusCode(201)
-                .body("id", not(nullValue()))
+                .body("id", nullValue())
+                .body("identifier", not(nullValue()))
                 .body("version", equalTo(0))
                 .body("workspaceType", equalTo("ADMIN"))
                 .body("name", equalTo("Workspace G3"))
@@ -76,21 +77,22 @@ class WorkspaceApiIT {
                 .body("approvers", hasSize(1))
                 .body("approvers[0].functional", equalTo("F1234"))
                 .extract()
-                .path("id");
+                .path("identifier");
 
-        get("/api/v1/workspaces/" + id)
+        get("/api/v1/workspaces/" + identifier)
                 .statusCode(200)
-                .body("id", equalTo(id))
+                .body("id", nullValue())
+                .body("identifier", equalTo(identifier))
                 .body("name", equalTo("Workspace G3"))
                 .body("lifecycle", equalTo("ACTIVE"));
     }
 
     @Test
     void shouldListByLifecycleAndNormalizedTypeFilter() {
-        Integer adminId = create("Workspace Admin", "ADMIN");
-        Integer managerId = create("Workspace Manager", "MANAGER");
+        String adminIdentifier = create("Workspace Admin", "ADMIN");
+        String managerIdentifier = create("Workspace Manager", "MANAGER");
 
-        delete("/api/v1/workspaces/" + managerId).statusCode(204);
+        delete("/api/v1/workspaces/" + managerIdentifier).statusCode(204);
 
         given()
                 .port(port)
@@ -103,20 +105,20 @@ class WorkspaceApiIT {
                 .get("/api/v1/workspaces")
                 .then()
                 .statusCode(200)
-                .body("id", hasItem(adminId))
-                .body("id", not(hasItem(managerId)))
+                .body("identifier", hasItem(adminIdentifier))
+                .body("identifier", not(hasItem(managerIdentifier)))
                 .body("workspaceType", containsInAnyOrder("ADMIN"));
 
         get("/api/v1/workspaces?active=false")
                 .statusCode(200)
-                .body("id", containsInAnyOrder(managerId))
+                .body("identifier", containsInAnyOrder(managerIdentifier))
                 .body("lifecycle", containsInAnyOrder("INACTIVE"));
     }
 
     @Test
     void shouldUpdateWorkspaceAndReplaceApprovers() {
-        Integer id = create("Workspace Atualizável", "ADMIN");
-        Integer version = get("/api/v1/workspaces/" + id)
+        String identifier = create("Workspace Atualizável", "ADMIN");
+        Integer version = get("/api/v1/workspaces/" + identifier)
                 .statusCode(200)
                 .extract()
                 .path("version");
@@ -128,9 +130,10 @@ class WorkspaceApiIT {
                 Map.of("functional", "F3000", "email", "new2@portalmanager.com")
         ));
 
-        put("/api/v1/workspaces/" + id, update)
+        put("/api/v1/workspaces/" + identifier, update)
                 .statusCode(200)
-                .body("id", equalTo(id))
+                .body("id", nullValue())
+                .body("identifier", equalTo(identifier))
                 .body("version", greaterThan(version))
                 .body("name", equalTo("Workspace Atualizável"))
                 .body("workspaceType", equalTo("MANAGER"))
@@ -141,20 +144,20 @@ class WorkspaceApiIT {
 
     @Test
     void shouldRejectStaleUpdateWithConflict() {
-        Integer id = create("Workspace Concorrente", "ADMIN");
-        Integer version = get("/api/v1/workspaces/" + id)
+        String identifier = create("Workspace Concorrente", "ADMIN");
+        Integer version = get("/api/v1/workspaces/" + identifier)
                 .statusCode(200)
                 .extract()
                 .path("version");
 
         Map<String, Object> first = validUpdate(version, "Workspace Concorrente", "ADMIN");
         first.put("description", "Descrição da primeira atualização");
-        put("/api/v1/workspaces/" + id, first).statusCode(200);
+        put("/api/v1/workspaces/" + identifier, first).statusCode(200);
 
         Map<String, Object> stale = validUpdate(version, "Workspace Concorrente", "ADMIN");
         stale.put("description", "Descrição da atualização obsoleta");
 
-        put("/api/v1/workspaces/" + id, stale)
+        put("/api/v1/workspaces/" + identifier, stale)
                 .statusCode(409)
                 .body("code", equalTo("GLOBAL-0009"));
     }
@@ -194,21 +197,22 @@ class WorkspaceApiIT {
 
     @Test
     void shouldInactivateHideAndRestoreWorkspace() {
-        Integer id = create("Workspace Lifecycle", "ADMIN");
+        String identifier = create("Workspace Lifecycle", "ADMIN");
 
-        delete("/api/v1/workspaces/" + id).statusCode(204);
+        delete("/api/v1/workspaces/" + identifier).statusCode(204);
 
-        get("/api/v1/workspaces/" + id)
+        get("/api/v1/workspaces/" + identifier)
                 .statusCode(404)
                 .body("code", equalTo("WORKSPACE-0001"));
 
-        post("/api/v1/workspaces/" + id + "/restore")
+        post("/api/v1/workspaces/" + identifier + "/restore")
                 .statusCode(200)
-                .body("id", equalTo(id))
+                .body("id", nullValue())
+                .body("identifier", equalTo(identifier))
                 .body("name", equalTo("Workspace Lifecycle"))
                 .body("lifecycle", equalTo("ACTIVE"));
 
-        post("/api/v1/workspaces/" + id + "/restore")
+        post("/api/v1/workspaces/" + identifier + "/restore")
                 .statusCode(400)
                 .body("code", equalTo("WORKSPACE-0002"));
     }
@@ -225,20 +229,20 @@ class WorkspaceApiIT {
     void shouldReturnNotFoundForUpdateAndDeleteOfUnknownWorkspace() {
         Map<String, Object> update = validUpdate(0, "Workspace Inexistente", "ADMIN");
 
-        put("/api/v1/workspaces/999999", update)
+        put("/api/v1/workspaces/00000000-0000-0000-0000-000000000000", update)
                 .statusCode(404)
                 .body("code", equalTo("WORKSPACE-0001"));
 
-        delete("/api/v1/workspaces/999999")
+        delete("/api/v1/workspaces/00000000-0000-0000-0000-000000000000")
                 .statusCode(404)
                 .body("code", equalTo("WORKSPACE-0001"));
     }
 
-    private Integer create(String name, String type) {
+    private String create(String name, String type) {
         return post(validCreate(name, type))
                 .statusCode(201)
                 .extract()
-                .path("id");
+                .path("identifier");
     }
 
     private Map<String, Object> validCreate(String name, String type) {
