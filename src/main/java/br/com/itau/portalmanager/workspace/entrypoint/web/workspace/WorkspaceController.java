@@ -89,7 +89,7 @@ public class WorkspaceController {
     @Auditable(
             resource = "WORKSPACE",
             action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "workspaceId")
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
     )
     public ResponseEntity<Void> inactivate(@PathVariable String identifier) {
         commandService.inactivate(identifier);
@@ -101,7 +101,7 @@ public class WorkspaceController {
     @Auditable(
             resource = "WORKSPACE",
             action = "RESTORE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "workspaceId")
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
     )
     public WorkspaceResponse restore(@PathVariable String identifier) {
         return WorkspaceResponse.from(commandService.restore(identifier));
