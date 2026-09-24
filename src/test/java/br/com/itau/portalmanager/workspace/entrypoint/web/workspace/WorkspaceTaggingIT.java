@@ -104,6 +104,27 @@ class WorkspaceTaggingIT {
                 .body("identifier", hasItem(identifier));
     }
 
+    @Test
+    void shouldRemoveTagsWhenWorkspaceIsPhysicallyDeleted() {
+        Map<String, Object> create = validCreate("Workspace Delete Tags", "DEL", "TEAM_DELETE");
+        create.put("tags", List.of("delete-tag"));
+
+        String identifier = post(create)
+                .statusCode(201)
+                .extract()
+                .path("identifier");
+
+        post("/api/v1/workspaces/" + identifier + "/inactivate")
+                .statusCode(204);
+
+        delete("/api/v1/workspaces/" + identifier)
+                .statusCode(204);
+
+        getList("delete-tag")
+                .statusCode(200)
+                .body("identifier", not(hasItem(identifier)));
+    }
+
     private Map<String, Object> validCreate(String name, String acronym, String authorizerGroup) {
         Map<String, Object> request = new LinkedHashMap<>();
         request.put("workspaceType", "ADMIN");
@@ -147,6 +168,20 @@ class WorkspaceTaggingIT {
                 .body(body)
                 .when()
                 .put("/api/v1/workspaces/" + identifier)
+                .then();
+    }
+
+    private io.restassured.response.ValidatableResponse post(String path) {
+        return authorized()
+                .when()
+                .post(path)
+                .then();
+    }
+
+    private io.restassured.response.ValidatableResponse delete(String path) {
+        return authorized()
+                .when()
+                .delete(path)
                 .then();
     }
 
