@@ -1,21 +1,17 @@
 package br.com.itau.portalmanager.workspace.feature.message.usecase;
 
 import br.com.itau.portalmanager.workspace.feature.message.domain.Message;
-import br.com.itau.portalmanager.workspace.feature.message.domain.MessageMessageKeys;
 import br.com.itau.portalmanager.workspace.feature.message.domain.MessageTranslation;
 import br.com.itau.portalmanager.workspace.feature.message.repository.MessageRepository;
 import br.com.itau.portalmanager.workspace.feature.message.repository.MessageTranslationRepository;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.CreateMessageInput;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.MessageOutput;
-import br.com.itau.portalmanager.workspace.feature.message.usecase.model.MessageTranslationOutput;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.UpdateMessageInput;
-import br.com.itau.portalmanager.workspace.feature.message.usecase.model.UpdateMessageTranslationInput;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.support.MessageFinder;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.support.MessageNormalizer;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.validation.MessageValidator;
 import br.com.portalmanager.platform.messaging.exception.ResourceVersionConflictException;
-import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -152,107 +148,6 @@ public class MessageCommandService {
         }
         message.quarantine(LocalDateTime.now());
         messageRepository.saveAndFlush(message);
-    }
-
-    @Transactional
-    public MessageTranslationOutput createTranslation(
-            String messageIdentifier,
-            CreateMessageTranslationInput rawInput
-    ) {
-        Message message = finder.findMessage(messageIdentifier);
-        CreateMessageTranslationInput input = normalizer.normalize(rawInput);
-
-        boolean localeDuplicate = input != null
-                && input.locale() != null
-                && translationRepository.existsByMessageIdAndLocale(
-                        message.getId(),
-                        input.locale()
-                );
-
-        validator.validateTranslationForCreate(input, localeDuplicate);
-
-        MessageTranslation translation = new MessageTranslation(
-                message,
-                input.locale(),
-                input.title(),
-                input.detail(),
-                input.suggestion(),
-                LocalDateTime.now()
-        );
-        return MessageTranslationOutput.from(translationRepository.saveAndFlush(translation));
-    }
-
-    @Transactional
-    public MessageTranslationOutput updateTranslation(
-            String messageIdentifier,
-            String translationIdentifier,
-            UpdateMessageTranslationInput rawInput
-    ) {
-        Message message = finder.findMessage(messageIdentifier);
-        MessageTranslation translation = finder.findTranslation(message, translationIdentifier);
-        UpdateMessageTranslationInput input = normalizer.normalize(rawInput);
-
-        boolean localeDuplicate = input != null
-                && input.locale() != null
-                && translationRepository.existsByMessageIdAndLocaleAndIdNot(
-                        message.getId(),
-                        input.locale(),
-                        translation.getId()
-                );
-
-        validator.validateTranslationForUpdate(input, localeDuplicate);
-        validateVersion(translation.getVersion(), input.version());
-
-        translation.update(
-                input.locale(),
-                input.title(),
-                input.detail(),
-                input.suggestion(),
-                LocalDateTime.now()
-        );
-        return MessageTranslationOutput.from(
-                translationRepository.saveAndFlush(translation)
-        );
-    }
-
-    @Transactional
-    public MessageTranslationOutput activateTranslation(
-            String messageIdentifier,
-            String translationIdentifier
-    ) {
-        Message message = finder.findMessage(messageIdentifier);
-        MessageTranslation translation = finder.findTranslation(message, translationIdentifier);
-        translation.activate(LocalDateTime.now());
-        return MessageTranslationOutput.from(
-                translationRepository.saveAndFlush(translation)
-        );
-    }
-
-    @Transactional
-    public MessageTranslationOutput inactivateTranslation(
-            String messageIdentifier,
-            String translationIdentifier
-    ) {
-        Message message = finder.findMessage(messageIdentifier);
-        MessageTranslation translation = finder.findTranslation(message, translationIdentifier);
-        translation.inactivate(LocalDateTime.now());
-        return MessageTranslationOutput.from(
-                translationRepository.saveAndFlush(translation)
-        );
-    }
-
-    @Transactional
-    public void deleteTranslation(
-            String messageIdentifier,
-            String translationIdentifier
-    ) {
-        Message message = finder.findMessage(messageIdentifier);
-        MessageTranslation translation = finder.findTranslation(message, translationIdentifier);
-        if (!translation.isInactive()) {
-            throw new ValidationException(MessageMessageKeys.TRANSLATION_DELETE_INVALID);
-        }
-        translation.quarantine(LocalDateTime.now());
-        translationRepository.saveAndFlush(translation);
     }
 
     private void validateTranslationsForCreate(CreateMessageInput input) {

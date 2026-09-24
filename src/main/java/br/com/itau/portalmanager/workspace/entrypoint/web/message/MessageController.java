@@ -1,11 +1,8 @@
 package br.com.itau.portalmanager.workspace.entrypoint.web.message;
 
 import br.com.itau.portalmanager.workspace.entrypoint.web.message.request.CreateMessageRequest;
-import br.com.itau.portalmanager.workspace.entrypoint.web.message.request.CreateMessageTranslationRequest;
 import br.com.itau.portalmanager.workspace.entrypoint.web.message.request.UpdateMessageRequest;
-import br.com.itau.portalmanager.workspace.entrypoint.web.message.request.UpdateMessageTranslationRequest;
 import br.com.itau.portalmanager.workspace.entrypoint.web.message.response.MessageResponse;
-import br.com.itau.portalmanager.workspace.entrypoint.web.message.response.MessageTranslationResponse;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.MessageCommandService;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.MessageQueryService;
 import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
@@ -36,10 +33,7 @@ public class MessageController {
     private final MessageCommandService commandService;
     private final MessageQueryService queryService;
 
-    public MessageController(
-            MessageCommandService commandService,
-            MessageQueryService queryService
-    ) {
+    public MessageController(MessageCommandService commandService, MessageQueryService queryService) {
         this.commandService = commandService;
         this.queryService = queryService;
     }
@@ -113,107 +107,6 @@ public class MessageController {
     )
     public ResponseEntity<Void> delete(@PathVariable String identifier) {
         commandService.delete(identifier);
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{identifier}/translations")
-    public List<MessageTranslationResponse> findTranslations(
-            @PathVariable String identifier,
-            @RequestParam(required = false) String locale,
-            @RequestParam(required = false) Boolean active
-    ) {
-        return queryService.findTranslations(identifier, locale, active).stream()
-                .map(MessageTranslationResponse::from)
-                .toList();
-    }
-
-    @GetMapping("/{identifier}/translations/{translationIdentifier}")
-    public MessageTranslationResponse findTranslation(
-            @PathVariable String identifier,
-            @PathVariable String translationIdentifier
-    ) {
-        return MessageTranslationResponse.from(
-                queryService.findTranslation(identifier, translationIdentifier)
-        );
-    }
-
-    @PostMapping("/{identifier}/translations")
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
-    public ResponseEntity<MessageTranslationResponse> createTranslation(
-            @PathVariable String identifier,
-            @RequestBody CreateMessageTranslationRequest request
-    ) {
-        MessageTranslationResponse response = MessageTranslationResponse.from(
-                commandService.createTranslation(identifier, request.toInput())
-        );
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PutMapping("/{identifier}/translations/{translationIdentifier}")
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "translationIdentifier")
-    )
-    public MessageTranslationResponse updateTranslation(
-            @PathVariable String identifier,
-            @PathVariable String translationIdentifier,
-            @RequestBody UpdateMessageTranslationRequest request
-    ) {
-        return MessageTranslationResponse.from(
-                commandService.updateTranslation(
-                        identifier,
-                        translationIdentifier,
-                        request.toInput()
-                )
-        );
-    }
-
-    @PatchMapping("/{identifier}/translations/{translationIdentifier}/activate")
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "ACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "translationIdentifier")
-    )
-    public MessageTranslationResponse activateTranslation(
-            @PathVariable String identifier,
-            @PathVariable String translationIdentifier
-    ) {
-        return MessageTranslationResponse.from(
-                commandService.activateTranslation(identifier, translationIdentifier)
-        );
-    }
-
-    @PatchMapping("/{identifier}/translations/{translationIdentifier}/inactivate")
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "INACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "translationIdentifier")
-    )
-    public MessageTranslationResponse inactivateTranslation(
-            @PathVariable String identifier,
-            @PathVariable String translationIdentifier
-    ) {
-        return MessageTranslationResponse.from(
-                commandService.inactivateTranslation(identifier, translationIdentifier)
-        );
-    }
-
-    @DeleteMapping("/{identifier}/translations/{translationIdentifier}")
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "translationIdentifier")
-    )
-    public ResponseEntity<Void> deleteTranslation(
-            @PathVariable String identifier,
-            @PathVariable String translationIdentifier
-    ) {
-        commandService.deleteTranslation(identifier, translationIdentifier);
         return ResponseEntity.noContent().build();
     }
 }
