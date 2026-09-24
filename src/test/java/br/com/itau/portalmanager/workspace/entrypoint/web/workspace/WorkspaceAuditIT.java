@@ -81,18 +81,20 @@ class WorkspaceAuditIT {
         update.put("description", "Descrição atualizada para auditoria");
 
         put(identifier, update).statusCode(200);
-        delete(identifier).statusCode(204);
+        post("/api/v1/workspaces/" + identifier + "/inactivate").statusCode(204);
         post("/api/v1/workspaces/" + identifier + "/restore").statusCode(200);
+        post("/api/v1/workspaces/" + identifier + "/inactivate").statusCode(204);
+        delete(identifier).statusCode(204);
 
         List<AuditEventRequest> events = new ArrayList<>(auditPublisher.events());
 
-        assertThat(events).hasSize(4);
+        assertThat(events).hasSize(6);
         assertThat(events)
                 .extracting(AuditEventRequest::resource)
                 .containsOnly("WORKSPACE");
         assertThat(events)
                 .extracting(AuditEventRequest::action)
-                .containsExactly("INSERT", "UPDATE", "DELETE", "RESTORE");
+                .containsExactly("INSERT", "UPDATE", "INACTIVATE", "RESTORE", "INACTIVATE", "DELETE");
         assertThat(events)
                 .extracting(AuditEventRequest::resourceId)
                 .containsOnly(identifier);
