@@ -8,7 +8,6 @@ import java.util.Comparator;
 import java.util.List;
 
 public record WorkspaceOutput(
-        Long id,
         Long version,
         String identifier,
         String workspaceType,
@@ -35,7 +34,6 @@ public record WorkspaceOutput(
                 .toList();
 
         return new WorkspaceOutput(
-                workspace.getId(),
                 workspace.getVersion(),
                 workspace.getIdentifier(),
                 workspace.getWorkspaceType().value(),
