@@ -73,16 +73,16 @@ class WorkspaceAuditIT {
                 .statusCode(201)
                 .extract();
 
-        Integer id = created.path("id");
+        String identifier = created.path("identifier");
         Integer version = created.path("version");
 
         Map<String, Object> update = validCreate("Workspace Audit");
         update.put("version", version);
         update.put("description", "Descrição atualizada para auditoria");
 
-        put(id, update).statusCode(200);
-        delete(id).statusCode(204);
-        post("/api/v1/workspaces/" + id + "/restore").statusCode(200);
+        put(identifier, update).statusCode(200);
+        delete(identifier).statusCode(204);
+        post("/api/v1/workspaces/" + identifier + "/restore").statusCode(200);
 
         List<AuditEventRequest> events = new ArrayList<>(auditPublisher.events());
 
@@ -95,7 +95,7 @@ class WorkspaceAuditIT {
                 .containsExactly("INSERT", "UPDATE", "DELETE", "RESTORE");
         assertThat(events)
                 .extracting(AuditEventRequest::resourceId)
-                .containsOnly(String.valueOf(id));
+                .containsOnly(identifier);
         assertThat(events)
                 .extracting(AuditEventRequest::service)
                 .containsOnly("workspace-service");
@@ -138,17 +138,17 @@ class WorkspaceAuditIT {
         return authorized().when().post(path).then();
     }
 
-    private io.restassured.response.ValidatableResponse put(Integer id, Map<String, Object> body) {
+    private io.restassured.response.ValidatableResponse put(String identifier, Map<String, Object> body) {
         return authorized()
                 .contentType(ContentType.JSON)
                 .body(body)
                 .when()
-                .put("/api/v1/workspaces/" + id)
+                .put("/api/v1/workspaces/" + identifier)
                 .then();
     }
 
-    private io.restassured.response.ValidatableResponse delete(Integer id) {
-        return authorized().when().delete("/api/v1/workspaces/" + id).then();
+    private io.restassured.response.ValidatableResponse delete(String identifier) {
+        return authorized().when().delete("/api/v1/workspaces/" + identifier).then();
     }
 
     private io.restassured.specification.RequestSpecification authorized() {
