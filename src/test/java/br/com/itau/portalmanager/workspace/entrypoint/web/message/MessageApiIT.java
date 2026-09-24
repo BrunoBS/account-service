@@ -84,9 +84,9 @@ class MessageApiIT {
         );
 
         assertThat(translationCount).isEqualTo(2);
-        assertThat(viewCount("workspace-service", "workspace.batch.not-found", "pt-BR"))
+        assertThat(viewCount("workspace-service.workspace.batch.not-found", "pt-BR"))
                 .isEqualTo(1);
-        assertThat(viewCount("workspace-service", "workspace.batch.not-found", "en-US"))
+        assertThat(viewCount("workspace-service.workspace.batch.not-found", "en-US"))
                 .isEqualTo(1);
     }
 
@@ -161,14 +161,14 @@ class MessageApiIT {
                 .extract()
                 .path("identifier");
 
-        assertThat(viewCount("workspace-service", "workspace.not-found", "pt-BR"))
+        assertThat(viewCount("workspace-service.workspace.not-found", "pt-BR"))
                 .isEqualTo(1);
 
         patch("/api/v1/messages/" + messageIdentifier + "/inactivate")
                 .statusCode(200)
                 .body("lifecycle", equalTo("INACTIVE"));
 
-        assertThat(viewCount("workspace-service", "workspace.not-found", "pt-BR"))
+        assertThat(viewCount("workspace-service.workspace.not-found", "pt-BR"))
                 .isZero();
 
         patch("/api/v1/messages/" + messageIdentifier + "/activate")
@@ -178,7 +178,7 @@ class MessageApiIT {
                 + "/translations/" + translationIdentifier + "/inactivate")
                 .statusCode(200);
 
-        assertThat(viewCount("workspace-service", "workspace.not-found", "pt-BR"))
+        assertThat(viewCount("workspace-service.workspace.not-found", "pt-BR"))
                 .isZero();
     }
 
@@ -379,17 +379,15 @@ class MessageApiIT {
         );
     }
 
-    private int viewCount(String service, String key, String locale) {
+    private int viewCount(String key, String locale) {
         return jdbcTemplate.queryForObject(
                 """
                 select count(*)
                   from vw_platform_messages
-                 where service = ?
-                   and message_key = ?
+                 where message_key = ?
                    and locale = ?
                 """,
                 Integer.class,
-                service,
                 key,
                 locale
         );

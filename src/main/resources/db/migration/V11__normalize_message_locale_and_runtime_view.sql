@@ -7,8 +7,7 @@ UPDATE message_translations
 
 CREATE OR REPLACE VIEW vw_platform_messages AS
 SELECT
-    m.service_code AS service,
-    m.message_key AS message_key,
+    CONCAT(m.service_code, '.', m.message_key) AS message_key,
     m.code AS code,
     m.http_status AS http_status,
     mt.locale AS locale,
