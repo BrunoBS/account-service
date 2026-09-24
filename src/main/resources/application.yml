@@ -39,6 +39,9 @@ platform:
   messaging:
     enabled: true
     default-locale: pt-BR
+    datasource:
+      enabled: true
+      view-name: vw_platform_messages
     cache:
       enabled: false
   audit:
