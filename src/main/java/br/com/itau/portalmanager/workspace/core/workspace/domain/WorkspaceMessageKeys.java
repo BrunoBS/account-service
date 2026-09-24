@@ -2,8 +2,6 @@ package br.com.itau.portalmanager.workspace.core.workspace.domain;
 
 public final class WorkspaceMessageKeys {
 
-    private static final String PREFIX = "workspace-service.";
-
     public static final String NOT_FOUND = "workspace.not-found";
     public static final String RESTORE_INVALID = "workspace.restore.invalid";
     public static final String DELETE_INVALID = "workspace.delete.invalid";
