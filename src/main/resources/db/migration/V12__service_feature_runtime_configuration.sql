@@ -93,7 +93,7 @@ SELECT
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 FROM type_features f
-JOIN platform_services fallback_service
+LEFT JOIN platform_services fallback_service
   ON fallback_service.code = 'workspace-service'
 LEFT JOIN platform_services owner_service
   ON JSON_VALID(f.settings)
