@@ -25,7 +25,7 @@ import java.util.UUID;
 @Entity
 @Table(name="messages", uniqueConstraints={
         @UniqueConstraint(name="uk_messages_service_message_key", columnNames={"service_id","message_key"}),
-        @UniqueConstraint(name="uk_messages_service_code", columnNames={"service_id","code"})
+        @UniqueConstraint(name="uk_messages_service_message_code", columnNames={"service_id","code"})
 })
 public class Message {
     @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id;
