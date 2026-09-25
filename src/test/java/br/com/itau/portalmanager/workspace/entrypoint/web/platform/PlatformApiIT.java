@@ -51,14 +51,14 @@ class PlatformApiIT {
         String serviceIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                        "code", "portal-manager",
-                        "name", "PORTAL_MANAGER",
+                        "code", "PORTAL_MANAGER",
+                        "name", "Portal Manager",
                         "description", "Portal owner"
                 ))
                 .post("/api/v1/platform/services")
                 .then()
                 .statusCode(201)
-                .body("name", equalTo("PORTAL_MANAGER"))
+                .body("name", equalTo("Portal Manager"))
                 .extract()
                 .path("identifier");
 
@@ -66,7 +66,7 @@ class PlatformApiIT {
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                         "code", "MANAGER_ACCOUNT",
-                        "name", "MANAGER_ACCOUNT",
+                        "name", "Manager Account",
                         "description", "Manager account context"
                 ))
                 .post("/api/v1/platform/contexts")
@@ -80,7 +80,7 @@ class PlatformApiIT {
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                         "code", "APPLICATION",
-                        "name", "APPLICATION",
+                        "name", "Application",
                         "description", "Application feature",
                         "serviceIdentifier", serviceIdentifier,
                         "settings", "{}"
@@ -88,7 +88,7 @@ class PlatformApiIT {
                 .post("/api/v1/platform/features")
                 .then()
                 .statusCode(201)
-                .body("serviceCode", equalTo("portal-manager"))
+                .body("serviceCode", equalTo("PORTAL_MANAGER"))
                 .extract()
                 .path("identifier");
 
