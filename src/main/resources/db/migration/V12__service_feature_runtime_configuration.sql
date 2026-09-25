@@ -39,17 +39,27 @@ CREATE TABLE platform_feature_scopes (
     feature_scope_code VARCHAR(50) NOT NULL,
     CONSTRAINT pk_platform_feature_scopes PRIMARY KEY (feature_id, feature_scope_code),
     CONSTRAINT fk_platform_feature_scopes_feature
-        FOREIGN KEY (feature_id) REFERENCES platform_features(id),
+        FOREIGN KEY (feature_id) REFERENCES platform_features(id)
+        ON DELETE CASCADE,
     CONSTRAINT fk_platform_feature_scopes_scope
         FOREIGN KEY (feature_scope_code) REFERENCES type_feature_scopes(code)
 );
 
+-- ServiceType becomes the Platform Service entity while preserving every legacy service code.
 INSERT INTO platform_services
     (identifier, code, name, description, lifecycle_code, created_at, updated_at)
-VALUES
-    (UUID(), 'workspace-service', 'Workspace Service',
-     'Owner service for workspace platform features', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+SELECT
+    UUID(),
+    s.code,
+    s.label,
+    s.description,
+    CASE WHEN s.is_active THEN 'ACTIVE' ELSE 'INACTIVE' END,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM type_services s;
 
+-- FeatureType becomes the Platform Feature entity.
+-- Structural ownership is no longer stored in settings.
 INSERT INTO platform_features
     (identifier, code, name, description, service_id, lifecycle_code, settings, created_at, updated_at)
 SELECT
@@ -74,7 +84,48 @@ SELECT
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 FROM type_features f
-JOIN platform_services s ON s.code = 'workspace-service';
+JOIN platform_services s
+  ON s.code = 'workspace-service';
+
+-- Older FeatureType records could keep their former single scope in settings.
+-- Promote that relationship to the explicit N:N join table when it is present and valid.
+INSERT IGNORE INTO platform_feature_scopes (feature_id, feature_scope_code)
+SELECT
+    pf.id,
+    fs.code
+FROM type_features legacy
+JOIN platform_features pf
+  ON pf.code = legacy.code
+JOIN type_feature_scopes fs
+  ON fs.code = JSON_UNQUOTE(JSON_EXTRACT(legacy.settings, '$.scopes'))
+WHERE JSON_VALID(legacy.settings)
+  AND JSON_TYPE(JSON_EXTRACT(legacy.settings, '$.scopes')) = 'STRING';
+
+-- Message Management now validates and references the Platform Service entity.
+ALTER TABLE messages
+    DROP FOREIGN KEY fk_messages_service;
+
+ALTER TABLE messages
+    ADD CONSTRAINT fk_messages_platform_service
+        FOREIGN KEY (service_code) REFERENCES platform_services(code);
+
+CREATE OR REPLACE VIEW vw_platform_messages AS
+SELECT
+    CONCAT(m.service_code, '.', m.message_key) AS message_key,
+    m.code AS code,
+    m.http_status AS http_status,
+    mt.locale AS locale,
+    mt.title AS title,
+    mt.detail AS message,
+    mt.suggestion AS solution
+FROM messages m
+JOIN platform_services s
+  ON s.code = m.service_code
+JOIN message_translations mt
+  ON mt.message_id = m.id
+WHERE s.lifecycle_code = 'ACTIVE'
+  AND m.lifecycle_code = 'ACTIVE'
+  AND mt.lifecycle_code = 'ACTIVE';
 
 CREATE OR REPLACE VIEW vw_feature_runtime_config AS
 SELECT
@@ -91,4 +142,8 @@ SELECT
     f.lifecycle_code = 'ACTIVE' AS feature_active,
     s.lifecycle_code = 'ACTIVE' AS service_active
 FROM platform_features f
-JOIN platform_services s ON s.id = f.service_id;
+JOIN platform_services s
+  ON s.id = f.service_id;
+
+DROP TABLE type_features;
+DROP TABLE type_services;
