@@ -15,7 +15,7 @@ class FeatureContextDomainTest {
     @Test
     void shouldCreateActiveContextWithFriendlyNameAndValidateCode() {
         FeatureContext context = new FeatureContext(
-                "MANAGER_ACCOUNT",
+                "manager-account",
                 "Manager Account",
                 "Manager account",
                 NOW
@@ -25,7 +25,7 @@ class FeatureContextDomainTest {
         assertThat(context.getLifecycle()).isEqualTo(LifecycleTypeCode.active());
 
         assertThatThrownBy(() -> new FeatureContext(
-                "invalid-context",
+                "MANAGER_ACCOUNT",
                 "Any friendly name",
                 null,
                 NOW
@@ -34,7 +34,7 @@ class FeatureContextDomainTest {
 
     @Test
     void shouldTransitionLifecycle() {
-        FeatureContext context = new FeatureContext("MANAGER_ACCOUNT", "MANAGER_ACCOUNT", null, NOW);
+        FeatureContext context = new FeatureContext("manager-account", "manager-account", null, NOW);
 
         context.inactivate(NOW.plusMinutes(1));
         assertThat(context.isActive()).isFalse();
