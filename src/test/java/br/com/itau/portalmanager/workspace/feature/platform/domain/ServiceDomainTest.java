@@ -14,7 +14,7 @@ class ServiceDomainTest {
 
     @Test
     void shouldTransitionLifecycleAndUpdateTimestamp() {
-        Service service = new Service("audit-service", "AUDIT_SERVICE", null, NOW);
+        Service service = new Service("AUDIT_SERVICE", "Audit Service", null, NOW);
 
         assertThat(service.isActive()).isTrue();
         assertThat(service.getLifecycle()).isEqualTo(LifecycleTypeCode.active());
@@ -32,14 +32,14 @@ class ServiceDomainTest {
 
     @Test
     void shouldExposeFeaturesAsReadOnlyRelation() {
-        Service service = new Service("audit-service", "AUDIT_SERVICE", null, NOW);
+        Service service = new Service("AUDIT_SERVICE", "Audit Service", null, NOW);
         Feature feature = new Feature("AUDIT", "AUDIT", null, service, "{}", NOW);
 
         assertThat(service.getFeatures()).containsExactly(feature);
     }
 
     @Test
-    void shouldRejectInvalidNameFormat() {
+    void shouldRejectInvalidCodeFormat() {
         assertThatThrownBy(() -> new Service("audit-service", "Audit Service", null, NOW))
                 .isInstanceOf(IllegalArgumentException.class);
     }
