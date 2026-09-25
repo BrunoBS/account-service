@@ -72,6 +72,22 @@ class PlatformCommandServiceTest {
     }
 
     @Test
+    void shouldRejectFeatureContextQuarantineWhileItOwnsFeatures() {
+        FeatureContextRepository contexts = mock(FeatureContextRepository.class);
+        FeatureContext context = new FeatureContext("MANAGER_ACCOUNT", "MANAGER_ACCOUNT", null, LocalDateTime.now());
+        Service service = new Service("portal-manager", "PORTAL_MANAGER", null, LocalDateTime.now());
+        Feature feature = new Feature("APPLICATION", "APPLICATION", null, service, "{}", LocalDateTime.now());
+        feature.addContext(context);
+
+        when(contexts.findByIdentifier(context.getIdentifier())).thenReturn(Optional.of(context));
+        FeatureContextCommandService command = new FeatureContextCommandService(contexts);
+
+        assertThatThrownBy(() -> command.delete(context.getIdentifier()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Feature context with features cannot be quarantined");
+    }
+
+    @Test
     void shouldRejectInactiveContextAssociation() {
         FeatureRepository features = mock(FeatureRepository.class);
         ServiceRepository services = mock(ServiceRepository.class);
