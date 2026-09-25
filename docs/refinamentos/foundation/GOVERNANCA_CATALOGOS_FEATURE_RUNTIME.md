@@ -208,9 +208,8 @@ InfrastructureTypeCode
 LanguageTypeCode
 LifecycleTypeCode
 OnboardingPhaseTypeCode
-PublisherScopeTypeCode
+ResourceScopeTypeCode
 SchemaScopeTypeCode
-SchemaTypeCode
 ServiceTypeCode
 ShareStatusTypeCode
 TagOriginTypeCode

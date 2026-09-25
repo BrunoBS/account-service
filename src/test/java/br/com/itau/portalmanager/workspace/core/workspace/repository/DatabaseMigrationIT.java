@@ -20,6 +20,9 @@ class DatabaseMigrationIT {
         assertThat(tableCount("type_features")).isZero();
         assertThat(tableCount("type_services")).isZero();
         assertThat(tableCount("type_feature_scopes")).isZero();
+        assertThat(tableCount("type_resource_scopes")).isEqualTo(1);
+        assertThat(tableCount("type_publisher_scopes")).isZero();
+        assertThat(tableCount("type_schemas")).isZero();
         assertThat(tableCount("platform_services")).isEqualTo(1);
         assertThat(tableCount("platform_features")).isEqualTo(1);
         assertThat(tableCount("platform_feature_contexts")).isEqualTo(1);

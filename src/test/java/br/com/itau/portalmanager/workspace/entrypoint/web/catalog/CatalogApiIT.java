@@ -48,9 +48,8 @@ class CatalogApiIT {
                 new CatalogCase("/api/v1/onboarding-type", "WORKSPACE_REGISTRATION"),
                 new CatalogCase("/api/v1/tag-origin-type", "MANUAL"),
                 new CatalogCase("/api/v1/visibility-type", "PRIVATE"),
-                new CatalogCase("/api/v1/publisher-scope-type", "WORKSPACE"),
+                new CatalogCase("/api/v1/resource-scope-type", "WORKSPACE"),
                 new CatalogCase("/api/v1/schema-scope", "PLATFORM"),
-                new CatalogCase("/api/v1/schema-type", "WORKSPACE"),
                 new CatalogCase("/api/v1/share-status-type", "NOT_REQUESTED")
         );
 
@@ -96,24 +95,24 @@ class CatalogApiIT {
 
     @Test
     void shouldPersistCatalogSpecificConfigurationInSettings() {
-        Map<String, Object> schema = standardBody(
+        Map<String, Object> resourceScope = standardBody(
                 "APPLICATION",
                 "Application",
-                "Descrição válida de schema application",
+                "Descrição válida de application resource scope",
                 1
         );
-        schema.put("settings", Map.of("scopes", "WORKSPACE"));
+        resourceScope.put("settings", Map.of("resource", "APPLICATION"));
 
-        String schemaCode = post("/api/v1/schema-type", schema)
+        String resourceScopeCode = post("/api/v1/resource-scope-type", resourceScope)
                 .statusCode(201)
                 .body("code", equalTo("APPLICATION"))
-                .body("settings.scopes", equalTo("WORKSPACE"))
+                .body("settings.resource", equalTo("APPLICATION"))
                 .extract()
                 .path("code");
 
-        get("/api/v1/schema-type/" + schemaCode)
+        get("/api/v1/resource-scope-type/" + resourceScopeCode)
                 .statusCode(200)
-                .body("settings.scopes", equalTo("WORKSPACE"));
+                .body("settings.resource", equalTo("APPLICATION"));
 
         Map<String, Object> onboarding = standardBody(
                 "WORKSPACE_FIRST_ENVIRONMENT",
