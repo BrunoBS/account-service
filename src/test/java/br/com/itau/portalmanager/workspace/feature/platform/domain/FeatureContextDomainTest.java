@@ -13,10 +13,10 @@ class FeatureContextDomainTest {
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 9, 25, 15, 0);
 
     @Test
-    void shouldCreateActiveContextAndValidateName() {
+    void shouldCreateActiveContextWithFriendlyNameAndValidateCode() {
         FeatureContext context = new FeatureContext(
                 "MANAGER_ACCOUNT",
-                "MANAGER_ACCOUNT",
+                "Manager Account",
                 "Manager account",
                 NOW
         );
@@ -25,8 +25,8 @@ class FeatureContextDomainTest {
         assertThat(context.getLifecycle()).isEqualTo(LifecycleTypeCode.active());
 
         assertThatThrownBy(() -> new FeatureContext(
-                "INVALID",
-                "Manager Account",
+                "invalid-context",
+                "Any friendly name",
                 null,
                 NOW
         )).isInstanceOf(IllegalArgumentException.class);
