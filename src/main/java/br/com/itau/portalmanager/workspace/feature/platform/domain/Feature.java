@@ -1,5 +1,6 @@
 package br.com.itau.portalmanager.workspace.feature.platform.domain;
 
+import br.com.itau.portalmanager.workspace.feature.platform.domain.support.PlatformCodeValidator;
 import br.com.itau.portalmanager.workspace.feature.platform.domain.support.PlatformNameValidator;
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
@@ -41,7 +42,7 @@ public class Feature {
     public Feature(String code, String name, String description, Service service, String settings, LocalDateTime now) {
         if (service == null || !service.isActive()) throw new IllegalArgumentException("Feature requires an active service");
         this.identifier = UUID.randomUUID().toString();
-        this.code = code;
+        this.code = PlatformCodeValidator.requireValid(code);
         this.name = PlatformNameValidator.requireValid(name);
         this.description = description;
         this.service = service;
