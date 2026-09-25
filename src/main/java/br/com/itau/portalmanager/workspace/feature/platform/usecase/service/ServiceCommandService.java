@@ -3,16 +3,14 @@ package br.com.itau.portalmanager.workspace.feature.platform.usecase.service;
 import br.com.itau.portalmanager.workspace.feature.platform.domain.Service;
 import br.com.itau.portalmanager.workspace.feature.platform.repository.ServiceRepository;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.Clock;
 import java.time.LocalDateTime;
 
 @org.springframework.stereotype.Service
 public class ServiceCommandService {
     private final ServiceRepository repository;
-    private final Clock clock;
 
-    public ServiceCommandService(ServiceRepository repository, Clock clock) {
-        this.repository = repository; this.clock = clock;
+    public ServiceCommandService(ServiceRepository repository) {
+        this.repository = repository;
     }
 
     @Transactional
@@ -46,5 +44,5 @@ public class ServiceCommandService {
     private Service required(String identifier) {
         return repository.findByIdentifier(identifier).orElseThrow(() -> new IllegalArgumentException("Service not found"));
     }
-    private LocalDateTime now() { return LocalDateTime.now(clock); }
+    private LocalDateTime now() { return LocalDateTime.now(); }
 }
