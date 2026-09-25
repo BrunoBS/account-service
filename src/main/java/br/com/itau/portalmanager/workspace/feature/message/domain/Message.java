@@ -1,6 +1,5 @@
 package br.com.itau.portalmanager.workspace.feature.message.domain;
 
-import br.com.itau.portalmanager.workspace.feature.platform.domain.Service;
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.CascadeType;
@@ -35,7 +34,7 @@ public class Message {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "service_id", nullable = false)
-    private Service service;
+    private MessageServiceReference service;
 
     @Column(name="message_key",nullable=false,length=255) private String messageKey;
     @Column(nullable=false,length=50) private String code;
@@ -53,13 +52,13 @@ public class Message {
 
     protected Message() {}
 
-    public Message(Service service,String messageKey,String code,Integer httpStatus,String observation,LocalDateTime now){
+    public Message(MessageServiceReference service,String messageKey,String code,Integer httpStatus,String observation,LocalDateTime now){
         this.identifier=UUID.randomUUID().toString(); this.service=service; this.messageKey=messageKey;
         this.code=code; this.httpStatus=httpStatus; this.observation=observation; this.lifecycle=LifecycleTypeCode.active();
         this.createdAt=now; this.updatedAt=now;
     }
 
-    public void update(Service service,String messageKey,String code,Integer httpStatus,String observation,LocalDateTime now){
+    public void update(MessageServiceReference service,String messageKey,String code,Integer httpStatus,String observation,LocalDateTime now){
         this.service=service; this.messageKey=messageKey; this.code=code; this.httpStatus=httpStatus;
         this.observation=observation; this.updatedAt=now;
     }
@@ -69,7 +68,7 @@ public class Message {
     public boolean isInactive(){ return LifecycleTypeCode.inactive().equals(lifecycle); }
 
     public Long getId(){return id;} public Long getVersion(){return version;} public String getIdentifier(){return identifier;}
-    public Service getService(){return service;} public String getMessageKey(){return messageKey;} public String getCode(){return code;}
+    public MessageServiceReference getService(){return service;} public String getMessageKey(){return messageKey;} public String getCode(){return code;}
     public Integer getHttpStatus(){return httpStatus;} public LifecycleTypeCode getLifecycle(){return lifecycle;}
     public String getObservation(){return observation;} public LocalDateTime getCreatedAt(){return createdAt;} public LocalDateTime getUpdatedAt(){return updatedAt;}
 }
