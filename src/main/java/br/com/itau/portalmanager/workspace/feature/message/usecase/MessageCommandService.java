@@ -5,6 +5,7 @@ import br.com.itau.portalmanager.workspace.feature.message.domain.MessageMessage
 import br.com.itau.portalmanager.workspace.feature.message.domain.MessageTranslation;
 import br.com.itau.portalmanager.workspace.feature.message.repository.MessageRepository;
 import br.com.itau.portalmanager.workspace.feature.message.repository.MessageTranslationRepository;
+import br.com.itau.portalmanager.workspace.feature.message.repository.MessageServiceReferenceRepository;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.CreateMessageInput;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.MessageOutput;
@@ -12,7 +13,6 @@ import br.com.itau.portalmanager.workspace.feature.message.usecase.model.UpdateM
 import br.com.itau.portalmanager.workspace.feature.message.usecase.support.MessageFinder;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.support.MessageNormalizer;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.validation.MessageValidator;
-import br.com.itau.portalmanager.workspace.feature.platform.repository.ServiceRepository;
 import br.com.portalmanager.platform.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,7 @@ public class MessageCommandService {
     private final MessageFinder finder;
     private final MessageNormalizer normalizer;
     private final MessageValidator validator;
-    private final ServiceRepository serviceRepository;
+    private final MessageServiceReferenceRepository serviceReferenceRepository;
 
     public MessageCommandService(
             MessageRepository messageRepository,
@@ -39,14 +39,14 @@ public class MessageCommandService {
             MessageFinder finder,
             MessageNormalizer normalizer,
             MessageValidator validator,
-            ServiceRepository serviceRepository
+            MessageServiceReferenceRepository serviceReferenceRepository
     ) {
         this.messageRepository = messageRepository;
         this.translationRepository = translationRepository;
         this.finder = finder;
         this.normalizer = normalizer;
         this.validator = validator;
-        this.serviceRepository = serviceRepository;
+        this.serviceReferenceRepository = serviceReferenceRepository;
     }
 
     @Transactional
