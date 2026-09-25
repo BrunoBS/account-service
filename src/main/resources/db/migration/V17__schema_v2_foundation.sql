@@ -23,7 +23,7 @@ CREATE TABLE schema_types (
         FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle(code)
 );
 
-CREATE TABLE schemas (
+CREATE TABLE schema_definitions (
     id BIGINT NOT NULL AUTO_INCREMENT,
     version BIGINT NOT NULL DEFAULT 0,
     identifier VARCHAR(36) NOT NULL,
@@ -37,22 +37,22 @@ CREATE TABLE schemas (
     lifecycle_code VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
-    CONSTRAINT pk_schemas PRIMARY KEY (id),
-    CONSTRAINT uk_schemas_identifier UNIQUE (identifier),
-    CONSTRAINT uk_schemas_scope_owner_type_code
+    CONSTRAINT pk_schema_definitions PRIMARY KEY (id),
+    CONSTRAINT uk_schema_definitions_identifier UNIQUE (identifier),
+    CONSTRAINT uk_schema_definitions_scope_owner_type_code
         UNIQUE (scope_code, owner_key, schema_type_id, code),
-    CONSTRAINT ck_schemas_code CHECK (code REGEXP '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'),
-    CONSTRAINT ck_schemas_owner
+    CONSTRAINT ck_schema_definitions_code CHECK (code REGEXP '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'),
+    CONSTRAINT ck_schema_definitions_owner
         CHECK (
             (scope_code = 'PLATFORM' AND workspace_identifier IS NULL)
             OR
             (scope_code = 'WORKSPACE' AND workspace_identifier IS NOT NULL)
         ),
-    CONSTRAINT fk_schemas_type
+    CONSTRAINT fk_schema_definitions_type
         FOREIGN KEY (schema_type_id) REFERENCES schema_types(id),
-    CONSTRAINT fk_schemas_scope
+    CONSTRAINT fk_schema_definitions_scope
         FOREIGN KEY (scope_code) REFERENCES type_schema_scopes(code),
-    CONSTRAINT fk_schemas_lifecycle
+    CONSTRAINT fk_schema_definitions_lifecycle
         FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle(code)
 );
 
@@ -70,11 +70,11 @@ CREATE TABLE schema_versions (
     CONSTRAINT uk_schema_versions_schema_version UNIQUE (schema_id, schema_version),
     CONSTRAINT ck_schema_versions_status CHECK (status IN ('DRAFT', 'PUBLISHED')),
     CONSTRAINT fk_schema_versions_schema
-        FOREIGN KEY (schema_id) REFERENCES schemas(id)
+        FOREIGN KEY (schema_id) REFERENCES schema_definitions(id)
 );
 
-CREATE INDEX idx_schemas_type_scope_owner
-    ON schemas (schema_type_id, scope_code, workspace_identifier);
+CREATE INDEX idx_schema_definitions_type_scope_owner
+    ON schema_definitions (schema_type_id, scope_code, workspace_identifier);
 
 CREATE INDEX idx_schema_versions_resolution
     ON schema_versions (schema_id, status, schema_version);
@@ -84,7 +84,7 @@ INSERT INTO schema_types
 VALUES
     (0, UUID(), 'default', 'Default', 'Fallback schema type for dynamic settings', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
-INSERT INTO schemas
+INSERT INTO schema_definitions
     (version, identifier, schema_type_id, scope_code, workspace_identifier, code, name, description,
      lifecycle_code, created_at, updated_at)
 SELECT
@@ -101,7 +101,7 @@ SELECT
     '{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Default Dynamic Schema","type":"object","additionalProperties":true}',
     'PUBLISHED',
     CURRENT_TIMESTAMP
-FROM schemas s
+FROM schema_definitions s
 JOIN schema_types st ON st.id = s.schema_type_id
 WHERE st.code = 'default'
   AND s.scope_code = 'PLATFORM'
