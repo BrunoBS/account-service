@@ -48,10 +48,15 @@ public class Feature {
     }
     public void addScope(FeatureScopeType scope) {
         if (scope == null) throw new IllegalArgumentException("Feature scope is required");
+        if (!scope.isActive()) throw new IllegalArgumentException("Feature scope must be active");
         scopes.add(scope);
     }
     public void removeScope(FeatureScopeType scope) { scopes.remove(scope); }
-    public void activate(LocalDateTime now) { lifecycle = LifecycleTypeCode.active(); updatedAt = now; }
+    public void activate(LocalDateTime now) {
+        if (service == null || !service.isActive()) throw new IllegalStateException("Feature requires an active service");
+        lifecycle = LifecycleTypeCode.active();
+        updatedAt = now;
+    }
     public void inactivate(LocalDateTime now) { lifecycle = LifecycleTypeCode.inactive(); updatedAt = now; }
     public void quarantine(LocalDateTime now) { lifecycle = LifecycleTypeCode.quarantined(); updatedAt = now; }
 
