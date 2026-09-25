@@ -10,7 +10,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Entity
-@Table(name = "schemas")
+@Table(name = "schema_definitions")
 public class Schema {
 
     private static final Pattern CODE_PATTERN = Pattern.compile("^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$");
