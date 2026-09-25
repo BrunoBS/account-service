@@ -16,7 +16,7 @@ public record MessageOutput(
         return new MessageOutput(
                 message.getIdentifier(),
                 message.getVersion(),
-                message.getServiceCode(),
+                message.getService().getCode(),
                 message.getMessageKey(),
                 message.getCode(),
                 message.getHttpStatus(),
