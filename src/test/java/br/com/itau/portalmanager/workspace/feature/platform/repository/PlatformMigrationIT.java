@@ -83,10 +83,10 @@ class PlatformMigrationIT {
 
         assertThat(jdbc.queryForObject(
                 "select name from platform_services where code = 'portal-manager'", String.class))
-                .isEqualTo("PORTAL_MANAGER");
+                .isEqualTo("Portal Manager");
         assertThat(jdbc.queryForObject(
                 "select name from platform_features where code = 'APPLICATION'", String.class))
-                .isEqualTo("APPLICATION");
+                .isEqualTo("Application");
 
         assertThat(jdbc.queryForObject("""
                 select count(*)
