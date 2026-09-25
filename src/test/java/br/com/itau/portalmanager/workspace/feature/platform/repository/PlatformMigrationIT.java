@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @PlatformIntegrationTest
 @WithMySql
 @TestPropertySource(properties = {
-        "spring.flyway.target=11",
+        "spring.flyway.target=12",
         "spring.jpa.hibernate.ddl-auto=none"
 })
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -27,13 +27,10 @@ class PlatformMigrationIT {
     @Autowired private Flyway flyway;
 
     @Test
-    void shouldMigrateLegacyServiceFeatureOwnershipSettingsScopesAndRuntimeView() {
+    void shouldMigrateFeatureScopesToFeatureContexts() {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("11");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("12");
 
-        // Catalog tables are intentionally empty in a clean V11 schema until the
-        // application seeds them. Seed the real V11 lifecycle states required by
-        // the legacy rows used by this migration test.
         jdbc.update("""
                 insert into type_life_cycle
                     (code, label, description, sort_order, is_active, settings)
@@ -45,77 +42,75 @@ class PlatformMigrationIT {
                 """);
 
         jdbc.update("""
-                insert into type_services (code, label, description, sort_order, is_active, settings)
-                values ('workspace-service', 'Workspace Service', 'Compatibility owner', 1, true, '{}'),
-                       ('audit-service', 'Audit Service', 'Audit owner', 2, true, '{}')
-                """);
-        jdbc.update("""
                 insert into type_feature_scopes (code, label, description, sort_order, is_active, settings)
-                values ('ADMINISTRATION', 'Administration', 'Administrative scope', 1, true, '{}'),
-                       ('CONFIGURATION', 'Configuration', 'Configuration scope', 2, true, '{}')
+                values ('MANAGER_ACCOUNT', 'Manager account', 'Manager context', 1, true, '{}'),
+                       ('ADMIN_ACCOUNT', 'Admin account', 'Admin context', 2, false, '{}')
                 """);
+
         jdbc.update("""
-                insert into type_features (code, label, description, sort_order, is_active, settings)
-                values (
-                    'AUDIT', 'Audit', 'Audit feature', 1, true,
-                    '{"service":"audit-service","scopes":["ADMINISTRATION","CONFIGURATION"],"quarantine":{"enabled":true,"retentionDays":35,"restoreAllowed":true},"audit":{"enabled":true,"snapshotOnPurge":true},"purge":{"enabled":true}}'
-                ), (
-                    'LEGACY', 'Legacy', 'Legacy feature without structural owner', 2, true,
-                    '{"quarantine":{"enabled":true,"retentionDays":30,"restoreAllowed":true},"audit":{"enabled":true,"snapshotOnPurge":true},"purge":{"enabled":true}}'
-                )
+                insert into platform_services
+                    (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
+                values
+                    (0, '11111111-1111-1111-1111-111111111111', 'portal-manager',
+                     'Portal Manager', 'Portal owner', 'ACTIVE', now(), now())
+                """);
+
+        jdbc.update("""
+                insert into platform_features
+                    (version, identifier, code, name, description, service_id, lifecycle_code, settings, created_at, updated_at)
+                select
+                    0, '22222222-2222-2222-2222-222222222222', 'APPLICATION', 'Application',
+                    'Application feature', id, 'ACTIVE', '{}', now(), now()
+                  from platform_services
+                 where code = 'portal-manager'
+                """);
+
+        jdbc.update("""
+                insert into platform_feature_scopes (feature_id, feature_scope_code)
+                select id, 'MANAGER_ACCOUNT'
+                  from platform_features
+                 where code = 'APPLICATION'
                 """);
 
         Flyway upgradeFlyway = Flyway.configure()
                 .dataSource(dataSource)
                 .locations("classpath:db/migration")
-                .target("12")
+                .target("13")
                 .load();
         upgradeFlyway.migrate();
 
-        assertThat(upgradeFlyway.info().current().getVersion().getVersion()).isEqualTo("12");
-
-        assertThat(jdbc.queryForObject("""
-                select s.code
-                  from platform_features f
-                  join platform_services s on s.id = f.service_id
-                 where f.code = 'AUDIT'
-                """, String.class)).isEqualTo("audit-service");
-
-        assertThat(jdbc.queryForObject("""
-                select s.code
-                  from platform_features f
-                  join platform_services s on s.id = f.service_id
-                 where f.code = 'LEGACY'
-                """, String.class)).isEqualTo("workspace-service");
+        assertThat(upgradeFlyway.info().current().getVersion().getVersion()).isEqualTo("13");
 
         assertThat(jdbc.queryForObject(
-                "select version from platform_services where code = 'audit-service'", Long.class))
-                .isZero();
+                "select name from platform_services where code = 'portal-manager'", String.class))
+                .isEqualTo("PORTAL_MANAGER");
         assertThat(jdbc.queryForObject(
-                "select version from platform_features where code = 'AUDIT'", Long.class))
-                .isZero();
-
-        String settings = jdbc.queryForObject(
-                "select cast(settings as char) from platform_features where code = 'AUDIT'", String.class);
-        assertThat(settings).contains("\"retentionDays\": 35");
-        assertThat(settings).doesNotContain("\"service\"");
-        assertThat(settings).doesNotContain("\"scopes\"");
+                "select name from platform_features where code = 'APPLICATION'", String.class))
+                .isEqualTo("APPLICATION");
 
         assertThat(jdbc.queryForObject("""
-                select count(*) from platform_feature_scopes pfs
-                join platform_features f on f.id = pfs.feature_id
-                where f.code = 'AUDIT'
-                """, Integer.class)).isEqualTo(2);
+                select count(*)
+                  from platform_feature_context_relations r
+                  join platform_features f on f.id = r.feature_id
+                  join platform_feature_contexts c on c.id = r.feature_context_id
+                 where f.code = 'APPLICATION'
+                   and c.code = 'MANAGER_ACCOUNT'
+                """, Integer.class)).isEqualTo(1);
+
+        assertThat(jdbc.queryForObject(
+                "select lifecycle_code from platform_feature_contexts where code = 'ADMIN_ACCOUNT'", String.class))
+                .isEqualTo("INACTIVE");
+
+        assertThat(tableCount(jdbc, "platform_feature_contexts")).isEqualTo(1);
+        assertThat(tableCount(jdbc, "platform_feature_context_relations")).isEqualTo(1);
+        assertThat(tableCount(jdbc, "type_feature_scopes")).isZero();
+        assertThat(tableCount(jdbc, "platform_feature_scopes")).isZero();
 
         assertThat(jdbc.queryForObject("""
-                select service_code from vw_feature_runtime_config where feature_code = 'AUDIT'
-                """, String.class)).isEqualTo("audit-service");
-        assertThat(jdbc.queryForObject("""
-                select quarantine_retention_days from vw_feature_runtime_config where feature_code = 'AUDIT'
-                """, Integer.class)).isEqualTo(35);
-
-        assertThat(tableCount(jdbc, "type_services")).isZero();
-        assertThat(tableCount(jdbc, "type_features")).isZero();
+                select service_code
+                  from vw_feature_runtime_config
+                 where feature_code = 'APPLICATION'
+                """, String.class)).isEqualTo("portal-manager");
     }
 
     private Integer tableCount(JdbcTemplate jdbc, String tableName) {
