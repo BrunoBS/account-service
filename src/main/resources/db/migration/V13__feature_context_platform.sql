@@ -12,6 +12,8 @@ CREATE TABLE platform_feature_contexts (
     CONSTRAINT uk_platform_feature_contexts_identifier UNIQUE (identifier),
     CONSTRAINT uk_platform_feature_contexts_code UNIQUE (code),
     CONSTRAINT uk_platform_feature_contexts_name UNIQUE (name),
+    CONSTRAINT ck_platform_feature_contexts_code
+        CHECK (code REGEXP '^[A-Z][A-Z0-9_]*$'),
     CONSTRAINT fk_platform_feature_contexts_lifecycle
         FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle(code)
 );
@@ -21,8 +23,8 @@ INSERT INTO platform_feature_contexts
 SELECT
     0,
     UUID(),
-    code,
     UPPER(REPLACE(code, '-', '_')),
+    label,
     description,
     CASE WHEN is_active THEN 'ACTIVE' ELSE 'INACTIVE' END,
     CURRENT_TIMESTAMP,
@@ -46,14 +48,33 @@ SELECT
     context.id
 FROM platform_feature_scopes relation
 JOIN platform_feature_contexts context
-  ON context.code = relation.feature_scope_code;
+  ON context.code = UPPER(REPLACE(relation.feature_scope_code, '-', '_'));
 
+ALTER TABLE messages
+    DROP FOREIGN KEY fk_messages_platform_service;
+
+UPDATE platform_services
+   SET code = UPPER(REPLACE(code, '-', '_'));
+
+UPDATE platform_features
+   SET code = UPPER(REPLACE(code, '-', '_'));
+
+UPDATE messages
+   SET service_code = UPPER(REPLACE(service_code, '-', '_'));
 
 ALTER TABLE platform_services
-    ADD CONSTRAINT uk_platform_services_name UNIQUE (name);
+    ADD CONSTRAINT uk_platform_services_name UNIQUE (name),
+    ADD CONSTRAINT ck_platform_services_code
+        CHECK (code REGEXP '^[A-Z][A-Z0-9_]*$');
 
 ALTER TABLE platform_features
-    ADD CONSTRAINT uk_platform_features_name UNIQUE (name);
+    ADD CONSTRAINT uk_platform_features_name UNIQUE (name),
+    ADD CONSTRAINT ck_platform_features_code
+        CHECK (code REGEXP '^[A-Z][A-Z0-9_]*$');
+
+ALTER TABLE messages
+    ADD CONSTRAINT fk_messages_platform_service
+        FOREIGN KEY (service_code) REFERENCES platform_services(code);
 
 DROP TABLE platform_feature_scopes;
 DROP TABLE type_feature_scopes;
