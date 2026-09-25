@@ -1,0 +1,119 @@
+package br.com.itau.portalmanager.workspace.foundation.schema.usecase;
+
+import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
+import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
+import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersionStatus;
+import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
+import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
+import br.com.portalmanager.platform.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.messaging.validation.ValidationResult;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+@Component
+public class SchemaResolver {
+
+    private static final String PLATFORM = "PLATFORM";
+    private static final String DEFAULT = "default";
+    private static final String NOT_FOUND = "workspace-service.schema.resolution.not-found";
+    private static final String PUBLISHED_NOT_FOUND = "workspace-service.schema.published.not-found";
+    private static final String INACTIVE = "workspace-service.schema.inactive";
+
+    private final SchemaRepository schemaRepository;
+    private final SchemaVersionRepository versionRepository;
+
+    public SchemaResolver(
+            SchemaRepository schemaRepository,
+            SchemaVersionRepository versionRepository
+    ) {
+        this.schemaRepository = schemaRepository;
+        this.versionRepository = versionRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public SchemaResolution resolvePlatform(String schemaTypeCode) {
+        String requestedType = normalizeRequired(schemaTypeCode);
+
+        var specific = schemaRepository.findByTypeScopeAndCode(
+                requestedType,
+                PLATFORM,
+                null,
+                requestedType
+        );
+
+        if (specific.isPresent()) {
+            return resolution(requestedType, specific.get(), false);
+        }
+
+        Schema fallback = schemaRepository.findByTypeScopeAndCode(
+                        DEFAULT,
+                        PLATFORM,
+                        null,
+                        DEFAULT
+                )
+                .orElseThrow(() -> validation("schemaType", NOT_FOUND));
+
+        return resolution(requestedType, fallback, true);
+    }
+
+    @Transactional(readOnly = true)
+    public SchemaResolution resolveWorkspace(
+            String workspaceIdentifier,
+            String schemaTypeCode,
+            String schemaCode
+    ) {
+        String workspace = normalizeRequired(workspaceIdentifier);
+        String type = normalizeRequired(schemaTypeCode);
+        String code = normalizeRequired(schemaCode);
+
+        Schema schema = schemaRepository.findByTypeScopeAndCode(
+                        type,
+                        "WORKSPACE",
+                        workspace,
+                        code
+                )
+                .orElseThrow(() -> validation("schema", NOT_FOUND));
+
+        return resolution(type, schema, false);
+    }
+
+    private SchemaResolution resolution(
+            String requestedType,
+            Schema schema,
+            boolean fallback
+    ) {
+        if (!schema.isActive() || !schema.getSchemaType().isActive()) {
+            throw validation("schema", INACTIVE);
+        }
+
+        SchemaVersion version = versionRepository
+                .findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
+                        schema.getId(),
+                        SchemaVersionStatus.PUBLISHED
+                )
+                .orElseThrow(() -> validation("schemaVersion", PUBLISHED_NOT_FOUND));
+
+        return new SchemaResolution(
+                requestedType,
+                schema.getSchemaType().getCode(),
+                schema.getIdentifier(),
+                version.getIdentifier(),
+                version.getSchemaVersion(),
+                version.getDefinition(),
+                fallback
+        );
+    }
+
+    private String normalizeRequired(String value) {
+        if (value == null || value.isBlank()) {
+            throw validation("schema", NOT_FOUND);
+        }
+        return value.trim();
+    }
+
+    private ValidationException validation(String field, String messageKey) {
+        ValidationResult result = new ValidationResult();
+        result.addError(field, messageKey);
+        return new ValidationException(result);
+    }
+}
