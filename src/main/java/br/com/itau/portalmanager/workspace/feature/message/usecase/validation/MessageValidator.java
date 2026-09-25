@@ -5,7 +5,7 @@ import br.com.itau.portalmanager.workspace.feature.message.usecase.model.CreateM
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.UpdateMessageInput;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.UpdateMessageTranslationInput;
-import br.com.itau.portalmanager.workspace.feature.platform.usecase.ServiceQueryService;
+import br.com.itau.portalmanager.workspace.feature.platform.usecase.query.ServiceQueryService;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;
