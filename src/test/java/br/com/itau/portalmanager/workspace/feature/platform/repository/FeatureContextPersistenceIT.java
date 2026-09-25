@@ -29,8 +29,8 @@ class FeatureContextPersistenceIT {
     @Test
     void shouldEnforceUniqueContextNameAtDatabaseLevel() {
         var now = LocalDateTime.of(2026, 9, 25, 15, 30);
-        repository.saveAndFlush(new FeatureContext("MANAGER_ACCOUNT", "Manager Account", "Manager context", now));
-        var duplicate = new FeatureContext("MANAGER_ACCOUNT_ALT", "Manager Account", "Duplicate manager context", now);
+        repository.saveAndFlush(new FeatureContext("manager-account", "Manager Account", "Manager context", now));
+        var duplicate = new FeatureContext("manager-account-alt", "Manager Account", "Duplicate manager context", now);
         assertThrows(DataIntegrityViolationException.class, () -> repository.saveAndFlush(duplicate));
     }
 
@@ -38,7 +38,7 @@ class FeatureContextPersistenceIT {
     void shouldRejectStaleVersionOnUpdate() {
         var now = LocalDateTime.of(2026, 9, 25, 15, 45);
         var saved = repository.saveAndFlush(
-                new FeatureContext("CATALOG_ACCOUNT", "Catalog Account", "Catalog context", now)
+                new FeatureContext("catalog-account", "Catalog Account", "Catalog context", now)
         );
 
         jdbc.update(
