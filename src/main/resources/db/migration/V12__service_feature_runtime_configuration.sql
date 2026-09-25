@@ -1,5 +1,6 @@
 CREATE TABLE platform_services (
     id BIGINT NOT NULL AUTO_INCREMENT,
+    version BIGINT NOT NULL DEFAULT 0,
     identifier VARCHAR(36) NOT NULL,
     code VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -16,6 +17,7 @@ CREATE TABLE platform_services (
 
 CREATE TABLE platform_features (
     id BIGINT NOT NULL AUTO_INCREMENT,
+    version BIGINT NOT NULL DEFAULT 0,
     identifier VARCHAR(36) NOT NULL,
     code VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
