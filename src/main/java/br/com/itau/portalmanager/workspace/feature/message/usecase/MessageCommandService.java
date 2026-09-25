@@ -12,7 +12,6 @@ import br.com.itau.portalmanager.workspace.feature.message.usecase.model.UpdateM
 import br.com.itau.portalmanager.workspace.feature.message.usecase.support.MessageFinder;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.support.MessageNormalizer;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.validation.MessageValidator;
-import br.com.itau.portalmanager.workspace.feature.platform.domain.Service;
 import br.com.itau.portalmanager.workspace.feature.platform.repository.ServiceRepository;
 import br.com.portalmanager.platform.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
@@ -69,7 +68,7 @@ public class MessageCommandService {
         validator.validateForCreate(input, keyDuplicate, codeDuplicate);
         validateTranslationsForCreate(input);
 
-        Service service = serviceRepository.findByCode(input.service())
+        var service = serviceRepository.findByCode(input.service())
                 .orElseThrow(() -> new IllegalArgumentException("Service not found"));
 
         LocalDateTime now = LocalDateTime.now();
@@ -125,7 +124,7 @@ public class MessageCommandService {
         validator.validateForUpdate(input, keyDuplicate, codeDuplicate);
         validateVersion(message.getVersion(), input.version());
 
-        Service service = serviceRepository.findByCode(input.service())
+        var service = serviceRepository.findByCode(input.service())
                 .orElseThrow(() -> new IllegalArgumentException("Service not found"));
 
         message.update(
