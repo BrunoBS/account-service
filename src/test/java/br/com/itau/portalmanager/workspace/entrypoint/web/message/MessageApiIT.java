@@ -38,8 +38,8 @@ class MessageApiIT {
 
     @BeforeEach
     void authorizeAsOwner() {
-        seedServiceTypes();
         seedLifecycleTypes();
+        seedPlatformServices();
         authorizationMock.reset();
         authorizationMock.allow(session -> session.groups("PM5_OWNER"));
     }
@@ -432,13 +432,14 @@ class MessageApiIT {
         return authorized().when().delete(path).then();
     }
 
-    private void seedServiceTypes() {
+    private void seedPlatformServices() {
         jdbcTemplate.update("""
-                INSERT IGNORE INTO type_services
-                    (code, label, description, sort_order, is_active, settings)
+                INSERT IGNORE INTO platform_services
+                    (identifier, code, name, description, lifecycle_code, created_at, updated_at)
                 VALUES
-                    ('workspace-service', 'Workspace Service',
-                     'Workspace and platform administration service', 1, true, '{}')
+                    (UUID(), 'workspace-service', 'Workspace Service',
+                     'Workspace and platform administration service',
+                     'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """);
     }
 

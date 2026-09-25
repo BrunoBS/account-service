@@ -5,7 +5,7 @@ import br.com.itau.portalmanager.workspace.feature.message.usecase.model.CreateM
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.UpdateMessageInput;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.UpdateMessageTranslationInput;
-import br.com.itau.portalmanager.workspace.foundation.catalog.servicetype.usecase.ServiceTypeService;
+import br.com.itau.portalmanager.workspace.feature.platform.usecase.service.ServiceQueryService;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;
@@ -22,10 +22,10 @@ public class MessageValidator {
     private static final Pattern LOCALE_PATTERN =
             Pattern.compile("^[a-z]{2,3}(?:-[A-Z]{2}|-[0-9]{3})?(?:-[A-Za-z0-9]{4,8})*$");
 
-    private final ServiceTypeService serviceTypeService;
+    private final ServiceQueryService serviceQueryService;
 
-    public MessageValidator(ServiceTypeService serviceTypeService) {
-        this.serviceTypeService = serviceTypeService;
+    public MessageValidator(ServiceQueryService serviceQueryService) {
+        this.serviceQueryService = serviceQueryService;
     }
 
     public void validateForCreate(
@@ -116,7 +116,7 @@ public class MessageValidator {
     ) {
         if (service == null || service.isBlank()) {
             result.addError("service", MessageMessageKeys.SERVICE_REQUIRED);
-        } else if (!serviceTypeService.existsActive(service)) {
+        } else if (!serviceQueryService.existsActive(service)) {
             result.addError("service", MessageMessageKeys.SERVICE_INVALID);
         }
 

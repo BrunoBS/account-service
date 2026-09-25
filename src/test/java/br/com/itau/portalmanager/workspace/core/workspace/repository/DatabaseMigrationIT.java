@@ -30,7 +30,11 @@ class DatabaseMigrationIT {
 
         assertThat(migrationCount).isEqualTo(4);
         assertThat(tableCount("type_workspaces")).isEqualTo(1);
-        assertThat(tableCount("type_features")).isEqualTo(1);
+        assertThat(tableCount("type_features")).isZero();
+        assertThat(tableCount("type_services")).isZero();
+        assertThat(tableCount("platform_services")).isEqualTo(1);
+        assertThat(tableCount("platform_features")).isEqualTo(1);
+        assertThat(tableCount("platform_feature_scopes")).isEqualTo(1);
         assertThat(tableCount("type_schemas")).isEqualTo(1);
         assertThat(tableCount("type_onboardings")).isEqualTo(1);
         assertThat(workspaceTableCount).isEqualTo(1);
