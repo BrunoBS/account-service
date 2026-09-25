@@ -48,11 +48,6 @@ FROM platform_feature_scopes relation
 JOIN platform_feature_contexts context
   ON context.code = relation.feature_scope_code;
 
-UPDATE platform_services
-   SET name = UPPER(REPLACE(code, '-', '_'));
-
-UPDATE platform_features
-   SET name = UPPER(REPLACE(code, '-', '_'));
 
 ALTER TABLE platform_services
     ADD CONSTRAINT uk_platform_services_name UNIQUE (name);
