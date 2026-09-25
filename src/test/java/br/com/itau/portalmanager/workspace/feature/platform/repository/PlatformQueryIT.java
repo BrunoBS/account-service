@@ -33,14 +33,14 @@ class PlatformQueryIT {
                 insert into platform_services
                     (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
                 values
-                    (0, '11111111-1111-1111-1111-111111111111', 'audit-service',
-                     'AUDIT_SERVICE', 'Audit owner', 'ACTIVE', now(), now())
+                    (0, '11111111-1111-1111-1111-111111111111', 'AUDIT_SERVICE',
+                     'Audit Service', 'Audit owner', 'ACTIVE', now(), now())
                 """);
         jdbc.update("""
                 insert into platform_features
                     (version, identifier, code, name, description, service_id, lifecycle_code, settings, created_at, updated_at)
                 select
-                    0, '22222222-2222-2222-2222-222222222222', 'AUDIT', 'AUDIT',
+                    0, '22222222-2222-2222-2222-222222222222', 'AUDIT', 'Audit',
                     'Audit feature', id, 'ACTIVE', '{}', now(), now()
                   from platform_services
                  where code = 'audit-service'
@@ -50,7 +50,7 @@ class PlatformQueryIT {
                     (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
                 values
                     (0, '33333333-3333-3333-3333-333333333333', 'ADMINISTRATION',
-                     'ADMINISTRATION', 'Administration context', 'ACTIVE', now(), now())
+                     'Administration', 'Administration context', 'ACTIVE', now(), now())
                 """);
         jdbc.update("""
                 insert into platform_feature_context_relations (feature_id, feature_context_id)
@@ -67,7 +67,7 @@ class PlatformQueryIT {
                 .first()
                 .satisfies(context -> {
                     assertThat(context.code()).isEqualTo("ADMINISTRATION");
-                    assertThat(context.name()).isEqualTo("ADMINISTRATION");
+                    assertThat(context.name()).isEqualTo("Administration");
                 });
     }
 }
