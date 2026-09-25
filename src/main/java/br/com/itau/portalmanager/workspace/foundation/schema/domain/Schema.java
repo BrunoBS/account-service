@@ -83,6 +83,7 @@ public class Schema {
     public void activate(LocalDateTime now) { lifecycle = LifecycleTypeCode.active(); updatedAt = now; }
     public void inactivate(LocalDateTime now) { lifecycle = LifecycleTypeCode.inactive(); updatedAt = now; }
     public void quarantine(LocalDateTime now) { lifecycle = LifecycleTypeCode.quarantined(); updatedAt = now; }
+    public boolean isActive() { return LifecycleTypeCode.active().equals(lifecycle); }
 
     private static void validateOwnership(SchemaScopeTypeCode scope, String workspaceIdentifier) {
         boolean workspaceScope = SchemaScopeTypeCode.workspace().equals(scope);
