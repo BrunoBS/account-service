@@ -6,6 +6,8 @@ import br.com.itau.portalmanager.workspace.feature.platform.repository.FeatureRe
 import br.com.itau.portalmanager.workspace.feature.platform.repository.ServiceRepository;
 import br.com.itau.portalmanager.workspace.feature.platform.usecase.feature.FeatureCommandService;
 import br.com.itau.portalmanager.workspace.feature.platform.usecase.service.ServiceCommandService;
+import br.com.itau.portalmanager.workspace.feature.platform.usecase.model.CreateFeatureInput;
+import br.com.itau.portalmanager.workspace.feature.platform.usecase.model.CreateServiceInput;
 import br.com.itau.portalmanager.workspace.foundation.catalog.featurescopetype.domain.FeatureScopeType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.featurescopetype.repository.FeatureScopeTypeRepository;
 import org.junit.jupiter.api.Test;
@@ -27,7 +29,7 @@ class PlatformCommandServiceTest {
         when(repository.existsByCode("audit-service")).thenReturn(true);
         ServiceCommandService command = new ServiceCommandService(repository);
 
-        assertThatThrownBy(() -> command.create("audit-service", "Audit Service", null))
+        assertThatThrownBy(() -> command.create(new CreateServiceInput("audit-service", "Audit Service", null)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Service code already exists");
     }
@@ -40,7 +42,7 @@ class PlatformCommandServiceTest {
         when(features.existsByCode("AUDIT")).thenReturn(true);
         FeatureCommandService command = new FeatureCommandService(features, services, scopes);
 
-        assertThatThrownBy(() -> command.create("AUDIT", "Audit", null, "service-id", "{}"))
+        assertThatThrownBy(() -> command.create(new CreateFeatureInput("AUDIT", "Audit", null, "service-id", "{}")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Feature code already exists");
     }
@@ -56,7 +58,7 @@ class PlatformCommandServiceTest {
         when(services.findByIdentifier(service.getIdentifier())).thenReturn(Optional.of(service));
         FeatureCommandService command = new FeatureCommandService(features, services, scopes);
 
-        assertThatThrownBy(() -> command.create("AUDIT", "Audit", null, service.getIdentifier(), "{}"))
+        assertThatThrownBy(() -> command.create(new CreateFeatureInput("AUDIT", "Audit", null, service.getIdentifier(), "{}")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Feature requires an active service");
     }
@@ -91,7 +93,7 @@ class PlatformCommandServiceTest {
         when(features.save(any(Feature.class))).thenAnswer(invocation -> invocation.getArgument(0));
         FeatureCommandService command = new FeatureCommandService(features, services, scopes);
 
-        command.create("AUDIT", "Audit", null, service.getIdentifier(), "{}");
+        command.create(new CreateFeatureInput("AUDIT", "Audit", null, service.getIdentifier(), "{}"));
 
         verify(features).save(any(Feature.class));
     }
