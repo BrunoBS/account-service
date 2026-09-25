@@ -51,7 +51,7 @@ class PlatformApiIT {
         String serviceIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                        "code", "PORTAL_MANAGER",
+                        "code", "portal-manager",
                         "name", "Portal Manager",
                         "description", "Portal owner"
                 ))
@@ -65,7 +65,7 @@ class PlatformApiIT {
         String contextIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                        "code", "MANAGER_ACCOUNT",
+                        "code", "manager-account",
                         "name", "Manager Account",
                         "description", "Manager account context"
                 ))
@@ -79,7 +79,7 @@ class PlatformApiIT {
         String featureIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                        "code", "APPLICATION",
+                        "code", "application",
                         "name", "Application",
                         "description", "Application feature",
                         "serviceIdentifier", serviceIdentifier,
@@ -88,7 +88,7 @@ class PlatformApiIT {
                 .post("/api/v1/platform/features")
                 .then()
                 .statusCode(201)
-                .body("serviceCode", equalTo("PORTAL_MANAGER"))
+                .body("serviceCode", equalTo("portal-manager"))
                 .extract()
                 .path("identifier");
 
@@ -102,14 +102,14 @@ class PlatformApiIT {
                 .then()
                 .statusCode(200)
                 .body("$", hasSize(1))
-                .body("[0].code", equalTo("MANAGER_ACCOUNT"));
+                .body("[0].code", equalTo("manager-account"));
 
         authorized()
-                .get("/api/v1/platform/features?contextCode=MANAGER_ACCOUNT")
+                .get("/api/v1/platform/features?contextCode=manager-account")
                 .then()
                 .statusCode(200)
                 .body("$", hasSize(1))
-                .body("[0].code", equalTo("APPLICATION"));
+                .body("[0].code", equalTo("application"));
 
         authorized()
                 .patch("/api/v1/platform/contexts/" + contextIdentifier + "/inactivate")
