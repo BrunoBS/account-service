@@ -26,10 +26,10 @@ class PlatformCommandServiceTest {
     @Test
     void shouldRejectDuplicateServiceCode() {
         ServiceRepository repository = mock(ServiceRepository.class);
-        when(repository.existsByCode("AUDIT_SERVICE")).thenReturn(true);
+        when(repository.existsByCode("audit-service")).thenReturn(true);
         ServiceCommandService command = new ServiceCommandService(repository);
 
-        assertThatThrownBy(() -> command.create(new CreateServiceInput("AUDIT_SERVICE", "Audit Service", null)))
+        assertThatThrownBy(() -> command.create(new CreateServiceInput("audit-service", "Audit Service", null)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Service code already exists");
     }
@@ -40,7 +40,7 @@ class PlatformCommandServiceTest {
         when(repository.existsByName("Audit Service")).thenReturn(true);
         ServiceCommandService command = new ServiceCommandService(repository);
 
-        assertThatThrownBy(() -> command.create(new CreateServiceInput("AUDIT_SERVICE", "Audit Service", null)))
+        assertThatThrownBy(() -> command.create(new CreateServiceInput("audit-service", "Audit Service", null)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Service name already exists");
     }
@@ -53,7 +53,7 @@ class PlatformCommandServiceTest {
         when(features.existsByName("Audit")).thenReturn(true);
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
-        assertThatThrownBy(() -> command.create(new CreateFeatureInput("AUDIT", "Audit", null, "service-id", "{}")))
+        assertThatThrownBy(() -> command.create(new CreateFeatureInput("audit", "Audit", null, "service-id", "{}")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Feature name already exists");
     }
@@ -65,7 +65,7 @@ class PlatformCommandServiceTest {
         FeatureContextCommandService command = new FeatureContextCommandService(contexts);
 
         assertThatThrownBy(() -> command.create(
-                new CreateFeatureContextInput("MANAGER_ACCOUNT", "Manager Account", null)
+                new CreateFeatureContextInput("manager-account", "Manager Account", null)
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Feature context name already exists");
@@ -74,9 +74,9 @@ class PlatformCommandServiceTest {
     @Test
     void shouldRejectFeatureContextQuarantineWhileItOwnsFeatures() {
         FeatureContextRepository contexts = mock(FeatureContextRepository.class);
-        FeatureContext context = new FeatureContext("MANAGER_ACCOUNT", "Manager Account", null, LocalDateTime.now());
-        Service service = new Service("PORTAL_MANAGER", "Portal Manager", null, LocalDateTime.now());
-        Feature feature = new Feature("APPLICATION", "Application", null, service, "{}", LocalDateTime.now());
+        FeatureContext context = new FeatureContext("manager-account", "Manager Account", null, LocalDateTime.now());
+        Service service = new Service("portal-manager", "Portal Manager", null, LocalDateTime.now());
+        Feature feature = new Feature("application", "Application", null, service, "{}", LocalDateTime.now());
         feature.addContext(context);
 
         when(contexts.findByIdentifier(context.getIdentifier())).thenReturn(Optional.of(context));
@@ -92,9 +92,9 @@ class PlatformCommandServiceTest {
         FeatureRepository features = mock(FeatureRepository.class);
         ServiceRepository services = mock(ServiceRepository.class);
         FeatureContextRepository contexts = mock(FeatureContextRepository.class);
-        Service service = new Service("AUDIT_SERVICE", "Audit Service", null, LocalDateTime.now());
-        Feature feature = new Feature("AUDIT", "Audit", null, service, "{}", LocalDateTime.now());
-        FeatureContext context = new FeatureContext("ADMINISTRATION", "ADMINISTRATION", null, LocalDateTime.now());
+        Service service = new Service("audit-service", "Audit Service", null, LocalDateTime.now());
+        Feature feature = new Feature("audit", "Audit", null, service, "{}", LocalDateTime.now());
+        FeatureContext context = new FeatureContext("administration", "administration", null, LocalDateTime.now());
         context.inactivate(LocalDateTime.now());
 
         when(features.findByIdentifier(feature.getIdentifier())).thenReturn(Optional.of(feature));
@@ -111,12 +111,12 @@ class PlatformCommandServiceTest {
         FeatureRepository features = mock(FeatureRepository.class);
         ServiceRepository services = mock(ServiceRepository.class);
         FeatureContextRepository contexts = mock(FeatureContextRepository.class);
-        Service service = new Service("AUDIT_SERVICE", "Audit Service", null, LocalDateTime.now());
+        Service service = new Service("audit-service", "Audit Service", null, LocalDateTime.now());
         when(services.findByIdentifier(service.getIdentifier())).thenReturn(Optional.of(service));
         when(features.save(any(Feature.class))).thenAnswer(invocation -> invocation.getArgument(0));
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
-        command.create(new CreateFeatureInput("AUDIT", "Audit", null, service.getIdentifier(), "{}"));
+        command.create(new CreateFeatureInput("audit", "Audit", null, service.getIdentifier(), "{}"));
 
         verify(features).save(any(Feature.class));
     }
@@ -124,8 +124,8 @@ class PlatformCommandServiceTest {
     @Test
     void shouldRejectServiceQuarantineWhileItOwnsFeatures() {
         ServiceRepository repository = mock(ServiceRepository.class);
-        Service service = new Service("AUDIT_SERVICE", "Audit Service", null, LocalDateTime.now());
-        new Feature("AUDIT", "Audit", null, service, "{}", LocalDateTime.now());
+        Service service = new Service("audit-service", "Audit Service", null, LocalDateTime.now());
+        new Feature("audit", "Audit", null, service, "{}", LocalDateTime.now());
         when(repository.findByIdentifier(service.getIdentifier())).thenReturn(Optional.of(service));
         ServiceCommandService command = new ServiceCommandService(repository);
 

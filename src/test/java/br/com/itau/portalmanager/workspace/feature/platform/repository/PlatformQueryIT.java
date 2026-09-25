@@ -33,31 +33,31 @@ class PlatformQueryIT {
                 insert into platform_services
                     (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
                 values
-                    (0, '11111111-1111-1111-1111-111111111111', 'AUDIT_SERVICE',
+                    (0, '11111111-1111-1111-1111-111111111111', 'audit-service',
                      'Audit Service', 'Audit owner', 'ACTIVE', now(), now())
                 """);
         jdbc.update("""
                 insert into platform_features
                     (version, identifier, code, name, description, service_id, lifecycle_code, settings, created_at, updated_at)
                 select
-                    0, '22222222-2222-2222-2222-222222222222', 'AUDIT', 'Audit',
+                    0, '22222222-2222-2222-2222-222222222222', 'audit', 'Audit',
                     'Audit feature', id, 'ACTIVE', '{}', now(), now()
                   from platform_services
-                 where code = 'AUDIT_SERVICE'
+                 where code = 'audit-service'
                 """);
         jdbc.update("""
                 insert into platform_feature_contexts
                     (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
                 values
-                    (0, '33333333-3333-3333-3333-333333333333', 'ADMINISTRATION',
+                    (0, '33333333-3333-3333-3333-333333333333', 'administration',
                      'Administration', 'Administration context', 'ACTIVE', now(), now())
                 """);
         jdbc.update("""
                 insert into platform_feature_context_relations (feature_id, feature_context_id)
                 select f.id, c.id
                   from platform_features f
-                  join platform_feature_contexts c on c.code = 'ADMINISTRATION'
-                 where f.code = 'AUDIT'
+                  join platform_feature_contexts c on c.code = 'administration'
+                 where f.code = 'audit'
                 """);
 
         var contexts = queryService.findContexts("22222222-2222-2222-2222-222222222222");
@@ -66,7 +66,7 @@ class PlatformQueryIT {
                 .hasSize(1)
                 .first()
                 .satisfies(context -> {
-                    assertThat(context.code()).isEqualTo("ADMINISTRATION");
+                    assertThat(context.code()).isEqualTo("administration");
                     assertThat(context.name()).isEqualTo("Administration");
                 });
     }

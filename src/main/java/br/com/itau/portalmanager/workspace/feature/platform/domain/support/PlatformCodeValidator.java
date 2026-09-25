@@ -4,7 +4,7 @@ import java.util.regex.Pattern;
 
 public final class PlatformCodeValidator {
 
-    private static final Pattern CODE_PATTERN = Pattern.compile("^[A-Z][A-Z0-9_]*$");
+    private static final Pattern CODE_PATTERN = Pattern.compile("^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$");
 
     private PlatformCodeValidator() {
     }
@@ -14,7 +14,7 @@ public final class PlatformCodeValidator {
             throw new IllegalArgumentException("Platform code is required");
         }
         if (!CODE_PATTERN.matcher(code).matches()) {
-            throw new IllegalArgumentException("Platform code must contain only uppercase letters, numbers and underscore");
+            throw new IllegalArgumentException("Platform code must use lowercase kebab-case");
         }
         return code;
     }

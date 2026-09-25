@@ -83,8 +83,7 @@ public class MessageNormalizer {
     }
 
     private String normalizeService(String value) {
-        String normalized = trimOptional(value);
-        return normalized == null ? null : normalized.toUpperCase(Locale.ROOT).replace('-', '_');
+        return trimOptional(value);
     }
 
     private String normalizeLocale(String value) {
