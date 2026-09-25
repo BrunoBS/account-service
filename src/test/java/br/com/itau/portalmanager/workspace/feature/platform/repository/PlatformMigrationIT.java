@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 
@@ -18,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.flyway.target=11",
         "spring.jpa.hibernate.ddl-auto=none"
 })
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 class PlatformMigrationIT {
 
     @Autowired private DataSource dataSource;
