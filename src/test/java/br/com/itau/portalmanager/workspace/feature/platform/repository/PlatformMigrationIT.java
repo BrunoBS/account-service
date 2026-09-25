@@ -28,6 +28,10 @@ class PlatformMigrationIT {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
         assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("11");
 
+        assertThat(jdbc.queryForObject(
+                "select count(*) from type_life_cycle where code = 'ACTIVE'", Integer.class))
+                .isEqualTo(1);
+
         jdbc.update("""
                 insert into type_services (code, label, description, sort_order, is_active, settings)
                 values ('audit-service', 'Audit Service', 'Audit owner', 2, true, '{}')
