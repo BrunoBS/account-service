@@ -30,6 +30,7 @@ CREATE TABLE schemas (
     schema_type_id BIGINT NOT NULL,
     scope_code VARCHAR(50) NOT NULL,
     workspace_identifier VARCHAR(36),
+    owner_key VARCHAR(36) GENERATED ALWAYS AS (COALESCE(workspace_identifier, 'PLATFORM')) STORED,
     code VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(500),
@@ -39,7 +40,7 @@ CREATE TABLE schemas (
     CONSTRAINT pk_schemas PRIMARY KEY (id),
     CONSTRAINT uk_schemas_identifier UNIQUE (identifier),
     CONSTRAINT uk_schemas_scope_owner_type_code
-        UNIQUE (scope_code, workspace_identifier, schema_type_id, code),
+        UNIQUE (scope_code, owner_key, schema_type_id, code),
     CONSTRAINT ck_schemas_code CHECK (code REGEXP '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'),
     CONSTRAINT ck_schemas_owner
         CHECK (
@@ -97,12 +98,7 @@ INSERT INTO schema_versions
     (identifier, schema_id, schema_version, version_name, definition, status, created_at)
 SELECT
     UUID(), s.id, 1, 'v1',
-    JSON_OBJECT(
-        '$schema', 'https://json-schema.org/draft/2020-12/schema',
-        'title', 'Default Dynamic Schema',
-        'type', 'object',
-        'additionalProperties', CAST('true' AS JSON)
-    ),
+    '{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Default Dynamic Schema","type":"object","additionalProperties":true}',
     'PUBLISHED',
     CURRENT_TIMESTAMP
 FROM schemas s
