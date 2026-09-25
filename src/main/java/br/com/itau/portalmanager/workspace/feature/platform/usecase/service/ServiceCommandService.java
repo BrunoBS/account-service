@@ -2,7 +2,11 @@ package br.com.itau.portalmanager.workspace.feature.platform.usecase.service;
 
 import br.com.itau.portalmanager.workspace.feature.platform.domain.Service;
 import br.com.itau.portalmanager.workspace.feature.platform.repository.ServiceRepository;
+import br.com.itau.portalmanager.workspace.feature.platform.usecase.model.CreateServiceInput;
+import br.com.itau.portalmanager.workspace.feature.platform.usecase.model.ServiceOutput;
+import br.com.itau.portalmanager.workspace.feature.platform.usecase.model.UpdateServiceInput;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 
 @org.springframework.stereotype.Service
@@ -14,35 +18,45 @@ public class ServiceCommandService {
     }
 
     @Transactional
-    public Service create(String code, String name, String description) {
-        if (repository.existsByCode(code)) throw new IllegalArgumentException("Service code already exists");
-        return repository.save(new Service(code, name, description, now()));
+    public ServiceOutput create(CreateServiceInput input) {
+        if (repository.existsByCode(input.code())) throw new IllegalArgumentException("Service code already exists");
+        return ServiceOutput.from(repository.save(new Service(input.code(), input.name(), input.description(), now())));
     }
 
     @Transactional
-    public Service update(String identifier, String name, String description) {
-        Service service = required(identifier); service.update(name, description, now()); return service;
+    public ServiceOutput update(String identifier, UpdateServiceInput input) {
+        Service service = required(identifier);
+        service.update(input.name(), input.description(), now());
+        return ServiceOutput.from(service);
     }
 
     @Transactional
-    public Service activate(String identifier) {
-        Service service = required(identifier); service.activate(now()); return service;
+    public ServiceOutput activate(String identifier) {
+        Service service = required(identifier);
+        service.activate(now());
+        return ServiceOutput.from(service);
     }
 
     @Transactional
-    public Service inactivate(String identifier) {
-        Service service = required(identifier); service.inactivate(now()); return service;
+    public ServiceOutput inactivate(String identifier) {
+        Service service = required(identifier);
+        service.inactivate(now());
+        return ServiceOutput.from(service);
     }
 
     @Transactional
-    public Service delete(String identifier) {
+    public ServiceOutput delete(String identifier) {
         Service service = required(identifier);
         if (!service.getFeatures().isEmpty()) throw new IllegalStateException("Service with features cannot be quarantined");
-        service.quarantine(now()); return service;
+        service.quarantine(now());
+        return ServiceOutput.from(service);
     }
 
     private Service required(String identifier) {
         return repository.findByIdentifier(identifier).orElseThrow(() -> new IllegalArgumentException("Service not found"));
     }
-    private LocalDateTime now() { return LocalDateTime.now(); }
+
+    private LocalDateTime now() {
+        return LocalDateTime.now();
+    }
 }
