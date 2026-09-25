@@ -186,10 +186,10 @@ class GoldenArchitectureTest {
     }
 
     @Test
-    void schemaMustNotDependOnCatalog() {
-        noClasses()
+    void schemaMayDependOnlyOnApprovedCatalogContracts() {
+        classes()
                 .that().resideInAPackage(ROOT + ".foundation.schema..")
-                .should().dependOnClassesThat().resideInAPackage(FOUNDATION_CATALOG)
+                .should(schemaAccessOnlyApprovedCatalogs())
                 .check(classes);
     }
 
@@ -324,6 +324,33 @@ class GoldenArchitectureTest {
         assertThat(businessModule(
                 ROOT + ".core.workspace.domain"
         )).isEqualTo("core.workspace");
+    }
+
+    private ArchCondition<JavaClass> schemaAccessOnlyApprovedCatalogs() {
+        return new ArchCondition<>("depend only on approved catalog contracts") {
+            @Override
+            public void check(JavaClass source, ConditionEvents events) {
+                for (Dependency dependency : source.getDirectDependenciesFromSelf()) {
+                    String targetPackage = dependency.getTargetClass().getPackageName();
+                    if (!targetPackage.startsWith(ROOT + ".foundation.catalog.")) {
+                        continue;
+                    }
+                    boolean approved = targetPackage.startsWith(
+                            ROOT + ".foundation.catalog.lifecycletype.domain"
+                    ) || targetPackage.startsWith(
+                            ROOT + ".foundation.catalog.schemascopetype.domain"
+                    );
+                    if (!approved) {
+                        events.add(SimpleConditionEvent.violated(
+                                source,
+                                source.getName()
+                                        + " depends on non-approved catalog type "
+                                        + dependency.getTargetClass().getName()
+                        ));
+                    }
+                }
+            }
+        };
     }
 
     private ArchCondition<JavaClass> notAccessInternalsOfAnotherBusinessModule() {
