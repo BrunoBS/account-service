@@ -29,8 +29,8 @@ class FeatureContextPersistenceIT {
     @Test
     void shouldEnforceUniqueContextNameAtDatabaseLevel() {
         var now = LocalDateTime.of(2026, 9, 25, 15, 30);
-        repository.saveAndFlush(new FeatureContext("MANAGER_ACCOUNT", "MANAGER_ACCOUNT", "Manager context", now));
-        var duplicate = new FeatureContext("MANAGER_ACCOUNT_ALT", "MANAGER_ACCOUNT", "Duplicate manager context", now);
+        repository.saveAndFlush(new FeatureContext("MANAGER_ACCOUNT", "Manager Account", "Manager context", now));
+        var duplicate = new FeatureContext("MANAGER_ACCOUNT_ALT", "Manager Account", "Duplicate manager context", now);
         assertThrows(DataIntegrityViolationException.class, () -> repository.saveAndFlush(duplicate));
     }
 
@@ -38,14 +38,14 @@ class FeatureContextPersistenceIT {
     void shouldRejectStaleVersionOnUpdate() {
         var now = LocalDateTime.of(2026, 9, 25, 15, 45);
         var saved = repository.saveAndFlush(
-                new FeatureContext("CATALOG_ACCOUNT", "CATALOG_ACCOUNT", "Catalog context", now)
+                new FeatureContext("CATALOG_ACCOUNT", "Catalog Account", "Catalog context", now)
         );
 
         jdbc.update(
                 "update platform_feature_contexts set version = version + 1 where id = ?",
                 saved.getId()
         );
-        saved.update("CATALOG_ACCOUNT", "Outdated update", now.plusMinutes(1));
+        saved.update("Catalog Account", "Outdated update", now.plusMinutes(1));
 
         assertThrows(
                 ObjectOptimisticLockingFailureException.class,
