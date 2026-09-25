@@ -20,12 +20,16 @@ public class ServiceCommandService {
     @Transactional
     public ServiceOutput create(CreateServiceInput input) {
         if (repository.existsByCode(input.code())) throw new IllegalArgumentException("Service code already exists");
+        if (repository.existsByName(input.name())) throw new IllegalArgumentException("Service name already exists");
         return ServiceOutput.from(repository.save(new Service(input.code(), input.name(), input.description(), now())));
     }
 
     @Transactional
     public ServiceOutput update(String identifier, UpdateServiceInput input) {
         Service service = required(identifier);
+        if (!service.getName().equals(input.name()) && repository.existsByName(input.name())) {
+            throw new IllegalArgumentException("Service name already exists");
+        }
         service.update(input.name(), input.description(), now());
         return ServiceOutput.from(service);
     }
