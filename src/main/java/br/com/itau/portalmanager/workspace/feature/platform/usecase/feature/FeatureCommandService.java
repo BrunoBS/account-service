@@ -1,14 +1,14 @@
 package br.com.itau.portalmanager.workspace.feature.platform.usecase.feature;
 
 import br.com.itau.portalmanager.workspace.feature.platform.domain.Feature;
+import br.com.itau.portalmanager.workspace.feature.platform.domain.FeatureContext;
 import br.com.itau.portalmanager.workspace.feature.platform.domain.Service;
+import br.com.itau.portalmanager.workspace.feature.platform.repository.FeatureContextRepository;
 import br.com.itau.portalmanager.workspace.feature.platform.repository.FeatureRepository;
 import br.com.itau.portalmanager.workspace.feature.platform.repository.ServiceRepository;
 import br.com.itau.portalmanager.workspace.feature.platform.usecase.model.CreateFeatureInput;
 import br.com.itau.portalmanager.workspace.feature.platform.usecase.model.FeatureOutput;
 import br.com.itau.portalmanager.workspace.feature.platform.usecase.model.UpdateFeatureInput;
-import br.com.itau.portalmanager.workspace.foundation.catalog.featurescopetype.domain.FeatureScopeType;
-import br.com.itau.portalmanager.workspace.foundation.catalog.featurescopetype.repository.FeatureScopeTypeRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -17,21 +17,22 @@ import java.time.LocalDateTime;
 public class FeatureCommandService {
     private final FeatureRepository features;
     private final ServiceRepository services;
-    private final FeatureScopeTypeRepository scopes;
+    private final FeatureContextRepository contexts;
 
     public FeatureCommandService(
             FeatureRepository features,
             ServiceRepository services,
-            FeatureScopeTypeRepository scopes
+            FeatureContextRepository contexts
     ) {
         this.features = features;
         this.services = services;
-        this.scopes = scopes;
+        this.contexts = contexts;
     }
 
     @Transactional
     public FeatureOutput create(CreateFeatureInput input) {
         if (features.existsByCode(input.code())) throw new IllegalArgumentException("Feature code already exists");
+        if (features.existsByName(input.name())) throw new IllegalArgumentException("Feature name already exists");
         Service service = requiredService(input.serviceIdentifier());
         return FeatureOutput.from(features.save(new Feature(
                 input.code(),
@@ -46,6 +47,9 @@ public class FeatureCommandService {
     @Transactional
     public FeatureOutput update(String identifier, UpdateFeatureInput input) {
         Feature feature = requiredFeature(identifier);
+        if (!feature.getName().equals(input.name()) && features.existsByName(input.name())) {
+            throw new IllegalArgumentException("Feature name already exists");
+        }
         Service service = requiredService(input.serviceIdentifier());
         if (!feature.getService().getIdentifier().equals(service.getIdentifier())) {
             feature.changeService(service, now());
@@ -76,20 +80,20 @@ public class FeatureCommandService {
     }
 
     @Transactional
-    public FeatureOutput associateScope(String identifier, String scopeCode) {
+    public FeatureOutput associateContext(String identifier, String contextIdentifier) {
         Feature feature = requiredFeature(identifier);
-        FeatureScopeType scope = scopes.findById(scopeCode)
-                .orElseThrow(() -> new IllegalArgumentException("Feature scope not found"));
-        feature.addScope(scope);
+        FeatureContext context = contexts.findByIdentifier(contextIdentifier)
+                .orElseThrow(() -> new IllegalArgumentException("Feature context not found"));
+        feature.addContext(context);
         return FeatureOutput.from(feature);
     }
 
     @Transactional
-    public FeatureOutput removeScope(String identifier, String scopeCode) {
+    public FeatureOutput removeContext(String identifier, String contextIdentifier) {
         Feature feature = requiredFeature(identifier);
-        FeatureScopeType scope = scopes.findById(scopeCode)
-                .orElseThrow(() -> new IllegalArgumentException("Feature scope not found"));
-        feature.removeScope(scope);
+        FeatureContext context = contexts.findByIdentifier(contextIdentifier)
+                .orElseThrow(() -> new IllegalArgumentException("Feature context not found"));
+        feature.removeContext(context);
         return FeatureOutput.from(feature);
     }
 
