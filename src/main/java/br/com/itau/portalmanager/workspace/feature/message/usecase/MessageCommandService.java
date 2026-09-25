@@ -12,6 +12,8 @@ import br.com.itau.portalmanager.workspace.feature.message.usecase.model.UpdateM
 import br.com.itau.portalmanager.workspace.feature.message.usecase.support.MessageFinder;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.support.MessageNormalizer;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.validation.MessageValidator;
+import br.com.itau.portalmanager.workspace.feature.platform.domain.Service;
+import br.com.itau.portalmanager.workspace.feature.platform.repository.ServiceRepository;
 import br.com.portalmanager.platform.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import org.springframework.stereotype.Service;
@@ -30,19 +32,22 @@ public class MessageCommandService {
     private final MessageFinder finder;
     private final MessageNormalizer normalizer;
     private final MessageValidator validator;
+    private final ServiceRepository serviceRepository;
 
     public MessageCommandService(
             MessageRepository messageRepository,
             MessageTranslationRepository translationRepository,
             MessageFinder finder,
             MessageNormalizer normalizer,
-            MessageValidator validator
+            MessageValidator validator,
+            ServiceRepository serviceRepository
     ) {
         this.messageRepository = messageRepository;
         this.translationRepository = translationRepository;
         this.finder = finder;
         this.normalizer = normalizer;
         this.validator = validator;
+        this.serviceRepository = serviceRepository;
     }
 
     @Transactional
@@ -52,21 +57,24 @@ public class MessageCommandService {
         boolean keyDuplicate = input != null
                 && input.service() != null
                 && input.messageKey() != null
-                && messageRepository.existsByServiceCodeAndMessageKey(
+                && messageRepository.existsByService_CodeAndMessageKey(
                         input.service(),
                         input.messageKey()
                 );
         boolean codeDuplicate = input != null
                 && input.service() != null
                 && input.code() != null
-                && messageRepository.existsByServiceCodeAndCode(input.service(), input.code());
+                && messageRepository.existsByService_CodeAndCode(input.service(), input.code());
 
         validator.validateForCreate(input, keyDuplicate, codeDuplicate);
         validateTranslationsForCreate(input);
 
+        Service service = serviceRepository.findByCode(input.service())
+                .orElseThrow(() -> new IllegalArgumentException("Service not found"));
+
         LocalDateTime now = LocalDateTime.now();
         Message message = new Message(
-                input.service(),
+                service,
                 input.messageKey(),
                 input.code(),
                 input.httpStatus(),
@@ -100,7 +108,7 @@ public class MessageCommandService {
         boolean keyDuplicate = input != null
                 && input.service() != null
                 && input.messageKey() != null
-                && messageRepository.existsByServiceCodeAndMessageKeyAndIdNot(
+                && messageRepository.existsByService_CodeAndMessageKeyAndIdNot(
                         input.service(),
                         input.messageKey(),
                         message.getId()
@@ -108,7 +116,7 @@ public class MessageCommandService {
         boolean codeDuplicate = input != null
                 && input.service() != null
                 && input.code() != null
-                && messageRepository.existsByServiceCodeAndCodeAndIdNot(
+                && messageRepository.existsByService_CodeAndCodeAndIdNot(
                         input.service(),
                         input.code(),
                         message.getId()
@@ -117,8 +125,11 @@ public class MessageCommandService {
         validator.validateForUpdate(input, keyDuplicate, codeDuplicate);
         validateVersion(message.getVersion(), input.version());
 
+        Service service = serviceRepository.findByCode(input.service())
+                .orElseThrow(() -> new IllegalArgumentException("Service not found"));
+
         message.update(
-                input.service(),
+                service,
                 input.messageKey(),
                 input.code(),
                 input.httpStatus(),
