@@ -46,7 +46,8 @@ class PlatformMigrationIT {
 
         jdbc.update("""
                 insert into type_services (code, label, description, sort_order, is_active, settings)
-                values ('audit-service', 'Audit Service', 'Audit owner', 2, true, '{}')
+                values ('workspace-service', 'Workspace Service', 'Compatibility owner', 1, true, '{}'),
+                       ('audit-service', 'Audit Service', 'Audit owner', 2, true, '{}')
                 """);
         jdbc.update("""
                 insert into type_feature_scopes (code, label, description, sort_order, is_active, settings)
@@ -58,6 +59,9 @@ class PlatformMigrationIT {
                 values (
                     'AUDIT', 'Audit', 'Audit feature', 1, true,
                     '{"service":"audit-service","scopes":["ADMINISTRATION","CONFIGURATION"],"quarantine":{"enabled":true,"retentionDays":35,"restoreAllowed":true},"audit":{"enabled":true,"snapshotOnPurge":true},"purge":{"enabled":true}}'
+                ), (
+                    'LEGACY', 'Legacy', 'Legacy feature without structural owner', 2, true,
+                    '{"quarantine":{"enabled":true,"retentionDays":30,"restoreAllowed":true},"audit":{"enabled":true,"snapshotOnPurge":true},"purge":{"enabled":true}}'
                 )
                 """);
 
@@ -76,6 +80,20 @@ class PlatformMigrationIT {
                   join platform_services s on s.id = f.service_id
                  where f.code = 'AUDIT'
                 """, String.class)).isEqualTo("audit-service");
+
+        assertThat(jdbc.queryForObject("""
+                select s.code
+                  from platform_features f
+                  join platform_services s on s.id = f.service_id
+                 where f.code = 'LEGACY'
+                """, String.class)).isEqualTo("workspace-service");
+
+        assertThat(jdbc.queryForObject(
+                "select version from platform_services where code = 'audit-service'", Long.class))
+                .isZero();
+        assertThat(jdbc.queryForObject(
+                "select version from platform_features where code = 'AUDIT'", Long.class))
+                .isZero();
 
         String settings = jdbc.queryForObject(
                 "select cast(settings as char) from platform_features where code = 'AUDIT'", String.class);
