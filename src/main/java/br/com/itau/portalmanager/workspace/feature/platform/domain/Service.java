@@ -1,16 +1,7 @@
 package br.com.itau.portalmanager.workspace.feature.platform.domain;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -20,39 +11,18 @@ import java.util.UUID;
 @Entity
 @Table(name = "platform_services")
 public class Service {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-
-    @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false)
-    private String identifier;
-
-    @Column(name = "code", nullable = false, unique = true, length = 50)
-    private String code;
-
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
-
-    @Column(name = "description", length = 500)
-    private String description;
-
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id") private Long id;
+    @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false) private String identifier;
+    @Column(name = "code", nullable = false, unique = true, length = 50) private String code;
+    @Column(name = "name", nullable = false, length = 100) private String name;
+    @Column(name = "description", length = 500) private String description;
+    @Embedded @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
     private LifecycleTypeCode lifecycle;
+    @Column(name = "created_at", nullable = false, updatable = false) private LocalDateTime createdAt;
+    @Column(name = "updated_at", nullable = false) private LocalDateTime updatedAt;
+    @OneToMany(mappedBy = "service") private Set<Feature> features = new LinkedHashSet<>();
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "service")
-    private Set<Feature> features = new LinkedHashSet<>();
-
-    protected Service() {
-    }
+    protected Service() {}
 
     public Service(String code, String name, String description, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
@@ -63,6 +33,16 @@ public class Service {
         this.createdAt = now;
         this.updatedAt = now;
     }
+
+    public void update(String name, String description, LocalDateTime now) {
+        this.name = name; this.description = description; this.updatedAt = now;
+    }
+    public void activate(LocalDateTime now) { lifecycle = LifecycleTypeCode.active(); updatedAt = now; }
+    public void inactivate(LocalDateTime now) { lifecycle = LifecycleTypeCode.inactive(); updatedAt = now; }
+    public void quarantine(LocalDateTime now) { lifecycle = LifecycleTypeCode.quarantined(); updatedAt = now; }
+    void attach(Feature feature) { features.add(feature); }
+    void detach(Feature feature) { features.remove(feature); }
+    public boolean isActive() { return LifecycleTypeCode.active().equals(lifecycle); }
 
     public Long getId() { return id; }
     public String getIdentifier() { return identifier; }
