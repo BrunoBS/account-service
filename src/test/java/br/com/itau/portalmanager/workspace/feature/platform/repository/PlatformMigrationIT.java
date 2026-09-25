@@ -58,7 +58,14 @@ class PlatformMigrationIT {
                 )
                 """);
 
-        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate();
+        Flyway upgradeFlyway = Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .target("12")
+                .load();
+        upgradeFlyway.migrate();
+
+        assertThat(upgradeFlyway.info().current().getVersion().getVersion()).isEqualTo("12");
 
         assertThat(jdbc.queryForObject("""
                 select s.code
