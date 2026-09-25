@@ -13,7 +13,7 @@ class FeatureDomainTest {
 
     @Test
     void shouldRequireActiveServiceOnCreation() {
-        Service service = new Service("audit-service", "AUDIT_SERVICE", null, NOW);
+        Service service = new Service("AUDIT_SERVICE", "Audit Service", null, NOW);
         service.inactivate(NOW.plusMinutes(1));
 
         assertThatThrownBy(() -> new Feature("AUDIT", "AUDIT", null, service, "{}", NOW.plusMinutes(2)))
@@ -23,7 +23,7 @@ class FeatureDomainTest {
 
     @Test
     void shouldRequireActiveServiceOnActivation() {
-        Service service = new Service("audit-service", "AUDIT_SERVICE", null, NOW);
+        Service service = new Service("AUDIT_SERVICE", "Audit Service", null, NOW);
         Feature feature = new Feature("AUDIT", "AUDIT", null, service, "{}", NOW);
         feature.inactivate(NOW.plusMinutes(1));
         service.inactivate(NOW.plusMinutes(2));
@@ -35,7 +35,7 @@ class FeatureDomainTest {
 
     @Test
     void shouldRequireActiveContextAssociation() {
-        Service service = new Service("audit-service", "AUDIT_SERVICE", null, NOW);
+        Service service = new Service("AUDIT_SERVICE", "Audit Service", null, NOW);
         Feature feature = new Feature("AUDIT", "AUDIT", null, service, "{}", NOW);
         FeatureContext context = new FeatureContext("ADMINISTRATION", "ADMINISTRATION", null, NOW);
         context.inactivate(NOW.plusMinutes(1));
@@ -47,7 +47,7 @@ class FeatureDomainTest {
 
     @Test
     void shouldAssociateAndRemoveActiveContext() {
-        Service service = new Service("audit-service", "AUDIT_SERVICE", null, NOW);
+        Service service = new Service("AUDIT_SERVICE", "Audit Service", null, NOW);
         Feature feature = new Feature("AUDIT", "AUDIT", null, service, "{}", NOW);
         FeatureContext context = new FeatureContext("ADMINISTRATION", "ADMINISTRATION", null, NOW);
 
@@ -61,17 +61,17 @@ class FeatureDomainTest {
     }
 
     @Test
-    void shouldRejectInvalidPlatformName() {
-        Service service = new Service("audit-service", "AUDIT_SERVICE", null, NOW);
+    void shouldRejectInvalidPlatformCode() {
+        Service service = new Service("AUDIT_SERVICE", "Audit Service", null, NOW);
 
-        assertThatThrownBy(() -> new Feature("AUDIT", "Audit Feature", null, service, "{}", NOW))
+        assertThatThrownBy(() -> new Feature("audit-feature", "Audit Feature", null, service, "{}", NOW))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void shouldMoveFeatureBetweenActiveServicesMaintainingBidirectionalRelation() {
-        Service original = new Service("workspace-service", "WORKSPACE_SERVICE", null, NOW);
-        Service target = new Service("audit-service", "AUDIT_SERVICE", null, NOW);
+        Service original = new Service("WORKSPACE_SERVICE", "Workspace Service", null, NOW);
+        Service target = new Service("AUDIT_SERVICE", "Audit Service", null, NOW);
         Feature feature = new Feature("AUDIT", "AUDIT", null, original, "{}", NOW);
 
         feature.changeService(target, NOW.plusMinutes(1));
