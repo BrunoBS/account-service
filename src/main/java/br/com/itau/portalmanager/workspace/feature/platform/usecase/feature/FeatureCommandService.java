@@ -7,7 +7,6 @@ import br.com.itau.portalmanager.workspace.feature.platform.repository.ServiceRe
 import br.com.itau.portalmanager.workspace.foundation.catalog.featurescopetype.domain.FeatureScopeType;
 import br.com.itau.portalmanager.workspace.foundation.catalog.featurescopetype.repository.FeatureScopeTypeRepository;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.Clock;
 import java.time.LocalDateTime;
 
 @org.springframework.stereotype.Service
@@ -15,11 +14,10 @@ public class FeatureCommandService {
     private final FeatureRepository features;
     private final ServiceRepository services;
     private final FeatureScopeTypeRepository scopes;
-    private final Clock clock;
 
     public FeatureCommandService(FeatureRepository features, ServiceRepository services,
-                                 FeatureScopeTypeRepository scopes, Clock clock) {
-        this.features = features; this.services = services; this.scopes = scopes; this.clock = clock;
+                                 FeatureScopeTypeRepository scopes) {
+        this.features = features; this.services = services; this.scopes = scopes;
     }
 
     @Transactional
@@ -67,5 +65,5 @@ public class FeatureCommandService {
     private Service requiredService(String identifier) {
         return services.findByIdentifier(identifier).orElseThrow(() -> new IllegalArgumentException("Service not found"));
     }
-    private LocalDateTime now() { return LocalDateTime.now(clock); }
+    private LocalDateTime now() { return LocalDateTime.now(); }
 }
