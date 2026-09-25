@@ -11,6 +11,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class FeatureTypeService extends EnumCatalogService<FeatureType, FeatureTypeEnum> {
@@ -45,7 +46,11 @@ public class FeatureTypeService extends EnumCatalogService<FeatureType, FeatureT
                     if (serviceNode != null && serviceNode.isTextual()
                             && !serviceNode.asText().isBlank()
                             && !serviceTypeService.existsActive(serviceNode.asText())) {
-                        result.addError("settings.service", "validation.feature.service.invalid", serviceNode.asText());
+                        result.addError(
+                                "settings.service",
+                                "validation.feature.service.invalid",
+                                Map.of("service", serviceNode.asText())
+                        );
                     }
                 }
         );
