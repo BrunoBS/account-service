@@ -21,7 +21,7 @@ ALTER TABLE messages
 ALTER TABLE messages
     ADD CONSTRAINT uk_messages_service_message_key
         UNIQUE (service_id, message_key),
-    ADD CONSTRAINT uk_messages_service_code
+    ADD CONSTRAINT uk_messages_service_message_code
         UNIQUE (service_id, code),
     ADD CONSTRAINT fk_messages_platform_service
         FOREIGN KEY (service_id) REFERENCES platform_services(id);
