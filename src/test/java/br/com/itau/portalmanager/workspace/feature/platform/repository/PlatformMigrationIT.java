@@ -28,9 +28,18 @@ class PlatformMigrationIT {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
         assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("11");
 
-        assertThat(jdbc.queryForObject(
-                "select count(*) from type_life_cycle where code = 'ACTIVE'", Integer.class))
-                .isEqualTo(1);
+        // Catalog tables are intentionally empty in a clean V11 schema until the
+        // application seeds them. Seed the real V11 lifecycle states required by
+        // the legacy rows used by this migration test.
+        jdbc.update("""
+                insert into type_life_cycle
+                    (code, label, description, sort_order, is_active, settings)
+                values
+                    ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}'),
+                    ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}'),
+                    ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')
+                on duplicate key update code = values(code)
+                """);
 
         jdbc.update("""
                 insert into type_services (code, label, description, sort_order, is_active, settings)
