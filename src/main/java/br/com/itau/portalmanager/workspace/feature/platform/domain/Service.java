@@ -12,6 +12,7 @@ import java.util.UUID;
 @Table(name = "platform_services")
 public class Service {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id") private Long id;
+    @Version @Column(name = "version", nullable = false) private Long version;
     @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false) private String identifier;
     @Column(name = "code", nullable = false, unique = true, length = 50) private String code;
     @Column(name = "name", nullable = false, length = 100) private String name;
@@ -45,6 +46,7 @@ public class Service {
     public boolean isActive() { return LifecycleTypeCode.active().equals(lifecycle); }
 
     public Long getId() { return id; }
+    public Long getVersion() { return version; }
     public String getIdentifier() { return identifier; }
     public String getCode() { return code; }
     public String getName() { return name; }
