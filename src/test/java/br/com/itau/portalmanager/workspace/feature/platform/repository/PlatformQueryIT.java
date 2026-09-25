@@ -43,7 +43,7 @@ class PlatformQueryIT {
                     0, '22222222-2222-2222-2222-222222222222', 'AUDIT', 'Audit',
                     'Audit feature', id, 'ACTIVE', '{}', now(), now()
                   from platform_services
-                 where code = 'audit-service'
+                 where code = 'AUDIT_SERVICE'
                 """);
         jdbc.update("""
                 insert into platform_feature_contexts
