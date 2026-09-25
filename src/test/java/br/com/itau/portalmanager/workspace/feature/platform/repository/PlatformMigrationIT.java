@@ -66,6 +66,16 @@ class PlatformMigrationIT {
                 """);
 
         jdbc.update("""
+                insert into messages
+                    (version, identifier, service_code, message_key, code, http_status,
+                     lifecycle_code, observation, created_at, updated_at)
+                values
+                    (0, '44444444-4444-4444-4444-444444444444', 'portal-manager',
+                     'platform.migration', 'PLATFORM-0001', 400, 'ACTIVE',
+                     'Migration reference', now(), now())
+                """);
+
+        jdbc.update("""
                 insert into platform_feature_scopes (feature_id, feature_scope_code)
                 select id, 'MANAGER_ACCOUNT'
                   from platform_features
@@ -82,8 +92,13 @@ class PlatformMigrationIT {
         assertThat(upgradeFlyway.info().current().getVersion().getVersion()).isEqualTo("13");
 
         assertThat(jdbc.queryForObject(
-                "select name from platform_services where code = 'portal-manager'", String.class))
+                "select name from platform_services where code = 'PORTAL_MANAGER'", String.class))
                 .isEqualTo("Portal Manager");
+
+        assertThat(jdbc.queryForObject(
+                "select service_code from messages where identifier = '44444444-4444-4444-4444-444444444444'",
+                String.class
+        )).isEqualTo("PORTAL_MANAGER");
         assertThat(jdbc.queryForObject(
                 "select name from platform_features where code = 'APPLICATION'", String.class))
                 .isEqualTo("Application");
@@ -101,6 +116,10 @@ class PlatformMigrationIT {
                 "select lifecycle_code from platform_feature_contexts where code = 'ADMIN_ACCOUNT'", String.class))
                 .isEqualTo("INACTIVE");
 
+        assertThat(jdbc.queryForObject(
+                "select name from platform_feature_contexts where code = 'MANAGER_ACCOUNT'", String.class))
+                .isEqualTo("Manager account");
+
         assertThat(tableCount(jdbc, "platform_feature_contexts")).isEqualTo(1);
         assertThat(tableCount(jdbc, "platform_feature_context_relations")).isEqualTo(1);
         assertThat(tableCount(jdbc, "type_feature_scopes")).isZero();
@@ -110,7 +129,7 @@ class PlatformMigrationIT {
                 select service_code
                   from vw_feature_runtime_config
                  where feature_code = 'APPLICATION'
-                """, String.class)).isEqualTo("portal-manager");
+                """, String.class)).isEqualTo("PORTAL_MANAGER");
     }
 
     private Integer tableCount(JdbcTemplate jdbc, String tableName) {
