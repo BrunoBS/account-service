@@ -59,7 +59,9 @@ SELECT
 FROM type_services s;
 
 -- FeatureType becomes the Platform Feature entity.
--- Structural ownership is no longer stored in settings.
+-- Preserve a valid legacy owner when one was stored in settings; workspace-service is the
+-- compatibility fallback for records created before ownership became structural.
+-- Operational settings are preserved, while former structural keys are removed.
 INSERT INTO platform_features
     (identifier, code, name, description, service_id, lifecycle_code, settings, created_at, updated_at)
 SELECT
@@ -67,39 +69,60 @@ SELECT
     f.code,
     f.label,
     f.description,
-    s.id,
+    COALESCE(owner_service.id, fallback_service.id),
     CASE WHEN f.is_active THEN 'ACTIVE' ELSE 'INACTIVE' END,
-    JSON_OBJECT(
-        'quarantine', JSON_OBJECT(
-            'enabled', true,
-            'retentionDays', CASE WHEN f.code = 'MESSAGE' THEN 0 ELSE 30 END,
-            'restoreAllowed', CASE WHEN f.code = 'MESSAGE' THEN false ELSE true END
-        ),
-        'audit', JSON_OBJECT(
-            'enabled', true,
-            'snapshotOnPurge', CASE WHEN f.code = 'MESSAGE' THEN false ELSE true END
-        ),
-        'purge', JSON_OBJECT('enabled', true)
-    ),
+    CASE
+        WHEN JSON_VALID(f.settings)
+         AND JSON_EXTRACT(f.settings, '$.quarantine') IS NOT NULL
+         AND JSON_EXTRACT(f.settings, '$.audit') IS NOT NULL
+         AND JSON_EXTRACT(f.settings, '$.purge') IS NOT NULL
+        THEN JSON_REMOVE(CAST(f.settings AS JSON), '$.service', '$.scopes')
+        ELSE JSON_OBJECT(
+            'quarantine', JSON_OBJECT(
+                'enabled', true,
+                'retentionDays', CASE WHEN f.code = 'MESSAGE' THEN 0 ELSE 30 END,
+                'restoreAllowed', CASE WHEN f.code = 'MESSAGE' THEN false ELSE true END
+            ),
+            'audit', JSON_OBJECT(
+                'enabled', true,
+                'snapshotOnPurge', CASE WHEN f.code = 'MESSAGE' THEN false ELSE true END
+            ),
+            'purge', JSON_OBJECT('enabled', true)
+        )
+    END,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 FROM type_features f
-JOIN platform_services s
-  ON s.code = 'workspace-service';
+JOIN platform_services fallback_service
+  ON fallback_service.code = 'workspace-service'
+LEFT JOIN platform_services owner_service
+  ON JSON_VALID(f.settings)
+ AND owner_service.code = JSON_UNQUOTE(JSON_EXTRACT(f.settings, '$.service'));
 
--- Older FeatureType records could keep their former single scope in settings.
--- Promote that relationship to the explicit N:N join table when it is present and valid.
+-- Promote both historical single-scope and array-scope representations to the explicit N:N relation.
 INSERT IGNORE INTO platform_feature_scopes (feature_id, feature_scope_code)
-SELECT
-    pf.id,
-    fs.code
+SELECT pf.id, fs.code
 FROM type_features legacy
-JOIN platform_features pf
-  ON pf.code = legacy.code
+JOIN platform_features pf ON pf.code = legacy.code
 JOIN type_feature_scopes fs
   ON fs.code = JSON_UNQUOTE(JSON_EXTRACT(legacy.settings, '$.scopes'))
 WHERE JSON_VALID(legacy.settings)
   AND JSON_TYPE(JSON_EXTRACT(legacy.settings, '$.scopes')) = 'STRING';
+
+INSERT IGNORE INTO platform_feature_scopes (feature_id, feature_scope_code)
+SELECT pf.id, fs.code
+FROM type_features legacy
+JOIN platform_features pf ON pf.code = legacy.code
+JOIN JSON_TABLE(
+    CASE
+        WHEN JSON_VALID(legacy.settings)
+         AND JSON_TYPE(JSON_EXTRACT(legacy.settings, '$.scopes')) = 'ARRAY'
+        THEN JSON_EXTRACT(legacy.settings, '$.scopes')
+        ELSE JSON_ARRAY()
+    END,
+    '$[*]' COLUMNS(scope_code VARCHAR(50) PATH '$')
+) legacy_scope
+JOIN type_feature_scopes fs ON fs.code = legacy_scope.scope_code;
 
 -- Message Management now validates and references the Platform Service entity.
 ALTER TABLE messages
