@@ -68,7 +68,7 @@ public class MessageCommandService {
         validator.validateForCreate(input, keyDuplicate, codeDuplicate);
         validateTranslationsForCreate(input);
 
-        var service = serviceRepository.findByCode(input.service())
+        var service = serviceReferenceRepository.findByCode(input.service())
                 .orElseThrow(() -> new IllegalArgumentException("Service not found"));
 
         LocalDateTime now = LocalDateTime.now();
@@ -124,7 +124,7 @@ public class MessageCommandService {
         validator.validateForUpdate(input, keyDuplicate, codeDuplicate);
         validateVersion(message.getVersion(), input.version());
 
-        var service = serviceRepository.findByCode(input.service())
+        var service = serviceReferenceRepository.findByCode(input.service())
                 .orElseThrow(() -> new IllegalArgumentException("Service not found"));
 
         message.update(
