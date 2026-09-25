@@ -115,9 +115,9 @@ class PlatformApiIT {
                 .body("[0].code", equalTo("AUDIT"));
 
         authorized()
-                .put("/api/v1/platform/services/" + serviceIdentifier)
                 .contentType(ContentType.JSON)
                 .body(Map.of("name", "Audit Platform Service", "description", "Updated"))
+                .put("/api/v1/platform/services/" + serviceIdentifier)
                 .then()
                 .statusCode(200)
                 .body("name", equalTo("Audit Platform Service"));
