@@ -67,7 +67,7 @@ class MessageApiIT {
 
         String identifier = post(body)
                 .statusCode(201)
-                .body("service", equalTo("WORKSPACE_SERVICE"))
+                .body("service", equalTo("workspace-service"))
                 .extract()
                 .path("identifier");
 
@@ -239,7 +239,7 @@ class MessageApiIT {
         patch("/api/v1/messages/" + inactiveIdentifier + "/inactivate")
                 .statusCode(200);
 
-        get("/api/v1/messages?service=WORKSPACE-SERVICE&active=true&code=workspace-0206")
+        get("/api/v1/messages?service=workspace-service&active=true&code=workspace-0206")
                 .statusCode(200)
                 .body("size()", equalTo(1))
                 .body("[0].identifier", equalTo(activeIdentifier));
@@ -336,7 +336,7 @@ class MessageApiIT {
     private String createMessage(String key, String code) {
         return post(message(key, code))
                 .statusCode(201)
-                .body("service", equalTo("WORKSPACE_SERVICE"))
+                .body("service", equalTo("workspace-service"))
                 .body("lifecycle", equalTo("ACTIVE"))
                 .extract()
                 .path("identifier");
@@ -344,7 +344,7 @@ class MessageApiIT {
 
     private Map<String, Object> message(String key, String code) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("service", " WORKSPACE-SERVICE ");
+        body.put("service", " workspace-service ");
         body.put("messageKey", key);
         body.put("code", code);
         body.put("httpStatus", 400);
@@ -437,7 +437,7 @@ class MessageApiIT {
                 INSERT IGNORE INTO platform_services
                     (identifier, code, name, description, lifecycle_code, created_at, updated_at)
                 VALUES
-                    (UUID(), 'WORKSPACE_SERVICE', 'Workspace Service',
+                    (UUID(), 'workspace-service', 'Workspace Service',
                      'Workspace and platform administration service',
                      'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """);
