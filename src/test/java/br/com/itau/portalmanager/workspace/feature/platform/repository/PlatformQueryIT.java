@@ -23,22 +23,17 @@ class PlatformQueryIT {
     private FeatureQueryService queryService;
 
     @Test
-    void shouldReturnScopesFullyMaterializedOutsideRepositoryTransaction() {
+    void shouldReturnContextsFullyMaterializedOutsideRepositoryTransaction() {
         jdbc.update("""
                 insert into type_life_cycle (code, label, description, sort_order, is_active, settings)
                 values ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')
                 on duplicate key update code = values(code)
                 """);
         jdbc.update("""
-                insert into type_feature_scopes (code, label, description, sort_order, is_active, settings)
-                values ('ADMINISTRATION', 'Administration', 'Administrative scope', 1, true, '{}')
-                on duplicate key update code = values(code)
-                """);
-        jdbc.update("""
                 insert into platform_services
                     (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
                 values
-                    (0, '11111111-1111-1111-1111-111111111111', 'audit-service',
+                    (0, '11111111-1111-1111-1111-111111111111', 'AUDIT_SERVICE',
                      'Audit Service', 'Audit owner', 'ACTIVE', now(), now())
                 """);
         jdbc.update("""
@@ -48,23 +43,31 @@ class PlatformQueryIT {
                     0, '22222222-2222-2222-2222-222222222222', 'AUDIT', 'Audit',
                     'Audit feature', id, 'ACTIVE', '{}', now(), now()
                   from platform_services
-                 where code = 'audit-service'
+                 where code = 'AUDIT_SERVICE'
                 """);
         jdbc.update("""
-                insert into platform_feature_scopes (feature_id, feature_scope_code)
-                select id, 'ADMINISTRATION'
-                  from platform_features
-                 where code = 'AUDIT'
+                insert into platform_feature_contexts
+                    (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
+                values
+                    (0, '33333333-3333-3333-3333-333333333333', 'ADMINISTRATION',
+                     'Administration', 'Administration context', 'ACTIVE', now(), now())
+                """);
+        jdbc.update("""
+                insert into platform_feature_context_relations (feature_id, feature_context_id)
+                select f.id, c.id
+                  from platform_features f
+                  join platform_feature_contexts c on c.code = 'ADMINISTRATION'
+                 where f.code = 'AUDIT'
                 """);
 
-        var scopes = queryService.findScopes("22222222-2222-2222-2222-222222222222");
+        var contexts = queryService.findContexts("22222222-2222-2222-2222-222222222222");
 
-        assertThat(scopes)
+        assertThat(contexts)
                 .hasSize(1)
                 .first()
-                .satisfies(scope -> {
-                    assertThat(scope.code()).isEqualTo("ADMINISTRATION");
-                    assertThat(scope.active()).isTrue();
+                .satisfies(context -> {
+                    assertThat(context.code()).isEqualTo("ADMINISTRATION");
+                    assertThat(context.name()).isEqualTo("Administration");
                 });
     }
 }

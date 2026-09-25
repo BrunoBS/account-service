@@ -67,7 +67,7 @@ class MessageApiIT {
 
         String identifier = post(body)
                 .statusCode(201)
-                .body("service", equalTo("workspace-service"))
+                .body("service", equalTo("WORKSPACE_SERVICE"))
                 .extract()
                 .path("identifier");
 
@@ -84,9 +84,9 @@ class MessageApiIT {
         );
 
         assertThat(translationCount).isEqualTo(2);
-        assertThat(viewCount("workspace-service.workspace.batch.not-found", "pt-BR"))
+        assertThat(viewCount("WORKSPACE_SERVICE.workspace.batch.not-found", "pt-BR"))
                 .isEqualTo(1);
-        assertThat(viewCount("workspace-service.workspace.batch.not-found", "en-US"))
+        assertThat(viewCount("WORKSPACE_SERVICE.workspace.batch.not-found", "en-US"))
                 .isEqualTo(1);
     }
 
@@ -161,14 +161,14 @@ class MessageApiIT {
                 .extract()
                 .path("identifier");
 
-        assertThat(viewCount("workspace-service.workspace.not-found", "pt-BR"))
+        assertThat(viewCount("WORKSPACE_SERVICE.workspace.not-found", "pt-BR"))
                 .isEqualTo(1);
 
         patch("/api/v1/messages/" + messageIdentifier + "/inactivate")
                 .statusCode(200)
                 .body("lifecycle", equalTo("INACTIVE"));
 
-        assertThat(viewCount("workspace-service.workspace.not-found", "pt-BR"))
+        assertThat(viewCount("WORKSPACE_SERVICE.workspace.not-found", "pt-BR"))
                 .isZero();
 
         patch("/api/v1/messages/" + messageIdentifier + "/activate")
@@ -178,7 +178,7 @@ class MessageApiIT {
                 + "/translations/" + translationIdentifier + "/inactivate")
                 .statusCode(200);
 
-        assertThat(viewCount("workspace-service.workspace.not-found", "pt-BR"))
+        assertThat(viewCount("WORKSPACE_SERVICE.workspace.not-found", "pt-BR"))
                 .isZero();
     }
 
@@ -336,7 +336,7 @@ class MessageApiIT {
     private String createMessage(String key, String code) {
         return post(message(key, code))
                 .statusCode(201)
-                .body("service", equalTo("workspace-service"))
+                .body("service", equalTo("WORKSPACE_SERVICE"))
                 .body("lifecycle", equalTo("ACTIVE"))
                 .extract()
                 .path("identifier");
@@ -437,7 +437,7 @@ class MessageApiIT {
                 INSERT IGNORE INTO platform_services
                     (identifier, code, name, description, lifecycle_code, created_at, updated_at)
                 VALUES
-                    (UUID(), 'workspace-service', 'Workspace Service',
+                    (UUID(), 'WORKSPACE_SERVICE', 'Workspace Service',
                      'Workspace and platform administration service',
                      'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """);

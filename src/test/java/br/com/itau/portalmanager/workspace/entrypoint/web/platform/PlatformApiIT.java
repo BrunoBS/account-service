@@ -44,83 +44,94 @@ class PlatformApiIT {
                     ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')
                 on duplicate key update code = values(code)
                 """);
-        jdbc.update("""
-                insert into type_feature_scopes (code, label, description, sort_order, is_active, settings)
-                values ('ADMINISTRATION', 'Administration', 'Administrative scope', 1, true, '{}')
-                on duplicate key update code = values(code)
-                """);
     }
 
     @Test
-    void shouldAdministerServicesFeaturesAndScopes() {
+    void shouldAdministerServicesFeaturesAndContexts() {
         String serviceIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                        "code", "audit-service",
-                        "name", "Audit Service",
-                        "description", "Audit owner"
+                        "code", "PORTAL_MANAGER",
+                        "name", "Portal Manager",
+                        "description", "Portal owner"
                 ))
                 .post("/api/v1/platform/services")
                 .then()
                 .statusCode(201)
-                .body("code", equalTo("audit-service"))
+                .body("name", equalTo("Portal Manager"))
+                .extract()
+                .path("identifier");
+
+        String contextIdentifier = authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "code", "MANAGER_ACCOUNT",
+                        "name", "Manager Account",
+                        "description", "Manager account context"
+                ))
+                .post("/api/v1/platform/contexts")
+                .then()
+                .statusCode(201)
+                .body("lifecycle", equalTo("ACTIVE"))
                 .extract()
                 .path("identifier");
 
         String featureIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                        "code", "AUDIT",
-                        "name", "Audit",
-                        "description", "Audit feature",
+                        "code", "APPLICATION",
+                        "name", "Application",
+                        "description", "Application feature",
                         "serviceIdentifier", serviceIdentifier,
                         "settings", "{}"
                 ))
                 .post("/api/v1/platform/features")
                 .then()
                 .statusCode(201)
-                .body("serviceCode", equalTo("audit-service"))
+                .body("serviceCode", equalTo("PORTAL_MANAGER"))
                 .extract()
                 .path("identifier");
 
         authorized()
-                .post("/api/v1/platform/features/" + featureIdentifier + "/scopes/ADMINISTRATION")
+                .post("/api/v1/platform/features/" + featureIdentifier + "/contexts/" + contextIdentifier)
                 .then()
                 .statusCode(200);
 
         authorized()
-                .get("/api/v1/platform/features/" + featureIdentifier + "/scopes")
+                .get("/api/v1/platform/features/" + featureIdentifier + "/contexts")
                 .then()
                 .statusCode(200)
                 .body("$", hasSize(1))
-                .body("[0].code", equalTo("ADMINISTRATION"));
+                .body("[0].code", equalTo("MANAGER_ACCOUNT"));
 
         authorized()
-                .patch("/api/v1/platform/features/" + featureIdentifier + "/inactivate")
+                .get("/api/v1/platform/features?contextCode=MANAGER_ACCOUNT")
+                .then()
+                .statusCode(200)
+                .body("$", hasSize(1))
+                .body("[0].code", equalTo("APPLICATION"));
+
+        authorized()
+                .patch("/api/v1/platform/contexts/" + contextIdentifier + "/inactivate")
                 .then()
                 .statusCode(200)
                 .body("lifecycle", equalTo("INACTIVE"));
 
         authorized()
-                .patch("/api/v1/platform/features/" + featureIdentifier + "/activate")
+                .patch("/api/v1/platform/contexts/" + contextIdentifier + "/activate")
                 .then()
                 .statusCode(200)
                 .body("lifecycle", equalTo("ACTIVE"));
 
         authorized()
-                .get("/api/v1/platform/features?scopeCode=ADMINISTRATION")
+                .delete("/api/v1/platform/features/" + featureIdentifier + "/contexts/" + contextIdentifier)
                 .then()
-                .statusCode(200)
-                .body("$", hasSize(1))
-                .body("[0].code", equalTo("AUDIT"));
+                .statusCode(200);
 
         authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of("name", "Audit Platform Service", "description", "Updated"))
-                .put("/api/v1/platform/services/" + serviceIdentifier)
+                .delete("/api/v1/platform/contexts/" + contextIdentifier)
                 .then()
-                .statusCode(200)
-                .body("name", equalTo("Audit Platform Service"));
+                .statusCode(204);
     }
 
     private io.restassured.specification.RequestSpecification authorized() {

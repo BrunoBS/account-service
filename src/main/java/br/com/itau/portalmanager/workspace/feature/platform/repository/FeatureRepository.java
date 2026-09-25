@@ -12,13 +12,14 @@ public interface FeatureRepository extends JpaRepository<Feature, Long> {
     Optional<Feature> findByIdentifier(String identifier);
     Optional<Feature> findByCode(String code);
     boolean existsByCode(String code);
-    List<Feature> findAllByScopes_Code(String scopeCode);
+    boolean existsByName(String name);
+    List<Feature> findAllByContexts_Code(String contextCode);
 
     @Query("""
             select distinct f
               from Feature f
-              left join fetch f.scopes
+              left join fetch f.contexts
              where f.identifier = :identifier
             """)
-    Optional<Feature> findByIdentifierWithScopes(@Param("identifier") String identifier);
+    Optional<Feature> findByIdentifierWithContexts(@Param("identifier") String identifier);
 }

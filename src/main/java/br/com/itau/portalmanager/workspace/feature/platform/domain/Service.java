@@ -1,5 +1,7 @@
 package br.com.itau.portalmanager.workspace.feature.platform.domain;
 
+import br.com.itau.portalmanager.workspace.feature.platform.domain.support.PlatformCodeValidator;
+import br.com.itau.portalmanager.workspace.feature.platform.domain.support.PlatformNameValidator;
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -15,7 +17,7 @@ public class Service {
     @Version @Column(name = "version", nullable = false) private Long version;
     @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false) private String identifier;
     @Column(name = "code", nullable = false, unique = true, length = 50) private String code;
-    @Column(name = "name", nullable = false, length = 100) private String name;
+    @Column(name = "name", nullable = false, unique = true, length = 100) private String name;
     @Column(name = "description", length = 500) private String description;
     @Embedded @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
     private LifecycleTypeCode lifecycle;
@@ -27,8 +29,8 @@ public class Service {
 
     public Service(String code, String name, String description, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
-        this.code = code;
-        this.name = name;
+        this.code = PlatformCodeValidator.requireValid(code);
+        this.name = PlatformNameValidator.requireValid(name);
         this.description = description;
         this.lifecycle = LifecycleTypeCode.active();
         this.createdAt = now;
@@ -36,7 +38,7 @@ public class Service {
     }
 
     public void update(String name, String description, LocalDateTime now) {
-        this.name = name; this.description = description; this.updatedAt = now;
+        this.name = PlatformNameValidator.requireValid(name); this.description = description; this.updatedAt = now;
     }
     public void activate(LocalDateTime now) { lifecycle = LifecycleTypeCode.active(); updatedAt = now; }
     public void inactivate(LocalDateTime now) { lifecycle = LifecycleTypeCode.inactive(); updatedAt = now; }

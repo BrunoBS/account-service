@@ -9,4 +9,5 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     Optional<Service> findByIdentifier(String identifier);
     Optional<Service> findByCode(String code);
     boolean existsByCode(String code);
+    boolean existsByName(String name);
 }

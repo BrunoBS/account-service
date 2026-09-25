@@ -1,8 +1,8 @@
 package br.com.itau.portalmanager.workspace.feature.platform.usecase.feature;
 
 import br.com.itau.portalmanager.workspace.feature.platform.repository.FeatureRepository;
+import br.com.itau.portalmanager.workspace.feature.platform.usecase.model.FeatureContextOutput;
 import br.com.itau.portalmanager.workspace.feature.platform.usecase.model.FeatureOutput;
-import br.com.itau.portalmanager.workspace.feature.platform.usecase.model.FeatureScopeOutput;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -28,17 +28,17 @@ public class FeatureQueryService {
     }
 
     @Transactional(readOnly = true)
-    public List<FeatureOutput> findByScope(String scopeCode) {
-        return repository.findAllByScopes_Code(scopeCode).stream().map(FeatureOutput::from).toList();
+    public List<FeatureOutput> findByContext(String contextCode) {
+        return repository.findAllByContexts_Code(contextCode).stream().map(FeatureOutput::from).toList();
     }
 
     @Transactional(readOnly = true)
-    public List<FeatureScopeOutput> findScopes(String identifier) {
-        return repository.findByIdentifierWithScopes(identifier)
+    public List<FeatureContextOutput> findContexts(String identifier) {
+        return repository.findByIdentifierWithContexts(identifier)
                 .orElseThrow(() -> new IllegalArgumentException("Feature not found"))
-                .getScopes()
+                .getContexts()
                 .stream()
-                .map(FeatureScopeOutput::from)
+                .map(FeatureContextOutput::from)
                 .toList();
     }
 }

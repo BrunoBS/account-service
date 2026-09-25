@@ -1,9 +1,9 @@
 package br.com.itau.portalmanager.workspace.entrypoint.web.platform.feature;
 
+import br.com.itau.portalmanager.workspace.entrypoint.web.platform.context.response.FeatureContextResponse;
 import br.com.itau.portalmanager.workspace.entrypoint.web.platform.feature.request.CreateFeatureRequest;
 import br.com.itau.portalmanager.workspace.entrypoint.web.platform.feature.request.UpdateFeatureRequest;
 import br.com.itau.portalmanager.workspace.entrypoint.web.platform.feature.response.FeatureResponse;
-import br.com.itau.portalmanager.workspace.entrypoint.web.platform.feature.response.FeatureScopeResponse;
 import br.com.itau.portalmanager.workspace.feature.platform.usecase.feature.FeatureCommandService;
 import br.com.itau.portalmanager.workspace.feature.platform.usecase.feature.FeatureQueryService;
 import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
@@ -47,16 +47,16 @@ public class FeatureController {
     }
 
     @GetMapping
-    public List<FeatureResponse> findAll(@RequestParam(required = false) String scopeCode) {
-        return (scopeCode == null ? queryService.findAll() : queryService.findByScope(scopeCode))
+    public List<FeatureResponse> findAll(@RequestParam(required = false) String contextCode) {
+        return (contextCode == null ? queryService.findAll() : queryService.findByContext(contextCode))
                 .stream()
                 .map(FeatureResponse::from)
                 .toList();
     }
 
-    @GetMapping("/{identifier}/scopes")
-    public List<FeatureScopeResponse> findScopes(@PathVariable String identifier) {
-        return queryService.findScopes(identifier).stream().map(FeatureScopeResponse::from).toList();
+    @GetMapping("/{identifier}/contexts")
+    public List<FeatureContextResponse> findContexts(@PathVariable String identifier) {
+        return queryService.findContexts(identifier).stream().map(FeatureContextResponse::from).toList();
     }
 
     @PutMapping("/{identifier}")
@@ -92,30 +92,30 @@ public class FeatureController {
         return FeatureResponse.from(commandService.inactivate(identifier));
     }
 
-    @PostMapping("/{identifier}/scopes/{scopeCode}")
+    @PostMapping("/{identifier}/contexts/{contextIdentifier}")
     @Auditable(
             resource = "FEATURE",
             action = "UPDATE",
             resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
     )
-    public FeatureResponse associateScope(
+    public FeatureResponse associateContext(
             @PathVariable String identifier,
-            @PathVariable String scopeCode
+            @PathVariable String contextIdentifier
     ) {
-        return FeatureResponse.from(commandService.associateScope(identifier, scopeCode));
+        return FeatureResponse.from(commandService.associateContext(identifier, contextIdentifier));
     }
 
-    @DeleteMapping("/{identifier}/scopes/{scopeCode}")
+    @DeleteMapping("/{identifier}/contexts/{contextIdentifier}")
     @Auditable(
             resource = "FEATURE",
             action = "UPDATE",
             resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
     )
-    public FeatureResponse removeScope(
+    public FeatureResponse removeContext(
             @PathVariable String identifier,
-            @PathVariable String scopeCode
+            @PathVariable String contextIdentifier
     ) {
-        return FeatureResponse.from(commandService.removeScope(identifier, scopeCode));
+        return FeatureResponse.from(commandService.removeContext(identifier, contextIdentifier));
     }
 
     @DeleteMapping("/{identifier}")
