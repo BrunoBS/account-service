@@ -14,7 +14,7 @@ class ServiceDomainTest {
 
     @Test
     void shouldTransitionLifecycleAndUpdateTimestamp() {
-        Service service = new Service("AUDIT_SERVICE", "Audit Service", null, NOW);
+        Service service = new Service("audit-service", "Audit Service", null, NOW);
 
         assertThat(service.isActive()).isTrue();
         assertThat(service.getLifecycle()).isEqualTo(LifecycleTypeCode.active());
@@ -40,7 +40,7 @@ class ServiceDomainTest {
 
     @Test
     void shouldRejectInvalidCodeFormat() {
-        assertThatThrownBy(() -> new Service("audit-service", "Audit Service", null, NOW))
+        assertThatThrownBy(() -> new Service("AUDIT_SERVICE", "Audit Service", null, NOW))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }
