@@ -43,7 +43,6 @@ class CatalogApiIT {
                 new CatalogCase("/api/v1/authorization-type", "DEV"),
                 new CatalogCase("/api/v1/environment-type", "DEFAULT"),
                 new CatalogCase("/api/v1/feature-scope", "WORKSPACE"),
-                new CatalogCase("/api/v1/feature-type", "MENU"),
                 new CatalogCase("/api/v1/infrastructure-type", "VM"),
                 new CatalogCase("/api/v1/language-type", "JAVA"),
                 new CatalogCase("/api/v1/lifecycle-type", "ACTIVE"),
@@ -116,22 +115,6 @@ class CatalogApiIT {
         get("/api/v1/schema-type/" + schemaCode)
                 .statusCode(200)
                 .body("settings.scopes", equalTo("WORKSPACE"));
-
-        Map<String, Object> feature = standardBody(
-                "ROUTE",
-                "Route",
-                "Descrição válida da feature route",
-                2
-        );
-        feature.put("settings", Map.of(
-                "scopes", "APPLICATION",
-                "available", true
-        ));
-
-        post("/api/v1/feature-type", feature)
-                .statusCode(201)
-                .body("settings.scopes", equalTo("APPLICATION"))
-                .body("settings.available", equalTo(true));
 
         Map<String, Object> onboarding = standardBody(
                 "WORKSPACE_FIRST_ENVIRONMENT",
