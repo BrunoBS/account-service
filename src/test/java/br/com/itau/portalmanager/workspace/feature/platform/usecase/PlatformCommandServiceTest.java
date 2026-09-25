@@ -59,6 +59,19 @@ class PlatformCommandServiceTest {
     }
 
     @Test
+    void shouldRejectDuplicateFeatureContextName() {
+        FeatureContextRepository contexts = mock(FeatureContextRepository.class);
+        when(contexts.existsByName("MANAGER_ACCOUNT")).thenReturn(true);
+        FeatureContextCommandService command = new FeatureContextCommandService(contexts);
+
+        assertThatThrownBy(() -> command.create(
+                new CreateFeatureContextInput("MANAGER_ACCOUNT", "MANAGER_ACCOUNT", null)
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Feature context name already exists");
+    }
+
+    @Test
     void shouldRejectInactiveContextAssociation() {
         FeatureRepository features = mock(FeatureRepository.class);
         ServiceRepository services = mock(ServiceRepository.class);
