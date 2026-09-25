@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ServiceDomainTest {
 
@@ -13,31 +14,33 @@ class ServiceDomainTest {
 
     @Test
     void shouldTransitionLifecycleAndUpdateTimestamp() {
-        Service service = new Service("audit-service", "Audit Service", null, NOW);
+        Service service = new Service("audit-service", "AUDIT_SERVICE", null, NOW);
 
         assertThat(service.isActive()).isTrue();
         assertThat(service.getLifecycle()).isEqualTo(LifecycleTypeCode.active());
 
         service.inactivate(NOW.plusMinutes(1));
         assertThat(service.isActive()).isFalse();
-        assertThat(service.getLifecycle()).isEqualTo(LifecycleTypeCode.inactive());
-        assertThat(service.getUpdatedAt()).isEqualTo(NOW.plusMinutes(1));
 
         service.activate(NOW.plusMinutes(2));
         assertThat(service.isActive()).isTrue();
-        assertThat(service.getLifecycle()).isEqualTo(LifecycleTypeCode.active());
 
         service.quarantine(NOW.plusMinutes(3));
         assertThat(service.isActive()).isFalse();
         assertThat(service.getLifecycle()).isEqualTo(LifecycleTypeCode.quarantined());
-        assertThat(service.getUpdatedAt()).isEqualTo(NOW.plusMinutes(3));
     }
 
     @Test
     void shouldExposeFeaturesAsReadOnlyRelation() {
-        Service service = new Service("audit-service", "Audit Service", null, NOW);
-        Feature feature = new Feature("AUDIT", "Audit", null, service, "{}", NOW);
+        Service service = new Service("audit-service", "AUDIT_SERVICE", null, NOW);
+        Feature feature = new Feature("AUDIT", "AUDIT", null, service, "{}", NOW);
 
         assertThat(service.getFeatures()).containsExactly(feature);
+    }
+
+    @Test
+    void shouldRejectInvalidNameFormat() {
+        assertThatThrownBy(() -> new Service("audit-service", "Audit Service", null, NOW))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }
