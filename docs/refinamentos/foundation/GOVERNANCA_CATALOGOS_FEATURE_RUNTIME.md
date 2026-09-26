@@ -1,4 +1,4 @@
-# Governança — Catálogos + Platform Service/Feature Runtime
+# Governança — Catálogos + Platform Microservice/Feature Runtime
 
 ## 1. Objetivo
 
@@ -92,12 +92,12 @@ WORKSPACE
 
 # 4. Recursos Platform
 
-`Service`, `Feature` e `FeatureContext` não são mais tratados como catálogos simples.
+`Microservice`, `Feature` e `FeatureContext` não são mais tratados como catálogos simples.
 
 São entidades administrativas persistidas em:
 
 ```text
-platform_services
+platform_microservices
 platform_features
 platform_feature_contexts
 platform_feature_context_relations
@@ -106,7 +106,7 @@ platform_feature_context_relations
 Relações principais:
 
 ```text
-Service 1 ───── N Feature
+Microservice 1 ───── N Feature
 
 Feature N ───── N FeatureContext
 ```
@@ -114,7 +114,7 @@ Feature N ───── N FeatureContext
 Semântica oficial:
 
 ```text
-Service        = quem oferece
+Microservice        = quem oferece
 Feature        = o que é oferecido
 FeatureContext = em qual contexto funcional a capacidade é disponibilizada
 ```
@@ -130,7 +130,7 @@ FeatureContext = em qual contexto funcional a capacidade é disponibilizada
 Para:
 
 ```text
-Service
+Microservice
 Feature
 FeatureContext
 ```
@@ -166,9 +166,9 @@ Regras:
 - sem normalização silenciosa;
 - valor estável após criação.
 
-## 5.2. Service.code
+## 5.2. Microservice.code
 
-Para Service, o `code` deve ser o mesmo identificador técnico usado pela aplicação.
+Para Microservice, o `code` deve ser o mesmo identificador técnico usado pela aplicação.
 
 Exemplo:
 
@@ -179,7 +179,7 @@ spring.application.name=workspace-service
 deve corresponder a:
 
 ```text
-Service.code = workspace-service
+Microservice.code = workspace-service
 ```
 
 ## 5.3. name
@@ -190,7 +190,7 @@ Exemplos:
 
 ```text
 code = workspace-service
-name = Workspace Service
+name = Workspace Microservice
 
 code = promotion-engine
 name = Motor de Promoção
@@ -221,12 +221,12 @@ Lifecycle continua sendo catálogo tipado da Foundation.
 
 ---
 
-# 7. Service
+# 7. Microservice
 
 Tabela:
 
 ```text
-platform_services
+platform_microservices
 ```
 
 Campos principais:
@@ -250,8 +250,8 @@ Regras:
 - `code` é único;
 - `name` é único;
 - `code` segue kebab-case;
-- Feature pertence estruturalmente a Service;
-- Service com Features vinculadas não pode ser colocado em quarentena sem resolver os vínculos.
+- Feature pertence estruturalmente a Microservice;
+- Microservice com Features vinculadas não pode ser colocado em quarentena sem resolver os vínculos.
 
 ---
 
@@ -272,7 +272,7 @@ identifier
 code
 name
 description
-service_id
+microservice_id
 lifecycle_code
 settings
 created_at
@@ -282,12 +282,12 @@ updated_at
 Relação:
 
 ```text
-platform_features.service_id
+platform_features.microservice_id
         ↓
-platform_services.id
+platform_microservices.id
 ```
 
-Feature deve possuir exatamente um Service ativo na criação.
+Feature deve possuir exatamente um Microservice ativo na criação.
 
 O `settings` permanece reservado para configuração operacional da feature.
 
@@ -310,7 +310,7 @@ Exemplo:
 }
 ```
 
-Ownership de Service não fica em JSON.
+Ownership de Microservice não fica em JSON.
 
 ---
 
@@ -340,24 +340,24 @@ Regras:
 
 ---
 
-# 10. Message Management e Service
+# 10. Message Management e Microservice
 
-Message Management não deve persistir uma String como relacionamento estrutural com Service.
+Message Management não deve persistir uma String como relacionamento estrutural com Microservice.
 
 A API pode receber o identificador técnico:
 
 ```text
-service = workspace-service
+microserviceIdentifier = <uuid-do-workspace-service>
 ```
 
-O use case resolve esse valor para a referência de Service.
+O use case resolve esse valor para a referência de Microservice.
 
 Persistência:
 
 ```text
-messages.service_id
+messages.microservice_id
         ↓
-platform_services.id
+platform_microservices.id
 ```
 
 A coluna antiga:
@@ -371,44 +371,44 @@ foi removida do modelo final.
 Regras de unicidade:
 
 ```text
-(service_id, message_key)
-(service_id, code)
+(microservice_id, message_key)
+(microservice_id, code)
 ```
 
 O output pode continuar expondo:
 
 ```text
-service = workspace-service
+microserviceIdentifier = <uuid-do-workspace-service>
 ```
 
-porque esse valor é derivado do relacionamento com `platform_services`.
+porque esse valor é derivado do relacionamento com `platform_microservices`.
 
 ---
 
-# 11. Referência de Service dentro do módulo Message
+# 11. Referência de Microservice dentro do módulo Message
 
 Para preservar a independência arquitetural entre módulos, o domínio de Message não referencia diretamente a classe interna do domínio Platform.
 
-O módulo Message possui uma referência estrutural local e imutável:
+O módulo Message guarda a referência estrutural pelo identificador interno:
 
 ```text
-MessageServiceReference
+Message.microserviceId
 ```
 
 mapeada sobre:
 
 ```text
-platform_services
+platform_microservices
 ```
 
 Objetivo:
 
-- manter FK estrutural por `service_id`;
+- manter FK estrutural por `microservice_id`;
 - evitar relacionamento persistido por String;
 - evitar dependência direta de `feature.message.domain` em `feature.platform.domain`;
 - respeitar as regras de arquitetura da Golden.
 
-Validação funcional de Service ativo continua sendo feita por contrato público de use case.
+Validação funcional de Microservice ativo continua sendo feita por contrato público de use case.
 
 ---
 
@@ -427,8 +427,8 @@ Colunas atuais:
 ```text
 feature_code
 feature_label
-service_code
-service_label
+microservice_code
+microservice_label
 
 quarantine_enabled
 quarantine_retention_days
@@ -440,13 +440,13 @@ audit_snapshot_on_purge
 purge_enabled
 
 feature_active
-service_active
+microservice_active
 ```
 
 Exemplo:
 
 ```text
-feature_code     | service_code      | retention_days | audit | purge
+feature_code     | microservice_code      | retention_days | audit | purge
 -----------------+-------------------+----------------+-------+------
 workspace        | workspace-service | 30             | true  | true
 message          | workspace-service | 0              | true  | true
@@ -465,15 +465,15 @@ A view:
 vw_platform_messages
 ```
 
-resolve o Service através de:
+resolve o Microservice através de:
 
 ```text
-messages.service_id
+messages.microservice_id
         ↓
-platform_services.id
+platform_microservices.id
 ```
 
-A chave runtime resultante utiliza o `Service.code` canônico.
+A chave runtime resultante utiliza o `Microservice.code` canônico.
 
 Exemplo:
 
@@ -481,7 +481,7 @@ Exemplo:
 workspace-service.workspace.not-found
 ```
 
-Somente registros ativos de Service, Message e Translation são expostos.
+Somente registros ativos de Microservice, Message e Translation são expostos.
 
 ---
 
@@ -489,10 +489,10 @@ Somente registros ativos de Service, Message e Translation são expostos.
 
 ## V12
 
-Promoveu Service e Feature de catálogo para entidades Platform:
+Promoveu Microservice e Feature de catálogo para entidades Platform:
 
 ```text
-platform_services
+platform_microservices
 platform_features
 ```
 
@@ -513,7 +513,7 @@ ResourceScopeType
 Padronizou:
 
 ```text
-Service.code
+Microservice.code
 Feature.code
 FeatureContext.code
 ```
@@ -530,7 +530,7 @@ MANAGER_ACCOUNT   → manager-account
 
 ## V16
 
-Substituiu a referência textual de Message para Service:
+Substituiu a referência textual de Message para Microservice:
 
 ```text
 messages.service_code
@@ -553,7 +553,7 @@ Fluxo conceitual:
 ```text
 Feature
    ↓
-Service
+Microservice
    ↓
 vw_feature_runtime_config
    ↓
@@ -588,7 +588,7 @@ O modelo deve preservar:
 
 - códigos de catálogo em `UPPERCASE_UNDERSCORE`;
 - códigos de recursos Platform em lowercase kebab-case;
-- `Service.code == spring.application.name` para serviços administrados;
+- `Microservice.code == spring.application.name` para serviços administrados;
 - relacionamentos internos usando IDs numéricos;
 - UUID `identifier` para contratos externos;
 - ausência de FK estrutural baseada em String quando existe entidade dona;
@@ -612,20 +612,20 @@ foundation.catalog
 └── demais catálogos tipados
 
 feature.platform
-├── Service
+├── Microservice
 ├── Feature
 └── FeatureContext
 
 feature.message
 ├── Message
 ├── MessageTranslation
-└── MessageServiceReference
+└── Message.microserviceId
 ```
 
 Com persistência:
 
 ```text
-platform_services
+platform_microservices
       │
       ├────────< platform_features
       │

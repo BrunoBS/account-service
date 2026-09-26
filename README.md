@@ -6,8 +6,8 @@ Este repositório implementa a fase `GOLDEN-REFERENCE-V1` sobre o checkpoint `FO
 
 ## Identidade
 
-- Maven: `br.com.portalmanager:workspace-service:0.1.0-SNAPSHOT`
-- Java package root: `br.com.itau.portalmanager.workspace`
+- Maven: `br.com.portalmanager.platform.workspace:workspace-service:0.1.0-SNAPSHOT`
+- Java package root: `br.com.portalmanager.platform.workspace`
 - hospedagem atual: `BrunoBS/account-service` (nome histórico do repositório; não representa o domínio ativo)
 
 ## Baseline
@@ -15,45 +15,50 @@ Este repositório implementa a fase `GOLDEN-REFERENCE-V1` sobre o checkpoint `FO
 - Java 25
 - Spring Boot 4.1.1
 - Maven >= 3.9.9
-- `br.com.portalmanager.platform:platform-parent:1.0.0`
-- `br.com.portalmanager.platform:platform-libraries-bom:1.0.0`
-- `br.com.portalmanager.platform:platform-starter:1.0.0`
-- `br.com.portalmanager.platform:platform-testing:1.0.0`
-- `br.com.portalmanager.platform:platform-catalog:1.0.0`
+- `br.com.portalmanager.platform.library:platform-parent:1.0.0`
+- `br.com.portalmanager.platform.library:platform-libraries-bom:1.0.0`
+- `br.com.portalmanager.platform.library:platform-starter:1.0.0`
+- `br.com.portalmanager.platform.library:platform-testing:1.0.0`
+- `br.com.portalmanager.platform.library:platform-catalog:1.0.0`
 
 ## Arquitetura
 
 A aplicação utiliza as macrozonas:
 
 ```text
-br.com.itau.portalmanager.workspace
-├── WorkspaceServiceApplication            # composition root
-├── WorkspaceMessagingConfiguration        # wiring técnico do consumidor
+br.com.portalmanager.platform.workspace
+├── WorkspaceServiceApplication
 ├── foundation
 │   ├── catalog
-│   │   ├── workspacetype
-│   │   │   ├── domain
-│   │   │   ├── repository
-│   │   │   └── usecase
-│   │   ├── lifecycletype
-│   │   │   ├── domain
-│   │   │   ├── repository
-│   │   │   └── usecase
-│   │   └── <catalog-type>
-│   │       ├── domain
-│   │       ├── repository
-│   │       └── usecase
-│   └── schema
-│       ├── domain
-│       └── usecase
-├── core
+│   │   ├── <catalog-type>/{domain,repository,usecase}
+│   │   └── integration/CatalogSettingsValidator
+│   ├── integration/WorkspaceReferenceResolver
+│   └── schema/{domain,repository,usecase/{model,operations,validation}}
+├── core/workspace/{domain,repository,integration,usecase/{model,operations,validation}}
 ├── feature
-└── entrypoint
-    └── web
-        └── catalog
+│   ├── message/{domain,repository,usecase/{model,operations,validation}}
+│   └── platform/{domain,repository,usecase/{model,operations,validation}}
+└── entrypoint/web/{catalog,workspace,message,platform,schema}
 ```
 
 Pacotes vazios não são criados apenas para completar a árvore.
+
+O cadastro administrativo de microserviços usa `feature/platform` e
+`/api/v1/platform/microservices`. A migração V19 renomeia as referências de
+Feature e Message e remove os catálogos de linguagem e infraestrutura. Consulte
+[`MICROSERVICE-MIGRATION-V19.md`](docs/refinamentos/foundation/MICROSERVICE-MIGRATION-V19.md)
+para os contratos de atualização.
+
+### Ponto único de validação
+
+Para Workspace, Message, Platform e Schema, as decisões de validade pertencem a
+`usecase/validation`: formato e obrigatoriedade dos dados, duplicidade, lifecycle,
+relações e pré-condições de transição. As operações consultam repositórios quando
+necessário, passam os dados ao validador e só então modificam as entidades.
+Entidades executam as transições sem repetir essas regras. Toda escrita deve passar
+pelo use case; as restrições do banco permanecem como proteção de integridade e de
+concorrência. Os catálogos ficam fora deste padrão por enquanto: usam contratos de
+validação próprios da `platform-catalog`.
 
 Princípios principais:
 
@@ -97,8 +102,8 @@ Todos os módulos concretos de catálogo terminam em `type`. Mesmo quando o nome
 histórico da entidade não termina em `Type`, o módulo explicita a natureza catalogar.
 Exemplo: `OnboardingPhase -> foundation.catalog.onboardingphasetype`.
 
-Packages técnicos compartilhados, como `foundation.catalog.support`, não representam
-catálogos concretos e não seguem essa convenção.
+O adaptador compartilhado `foundation.catalog.integration.CatalogSettingsValidator`
+não representa um catálogo concreto e não segue essa convenção.
 
 ## Foundation remota
 
@@ -121,13 +126,8 @@ Não é permitido usar checkout ou `mvn install` local da Foundation como evidê
 A documentação da Golden está em [`docs/golden`](docs/golden).
 
 
-## Pendências antes do checkpoint GOLDEN-REFERENCE-V1
+## Estado da referência
 
-- definir explicitamente o `groupId` Maven oficial para serviços Golden; a coordenada
-  atual permanece `br.com.portalmanager:workspace-service` até decisão;
-- manter visível a dívida da busca reversa de tags baseada no contrato físico da tabela
-  `tags`.
-
-A adequação pós-G4 permanece como baseline. A migração dos catálogos foi validada no
-Verify #110 (run `35674577937`), head
-`3cd68f9aa0470b4689b8d360100747d13a21de31`, com 45 testes verdes.
+O namespace e as coordenadas Maven acima refletem o código atual. ADRs e registros
+de checkpoints em `docs/golden` documentam decisões anteriores e podem mostrar
+nomes históricos; a árvore vigente é a deste README e do código-fonte.
