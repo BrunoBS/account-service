@@ -1,5 +1,5 @@
 CREATE TABLE type_schema_version_status (
-    code VARCHAR(50) NOT NULL,
+    code VARCHAR(20) NOT NULL,
     label VARCHAR(100) NOT NULL,
     description TEXT,
     sort_order INT NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE type_schema_version_status (
     settings TEXT NOT NULL,
     CONSTRAINT pk_type_schema_version_status PRIMARY KEY (code),
     CONSTRAINT ck_type_schema_version_status_code
-        CHECK (code REGEXP '^[A-Z][A-Z0-9_]{0,49}$')
+        CHECK (code REGEXP '^[A-Z][A-Z0-9_]{0,19}$')
 );
 
 INSERT INTO type_schema_version_status
