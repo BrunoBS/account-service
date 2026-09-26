@@ -53,6 +53,14 @@ class SchemaApiIT {
                     ('WORKSPACE', 'Workspace', 'Workspace-owned schema', 2, true, '{}')
                 on duplicate key update code = values(code)
                 """);
+
+        jdbc.update("""
+                insert into type_schema_version_status (code, label, description, sort_order, is_active, settings)
+                values
+                    ('DRAFT', 'Draft', 'Schema version under edition', 1, true, '{}'),
+                    ('PUBLISHED', 'Published', 'Published immutable schema version', 2, true, '{}')
+                on duplicate key update code = values(code)
+                """);
     }
 
     @Test
