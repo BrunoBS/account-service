@@ -14,6 +14,7 @@ import java.util.Optional;
 public interface SchemaVersionRepository extends JpaRepository<SchemaVersion, Long> {
 
     Optional<SchemaVersion> findByIdentifier(String identifier);
+    Optional<SchemaVersion> findByIdentifierAndSchema_Id(String identifier, Long schemaId);
 
     Optional<SchemaVersion> findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
             Long schemaId,
