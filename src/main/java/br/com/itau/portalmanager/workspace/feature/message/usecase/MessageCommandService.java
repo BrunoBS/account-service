@@ -5,7 +5,6 @@ import br.com.itau.portalmanager.workspace.feature.message.domain.MessageMessage
 import br.com.itau.portalmanager.workspace.feature.message.domain.MessageTranslation;
 import br.com.itau.portalmanager.workspace.feature.message.repository.MessageRepository;
 import br.com.itau.portalmanager.workspace.feature.message.repository.MessageTranslationRepository;
-import br.com.itau.portalmanager.workspace.feature.message.repository.MessageServiceReferenceRepository;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.CreateMessageInput;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.model.MessageOutput;
@@ -31,22 +30,19 @@ public class MessageCommandService {
     private final MessageFinder finder;
     private final MessageNormalizer normalizer;
     private final MessageValidator validator;
-    private final MessageServiceReferenceRepository serviceReferenceRepository;
 
     public MessageCommandService(
             MessageRepository messageRepository,
             MessageTranslationRepository translationRepository,
             MessageFinder finder,
             MessageNormalizer normalizer,
-            MessageValidator validator,
-            MessageServiceReferenceRepository serviceReferenceRepository
+            MessageValidator validator
     ) {
         this.messageRepository = messageRepository;
         this.translationRepository = translationRepository;
         this.finder = finder;
         this.normalizer = normalizer;
         this.validator = validator;
-        this.serviceReferenceRepository = serviceReferenceRepository;
     }
 
     @Transactional
@@ -54,26 +50,23 @@ public class MessageCommandService {
         CreateMessageInput input = normalizer.normalize(rawInput);
 
         boolean keyDuplicate = input != null
-                && input.service() != null
+                && input.serviceIdentifier() != null
                 && input.messageKey() != null
-                && messageRepository.existsByService_CodeAndMessageKey(
-                        input.service(),
+                && messageRepository.existsByServiceIdentifierAndMessageKey(
+                        input.serviceIdentifier(),
                         input.messageKey()
                 );
         boolean codeDuplicate = input != null
-                && input.service() != null
+                && input.serviceIdentifier() != null
                 && input.code() != null
-                && messageRepository.existsByService_CodeAndCode(input.service(), input.code());
+                && messageRepository.existsByServiceIdentifierAndCode(input.serviceIdentifier(), input.code());
 
         validator.validateForCreate(input, keyDuplicate, codeDuplicate);
         validateTranslationsForCreate(input);
 
-        var service = serviceReferenceRepository.findByCode(input.service())
-                .orElseThrow(() -> new IllegalArgumentException("Service not found"));
-
         LocalDateTime now = LocalDateTime.now();
         Message message = new Message(
-                service,
+                input.serviceIdentifier(),
                 input.messageKey(),
                 input.code(),
                 input.httpStatus(),
@@ -105,18 +98,18 @@ public class MessageCommandService {
         UpdateMessageInput input = normalizer.normalize(rawInput);
 
         boolean keyDuplicate = input != null
-                && input.service() != null
+                && input.serviceIdentifier() != null
                 && input.messageKey() != null
-                && messageRepository.existsByService_CodeAndMessageKeyAndIdNot(
-                        input.service(),
+                && messageRepository.existsByServiceIdentifierAndMessageKeyAndIdNot(
+                        input.serviceIdentifier(),
                         input.messageKey(),
                         message.getId()
                 );
         boolean codeDuplicate = input != null
-                && input.service() != null
+                && input.serviceIdentifier() != null
                 && input.code() != null
-                && messageRepository.existsByService_CodeAndCodeAndIdNot(
-                        input.service(),
+                && messageRepository.existsByServiceIdentifierAndCodeAndIdNot(
+                        input.serviceIdentifier(),
                         input.code(),
                         message.getId()
                 );
@@ -124,11 +117,8 @@ public class MessageCommandService {
         validator.validateForUpdate(input, keyDuplicate, codeDuplicate);
         validateVersion(message.getVersion(), input.version());
 
-        var service = serviceReferenceRepository.findByCode(input.service())
-                .orElseThrow(() -> new IllegalArgumentException("Service not found"));
-
         message.update(
-                service,
+                input.serviceIdentifier(),
                 input.messageKey(),
                 input.code(),
                 input.httpStatus(),
