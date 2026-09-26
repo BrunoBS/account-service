@@ -40,14 +40,12 @@ public class SchemaValidator {
             String attributeName,
             ValidationResult result
     ) {
-        String field = attributeName == null ? "settings" : attributeName;
-
         if (schemaDefinition == null || schemaDefinition.isBlank()) {
             result.addError("schema", UNDEFINED);
             return;
         }
         if (configNode == null || configNode.isNull()) {
-            result.addError(field, VALUE_REQUIRED, Map.of("0", field));
+            result.addError(attributeName, VALUE_REQUIRED, Map.of("0", attributeName));
             return;
         }
 
@@ -55,49 +53,43 @@ public class SchemaValidator {
         if (schema != null) {
             schema.validate(configNode).forEach(error ->
                     result.addError(
-                            field,
+                            attributeName,
                             JSON_INVALID,
-                            Map.of("0", field, "1", error.getMessage())
+                            Map.of("0", attributeName, "1", error.getMessage())
                     )
             );
         }
     }
 
-    public void requireValidJson(String schemaDefinition, JsonNode configNode, String attributeName) {
+    public void requireValidSchemaSyntax(JsonNode schemaNode, String attributeName) {
         ValidationResult result = new ValidationResult();
-        validateJson(schemaDefinition, configNode, attributeName, result);
+        validateSchemaSyntax(schemaNode, attributeName, result);
         if (result.hasErrors()) throw new ValidationException(result);
     }
 
-    public void requireValidSchemaSyntax(JsonNode schemaNode) {
-        ValidationResult result = new ValidationResult();
-        validateSchemaSyntax(schemaNode, result);
-        if (result.hasErrors()) throw new ValidationException(result);
-    }
-
-    public void validateSchemaSyntax(JsonNode schemaNode, ValidationResult result) {
+    private void validateSchemaSyntax(JsonNode schemaNode, String attributeName, ValidationResult result) {
         if (schemaNode == null || schemaNode.isEmpty() || !schemaNode.isObject()) {
-            result.addError("jsonSchema", INVALID_SYNTAX);
+            result.addError(attributeName, INVALID_SYNTAX);
             return;
         }
         try {
             schemaRegistry.getSchema(schemaNode);
         } catch (Exception exception) {
-            result.addError("jsonSchema", INVALID_SYNTAX);
+            result.addError(attributeName, INVALID_SYNTAX);
         }
     }
 
-    public String toJsonString(JsonNode node) {
+    public String toJsonString(JsonNode node, String attributeName) {
         try {
             return node != null ? objectMapper.writeValueAsString(node) : null;
         } catch (JacksonException exception) {
             throw new ValidationException(
-                    new ValidationResult("settings", JSON_SERIALIZATION_INVALID)
+                    new ValidationResult(attributeName, JSON_SERIALIZATION_INVALID)
             );
         }
     }
 
-    public JsonNode fromString(String json) {
+    public JsonNode fromString(String json, String attributeName) {
         if (json == null || json.isBlank()) {
             return objectMapper.createObjectNode();
         }
@@ -105,7 +97,7 @@ public class SchemaValidator {
             return objectMapper.readTree(json);
         } catch (JacksonException exception) {
             throw new ValidationException(
-                    new ValidationResult("settings", PERSISTED_JSON_INVALID)
+                    new ValidationResult(attributeName, PERSISTED_JSON_INVALID)
             );
         }
     }

@@ -10,6 +10,8 @@ import tools.jackson.databind.JsonNode;
 @Component
 public class CatalogSettingsValidator {
 
+    private static final String SETTINGS = "settings";
+
     private final JsonSchemaValidator jsonSchemaValidator;
 
     public CatalogSettingsValidator(JsonSchemaValidator jsonSchemaValidator) {
@@ -21,7 +23,7 @@ public class CatalogSettingsValidator {
         jsonSchemaValidator.validateJson(
                 SchemaDefaults.DEFAULT_JSON_SCHEMA,
                 settings,
-                "settings",
+                SETTINGS,
                 schemaResult
         );
 
@@ -31,6 +33,6 @@ public class CatalogSettingsValidator {
     }
 
     public JsonNode fromString(String json) {
-        return jsonSchemaValidator.fromString(json);
+        return jsonSchemaValidator.fromString(json, SETTINGS);
     }
 }

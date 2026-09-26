@@ -16,17 +16,12 @@ public class SchemaJsonValidator implements JsonSchemaValidator {
     }
 
     @Override
-    public void validateJson(
-            String schemaDefinition,
-            JsonNode jsonNode,
-            String attributeName,
-            ValidationResult result
-    ) {
+    public void validateJson(String schemaDefinition, JsonNode jsonNode, String attributeName, ValidationResult result) {
         schemaValidator.validateJson(schemaDefinition, jsonNode, attributeName, result);
     }
 
     @Override
-    public JsonNode fromString(String json) {
-        return schemaValidator.fromString(json);
+    public JsonNode fromString(String json, String attributeName) {
+        return schemaValidator.fromString(json, attributeName);
     }
 }

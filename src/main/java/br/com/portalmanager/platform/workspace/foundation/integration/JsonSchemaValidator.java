@@ -12,5 +12,5 @@ public interface JsonSchemaValidator {
             ValidationResult result
     );
 
-    JsonNode fromString(String json);
+    JsonNode fromString(String json, String attributeName);
 }
