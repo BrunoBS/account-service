@@ -15,19 +15,19 @@ public interface MessageRepository extends JpaRepository<Message,Long>{
 
     @Query("""
             select m from Message m
-             where (:serviceIdentifier is null or m.serviceIdentifier = :serviceIdentifier)
+             where (:serviceId is null or m.serviceId = :serviceId)
                and (:lifecycle is null or m.lifecycle.value = :lifecycle)
                and (:code is null or m.code = :code)
                and (:messageKey is null or m.messageKey = :messageKey)
-             order by m.serviceIdentifier asc, m.messageKey asc
+             order by m.serviceId asc, m.messageKey asc
             """)
-    List<Message> findFiltered(@Param("serviceIdentifier") String serviceIdentifier,
+    List<Message> findFiltered(@Param("serviceId") Long serviceId,
                                @Param("lifecycle") String lifecycle,
                                @Param("code") String code,
                                @Param("messageKey") String messageKey);
 
-    boolean existsByServiceIdentifierAndMessageKey(String serviceIdentifier,String messageKey);
-    boolean existsByServiceIdentifierAndMessageKeyAndIdNot(String serviceIdentifier,String messageKey,Long id);
-    boolean existsByServiceIdentifierAndCode(String serviceIdentifier,String code);
-    boolean existsByServiceIdentifierAndCodeAndIdNot(String serviceIdentifier,String code,Long id);
+    boolean existsByServiceIdAndMessageKey(Long serviceId,String messageKey);
+    boolean existsByServiceIdAndMessageKeyAndIdNot(Long serviceId,String messageKey,Long id);
+    boolean existsByServiceIdAndCode(Long serviceId,String code);
+    boolean existsByServiceIdAndCodeAndIdNot(Long serviceId,String code,Long id);
 }
