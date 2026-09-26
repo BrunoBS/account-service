@@ -9,7 +9,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.repository.Sche
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Service;

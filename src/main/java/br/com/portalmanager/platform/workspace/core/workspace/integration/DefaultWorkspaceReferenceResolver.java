@@ -1,15 +1,16 @@
 package br.com.portalmanager.platform.workspace.core.workspace.integration;
 
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.WorkspaceQueryService;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SchemaWorkspaceReferenceResolver implements WorkspaceReferenceResolver {
+public class DefaultWorkspaceReferenceResolver implements WorkspaceReferenceResolver {
 
     private final WorkspaceQueryService workspaceQueryService;
 
-    public SchemaWorkspaceReferenceResolver(WorkspaceQueryService workspaceQueryService) {
+    public DefaultWorkspaceReferenceResolver(WorkspaceQueryService workspaceQueryService) {
         this.workspaceQueryService = workspaceQueryService;
     }
 

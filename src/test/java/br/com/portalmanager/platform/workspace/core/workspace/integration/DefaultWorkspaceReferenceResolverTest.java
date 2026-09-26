@@ -15,14 +15,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class SchemaWorkspaceReferenceResolverTest {
+class DefaultWorkspaceReferenceResolverTest {
 
     private final WorkspaceRepository repository = mock(WorkspaceRepository.class);
     private final WorkspaceFinder finder = new WorkspaceFinder(repository);
     private final WorkspaceQueryService queryService =
             new WorkspaceQueryService(repository, finder, null, null, null);
-    private final SchemaWorkspaceReferenceResolver resolver =
-            new SchemaWorkspaceReferenceResolver(queryService);
+    private final DefaultWorkspaceReferenceResolver resolver =
+            new DefaultWorkspaceReferenceResolver(queryService);
 
     @Test
     void resolvesBothDirectionsForActiveWorkspace() {

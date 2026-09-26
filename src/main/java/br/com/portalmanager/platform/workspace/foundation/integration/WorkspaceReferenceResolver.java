@@ -1,4 +1,4 @@
-package br.com.portalmanager.platform.workspace.foundation.schema.integration;
+package br.com.portalmanager.platform.workspace.foundation.integration;
 
 public interface WorkspaceReferenceResolver {
 

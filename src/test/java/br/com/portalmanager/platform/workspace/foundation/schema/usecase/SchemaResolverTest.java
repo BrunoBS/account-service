@@ -8,7 +8,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.repository.Sche
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaResolution;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.schema.SchemaResolver;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
