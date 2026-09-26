@@ -341,6 +341,8 @@ class GoldenArchitectureTest {
                             ROOT + ".foundation.catalog.schemascopetype.domain"
                     ) || targetPackage.startsWith(
                             ROOT + ".foundation.catalog.schemaversionstatustype.domain"
+                    ) || targetPackage.startsWith(
+                            ROOT + ".foundation.catalog.schematype.usecase"
                     );
                     if (!approved) {
                         events.add(SimpleConditionEvent.violated(
