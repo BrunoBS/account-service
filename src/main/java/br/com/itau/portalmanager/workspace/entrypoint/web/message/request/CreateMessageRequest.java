@@ -5,7 +5,7 @@ import br.com.itau.portalmanager.workspace.feature.message.usecase.model.CreateM
 import java.util.List;
 
 public record CreateMessageRequest(
-        String service,
+        String serviceIdentifier,
         String messageKey,
         String code,
         Integer httpStatus,
@@ -14,7 +14,7 @@ public record CreateMessageRequest(
 ) {
     public CreateMessageInput toInput() {
         return new CreateMessageInput(
-                service,
+                serviceIdentifier,
                 messageKey,
                 code,
                 httpStatus,
