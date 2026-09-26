@@ -12,7 +12,8 @@ Accepted.
 
 A G4 deve demonstrar capacidades transversais da Foundation somente quando existe um caso real no domínio Account.
 
-A matriz funcional exige autorização por nível e por authorizer group, tags manuais/sistema e auditoria das mutações. AccountType permanece um conjunto fechado ADMIN/MANAGER, sem requisito de administrabilidade runtime.
+A matriz funcional exige autorização por nível e por authorizer group, tags manuais/sistema e auditoria das mutações.
+AccountType permanece um conjunto fechado ADMIN/MANAGER, sem requisito de administrabilidade runtime.
 
 ## Decisão — Authorization
 
@@ -33,7 +34,8 @@ OPEN continua exigindo correlation id e Bearer token porque essa é a semântica
 
 Leituras usam `@ResourceVisibility`. `AccountResult` implementa `AuthorizableResource` usando `authorizerGroup`.
 
-OWNER ignora a filtragem. Um usuário comum precisa possuir authorizer compatível. Conta sem authorizer group não é aberta automaticamente; somente OWNER a enxerga.
+OWNER ignora a filtragem. Um usuário comum precisa possuir authorizer compatível. Conta sem authorizer group não é
+aberta automaticamente; somente OWNER a enxerga.
 
 ## Decisão — Tagging
 
@@ -53,7 +55,8 @@ Tags de sistema são:
 - authorizerGroup;
 - acronym.
 
-`TagManager.reconcile` é usado em create/update/restore. A capability é responsável por normalização/deduplicação; a aplicação não recria essas regras.
+`TagManager.reconcile` é usado em create/update/restore. A capability é responsável por normalização/deduplicação; a
+aplicação não recria essas regras.
 
 A tabela `tags` é criada por migration da aplicação, não por schema implícito da Foundation.
 
@@ -70,13 +73,15 @@ restore    → RESTORE
 
 Resource = `ACCOUNT`.
 
-O endpoint externo é fornecido por `AUDIT_SERVICE_URL`. `fail-on-error=false` mantém audit desacoplado da transação funcional no runtime padrão.
+O endpoint externo é fornecido por `AUDIT_SERVICE_URL`. `fail-on-error=false` mantém audit desacoplado da transação
+funcional no runtime padrão.
 
 ## Decisão — Catalog
 
 `platform-catalog` não entra na G4.
 
-AccountType permanece enum explícito `ADMIN | MANAGER`. Não há requisito de administrar tipos em runtime, portanto um catálogo persistido seria abstração/comportamento sem caso real.
+AccountType permanece enum explícito `ADMIN | MANAGER`. Não há requisito de administrar tipos em runtime, portanto um
+catálogo persistido seria abstração/comportamento sem caso real.
 
 ## Decisão — Messaging e Logging
 

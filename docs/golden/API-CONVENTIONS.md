@@ -21,7 +21,8 @@ UpdateWorkspaceRequest
 WorkspaceResponse
 ```
 
-A entidade `Workspace` permanece interna ao Core. Request/Response pertencem a `input.web.workspace`; Input/Output pertencem aos Use Cases.
+A entidade `Workspace` permanece interna ao Core. Request/Response pertencem a `input.web.workspace`; Input/Output
+pertencem aos Use Cases.
 
 ## Create
 
@@ -118,16 +119,17 @@ Not found específico de Workspace usa `WORKSPACE-0001`.
 
 Todos os endpoints passam pela capability `platform-authorization`.
 
-| Operação | Policy |
-|---|---|
-| create | OPEN |
-| list | OPEN |
-| get por id | DEV |
-| update | ADM |
-| inactivate | ADM |
-| restore | ADM |
+| Operação   | Policy |
+|------------|--------|
+| create     | OPEN   |
+| list       | OPEN   |
+| get por id | DEV    |
+| update     | ADM    |
+| inactivate | ADM    |
+| restore    | ADM    |
 
-No contrato atual da Foundation, `OPEN` não significa anônimo: o interceptor ainda exige `X-Correlation-Id` e token Bearer.
+No contrato atual da Foundation, `OPEN` não significa anônimo: o interceptor ainda exige `X-Correlation-Id` e token
+Bearer.
 
 Leituras usam `@ResourceVisibility` sobre `WorkspaceOutput`:
 
@@ -137,7 +139,8 @@ Leituras usam `@ResourceVisibility` sobre `WorkspaceOutput`:
 - coleções são filtradas;
 - Workspace sem `authorizerGroup` fica visível apenas para OWNER.
 
-O campo técnico `accountId` do UserContext/Authorization pertence ao contrato da Foundation e não representa o agregado Workspace; por isso não é renomeado nesta atividade.
+O campo técnico `accountId` do UserContext/Authorization pertence ao contrato da Foundation e não representa o agregado
+Workspace; por isso não é renomeado nesta atividade.
 
 ## Tagging
 
@@ -159,9 +162,11 @@ owner_id   = Workspace.identifier
 
 A migration V3 converte registros existentes de `owner_type = ACCOUNT` para `WORKSPACE`.
 
-`tagName` usa a normalização de `platform-tagging` e pesquisa tags manuais e de sistema. A busca reversa por owner é encapsulada em `core.workspace.integration.tagging`, pois essa operação não existe na API pública atual de `TagManager`.
+`tagName` usa a normalização de `platform-tagging` e pesquisa tags manuais e de sistema. A busca reversa por owner é
+encapsulada em `core.workspace.integration.tagging`, pois essa operação não existe na API pública atual de `TagManager`.
 
-Update reconcilia tags, removendo valores de sistema obsoletos e criando os atuais. Restore também reconcilia as tags de sistema preservando as manuais.
+Update reconcilia tags, removendo valores de sistema obsoletos e criando os atuais. Restore também reconcilia as tags de
+sistema preservando as manuais.
 
 ## Audit
 

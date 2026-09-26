@@ -5,18 +5,24 @@
 **Fase atual:** Golden Reference  
 **Data de início:** 2026-09-20
 
-> **Atualização pós-G4 — 2026-09-21:** o conceito de negócio anteriormente denominado `Account` foi renomeado para `Workspace`, e a arquitetura de packages foi substituída pelo padrão registrado em `docs/golden/ADR-ADEQUACAO-ARQUITETURAL-POS-G4.md` e `docs/golden/PLANO-ADEQUACAO-ARQUITETURAL-POS-G4.md`. As referências a Account nas seções G0–G4 abaixo são preservadas como registro histórico do plano e das evidências produzidas naquele momento; não definem a nomenclatura ou arquitetura ativa pós-G4.
+> **Atualização pós-G4 — 2026-09-21:** o conceito de negócio anteriormente denominado `Account` foi renomeado para
+`Workspace`, e a arquitetura de packages foi substituída pelo padrão registrado em
+`docs/golden/ADR-ADEQUACAO-ARQUITETURAL-POS-G4.md` e `docs/golden/PLANO-ADEQUACAO-ARQUITETURAL-POS-G4.md`. As
+> referências a Account nas seções G0–G4 abaixo são preservadas como registro histórico do plano e das evidências
+> produzidas naquele momento; não definem a nomenclatura ou arquitetura ativa pós-G4.
 
 ## 1. Objetivo
 
-Construir uma aplicação real de referência sobre a Foundation estabilizada da Golden Platform e provar, em código executável, como novos serviços devem utilizar:
+Construir uma aplicação real de referência sobre a Foundation estabilizada da Golden Platform e provar, em código
+executável, como novos serviços devem utilizar:
 
 - Foundation consolidada no repositório `BrunoBS/platform-libraries`;
 - `platform-libraries`;
 - os padrões arquiteturais aprovados;
 - capacidades transversais somente quando houver caso real de uso.
 
-A Golden Reference não será um framework genérico, uma continuação do `platform-crud`, um protótipo de Scaffold nem uma cópia da `account-api`.
+A Golden Reference não será um framework genérico, uma continuação do `platform-crud`, um protótipo de Scaffold nem uma
+cópia da `account-api`.
 
 Princípio orientador:
 
@@ -73,7 +79,8 @@ Capabilities explícitas:
 - `platform-tagging`;
 - `platform-testing` em escopo de teste.
 
-A Golden não deve modificar a Foundation por preferência arquitetural. Caso seja encontrado um gap real, ele deverá ser registrado com evidência e discutido separadamente antes de qualquer alteração.
+A Golden não deve modificar a Foundation por preferência arquitetural. Caso seja encontrado um gap real, ele deverá ser
+registrado com evidência e discutido separadamente antes de qualquer alteração.
 
 ## 4. Papel da account-api
 
@@ -164,7 +171,8 @@ Não há evidência, neste checkpoint, que justifique arquitetura multi-module.
 
 O repositório deve ser novo e separado da `account-api`, preservando o legado como referência comparável.
 
-Repositório definido: `BrunoBS/account-service`. Coordenada Maven da aplicação: `br.com.portalmanager:account-service:0.1.0-SNAPSHOT`. Package root Java oficial: `br.com.portalmanager.account`.
+Repositório definido: `BrunoBS/account-service`. Coordenada Maven da aplicação:
+`br.com.portalmanager:account-service:0.1.0-SNAPSHOT`. Package root Java oficial: `br.com.portalmanager.account`.
 
 ### 7.2 Organização por feature
 
@@ -432,7 +440,8 @@ Provar:
 - CI;
 - `mvn clean verify`.
 
-Critério de saída: serviço vazio, compilável, executável e consumindo a Foundation publicada sem checkout ou install local.
+Critério de saída: serviço vazio, compilável, executável e consumindo a Foundation publicada sem checkout ou install
+local.
 
 ### G2 — Persistência e modelo mínimo
 
@@ -580,8 +589,11 @@ Antes de avançar de forma definitiva para a implementação, registrar decisão
 
 1. ~~nome do novo repositório e package root~~ — definido: `BrunoBS/account-service` / `br.com.portalmanager.account`;
 2. ~~ferramenta de migrations~~ — definida: Flyway (`ADR-002-G2-PERSISTENCE-BASELINE.md`);
-3. ~~política de compatibilidade de API com `account-api`~~ — definida: preservar comportamento aprovado, sem compromisso de wire compatibility total (`ADR-003-G3-ACCOUNT-API.md`);
-4. ~~uso ou não de `ResourceVisibility`~~ — definido em G4: usado em leituras de Account com `authorizerGroup` (`ADR-004-G4-TRANSVERSAL-CAPABILITIES.md`);
-5. ~~modelagem de lifecycle de Account~~ — definida: estado explícito `ACTIVE | INACTIVE` no domínio (`ADR-002-G2-PERSISTENCE-BASELINE.md`).
+3. ~~política de compatibilidade de API com `account-api`~~ — definida: preservar comportamento aprovado, sem
+   compromisso de wire compatibility total (`ADR-003-G3-ACCOUNT-API.md`);
+4. ~~uso ou não de `ResourceVisibility`~~ — definido em G4: usado em leituras de Account com `authorizerGroup` (
+   `ADR-004-G4-TRANSVERSAL-CAPABILITIES.md`);
+5. ~~modelagem de lifecycle de Account~~ — definida: estado explícito `ACTIVE | INACTIVE` no domínio (
+   `ADR-002-G2-PERSISTENCE-BASELINE.md`).
 
 Essas decisões não autorizam alterações na Foundation.

@@ -1,9 +1,9 @@
 package br.com.portalmanager.platform.workspace.feature.message.usecase;
 
-import br.com.portalmanager.platform.workspace.feature.message.domain.Message;
-import br.com.portalmanager.platform.workspace.feature.message.usecase.validation.MessageValidator;
 import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.workspace.feature.message.domain.Message;
+import br.com.portalmanager.platform.workspace.feature.message.usecase.validation.MessageValidator;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

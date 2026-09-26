@@ -7,7 +7,8 @@
 
 ## Escopo entregue
 
-A G3 implementou create, get, list/filter, update, deactivate e restore com contratos HTTP explícitos, normalização, validação, transações e tratamento de erros.
+A G3 implementou create, get, list/filter, update, deactivate e restore com contratos HTTP explícitos, normalização,
+validação, transações e tratamento de erros.
 
 Não foram antecipados authorization, audit, tagging, catalog ou onboarding.
 
@@ -77,7 +78,8 @@ Correção: commit `3fe68e70a9d5d25c5bc25c3a39451995bdf4a21d`.
 
 Com JPA/MySQL presente, `platform-messaging` detecta `JdbcTemplate` e pode selecionar o repository JDBC de mensagens.
 
-O banco de Account não é um catálogo corporativo de mensagens. A Golden registra explicitamente `NoOpApiMessageRepository` e usa bundles classpath.
+O banco de Account não é um catálogo corporativo de mensagens. A Golden registra explicitamente
+`NoOpApiMessageRepository` e usa bundles classpath.
 
 Correção: commit `7a36db1c3ffb5b78c252845ce6c7dbb92a38e540`.
 

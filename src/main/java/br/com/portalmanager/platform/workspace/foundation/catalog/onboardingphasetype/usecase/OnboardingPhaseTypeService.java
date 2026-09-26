@@ -1,10 +1,10 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.usecase;
 
+import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
+import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSettingsValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.repository.OnboardingPhaseTypeRepository;
-import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSettingsValidator;
-import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 

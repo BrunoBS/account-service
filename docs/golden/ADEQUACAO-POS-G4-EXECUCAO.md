@@ -77,12 +77,13 @@ As ocorrências remanescentes foram classificadas e são conscientes:
 5. documentação histórica G0–G4;
 6. hospedagem `BrunoBS/account-service`.
 
-Não há classes, packages, endpoints, payloads, repositories ou entidades ativos usando Account como nome do agregado da Golden Reference.
+Não há classes, packages, endpoints, payloads, repositories ou entidades ativos usando Account como nome do agregado da
+Golden Reference.
 
 ## Resultado
 
-A adequação arquitetural pós-G4 está tecnicamente concluída e pronta para review humano antes de qualquer avanço de fase.
-
+A adequação arquitetural pós-G4 está tecnicamente concluída e pronta para review humano antes de qualquer avanço de
+fase.
 
 ## Review corretivo posterior
 

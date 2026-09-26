@@ -1,5 +1,10 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.schema;
 
+import br.com.portalmanager.platform.library.audit.annotation.AuditField;
+import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.CreateSchemaRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.CreateSchemaVersionRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.UpdateSchemaRequest;
@@ -8,11 +13,6 @@ import br.com.portalmanager.platform.workspace.entrypoint.web.schema.response.Sc
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaCommandService;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaQueryService;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.version.SchemaVersionCommandService;
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

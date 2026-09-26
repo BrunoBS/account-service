@@ -10,9 +10,11 @@ Accepted.
 
 ## Contexto
 
-A G3 demonstra o ciclo de vida real de Account sem reconstruir CRUD genérico e sem antecipar capabilities transversais previstas para G4/G5.
+A G3 demonstra o ciclo de vida real de Account sem reconstruir CRUD genérico e sem antecipar capabilities transversais
+previstas para G4/G5.
 
-O legado expõe `/api/v1/accounts` e possui comportamentos funcionais que devem ser preservados. O projeto não aprovou compatibilidade wire-level total com `account-api`.
+O legado expõe `/api/v1/accounts` e possui comportamentos funcionais que devem ser preservados. O projeto não aprovou
+compatibilidade wire-level total com `account-api`.
 
 ## Decisão — compatibilidade
 
@@ -87,7 +89,9 @@ Mensagens específicas de Account são fornecidas por:
 META-INF/platform-messages/account-service_pt_BR.properties
 ```
 
-Como o serviço possui DataSource próprio, a Golden registra explicitamente `NoOpApiMessageRepository`. Isso impede que o DataSource de Account seja interpretado como catálogo JDBC de mensagens e mantém os bundles classpath como fonte desta aplicação.
+Como o serviço possui DataSource próprio, a Golden registra explicitamente `NoOpApiMessageRepository`. Isso impede que o
+DataSource de Account seja interpretado como catálogo JDBC de mensagens e mantém os bundles classpath como fonte desta
+aplicação.
 
 Não existe envelope de erro paralelo.
 

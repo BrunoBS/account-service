@@ -2,9 +2,11 @@
 
 ## 1. Objetivo
 
-Adequar o baseline funcional concluído na G4 ao padrão de `GOLDEN_REFERENCE_PADRAO_ARQUITETURAL.md`, preservando comportamento de negócio e incorporando explicitamente a decisão de domínio `Account -> Workspace`.
+Adequar o baseline funcional concluído na G4 ao padrão de `GOLDEN_REFERENCE_PADRAO_ARQUITETURAL.md`, preservando
+comportamento de negócio e incorporando explicitamente a decisão de domínio `Account -> Workspace`.
 
-A mudança nominal de contratos externos/persistidos é a única alteração observável deliberada; ela será tratada por migration e atualização coordenada de testes/documentação.
+A mudança nominal de contratos externos/persistidos é a única alteração observável deliberada; ela será tratada por
+migration e atualização coordenada de testes/documentação.
 
 ## 2. Baseline
 
@@ -102,36 +104,36 @@ br.com.portalmanager.account
 
 ## 5. Gap analysis
 
-| Origem atual | Destino | Ação | Justificativa | Risco/Dependências |
-|---|---|---|---|---|
-| `br.com.portalmanager.account` | `br.com.itau.portalmanager.workspace` | mover/renomear | namespace alvo aprovado | imports, component scan, testes |
-| `api` | `input.web.workspace` | mover | Web é porta de entrada | contratos HTTP |
-| `AccountController` | `WorkspaceController` | renomear/mover | domínio Workspace | endpoint, audit |
-| `Create/UpdateAccountRequest` | `Create/UpdateWorkspaceRequest` | renomear | contrato Web explícito | JSON |
-| `AccountResponse` | `WorkspaceResponse` | renomear | contrato Web explícito | JSON |
-| `AccountService` | Use Cases por intenção | decompor | Use Case é API interna | transações, annotations |
-| `Command/Result` | `Input/Output` | substituir | padrão alvo | mapeamentos |
-| `AccountNormalizer` | `core.workspace.usecase.support` | manter/refatorar | suporte compartilhado de orquestração | tagging normalizer |
-| `AccountValidator` | `domain.validation` + Use Cases | dividir | domínio sem repository; UC trata unicidade | mensagens |
-| `Account` | `core.workspace.domain.Workspace` | renomear/mover | decisão de domínio | JPA/migration |
-| `AccountApprover` | `WorkspaceApprover` | renomear/mover | agregado Workspace | FK |
-| `AccountType` | `foundation.catalog.domain.WorkspaceType` | renomear/mover | tipo persistido/catalog | coluna/JSON |
-| `AccountLifecycle` | `foundation.catalog.domain.LifecycleType` | renomear/mover | tipo persistido/catalog | coluna |
-| `AccountRepository` | `core.workspace.repository.WorkspaceRepository` | renomear/mover | persistência própria | queries |
-| JPQL contra `Tag` | `core.workspace.integration.tagging` | remover/refatorar | integração externa não pertence ao repository | contrato tabela tags |
-| `AccountSystemTagProvider` | `core.workspace.domain.WorkspaceSystemTagProvider` | mover/renomear | regra de tags de sistema é do domínio | sem dependência externa |
-| `AccountTagOwnerType.ACCOUNT` | owner `WORKSPACE` | substituir | domínio renomeado | dados existentes em tags |
-| `configuration.MessagingConfiguration` | composition root / `WorkspaceMessagingConfiguration` | mover/renomear | wiring técnico do consumidor; ADR-006 | bean loading |
-| `/api/v1/accounts` | `/api/v1/workspaces` | alterar | contrato alinhado ao domínio | breaking HTTP |
-| JSON `accountType` | `workspaceType` | alterar | contrato alinhado ao domínio | breaking HTTP |
-| audit `ACCOUNT` | `WORKSPACE` | alterar | taxonomia alinhada | eventos futuros |
-| service name `account-service` | `workspace-service` | alterar | identidade ativa | observabilidade/audit/config |
-| artifactId `account-service` | `workspace-service` | alterar | identidade ativa | coordenada Maven |
-| `accounts/account_approvers` | `workspaces/workspace_approvers` | migration V3 | persistência alinhada | Flyway |
-| `account_type/account_id` | `workspace_type/workspace_id` | migration V3 | persistência alinhada | JPA/FK |
-| V1/V2 históricas | manter | manter | não quebrar Flyway | ocorrência Account consciente |
-| testes atuais | packages/classes/contratos Workspace | refatorar | preservar cobertura | 26 testes |
-| `GoldenArchitectureTest` | fitness functions completas | ampliar | governança executável | ArchUnit |
+| Origem atual                           | Destino                                              | Ação              | Justificativa                                 | Risco/Dependências              |
+|----------------------------------------|------------------------------------------------------|-------------------|-----------------------------------------------|---------------------------------|
+| `br.com.portalmanager.account`         | `br.com.itau.portalmanager.workspace`                | mover/renomear    | namespace alvo aprovado                       | imports, component scan, testes |
+| `api`                                  | `input.web.workspace`                                | mover             | Web é porta de entrada                        | contratos HTTP                  |
+| `AccountController`                    | `WorkspaceController`                                | renomear/mover    | domínio Workspace                             | endpoint, audit                 |
+| `Create/UpdateAccountRequest`          | `Create/UpdateWorkspaceRequest`                      | renomear          | contrato Web explícito                        | JSON                            |
+| `AccountResponse`                      | `WorkspaceResponse`                                  | renomear          | contrato Web explícito                        | JSON                            |
+| `AccountService`                       | Use Cases por intenção                               | decompor          | Use Case é API interna                        | transações, annotations         |
+| `Command/Result`                       | `Input/Output`                                       | substituir        | padrão alvo                                   | mapeamentos                     |
+| `AccountNormalizer`                    | `core.workspace.usecase.support`                     | manter/refatorar  | suporte compartilhado de orquestração         | tagging normalizer              |
+| `AccountValidator`                     | `domain.validation` + Use Cases                      | dividir           | domínio sem repository; UC trata unicidade    | mensagens                       |
+| `Account`                              | `core.workspace.domain.Workspace`                    | renomear/mover    | decisão de domínio                            | JPA/migration                   |
+| `AccountApprover`                      | `WorkspaceApprover`                                  | renomear/mover    | agregado Workspace                            | FK                              |
+| `AccountType`                          | `foundation.catalog.domain.WorkspaceType`            | renomear/mover    | tipo persistido/catalog                       | coluna/JSON                     |
+| `AccountLifecycle`                     | `foundation.catalog.domain.LifecycleType`            | renomear/mover    | tipo persistido/catalog                       | coluna                          |
+| `AccountRepository`                    | `core.workspace.repository.WorkspaceRepository`      | renomear/mover    | persistência própria                          | queries                         |
+| JPQL contra `Tag`                      | `core.workspace.integration.tagging`                 | remover/refatorar | integração externa não pertence ao repository | contrato tabela tags            |
+| `AccountSystemTagProvider`             | `core.workspace.domain.WorkspaceSystemTagProvider`   | mover/renomear    | regra de tags de sistema é do domínio         | sem dependência externa         |
+| `AccountTagOwnerType.ACCOUNT`          | owner `WORKSPACE`                                    | substituir        | domínio renomeado                             | dados existentes em tags        |
+| `configuration.MessagingConfiguration` | composition root / `WorkspaceMessagingConfiguration` | mover/renomear    | wiring técnico do consumidor; ADR-006         | bean loading                    |
+| `/api/v1/accounts`                     | `/api/v1/workspaces`                                 | alterar           | contrato alinhado ao domínio                  | breaking HTTP                   |
+| JSON `accountType`                     | `workspaceType`                                      | alterar           | contrato alinhado ao domínio                  | breaking HTTP                   |
+| audit `ACCOUNT`                        | `WORKSPACE`                                          | alterar           | taxonomia alinhada                            | eventos futuros                 |
+| service name `account-service`         | `workspace-service`                                  | alterar           | identidade ativa                              | observabilidade/audit/config    |
+| artifactId `account-service`           | `workspace-service`                                  | alterar           | identidade ativa                              | coordenada Maven                |
+| `accounts/account_approvers`           | `workspaces/workspace_approvers`                     | migration V3      | persistência alinhada                         | Flyway                          |
+| `account_type/account_id`              | `workspace_type/workspace_id`                        | migration V3      | persistência alinhada                         | JPA/FK                          |
+| V1/V2 históricas                       | manter                                               | manter            | não quebrar Flyway                            | ocorrência Account consciente   |
+| testes atuais                          | packages/classes/contratos Workspace                 | refatorar         | preservar cobertura                           | 26 testes                       |
+| `GoldenArchitectureTest`               | fitness functions completas                          | ampliar           | governança executável                         | ArchUnit                        |
 
 ## 6. Violações encontradas
 
@@ -145,7 +147,8 @@ O único `AccountService` é uma API interna monolítica e não demonstra o padr
 
 ### Persistência cruzada
 
-`AccountRepository.findFiltered` faz subquery JPQL em `Tag`, expondo uma dependência de persistência que não pertence ao módulo.
+`AccountRepository.findFiltered` faz subquery JPQL em `Tag`, expondo uma dependência de persistência que não pertence ao
+módulo.
 
 ### Validação
 
@@ -153,7 +156,8 @@ O único `AccountService` é uma API interna monolítica e não demonstra o padr
 
 ### Governança
 
-O ArchUnit atual não protege topologia, macrozonas, Integration, Controllers por annotation ou acesso cruzado entre módulos.
+O ArchUnit atual não protege topologia, macrozonas, Integration, Controllers por annotation ou acesso cruzado entre
+módulos.
 
 ## 7. Classificação Account -> Workspace
 
@@ -503,10 +507,12 @@ Não permanece arquitetura ativa híbrida Account/Workspace.
 
 ### Divergências mantidas
 
-- `feature` não possui classes porque não existe Feature real no baseline pós-G4; criar pacote vazio violaria a diretriz do padrão.
-- o repositório GitHub não foi renomeado, pois isso é mudança administrativa externa sem necessidade para a adequação arquitetural.
-- a integração de busca de tags usa leitura SQL explícita da tabela administrada pela capability porque `TagManager` não expõe busca reversa por tag; a Foundation não foi modificada nesta atividade.
-
+- `feature` não possui classes porque não existe Feature real no baseline pós-G4; criar pacote vazio violaria a diretriz
+  do padrão.
+- o repositório GitHub não foi renomeado, pois isso é mudança administrativa externa sem necessidade para a adequação
+  arquitetural.
+- a integração de busca de tags usa leitura SQL explícita da tabela administrada pela capability porque `TagManager` não
+  expõe busca reversa por tag; a Foundation não foi modificada nesta atividade.
 
 ## 13. Review corretivo da fase
 

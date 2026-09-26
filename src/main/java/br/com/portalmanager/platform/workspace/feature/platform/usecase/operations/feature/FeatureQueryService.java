@@ -5,10 +5,9 @@ import br.com.portalmanager.platform.workspace.feature.platform.repository.Featu
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.FeatureContextOutput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.FeatureOutput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
-import org.springframework.transaction.annotation.Transactional;
 
 @org.springframework.stereotype.Service
 public class FeatureQueryService {

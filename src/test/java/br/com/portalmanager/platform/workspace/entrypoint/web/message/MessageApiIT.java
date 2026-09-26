@@ -18,11 +18,7 @@ import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 
 @PlatformIntegrationTest
 @WithMySql
@@ -446,11 +442,11 @@ class MessageApiIT {
     private int translationCount(String messageIdentifier) {
         return jdbcTemplate.queryForObject(
                 """
-                select count(*)
-                  from message_translations mt
-                  join messages m on m.id = mt.message_id
-                 where m.identifier = ?
-                """,
+                        select count(*)
+                          from message_translations mt
+                          join messages m on m.id = mt.message_id
+                         where m.identifier = ?
+                        """,
                 Integer.class,
                 messageIdentifier
         );
@@ -459,11 +455,11 @@ class MessageApiIT {
     private int viewCount(String key, String locale) {
         return jdbcTemplate.queryForObject(
                 """
-                select count(*)
-                  from vw_platform_messages
-                 where message_key = ?
-                   and locale = ?
-                """,
+                        select count(*)
+                          from vw_platform_messages
+                         where message_key = ?
+                           and locale = ?
+                        """,
                 Integer.class,
                 key,
                 locale

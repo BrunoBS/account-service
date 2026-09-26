@@ -72,10 +72,10 @@ public class MessageTranslationCommandService {
         boolean localeDuplicate = input != null
                 && input.locale() != null
                 && repository.existsByMessageIdAndLocaleAndIdNot(
-                        message.getId(),
-                        input.locale(),
-                        translation.getId()
-                );
+                message.getId(),
+                input.locale(),
+                translation.getId()
+        );
 
         validator.validateTranslationForUpdate(input, localeDuplicate);
         validator.validateVersion(translation.getVersion(), input.version());

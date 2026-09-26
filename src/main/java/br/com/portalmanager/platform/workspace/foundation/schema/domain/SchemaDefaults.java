@@ -3,10 +3,6 @@ package br.com.portalmanager.platform.workspace.foundation.schema.domain;
 public final class SchemaDefaults {
 
     public static final String DEFAULT_SCHEMA_TYPE_CODE = "DEFAULT";
-
-    private SchemaDefaults() {
-    }
-
     /**
      * Legacy/catalog fallback kept intentionally restrictive until catalog settings
      * are migrated to explicit Schema V2 contracts.
@@ -21,7 +17,6 @@ public final class SchemaDefaults {
               }
             }
             """;
-
     /**
      * Schema V2 platform fallback. This is the contract seeded by V17 and used
      * only through SchemaResolver when no specific PLATFORM schema exists.
@@ -34,4 +29,7 @@ public final class SchemaDefaults {
               "additionalProperties": true
             }
             """;
+
+    private SchemaDefaults() {
+    }
 }

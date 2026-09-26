@@ -1,20 +1,18 @@
 package br.com.portalmanager.platform.workspace.core.workspace.integration;
 
-import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceFinder;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
+import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceFinder;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class DefaultWorkspaceReferenceResolverTest {
 

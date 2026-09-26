@@ -1,9 +1,9 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.validation;
 
+import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateFeatureInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateFeatureInput;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
 import org.springframework.stereotype.Component;
 
 @Component

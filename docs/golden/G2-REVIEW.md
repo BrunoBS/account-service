@@ -139,7 +139,8 @@ Busca no repositório após a implementação:
 
 O run #26 registrou `Testcontainers version: 2.0.5`.
 
-Após a G2, a Foundation removeu a gestão duplicada de Testcontainers de `platform-dependencies` e manteve Spring Boot 4.1.1 como fonte tecnológica da versão efetiva.
+Após a G2, a Foundation removeu a gestão duplicada de Testcontainers de `platform-dependencies` e manteve Spring Boot
+4.1.1 como fonte tecnológica da versão efetiva.
 
 Evidência da correção:
 

@@ -9,7 +9,8 @@ final class PlatformValidation {
     private static final Pattern CODE = Pattern.compile("^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$");
     private static final String PREFIX = "platform.";
 
-    private PlatformValidation() {}
+    private PlatformValidation() {
+    }
 
     static void validate(String code, boolean requireCode, String name, String description, boolean codeDuplicate,
                          boolean nameDuplicate, String microserviceIdentifier, boolean requireMicroservice,

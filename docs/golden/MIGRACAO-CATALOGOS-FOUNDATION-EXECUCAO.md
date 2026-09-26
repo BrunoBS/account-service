@@ -39,7 +39,8 @@ br.com.itau.portalmanager.workspace
         └── catalog
 ```
 
-Cada catálogo é um módulo interno de `foundation/catalog` e contém suas próprias layers `domain`, `repository` e `usecase`.
+Cada catálogo é um módulo interno de `foundation/catalog` e contém suas próprias layers `domain`, `repository` e
+`usecase`.
 
 Nenhum catálogo Java ativo ficou em Core ou Feature.
 

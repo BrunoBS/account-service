@@ -1,23 +1,34 @@
 package br.com.portalmanager.platform.workspace.feature.message.usecase.validation;
 
-import br.com.portalmanager.platform.workspace.feature.message.domain.MessageMessageKeys;
+import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.feature.message.domain.Message;
+import br.com.portalmanager.platform.workspace.feature.message.domain.MessageMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.message.domain.MessageTranslation;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.CreateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageTranslationInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceQueryService;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;
 
-import java.util.regex.Pattern;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 @Component
 public class MessageValidator {
+
+    private static final Pattern MESSAGE_KEY_PATTERN =
+            Pattern.compile("^[a-z0-9][a-z0-9._-]{0,254}$");
+    private static final Pattern CODE_PATTERN =
+            Pattern.compile("^[A-Z][A-Z0-9-]{2,49}$");
+    private static final Pattern LOCALE_PATTERN =
+            Pattern.compile("^[a-z]{2,3}(?:-[A-Z]{2}|-[0-9]{3})?(?:-[A-Za-z0-9]{4,8})*$");
+    private final MicroserviceQueryService microserviceQueryService;
+    public MessageValidator(MicroserviceQueryService microserviceQueryService) {
+        this.microserviceQueryService = microserviceQueryService;
+    }
 
     public void validateVersion(Long currentVersion, Long requestedVersion) {
         if (!Objects.equals(currentVersion, requestedVersion)) {
@@ -33,19 +44,6 @@ public class MessageValidator {
         if (!translation.isInactive()) {
             throw new ValidationException(MessageMessageKeys.TRANSLATION_DELETE_INVALID);
         }
-    }
-
-    private static final Pattern MESSAGE_KEY_PATTERN =
-            Pattern.compile("^[a-z0-9][a-z0-9._-]{0,254}$");
-    private static final Pattern CODE_PATTERN =
-            Pattern.compile("^[A-Z][A-Z0-9-]{2,49}$");
-    private static final Pattern LOCALE_PATTERN =
-            Pattern.compile("^[a-z]{2,3}(?:-[A-Z]{2}|-[0-9]{3})?(?:-[A-Za-z0-9]{4,8})*$");
-
-    private final MicroserviceQueryService microserviceQueryService;
-
-    public MessageValidator(MicroserviceQueryService microserviceQueryService) {
-        this.microserviceQueryService = microserviceQueryService;
     }
 
     public void validateForCreate(

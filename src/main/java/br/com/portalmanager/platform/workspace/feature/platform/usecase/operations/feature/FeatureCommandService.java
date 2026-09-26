@@ -12,11 +12,10 @@ import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.Fe
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateFeatureInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.validation.FeatureValidator;
-
-import java.time.LocalDateTime;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @org.springframework.stereotype.Service
 public class FeatureCommandService {

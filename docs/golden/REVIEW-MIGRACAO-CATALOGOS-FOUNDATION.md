@@ -16,24 +16,24 @@ distribuir catálogos por Core/Feature.
 
 Foram encontrados e migrados 16 catálogos:
 
-| Catálogo | Estratégia |
-|---|---|
-| WorkspaceType (legado AccountType) | EnumCatalogService |
-| ApplicationScopeType | EnumCatalogService |
-| AuthorizationType | EnumCatalogService |
-| EnvironmentType | EnumCatalogService |
-| FeatureScopeType | DynamicCatalogService |
-| FeatureType | BaseCatalogService |
-| InfrastructureType | EnumCatalogService |
-| LanguageType | EnumCatalogService |
-| LifecycleType | EnumCatalogService |
-| TagOriginType | EnumCatalogService |
-| VisibilityType | EnumCatalogService |
-| OnboardingPhase | BaseCatalogService |
-| PublisherScopeType | EnumCatalogService |
-| SchemaScopeType | EnumCatalogService |
-| SchemaType | BaseCatalogService |
-| ShareStatusType | EnumCatalogService |
+| Catálogo                           | Estratégia            |
+|------------------------------------|-----------------------|
+| WorkspaceType (legado AccountType) | EnumCatalogService    |
+| ApplicationScopeType               | EnumCatalogService    |
+| AuthorizationType                  | EnumCatalogService    |
+| EnvironmentType                    | EnumCatalogService    |
+| FeatureScopeType                   | DynamicCatalogService |
+| FeatureType                        | BaseCatalogService    |
+| InfrastructureType                 | EnumCatalogService    |
+| LanguageType                       | EnumCatalogService    |
+| LifecycleType                      | EnumCatalogService    |
+| TagOriginType                      | EnumCatalogService    |
+| VisibilityType                     | EnumCatalogService    |
+| OnboardingPhase                    | BaseCatalogService    |
+| PublisherScopeType                 | EnumCatalogService    |
+| SchemaScopeType                    | EnumCatalogService    |
+| SchemaType                         | BaseCatalogService    |
+| ShareStatusType                    | EnumCatalogService    |
 
 Resultado:
 

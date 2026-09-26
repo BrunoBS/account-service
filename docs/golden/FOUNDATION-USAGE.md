@@ -2,7 +2,8 @@
 
 **Fase:** G1 revalidada para a Foundation consolidada; atualizado após G4 para o domínio Workspace  
 **Status:** baseline de consumo atualizado  
-**Objetivo:** registrar como a Golden Reference consome a Foundation oficial sem reabrir decisões arquiteturais da Foundation.
+**Objetivo:** registrar como a Golden Reference consome a Foundation oficial sem reabrir decisões arquiteturais da
+Foundation.
 
 ## 1. Fonte oficial
 
@@ -85,7 +86,8 @@ A Golden importa explicitamente:
 
 O `platform-libraries-bom` é a fonte de versões das capabilities reutilizáveis.
 
-O `platform-dependencies` continua exclusivamente responsável por dependências tecnológicas externas e não substitui o BOM das capabilities.
+O `platform-dependencies` continua exclusivamente responsável por dependências tecnológicas externas e não substitui o
+BOM das capabilities.
 
 ## 5. Baseline de runtime
 
@@ -127,9 +129,11 @@ APIs relevantes incluem:
 - `@WithKafka`;
 - `@WithMockAuthorization`.
 
-Infraestrutura pesada permanece opt-in. Consumir `platform-testing` sozinho não deve forçar JDBC, MySQL, Kafka ou Testcontainers no classpath do consumidor.
+Infraestrutura pesada permanece opt-in. Consumir `platform-testing` sozinho não deve forçar JDBC, MySQL, Kafka ou
+Testcontainers no classpath do consumidor.
 
-Quando a Golden realmente usar `@WithMySql` ou `@WithKafka`, deve declarar explicitamente as dependências de teste necessárias.
+Quando a Golden realmente usar `@WithMySql` ou `@WithKafka`, deve declarar explicitamente as dependências de teste
+necessárias.
 
 Para MySQL com o baseline Testcontainers 2.x gerenciado pelo Spring Boot 4.1.1, a Golden declara:
 
@@ -173,9 +177,12 @@ Já chega pelo starter. Regras dependentes de Workspace permanecem explícitas n
 
 ### platform-messaging
 
-Já chega pelo starter. Erros e mensagens específicas de Workspace usam os contratos da Foundation sem duplicar mecanismo transversal.
+Já chega pelo starter. Erros e mensagens específicas de Workspace usam os contratos da Foundation sem duplicar mecanismo
+transversal.
 
-Na G3, a aplicação possui DataSource próprio de Workspace. Como a auto-configuração JDBC de Messaging é ativada na presença de `JdbcTemplate`, a Golden declara explicitamente um `NoOpApiMessageRepository` para indicar que **o banco de Workspace não é o catálogo corporativo de mensagens**.
+Na G3, a aplicação possui DataSource próprio de Workspace. Como a auto-configuração JDBC de Messaging é ativada na
+presença de `JdbcTemplate`, a Golden declara explicitamente um `NoOpApiMessageRepository` para indicar que **o banco de
+Workspace não é o catálogo corporativo de mensagens**.
 
 Após o review pós-G4, esse wiring reside no **composition root** como
 `br.com.itau.portalmanager.workspace.WorkspaceMessagingConfiguration`. Ele não pertence
@@ -274,7 +281,6 @@ há defeito reproduzível da Foundation?
 
 A Foundation não deve ser alterada nesta etapa sem evidência técnica concreta e decisão explícita.
 
-
 ## 13. Uso efetivo na G4
 
 ### Authorization
@@ -299,7 +305,8 @@ Dependência explícita:
 </dependency>
 ```
 
-A capability fornece entidade/repository/manager, mas a Golden mantém a evolução física do próprio banco. Por isso a tabela `tags` é criada pela migration `V2__create_tags.sql`.
+A capability fornece entidade/repository/manager, mas a Golden mantém a evolução física do próprio banco. Por isso a
+tabela `tags` é criada pela migration `V2__create_tags.sql`.
 
 ### Audit
 
@@ -319,7 +326,8 @@ AUDIT_ENABLED
 AUDIT_SERVICE_URL
 ```
 
-O profile de teste geral desabilita audit; `WorkspaceAuditIT` habilita a auto-configuração e injeta um `AuditPublisher` capturável para provar os eventos sem serviço externo.
+O profile de teste geral desabilita audit; `WorkspaceAuditIT` habilita a auto-configuração e injeta um `AuditPublisher`
+capturável para provar os eventos sem serviço externo.
 
 ### Catalog
 
@@ -357,6 +365,7 @@ Packages técnicos compartilhados, como `support`, permanecem fora dessa regra.
 
 entrypoint/web/catalog
 └── <catalogo>
+
 ```
 
 `AccountType` foi migrado conceitualmente para `WorkspaceType`.

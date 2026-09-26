@@ -36,31 +36,31 @@ class DatabaseUpgradeMigrationIT {
 
         jdbc.update(
                 """
-                insert into accounts (
-                    id, version, identifier, account_type, name, description, requester,
-                    acronym, settings, authorizer_group, email_group, onboarding, lifecycle,
-                    created_at, updated_at
-                ) values (
-                    100, 3, ?, 'ADMIN', 'Legacy Workspace', 'Descrição persistida antes da V3',
-                    'legacy-requester', 'LEG', '{"legacy":true}', 'TEAM_LEGACY',
-                    'legacy@portalmanager.com', true, 'INACTIVE', now(6), now(6)
-                )
-                """,
+                        insert into accounts (
+                            id, version, identifier, account_type, name, description, requester,
+                            acronym, settings, authorizer_group, email_group, onboarding, lifecycle,
+                            created_at, updated_at
+                        ) values (
+                            100, 3, ?, 'ADMIN', 'Legacy Workspace', 'Descrição persistida antes da V3',
+                            'legacy-requester', 'LEG', '{"legacy":true}', 'TEAM_LEGACY',
+                            'legacy@portalmanager.com', true, 'INACTIVE', now(6), now(6)
+                        )
+                        """,
                 IDENTIFIER
         );
 
         jdbc.update(
                 """
-                insert into account_approvers (id, account_id, functional, email)
-                values ('approver-before-v3', 100, 'F12345', 'approver@portalmanager.com')
-                """
+                        insert into account_approvers (id, account_id, functional, email)
+                        values ('approver-before-v3', 100, 'F12345', 'approver@portalmanager.com')
+                        """
         );
 
         jdbc.update(
                 """
-                insert into tags (id, owner_type, owner_id, name, origin_type)
-                values ('tag-before-v3', 'ACCOUNT', ?, 'legacy-tag', 'MANUAL')
-                """,
+                        insert into tags (id, owner_type, owner_id, name, origin_type)
+                        values ('tag-before-v3', 'ACCOUNT', ?, 'legacy-tag', 'MANUAL')
+                        """,
                 IDENTIFIER
         );
 
@@ -119,11 +119,11 @@ class DatabaseUpgradeMigrationIT {
     private Integer tableCount(JdbcTemplate jdbc, String tableName) {
         return jdbc.queryForObject(
                 """
-                select count(*)
-                  from information_schema.tables
-                 where table_schema = database()
-                   and table_name = ?
-                """,
+                        select count(*)
+                          from information_schema.tables
+                         where table_schema = database()
+                           and table_name = ?
+                        """,
                 Integer.class,
                 tableName
         );

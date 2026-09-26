@@ -51,9 +51,11 @@ O profile de teste G3 fixava:
 platform.authorization.enabled=false
 ```
 
-Isso fazia o interceptor mock guest da Foundation preencher o UserContext e impedia `@WithMockAuthorization` de representar OWNER/authorizer groups.
+Isso fazia o interceptor mock guest da Foundation preencher o UserContext e impedia `@WithMockAuthorization` de
+representar OWNER/authorizer groups.
 
-A correção foi manter authorization ativo no profile de teste e deixar `@WithMockAuthorization` fornecer a URL dinâmica do WireMock nos testes HTTP.
+A correção foi manter authorization ativo no profile de teste e deixar `@WithMockAuthorization` fornecer a URL dinâmica
+do WireMock nos testes HTTP.
 
 Isso foi correção do consumidor; nenhuma mudança na Foundation foi necessária.
 

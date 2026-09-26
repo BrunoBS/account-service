@@ -13,8 +13,11 @@ import java.util.UUID;
 )
 public class SchemaVersion {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
-    @Column(nullable = false, unique = true, length = 36, updatable = false) private String identifier;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(nullable = false, unique = true, length = 36, updatable = false)
+    private String identifier;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "schema_id", nullable = false)
@@ -67,15 +70,43 @@ public class SchemaVersion {
         }
     }
 
-    public boolean isDraft() { return SchemaVersionStatusTypeCode.draft().equals(status); }
-    public boolean isPublished() { return SchemaVersionStatusTypeCode.published().equals(status); }
+    public boolean isDraft() {
+        return SchemaVersionStatusTypeCode.draft().equals(status);
+    }
 
-    public Long getId() { return id; }
-    public String getIdentifier() { return identifier; }
-    public Schema getSchema() { return schema; }
-    public Integer getSchemaVersion() { return schemaVersion; }
-    public String getVersionName() { return versionName; }
-    public String getDefinition() { return definition; }
-    public SchemaVersionStatusTypeCode getStatus() { return status; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
+    public boolean isPublished() {
+        return SchemaVersionStatusTypeCode.published().equals(status);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public Schema getSchema() {
+        return schema;
+    }
+
+    public Integer getSchemaVersion() {
+        return schemaVersion;
+    }
+
+    public String getVersionName() {
+        return versionName;
+    }
+
+    public String getDefinition() {
+        return definition;
+    }
+
+    public SchemaVersionStatusTypeCode getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 }

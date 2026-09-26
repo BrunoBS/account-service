@@ -5,9 +5,6 @@ import br.com.portalmanager.platform.workspace.core.workspace.repository.Workspa
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOutput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceFinder;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceNormalizer;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceTagManager;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import org.springframework.stereotype.Service;
@@ -26,8 +23,11 @@ public class WorkspaceCommandService {
 
     public WorkspaceCommandService(WorkspaceRepository repository, WorkspaceFinder finder, WorkspaceNormalizer normalizer,
                                    WorkspaceValidator validator, WorkspaceTagManager tagManager) {
-        this.repository = repository; this.finder = finder; this.normalizer = normalizer;
-        this.validator = validator; this.tagManager = tagManager;
+        this.repository = repository;
+        this.finder = finder;
+        this.normalizer = normalizer;
+        this.validator = validator;
+        this.tagManager = tagManager;
     }
 
     @Transactional
@@ -61,13 +61,15 @@ public class WorkspaceCommandService {
         return WorkspaceOutput.from(saved, tagManager.findManual(saved));
     }
 
-    @Transactional public void inactivate(String identifier) {
+    @Transactional
+    public void inactivate(String identifier) {
         Workspace workspace = finder.findActive(identifier);
         workspace.inactivate(LocalDateTime.now());
         repository.saveAndFlush(workspace);
     }
 
-    @Transactional public WorkspaceOutput restore(String identifier) {
+    @Transactional
+    public WorkspaceOutput restore(String identifier) {
         Workspace workspace = finder.findInactiveForRestore(identifier);
         List<String> manualTags = tagManager.findManual(workspace);
         workspace.restore(LocalDateTime.now());
@@ -76,7 +78,8 @@ public class WorkspaceCommandService {
         return WorkspaceOutput.from(saved, tagManager.findManual(saved));
     }
 
-    @Transactional public void delete(String identifier) {
+    @Transactional
+    public void delete(String identifier) {
         Workspace workspace = finder.findInactiveForDeletion(identifier);
         workspace.quarantine(LocalDateTime.now());
         repository.saveAndFlush(workspace);

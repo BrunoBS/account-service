@@ -2,7 +2,8 @@
 
 **Status atual:** nenhum gap aberto contra a Foundation consolidada.
 
-Este arquivo registra deficiências reproduzíveis e observações técnicas encontradas durante a construção da Golden Reference.
+Este arquivo registra deficiências reproduzíveis e observações técnicas encontradas durante a construção da Golden
+Reference.
 
 ## Baseline oficial atual
 
@@ -29,7 +30,8 @@ Durante a G1, o consumidor revelou dois problemas no baseline provisório anteri
 1. publicação incompleta das libraries para consumidores downstream;
 2. infraestrutura JDBC/Kafka/Testcontainers exportada de forma excessiva pelo suporte de testes.
 
-Esses problemas foram corrigidos antes da consolidação definitiva e não representam gaps abertos do baseline oficial atual.
+Esses problemas foram corrigidos antes da consolidação definitiva e não representam gaps abertos do baseline oficial
+atual.
 
 ## OBS-0001 — versão efetiva do Testcontainers
 
@@ -39,7 +41,8 @@ Esses problemas foram corrigidos antes da consolidação definitiva e não repre
 
 O runtime da Golden registrou Testcontainers `2.0.5`, gerenciado por Spring Boot 4.1.1.
 
-A Foundation possuía gestão duplicada por meio de uma propriedade/import explícito do BOM do Testcontainers. Essa duplicidade foi removida no `main` de `BrunoBS/platform-libraries`.
+A Foundation possuía gestão duplicada por meio de uma propriedade/import explícito do BOM do Testcontainers. Essa
+duplicidade foi removida no `main` de `BrunoBS/platform-libraries`.
 
 ### Correção consolidada
 
@@ -75,7 +78,8 @@ Commit do consumidor:
 
 `fe866936eb95f4e7701530f77f786a51d27b424f`
 
-A validação final da G3, Verify #34 — run `35550319996`, registrou Testcontainers `2.0.5` e terminou em **BUILD SUCCESS**.
+A validação final da G3, Verify #34 — run `35550319996`, registrou Testcontainers `2.0.5` e terminou em **BUILD SUCCESS
+**.
 
 ### Decisão
 

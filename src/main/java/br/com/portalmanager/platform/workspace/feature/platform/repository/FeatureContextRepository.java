@@ -7,7 +7,10 @@ import java.util.Optional;
 
 public interface FeatureContextRepository extends JpaRepository<FeatureContext, Long> {
     Optional<FeatureContext> findByIdentifier(String identifier);
+
     Optional<FeatureContext> findByCode(String code);
+
     boolean existsByCode(String code);
+
     boolean existsByName(String name);
 }

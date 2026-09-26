@@ -232,15 +232,15 @@ class SchemaApiIT {
                 """);
 
         jdbc.update("""
-                insert into workspaces
-                    (version, identifier, workspace_type_code, name, description, requester,
-                     acronym, settings, authorizer_group, email_group, onboarding,
-                     lifecycle_code, created_at, updated_at)
-                values
-                    (0, ?, 'ADMIN', ?, 'Schema integration workspace', 'integration-test',
-                     'SCH', null, null, 'schema-it@example.com', false,
-                     'ACTIVE', current_timestamp, current_timestamp)
-                """,
+                        insert into workspaces
+                            (version, identifier, workspace_type_code, name, description, requester,
+                             acronym, settings, authorizer_group, email_group, onboarding,
+                             lifecycle_code, created_at, updated_at)
+                        values
+                            (0, ?, 'ADMIN', ?, 'Schema integration workspace', 'integration-test',
+                             'SCH', null, null, 'schema-it@example.com', false,
+                             'ACTIVE', current_timestamp, current_timestamp)
+                        """,
                 identifier,
                 "Schema IT " + identifier.substring(0, 8)
         );

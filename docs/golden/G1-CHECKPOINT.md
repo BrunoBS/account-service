@@ -5,7 +5,8 @@
 
 ## Objetivo
 
-Provar que `account-service` nasce como aplicação nova sobre a Foundation consolidada, sem dependência estrutural do legado, sem instalação local da Foundation e consumindo exclusivamente os artifacts oficiais publicados remotamente.
+Provar que `account-service` nasce como aplicação nova sobre a Foundation consolidada, sem dependência estrutural do
+legado, sem instalação local da Foundation e consumindo exclusivamente os artifacts oficiais publicados remotamente.
 
 ## Baseline oficial validado
 
@@ -128,7 +129,8 @@ Resultado:
 - execução do test-support registrada sob `br.com.portalmanager.platform.testing`;
 - `BUILD SUCCESS`.
 
-Como o repository Maven utilizado estava isolado e o build não possui checkout/install local da Foundation, o sucesso comprova resolução remota do parent, BOM e capabilities necessários ao consumidor.
+Como o repository Maven utilizado estava isolado e o build não possui checkout/install local da Foundation, o sucesso
+comprova resolução remota do parent, BOM e capabilities necessários ao consumidor.
 
 ## Topologia remota validada
 
@@ -172,7 +174,8 @@ BUILD SUCCESS
 
 ## FOUNDATION-GOLDEN-V1
 
-A Golden Reference fornece a prova downstream final de que a Foundation consolidada publicada pode ser consumida remotamente por uma aplicação real.
+A Golden Reference fornece a prova downstream final de que a Foundation consolidada publicada pode ser consumida
+remotamente por uma aplicação real.
 
 Para o consumidor Golden, o checkpoint `FOUNDATION-GOLDEN-V1` está formalmente validado.
 
@@ -180,6 +183,8 @@ Para o consumidor Golden, o checkpoint `FOUNDATION-GOLDEN-V1` está formalmente 
 
 A **G1 — Skeleton + consumo da Foundation está concluída**.
 
-A próxima onda do plano é G2 — Persistência e modelo mínimo. Antes de implementar persistência, permanecem as decisões específicas da Golden já registradas no plano, especialmente ferramenta de migrations e modelagem final do lifecycle de Account.
+A próxima onda do plano é G2 — Persistência e modelo mínimo. Antes de implementar persistência, permanecem as decisões
+específicas da Golden já registradas no plano, especialmente ferramenta de migrations e modelagem final do lifecycle de
+Account.
 
 Nenhuma alteração na Foundation é autorizada por este checkpoint.

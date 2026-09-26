@@ -10,7 +10,10 @@ Superseded.
 
 ## Supersessão
 
-Esta decisão registra o namespace utilizado entre G1 e G4. Foi substituída em 2026-09-21 por `ADR-ADEQUACAO-ARQUITETURAL-POS-G4.md`, que adota `Workspace` como conceito de domínio e `br.com.itau.portalmanager.workspace` como root Java ativo. O texto abaixo permanece inalterado como evidência histórica.
+Esta decisão registra o namespace utilizado entre G1 e G4. Foi substituída em 2026-09-21 por
+`ADR-ADEQUACAO-ARQUITETURAL-POS-G4.md`, que adota `Workspace` como conceito de domínio e
+`br.com.itau.portalmanager.workspace` como root Java ativo. O texto abaixo permanece inalterado como evidência
+histórica.
 
 ## Contexto
 
@@ -22,7 +25,8 @@ Durante G0/G1, o skeleton utilizou provisoriamente:
 com.empresa.golden
 ```
 
-Esse namespace não representa a identidade definitiva do serviço e não deve ser propagado para entidades, repositories, application services, controllers ou regras arquiteturais da G2 em diante.
+Esse namespace não representa a identidade definitiva do serviço e não deve ser propagado para entidades, repositories,
+application services, controllers ou regras arquiteturais da G2 em diante.
 
 A Foundation consolidada possui namespace próprio e separado:
 
@@ -64,7 +68,8 @@ br.com.portalmanager.platform.*      → Foundation
 br.com.portalmanager.account.*   → account-service
 ```
 
-A Golden é o papel arquitetural deste serviço, não um namespace funcional. Portanto não será criado `br.com.portalmanager.golden.*`.
+A Golden é o papel arquitetural deste serviço, não um namespace funcional. Portanto não será criado
+`br.com.portalmanager.golden.*`.
 
 Também não será utilizado `br.com.portalmanager.platform.account.*`, pois Account não pertence à Foundation.
 

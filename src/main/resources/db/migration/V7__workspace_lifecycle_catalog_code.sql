@@ -1,7 +1,9 @@
 ALTER TABLE workspaces
-    DROP CHECK ck_workspaces_lifecycle;
+DROP
+CHECK ck_workspaces_lifecycle;
 
-INSERT IGNORE INTO type_life_cycle
+INSERT
+IGNORE INTO type_life_cycle
     (code, label, description, sort_order, is_active, settings)
 VALUES
     ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}'),
@@ -12,6 +14,6 @@ ALTER TABLE workspaces
     RENAME COLUMN lifecycle TO lifecycle_code;
 
 ALTER TABLE workspaces
-    MODIFY COLUMN lifecycle_code VARCHAR(50) NOT NULL,
+    MODIFY COLUMN lifecycle_code VARCHAR (50) NOT NULL,
     ADD CONSTRAINT fk_workspaces_lifecycle
-        FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle(code);
+    FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle(code);

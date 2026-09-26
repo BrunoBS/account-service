@@ -1,11 +1,11 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
+import br.com.portalmanager.platform.library.tagging.TagNormalizer;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.ApproverData;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidationData;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
-import br.com.portalmanager.platform.library.tagging.TagNormalizer;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

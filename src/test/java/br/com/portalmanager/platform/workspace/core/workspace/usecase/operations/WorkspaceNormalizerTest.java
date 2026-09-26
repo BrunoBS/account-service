@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

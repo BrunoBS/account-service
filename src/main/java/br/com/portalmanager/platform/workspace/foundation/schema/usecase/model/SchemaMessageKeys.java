@@ -16,5 +16,6 @@ public final class SchemaMessageKeys {
     public static final String VERSION_IMMUTABLE = "workspace-service.schema.version.immutable";
     public static final String DEFINITION_REQUIRED = "workspace-service.schema.definition.required";
 
-    private SchemaMessageKeys() {}
+    private SchemaMessageKeys() {
+    }
 }

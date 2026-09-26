@@ -23,8 +23,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class PlatformServiceFeatureMigrationIT {
 
-    @Autowired private DataSource dataSource;
-    @Autowired private Flyway flyway;
+    @Autowired
+    private DataSource dataSource;
+    @Autowired
+    private Flyway flyway;
 
     @Test
     void shouldMigrateLegacyServiceFeatureOwnershipSettingsScopesAndRuntimeView() {

@@ -6,7 +6,8 @@
 
 ## 1. Objetivo
 
-Este documento inventaria o que existe hoje nas fontes oficiais necessárias para construir a Golden Reference sem copiar a arquitetura antiga.
+Este documento inventaria o que existe hoje nas fontes oficiais necessárias para construir a Golden Reference sem copiar
+a arquitetura antiga.
 
 A classificação segue a governança:
 
@@ -360,7 +361,8 @@ PADRÃO A SER REAVALIADO
 não portar automaticamente
 ```
 
-A Foundation possui a annotation, mas o plano histórico explicitamente tratou essa frente como PoC separada. Sua existência técnica não torna seu uso obrigatório na Golden.
+A Foundation possui a annotation, mas o plano histórico explicitamente tratou essa frente como PoC separada. Sua
+existência técnica não torna seu uso obrigatório na Golden.
 
 ## 12. Audit observado
 
@@ -419,7 +421,9 @@ não duplicar na Golden sem necessidade comprovada
 PADRÃO A SER REAVALIADO
 ```
 
-O fato de ACTIVE/INACTIVE serem catálogo no legado não prova que o estado de Account deva ser administrável. A alternativa preferencial para avaliação é um estado explícito de domínio, mantendo `platform-catalog` para conceitos realmente administráveis.
+O fato de ACTIVE/INACTIVE serem catálogo no legado não prova que o estado de Account deva ser administrável. A
+alternativa preferencial para avaliação é um estado explícito de domínio, mantendo `platform-catalog` para conceitos
+realmente administráveis.
 
 ## 14. Persistência observada
 

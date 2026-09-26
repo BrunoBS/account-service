@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.validation;
 
+import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateMicroserviceInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateMicroserviceInput;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -1,11 +1,11 @@
 package br.com.portalmanager.platform.workspace.feature.message.usecase.operations;
 
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.message.domain.Message;
 import br.com.portalmanager.platform.workspace.feature.message.domain.MessageMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.message.domain.MessageTranslation;
 import br.com.portalmanager.platform.workspace.feature.message.repository.MessageRepository;
 import br.com.portalmanager.platform.workspace.feature.message.repository.MessageTranslationRepository;
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import org.springframework.stereotype.Component;
 
 @Component

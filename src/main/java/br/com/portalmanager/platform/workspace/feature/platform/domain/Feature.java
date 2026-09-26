@@ -12,13 +12,24 @@ import java.util.UUID;
 @Entity
 @Table(name = "platform_features")
 public class Feature {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id") private Long id;
-    @Version @Column(name = "version", nullable = false) private Long version;
-    @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false) private String identifier;
-    @Column(name = "code", nullable = false, unique = true, length = 50) private String code;
-    @Column(name = "name", nullable = false, unique = true, length = 100) private String name;
-    @Column(name = "description", length = 500) private String description;
-    @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "microservice_id", nullable = false) private Microservice microservice;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+    @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false)
+    private String identifier;
+    @Column(name = "code", nullable = false, unique = true, length = 50)
+    private String code;
+    @Column(name = "name", nullable = false, unique = true, length = 100)
+    private String name;
+    @Column(name = "description", length = 500)
+    private String description;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "microservice_id", nullable = false)
+    private Microservice microservice;
 
     @ManyToMany
     @JoinTable(
@@ -28,11 +39,15 @@ public class Feature {
     )
     private Set<FeatureContext> contexts = new LinkedHashSet<>();
 
-    @Embedded @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
     private LifecycleTypeCode lifecycle;
-    @Column(name = "settings", nullable = false, columnDefinition = "json") private String settings;
-    @Column(name = "created_at", nullable = false, updatable = false) private LocalDateTime createdAt;
-    @Column(name = "updated_at", nullable = false) private LocalDateTime updatedAt;
+    @Column(name = "settings", nullable = false, columnDefinition = "json")
+    private String settings;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     protected Feature() {
     }
@@ -79,19 +94,61 @@ public class Feature {
         updatedAt = now;
     }
 
-    public void inactivate(LocalDateTime now) { lifecycle = LifecycleTypeCode.inactive(); updatedAt = now; }
-    public void quarantine(LocalDateTime now) { lifecycle = LifecycleTypeCode.quarantined(); updatedAt = now; }
+    public void inactivate(LocalDateTime now) {
+        lifecycle = LifecycleTypeCode.inactive();
+        updatedAt = now;
+    }
 
-    public Long getId() { return id; }
-    public Long getVersion() { return version; }
-    public String getIdentifier() { return identifier; }
-    public String getCode() { return code; }
-    public String getName() { return name; }
-    public String getDescription() { return description; }
-    public Microservice getMicroservice() { return microservice; }
-    public Set<FeatureContext> getContexts() { return Collections.unmodifiableSet(contexts); }
-    public LifecycleTypeCode getLifecycle() { return lifecycle; }
-    public String getSettings() { return settings; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void quarantine(LocalDateTime now) {
+        lifecycle = LifecycleTypeCode.quarantined();
+        updatedAt = now;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Microservice getMicroservice() {
+        return microservice;
+    }
+
+    public Set<FeatureContext> getContexts() {
+        return Collections.unmodifiableSet(contexts);
+    }
+
+    public LifecycleTypeCode getLifecycle() {
+        return lifecycle;
+    }
+
+    public String getSettings() {
+        return settings;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }

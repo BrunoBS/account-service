@@ -39,11 +39,11 @@ class DatabaseMigrationIT {
     private Integer tableCount(String tableName) {
         return jdbcTemplate.queryForObject(
                 """
-                select count(*)
-                  from information_schema.tables
-                 where table_schema = database()
-                   and table_name = ?
-                """,
+                        select count(*)
+                          from information_schema.tables
+                         where table_schema = database()
+                           and table_name = ?
+                        """,
                 Integer.class,
                 tableName
         );

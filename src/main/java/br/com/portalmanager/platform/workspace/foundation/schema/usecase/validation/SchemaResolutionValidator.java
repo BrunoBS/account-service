@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation;
 
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 
 public class SchemaResolutionValidator {
     private static final String NOT_FOUND = "workspace-service.schema.resolution.not-found";
@@ -18,9 +18,17 @@ public class SchemaResolutionValidator {
         if (!schema.isActive() || !typeActive) throw error("schema", INACTIVE);
     }
 
-    public ValidationException schemaNotFound() { return error("schema", NOT_FOUND); }
-    public ValidationException typeNotFound() { return error("schemaType", NOT_FOUND); }
-    public ValidationException versionNotFound() { return error("schemaVersion", PUBLISHED_NOT_FOUND); }
+    public ValidationException schemaNotFound() {
+        return error("schema", NOT_FOUND);
+    }
+
+    public ValidationException typeNotFound() {
+        return error("schemaType", NOT_FOUND);
+    }
+
+    public ValidationException versionNotFound() {
+        return error("schemaVersion", PUBLISHED_NOT_FOUND);
+    }
 
     private ValidationException error(String field, String key) {
         return new ValidationException(new ValidationResult(field, key));

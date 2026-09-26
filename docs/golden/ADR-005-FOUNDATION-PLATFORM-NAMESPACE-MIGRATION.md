@@ -10,11 +10,15 @@ Accepted.
 
 ## Atualização pós-G4
 
-A decisão deste ADR sobre o namespace da **Foundation** (`br.com.portalmanager.platform`) permanece vigente. A identidade da aplicação `account-service` / `br.com.portalmanager.account` descrita abaixo foi posteriormente substituída pela decisão `Account → Workspace` registrada em `ADR-ADEQUACAO-ARQUITETURAL-POS-G4.md`. O trecho é preservado como evidência do estado da migração quando este ADR foi aceito.
+A decisão deste ADR sobre o namespace da **Foundation** (`br.com.portalmanager.platform`) permanece vigente. A
+identidade da aplicação `account-service` / `br.com.portalmanager.account` descrita abaixo foi posteriormente
+substituída pela decisão `Account → Workspace` registrada em `ADR-ADEQUACAO-ARQUITETURAL-POS-G4.md`. O trecho é
+preservado como evidência do estado da migração quando este ADR foi aceito.
 
 ## Contexto
 
-A Foundation alterou sua identidade pública para evitar ambiguidade entre capacidades da plataforma e domínio de aplicação.
+A Foundation alterou sua identidade pública para evitar ambiguidade entre capacidades da plataforma e domínio de
+aplicação.
 
 A decisão oficial da Foundation está registrada em:
 

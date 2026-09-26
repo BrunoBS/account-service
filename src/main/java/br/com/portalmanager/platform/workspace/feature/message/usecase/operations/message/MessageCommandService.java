@@ -98,16 +98,16 @@ public class MessageCommandService {
 
         boolean keyDuplicate = input.messageKey() != null
                 && messageRepository.existsByMicroserviceIdAndMessageKeyAndIdNot(
-                        microserviceId,
-                        input.messageKey(),
-                        message.getId()
-                );
+                microserviceId,
+                input.messageKey(),
+                message.getId()
+        );
         boolean codeDuplicate = input.code() != null
                 && messageRepository.existsByMicroserviceIdAndCodeAndIdNot(
-                        microserviceId,
-                        input.code(),
-                        message.getId()
-                );
+                microserviceId,
+                input.code(),
+                message.getId()
+        );
 
         validator.validateForUpdate(input, keyDuplicate, codeDuplicate);
         validator.validateVersion(message.getVersion(), input.version());

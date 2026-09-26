@@ -12,16 +12,28 @@ import java.util.UUID;
 @Entity
 @Table(name = "platform_feature_contexts")
 public class FeatureContext {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id") private Long id;
-    @Version @Column(name = "version", nullable = false) private Long version;
-    @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false) private String identifier;
-    @Column(name = "code", nullable = false, unique = true, length = 50) private String code;
-    @Column(name = "name", nullable = false, unique = true, length = 100) private String name;
-    @Column(name = "description", length = 500) private String description;
-    @Embedded @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+    @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false)
+    private String identifier;
+    @Column(name = "code", nullable = false, unique = true, length = 50)
+    private String code;
+    @Column(name = "name", nullable = false, unique = true, length = 100)
+    private String name;
+    @Column(name = "description", length = 500)
+    private String description;
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
     private LifecycleTypeCode lifecycle;
-    @Column(name = "created_at", nullable = false, updatable = false) private LocalDateTime createdAt;
-    @Column(name = "updated_at", nullable = false) private LocalDateTime updatedAt;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     @ManyToMany(mappedBy = "contexts")
     private Set<Feature> features = new LinkedHashSet<>();
@@ -45,23 +57,70 @@ public class FeatureContext {
         this.updatedAt = now;
     }
 
-    public void activate(LocalDateTime now) { lifecycle = LifecycleTypeCode.active(); updatedAt = now; }
-    public void inactivate(LocalDateTime now) { lifecycle = LifecycleTypeCode.inactive(); updatedAt = now; }
-    public void quarantine(LocalDateTime now) { lifecycle = LifecycleTypeCode.quarantined(); updatedAt = now; }
+    public void activate(LocalDateTime now) {
+        lifecycle = LifecycleTypeCode.active();
+        updatedAt = now;
+    }
 
-    void attach(Feature feature) { features.add(feature); }
-    void detach(Feature feature) { features.remove(feature); }
+    public void inactivate(LocalDateTime now) {
+        lifecycle = LifecycleTypeCode.inactive();
+        updatedAt = now;
+    }
 
-    public boolean isActive() { return LifecycleTypeCode.active().equals(lifecycle); }
+    public void quarantine(LocalDateTime now) {
+        lifecycle = LifecycleTypeCode.quarantined();
+        updatedAt = now;
+    }
 
-    public Long getId() { return id; }
-    public Long getVersion() { return version; }
-    public String getIdentifier() { return identifier; }
-    public String getCode() { return code; }
-    public String getName() { return name; }
-    public String getDescription() { return description; }
-    public LifecycleTypeCode getLifecycle() { return lifecycle; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public Set<Feature> getFeatures() { return Collections.unmodifiableSet(features); }
+    void attach(Feature feature) {
+        features.add(feature);
+    }
+
+    void detach(Feature feature) {
+        features.remove(feature);
+    }
+
+    public boolean isActive() {
+        return LifecycleTypeCode.active().equals(lifecycle);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public LifecycleTypeCode getLifecycle() {
+        return lifecycle;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public Set<Feature> getFeatures() {
+        return Collections.unmodifiableSet(features);
+    }
 }

@@ -1,10 +1,10 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.catalog.environmenttype;
 
-import br.com.portalmanager.platform.workspace.foundation.catalog.environmenttype.domain.EnvironmentType;
-import br.com.portalmanager.platform.workspace.foundation.catalog.environmenttype.usecase.EnvironmentTypeService;
-import br.com.portalmanager.platform.library.catalog.web.CatalogController;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
+import br.com.portalmanager.platform.library.catalog.web.CatalogController;
+import br.com.portalmanager.platform.workspace.foundation.catalog.environmenttype.domain.EnvironmentType;
+import br.com.portalmanager.platform.workspace.foundation.catalog.environmenttype.usecase.EnvironmentTypeService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 

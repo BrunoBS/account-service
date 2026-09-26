@@ -1,16 +1,16 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.platform.feature;
 
+import br.com.portalmanager.platform.library.audit.annotation.AuditField;
+import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.entrypoint.web.platform.context.response.FeatureContextResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.web.platform.feature.request.CreateFeatureRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.platform.feature.request.UpdateFeatureRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.platform.feature.response.FeatureResponse;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature.FeatureCommandService;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature.FeatureQueryService;
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

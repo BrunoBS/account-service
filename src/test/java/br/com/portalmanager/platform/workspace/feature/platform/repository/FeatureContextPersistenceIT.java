@@ -1,14 +1,14 @@
 package br.com.portalmanager.platform.workspace.feature.platform.repository;
 
-import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
 import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.time.LocalDateTime;
 
@@ -18,8 +18,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @WithMySql
 class FeatureContextPersistenceIT {
 
-    @Autowired private JdbcTemplate jdbc;
-    @Autowired private FeatureContextRepository repository;
+    @Autowired
+    private JdbcTemplate jdbc;
+    @Autowired
+    private FeatureContextRepository repository;
 
     @BeforeEach
     void seedLifecycleTypes() {

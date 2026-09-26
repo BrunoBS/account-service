@@ -50,24 +50,24 @@ contratos auxiliares do CRUD em `usecase`; controllers ficam exclusivamente em I
 
 ## 4. Inventário — 16 catálogos
 
-| Catálogo legado | Destino | Estratégia da lib | Endpoint destino |
-|---|---|---|---|
-| AccountType | WorkspaceType | EnumCatalogService | /api/v1/workspace-type |
-| ApplicationScopeType | ApplicationScopeType | EnumCatalogService | /api/v1/application-scope-type |
-| AuthorizationType | AuthorizationType | EnumCatalogService | /api/v1/authorization-type |
-| EnvironmentType | EnvironmentType | EnumCatalogService | /api/v1/environment-type |
-| FeatureScopeType | FeatureScopeType | DynamicCatalogService | /api/v1/feature-scope |
-| FeatureType | FeatureType | BaseCatalogService | /api/v1/feature-type |
-| InfrastructureType | InfrastructureType | EnumCatalogService | /api/v1/infrastructure-type |
-| LanguageType | LanguageType | EnumCatalogService | /api/v1/language-type |
-| LifecycleType | LifecycleType | EnumCatalogService | /api/v1/lifecycle-type |
-| TagOriginType | TagOriginType | EnumCatalogService | /api/v1/tag-origin-type |
-| VisibilityType | VisibilityType | EnumCatalogService | /api/v1/visibility-type |
-| OnboardingPhase | OnboardingPhase | BaseCatalogService | /api/v1/onboarding-type |
-| PublisherScopeType | PublisherScopeType | EnumCatalogService | /api/v1/publisher-scope-type |
-| SchemaScopeType | SchemaScopeType | EnumCatalogService | /api/v1/schema-scope |
-| SchemaType | SchemaType | BaseCatalogService | /api/v1/schema-type |
-| ShareStatusType | ShareStatusType | EnumCatalogService | /api/v1/share-status-type |
+| Catálogo legado      | Destino              | Estratégia da lib     | Endpoint destino               |
+|----------------------|----------------------|-----------------------|--------------------------------|
+| AccountType          | WorkspaceType        | EnumCatalogService    | /api/v1/workspace-type         |
+| ApplicationScopeType | ApplicationScopeType | EnumCatalogService    | /api/v1/application-scope-type |
+| AuthorizationType    | AuthorizationType    | EnumCatalogService    | /api/v1/authorization-type     |
+| EnvironmentType      | EnvironmentType      | EnumCatalogService    | /api/v1/environment-type       |
+| FeatureScopeType     | FeatureScopeType     | DynamicCatalogService | /api/v1/feature-scope          |
+| FeatureType          | FeatureType          | BaseCatalogService    | /api/v1/feature-type           |
+| InfrastructureType   | InfrastructureType   | EnumCatalogService    | /api/v1/infrastructure-type    |
+| LanguageType         | LanguageType         | EnumCatalogService    | /api/v1/language-type          |
+| LifecycleType        | LifecycleType        | EnumCatalogService    | /api/v1/lifecycle-type         |
+| TagOriginType        | TagOriginType        | EnumCatalogService    | /api/v1/tag-origin-type        |
+| VisibilityType       | VisibilityType       | EnumCatalogService    | /api/v1/visibility-type        |
+| OnboardingPhase      | OnboardingPhase      | BaseCatalogService    | /api/v1/onboarding-type        |
+| PublisherScopeType   | PublisherScopeType   | EnumCatalogService    | /api/v1/publisher-scope-type   |
+| SchemaScopeType      | SchemaScopeType      | EnumCatalogService    | /api/v1/schema-scope           |
+| SchemaType           | SchemaType           | BaseCatalogService    | /api/v1/schema-type            |
+| ShareStatusType      | ShareStatusType      | EnumCatalogService    | /api/v1/share-status-type      |
 
 ## 5. Regras de migração dos services
 
@@ -209,7 +209,6 @@ A migração deve provar:
 - alterar a implementação da Golden Platform Foundation sem evidência concreta;
 - implementar a capability completa de Schema;
 - migrar CRUDs do legado que não sejam catálogos nesta onda.
-
 
 ## 13. Resultado final do review
 

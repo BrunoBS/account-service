@@ -56,7 +56,8 @@ AccountType
 └── MANAGER
 ```
 
-A G2 não introduz `platform-catalog`. A integração com catálogo permanece reservada para G4 e exige caso de uso concreto.
+A G2 não introduz `platform-catalog`. A integração com catálogo permanece reservada para G4 e exige caso de uso
+concreto.
 
 ## Escopo em implementação
 
@@ -116,4 +117,5 @@ A G2 só fecha quando:
 
 Nenhuma alteração na Foundation está autorizada por esta onda.
 
-Falhas encontradas na implementação devem ser classificadas primeiro como problema da Golden ou de integração. Somente evidência reproduzível pode reabrir uma discussão sobre Foundation.
+Falhas encontradas na implementação devem ser classificadas primeiro como problema da Golden ou de integração. Somente
+evidência reproduzível pode reabrir uma discussão sobre Foundation.

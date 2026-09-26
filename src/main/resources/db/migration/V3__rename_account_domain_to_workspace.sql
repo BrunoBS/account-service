@@ -1,13 +1,17 @@
 ALTER TABLE account_approvers
-    DROP FOREIGN KEY fk_account_approvers_account;
+DROP
+FOREIGN KEY fk_account_approvers_account;
 
-RENAME TABLE
+RENAME
+TABLE
     accounts TO workspaces,
     account_approvers TO workspace_approvers;
 
 ALTER TABLE workspaces
-    DROP CHECK ck_accounts_account_type,
-    DROP CHECK ck_accounts_lifecycle,
+DROP
+CHECK ck_accounts_account_type,
+    DROP
+CHECK ck_accounts_lifecycle,
     RENAME COLUMN account_type TO workspace_type,
     RENAME INDEX uk_accounts_identifier TO uk_workspaces_identifier,
     RENAME INDEX uk_accounts_name TO uk_workspaces_name,
@@ -27,8 +31,8 @@ ALTER TABLE workspace_approvers
 ALTER TABLE workspace_approvers
     ADD CONSTRAINT fk_workspace_approvers_workspace
         FOREIGN KEY (workspace_id) REFERENCES workspaces (id)
-        ON DELETE CASCADE;
+            ON DELETE CASCADE;
 
 UPDATE tags
-   SET owner_type = 'WORKSPACE'
- WHERE owner_type = 'ACCOUNT';
+SET owner_type = 'WORKSPACE'
+WHERE owner_type = 'ACCOUNT';

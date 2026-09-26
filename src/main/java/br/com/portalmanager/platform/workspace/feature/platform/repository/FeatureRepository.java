@@ -10,9 +10,13 @@ import java.util.Optional;
 
 public interface FeatureRepository extends JpaRepository<Feature, Long> {
     Optional<Feature> findByIdentifier(String identifier);
+
     Optional<Feature> findByCode(String code);
+
     boolean existsByCode(String code);
+
     boolean existsByName(String name);
+
     List<Feature> findAllByContexts_Code(String contextCode);
 
     @Query("""

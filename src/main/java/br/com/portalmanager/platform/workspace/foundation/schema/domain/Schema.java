@@ -2,15 +2,7 @@ package br.com.portalmanager.platform.workspace.foundation.schema.domain;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -108,16 +100,51 @@ public class Schema {
         return LifecycleTypeCode.active().equals(lifecycle);
     }
 
-    public Long getId() { return id; }
-    public Long getVersion() { return version; }
-    public String getIdentifier() { return identifier; }
-    public String getSchemaTypeCode() { return schemaTypeCode; }
-    public SchemaScopeTypeCode getScope() { return scope; }
-    public Long getWorkspaceId() { return workspaceId; }
-    public String getCode() { return code; }
-    public String getName() { return name; }
-    public String getDescription() { return description; }
-    public LifecycleTypeCode getLifecycle() { return lifecycle; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public String getSchemaTypeCode() {
+        return schemaTypeCode;
+    }
+
+    public SchemaScopeTypeCode getScope() {
+        return scope;
+    }
+
+    public Long getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public LifecycleTypeCode getLifecycle() {
+        return lifecycle;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }

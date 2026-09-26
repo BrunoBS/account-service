@@ -10,7 +10,8 @@ Accepted.
 
 ## Contexto
 
-A G2 da Golden Reference precisa introduzir persistência real para Account sem recriar CRUD genérico e sem antecipar capabilities previstas para ondas posteriores.
+A G2 da Golden Reference precisa introduzir persistência real para Account sem recriar CRUD genérico e sem antecipar
+capabilities previstas para ondas posteriores.
 
 A G0 já definiu:
 
@@ -78,7 +79,9 @@ MANAGER
 
 `CATALOG` não pertence aos tipos válidos de Account.
 
-Essa decisão não antecipa a integração com `platform-catalog`. A onda G4 avaliará a capability somente com caso de uso concreto. Se houver necessidade real de catálogo persistido/administrável, a mudança será tratada como decisão e migration próprias.
+Essa decisão não antecipa a integração com `platform-catalog`. A onda G4 avaliará a capability somente com caso de uso
+concreto. Se houver necessidade real de catálogo persistido/administrável, a mudança será tratada como decisão e
+migration próprias.
 
 ## Persistência
 

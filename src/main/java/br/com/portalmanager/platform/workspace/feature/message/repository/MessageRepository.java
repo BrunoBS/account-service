@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface MessageRepository extends JpaRepository<Message,Long>{
+public interface MessageRepository extends JpaRepository<Message, Long> {
     Optional<Message> findByIdentifier(String identifier);
 
     @Query("""
@@ -26,8 +26,11 @@ public interface MessageRepository extends JpaRepository<Message,Long>{
                                @Param("code") String code,
                                @Param("messageKey") String messageKey);
 
-    boolean existsByMicroserviceIdAndMessageKey(Long microserviceId,String messageKey);
-    boolean existsByMicroserviceIdAndMessageKeyAndIdNot(Long microserviceId,String messageKey,Long id);
-    boolean existsByMicroserviceIdAndCode(Long microserviceId,String code);
-    boolean existsByMicroserviceIdAndCodeAndIdNot(Long microserviceId,String code,Long id);
+    boolean existsByMicroserviceIdAndMessageKey(Long microserviceId, String messageKey);
+
+    boolean existsByMicroserviceIdAndMessageKeyAndIdNot(Long microserviceId, String messageKey, Long id);
+
+    boolean existsByMicroserviceIdAndCode(Long microserviceId, String code);
+
+    boolean existsByMicroserviceIdAndCodeAndIdNot(Long microserviceId, String code, Long id);
 }

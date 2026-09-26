@@ -7,7 +7,10 @@ import java.util.Optional;
 
 public interface MicroserviceRepository extends JpaRepository<Microservice, Long> {
     Optional<Microservice> findByIdentifier(String identifier);
+
     Optional<Microservice> findByCode(String code);
+
     boolean existsByCode(String code);
+
     boolean existsByName(String name);
 }

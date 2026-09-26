@@ -1,10 +1,10 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.usecase;
 
+import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.repository.AuthorizationTypeRepository;
 import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSettingsValidator;
-import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 

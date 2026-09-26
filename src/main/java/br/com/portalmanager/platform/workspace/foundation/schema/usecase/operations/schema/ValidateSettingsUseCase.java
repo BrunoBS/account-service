@@ -3,9 +3,8 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operat
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaResolution;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.ValidateSettingsInput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaResolver;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
 import org.springframework.stereotype.Service;
 
 @Service

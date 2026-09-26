@@ -2,7 +2,8 @@
 
 ## 1. Objetivo
 
-Este documento registra o modelo atual da Golden Reference para catálogos da `foundation` e para os recursos administrativos da Platform.
+Este documento registra o modelo atual da Golden Reference para catálogos da `foundation` e para os recursos
+administrativos da Platform.
 
 A regra central é separar claramente:
 
@@ -387,7 +388,8 @@ porque esse valor é derivado do relacionamento com `platform_microservices`.
 
 # 11. Referência de Microservice dentro do módulo Message
 
-Para preservar a independência arquitetural entre módulos, o domínio de Message não referencia diretamente a classe interna do domínio Platform.
+Para preservar a independência arquitetural entre módulos, o domínio de Message não referencia diretamente a classe
+interna do domínio Platform.
 
 O módulo Message guarda a referência estrutural pelo identificador interno:
 

@@ -63,7 +63,8 @@ validação próprios da `platform-catalog`.
 Princípios principais:
 
 - Golden Platform Foundation fornece capabilities; este serviço demonstra padrões de aplicação.
-- A application foundation macrozone é distinta da Golden Platform Foundation e não recebe wiring Spring por conveniência.
+- A application foundation macrozone é distinta da Golden Platform Foundation e não recebe wiring Spring por
+  conveniência.
 - `platform-crud` não é permitido.
 - regras de Workspace permanecem explícitas no serviço.
 - comunicação interna entre módulos ocorre por Use Cases públicos.
@@ -124,7 +125,6 @@ mvn --settings .github/maven-settings.xml --batch-mode --no-transfer-progress cl
 Não é permitido usar checkout ou `mvn install` local da Foundation como evidência de integração.
 
 A documentação da Golden está em [`docs/golden`](docs/golden).
-
 
 ## Estado da referência
 

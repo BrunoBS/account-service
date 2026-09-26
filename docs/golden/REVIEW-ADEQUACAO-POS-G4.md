@@ -13,17 +13,17 @@ documentação vigente e governança, sem reabrir a Golden Platform Foundation.
 
 ## Findings
 
-| Severidade | Finding | Resultado |
-|---|---|---|
-| bloqueador | wiring de Messaging colocado em application Foundation sem base explícita | corrigido pelo ADR-006 e composition root |
-| bloqueador | independência de Domain ficou menos protegida que no baseline | fitness function restaurada e ampliada |
-| alto | V3 testada somente em banco vazio | criado teste V2 populada -> V3 |
-| alto | cross-module não distinguia módulos aninhados | identificação estrutural corrigida |
-| médio/alto | `usecase.support` podia virar API cross-module | cross-module limitado a UseCase/Input/Output |
-| médio | Input podia acessar internals sem regra abrangente | bloqueio para internals Core/Feature |
-| médio | `groupId` Maven sem decisão explícita | pendência registrada; sem mudança inventada |
-| médio | SQL direto em `tags` é contrato físico frágil | dívida aceita, isolada em Integration e coberta |
-| baixo | descrição administrativa do repo ainda usa Account | follow-up administrativo, sem impacto arquitetural |
+| Severidade | Finding                                                                   | Resultado                                          |
+|------------|---------------------------------------------------------------------------|----------------------------------------------------|
+| bloqueador | wiring de Messaging colocado em application Foundation sem base explícita | corrigido pelo ADR-006 e composition root          |
+| bloqueador | independência de Domain ficou menos protegida que no baseline             | fitness function restaurada e ampliada             |
+| alto       | V3 testada somente em banco vazio                                         | criado teste V2 populada -> V3                     |
+| alto       | cross-module não distinguia módulos aninhados                             | identificação estrutural corrigida                 |
+| médio/alto | `usecase.support` podia virar API cross-module                            | cross-module limitado a UseCase/Input/Output       |
+| médio      | Input podia acessar internals sem regra abrangente                        | bloqueio para internals Core/Feature               |
+| médio      | `groupId` Maven sem decisão explícita                                     | pendência registrada; sem mudança inventada        |
+| médio      | SQL direto em `tags` é contrato físico frágil                             | dívida aceita, isolada em Integration e coberta    |
+| baixo      | descrição administrativa do repo ainda usa Account                        | follow-up administrativo, sem impacto arquitetural |
 
 ## Decisão sobre wiring técnico
 
