@@ -5,7 +5,6 @@ import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRe
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaOutput;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
-import br.com.itau.portalmanager.workspace.foundation.schema.usecase.support.SchemaFinder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,31 +15,28 @@ public class SchemaQueryService {
 
     private final SchemaRepository schemaRepository;
     private final SchemaVersionRepository versionRepository;
-    private final SchemaFinder finder;
 
     public SchemaQueryService(
             SchemaRepository schemaRepository,
-            SchemaVersionRepository versionRepository,
-            SchemaFinder finder
+            SchemaVersionRepository versionRepository
     ) {
         this.schemaRepository = schemaRepository;
         this.versionRepository = versionRepository;
-        this.finder = finder;
     }
 
     @Transactional(readOnly = true)
     public SchemaOutput findByIdentifier(String identifier) {
-        return SchemaOutput.from(finder.find(identifier));
+        return SchemaOutput.from(required(identifier));
     }
 
     @Transactional(readOnly = true)
     public SchemaOutput findPlatformByIdentifier(String identifier) {
-        return SchemaOutput.from(finder.findScoped(identifier, "PLATFORM", null));
+        return SchemaOutput.from(requiredScoped(identifier, "PLATFORM", null));
     }
 
     @Transactional(readOnly = true)
     public SchemaOutput findWorkspaceByIdentifier(String workspaceIdentifier, String identifier) {
-        return SchemaOutput.from(finder.findScoped(identifier, "WORKSPACE", workspaceIdentifier));
+        return SchemaOutput.from(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier));
     }
 
     @Transactional(readOnly = true)
@@ -66,11 +62,24 @@ public class SchemaQueryService {
 
     @Transactional(readOnly = true)
     public List<SchemaVersionOutput> findVersions(String schemaIdentifier) {
-        Schema schema = finder.find(schemaIdentifier);
+        Schema schema = required(schemaIdentifier);
         return versionRepository.findBySchema_IdOrderBySchemaVersionDesc(schema.getId())
                 .stream()
                 .map(SchemaVersionOutput::from)
                 .toList();
     }
 
+    private Schema required(String identifier) {
+        return schemaRepository.findByIdentifier(identifier)
+                .orElseThrow(() -> new IllegalArgumentException("Schema not found"));
+    }
+
+    private Schema requiredScoped(
+            String identifier,
+            String scope,
+            String workspaceIdentifier
+    ) {
+        return schemaRepository.findByIdentifierAndScope(identifier, scope, workspaceIdentifier)
+                .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
+    }
 }
