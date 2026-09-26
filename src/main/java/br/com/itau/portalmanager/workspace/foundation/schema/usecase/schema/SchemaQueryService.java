@@ -60,7 +60,7 @@ public class SchemaQueryService {
     public List<SchemaOutput> findWorkspace(String workspaceIdentifier) {
         return schemaRepository.findAllByScope("WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier))
                 .stream()
-                .map(SchemaOutput::from)
+                .map(this::output)
                 .toList();
     }
 
