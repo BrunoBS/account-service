@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @PlatformIntegrationTest
 @WithMySql
 @TestPropertySource(properties = {
-        "spring.flyway.target=16",
+        "spring.flyway.target=17",
         "spring.jpa.hibernate.ddl-auto=none"
 })
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -29,12 +29,12 @@ class SchemaFoundationMigrationIT {
     @Test
     void shouldCreateSchemaV2FoundationAndSeedDefaultPublishedSchema() {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("16");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("18");
 
         Flyway upgradeFlyway = Flyway.configure()
                 .dataSource(dataSource)
                 .locations("classpath:db/migration")
-                .target("17")
+                .target("18")
                 .load();
 
         upgradeFlyway.migrate();
@@ -51,13 +51,18 @@ class SchemaFoundationMigrationIT {
                 Integer.class
         )).isEqualTo(1);
 
+        assertThat(jdbc.queryForObject(
+                "select count(*) from type_schema_version_status where code in ('DRAFT','PUBLISHED')",
+                Integer.class
+        )).isEqualTo(2);
+
         assertThat(jdbc.queryForObject("""
                 select count(*)
                   from schema_definitions s
                  where s.schema_type_code = 'DEFAULT'
                    and s.scope_code = 'PLATFORM'
                    and s.workspace_identifier is null
-                   and s.code = 'DEFAULT'
+                   and s.code = 'default'
                    and s.lifecycle_code = 'ACTIVE'
                 """, Integer.class
         )).isEqualTo(1);
