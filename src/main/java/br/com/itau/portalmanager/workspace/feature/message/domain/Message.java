@@ -21,16 +21,16 @@ import java.util.UUID;
 
 @Entity
 @Table(name="messages", uniqueConstraints={
-        @UniqueConstraint(name="uk_messages_service_message_key", columnNames={"service_identifier","message_key"}),
-        @UniqueConstraint(name="uk_messages_service_message_code", columnNames={"service_identifier","code"})
+        @UniqueConstraint(name="uk_messages_service_message_key", columnNames={"service_id","message_key"}),
+        @UniqueConstraint(name="uk_messages_service_message_code", columnNames={"service_id","code"})
 })
 public class Message {
     @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id;
     @Version @Column(nullable=false) private Long version;
     @Column(nullable=false,unique=true,length=36,updatable=false) private String identifier;
 
-    @Column(name="service_identifier", nullable=false, length=36)
-    private String serviceIdentifier;
+    @Column(name="service_id", nullable=false)
+    private Long serviceId;
 
     @Column(name="message_key",nullable=false,length=255) private String messageKey;
     @Column(nullable=false,length=50) private String code;
@@ -48,14 +48,14 @@ public class Message {
 
     protected Message() {}
 
-    public Message(String serviceIdentifier,String messageKey,String code,Integer httpStatus,String observation,LocalDateTime now){
-        this.identifier=UUID.randomUUID().toString(); this.serviceIdentifier=serviceIdentifier; this.messageKey=messageKey;
+    public Message(Long serviceId,String messageKey,String code,Integer httpStatus,String observation,LocalDateTime now){
+        this.identifier=UUID.randomUUID().toString(); this.serviceId=serviceId; this.messageKey=messageKey;
         this.code=code; this.httpStatus=httpStatus; this.observation=observation; this.lifecycle=LifecycleTypeCode.active();
         this.createdAt=now; this.updatedAt=now;
     }
 
-    public void update(String serviceIdentifier,String messageKey,String code,Integer httpStatus,String observation,LocalDateTime now){
-        this.serviceIdentifier=serviceIdentifier; this.messageKey=messageKey; this.code=code; this.httpStatus=httpStatus;
+    public void update(Long serviceId,String messageKey,String code,Integer httpStatus,String observation,LocalDateTime now){
+        this.serviceId=serviceId; this.messageKey=messageKey; this.code=code; this.httpStatus=httpStatus;
         this.observation=observation; this.updatedAt=now;
     }
     public void activate(LocalDateTime now){ lifecycle=LifecycleTypeCode.active(); updatedAt=now; }
@@ -64,7 +64,7 @@ public class Message {
     public boolean isInactive(){ return LifecycleTypeCode.inactive().equals(lifecycle); }
 
     public Long getId(){return id;} public Long getVersion(){return version;} public String getIdentifier(){return identifier;}
-    public String getServiceIdentifier(){return serviceIdentifier;} public String getMessageKey(){return messageKey;} public String getCode(){return code;}
+    public Long getServiceId(){return serviceId;} public String getMessageKey(){return messageKey;} public String getCode(){return code;}
     public Integer getHttpStatus(){return httpStatus;} public LifecycleTypeCode getLifecycle(){return lifecycle;}
     public String getObservation(){return observation;} public LocalDateTime getCreatedAt(){return createdAt;} public LocalDateTime getUpdatedAt(){return updatedAt;}
 }
