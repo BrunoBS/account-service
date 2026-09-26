@@ -50,6 +50,7 @@ class CatalogApiIT {
                 new CatalogCase("/api/v1/visibility-type", "PRIVATE"),
                 new CatalogCase("/api/v1/resource-scope-type", "WORKSPACE"),
                 new CatalogCase("/api/v1/schema-scope", "PLATFORM"),
+                new CatalogCase("/api/v1/schema-version-status-type", "DRAFT"),
                 new CatalogCase("/api/v1/share-status-type", "NOT_REQUESTED")
         );
 
