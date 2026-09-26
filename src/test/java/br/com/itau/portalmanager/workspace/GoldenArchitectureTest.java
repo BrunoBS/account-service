@@ -178,6 +178,21 @@ class GoldenArchitectureTest {
     }
 
     @Test
+    void entitiesMustNotPersistCrossAggregateIdentifiers() {
+        var invalidFields = classes.stream()
+                .filter(javaClass -> javaClass.isAnnotatedWith(jakarta.persistence.Entity.class))
+                .flatMap(javaClass -> javaClass.getFields().stream())
+                .filter(field -> field.getName().endsWith("Identifier"))
+                .filter(field -> !field.getName().equals("identifier"))
+                .map(field -> field.getOwner().getName() + "." + field.getName())
+                .toList();
+
+        assertThat(invalidFields)
+                .as("Cross-aggregate relations must use internal BIGINT ids; identifiers are external contracts")
+                .isEmpty();
+    }
+
+    @Test
     void restControllersMustResideInEntrypoint() {
         classes()
                 .that().areAnnotatedWith(RestController.class)
