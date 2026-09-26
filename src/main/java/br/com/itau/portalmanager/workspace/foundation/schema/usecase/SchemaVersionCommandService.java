@@ -1,5 +1,6 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.usecase;
 
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
@@ -142,7 +143,7 @@ public class SchemaVersionCommandService {
                 nextVersion,
                 input.versionName(),
                 initialDefinition,
-                SchemaVersion.DRAFT,
+                SchemaVersionStatusTypeCode.draft(),
                 LocalDateTime.now()
         );
 
