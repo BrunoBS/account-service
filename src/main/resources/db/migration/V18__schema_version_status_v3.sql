@@ -17,12 +17,6 @@ VALUES
     ('PUBLISHED', 'Published', 'Published immutable schema version available for consumption', 2, true, '{}');
 
 ALTER TABLE schema_versions
-    DROP CHECK ck_schema_versions_status;
-
-ALTER TABLE schema_versions
-    MODIFY COLUMN status VARCHAR(50) NOT NULL;
-
-ALTER TABLE schema_versions
     ADD COLUMN draft_schema_id BIGINT
         GENERATED ALWAYS AS (
             CASE WHEN status = 'DRAFT' THEN schema_id ELSE NULL END
