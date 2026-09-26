@@ -56,7 +56,7 @@ public class PlatformSchemaController {
 
     @GetMapping("/{identifier}")
     public SchemaResponse findByIdentifier(@PathVariable String identifier) {
-        return SchemaResponse.from(queryService.findByIdentifier(identifier));
+        return SchemaResponse.from(queryService.findPlatformByIdentifier(identifier));
     }
 
     @PutMapping("/{identifier}")
@@ -69,17 +69,17 @@ public class PlatformSchemaController {
             @PathVariable String identifier,
             @RequestBody UpdateSchemaRequest request
     ) {
-        return SchemaResponse.from(commandService.update(identifier, request.toInput()));
+        return SchemaResponse.from(commandService.updatePlatform(identifier, request.toInput()));
     }
 
     @PatchMapping("/{identifier}/activate")
     public SchemaResponse activate(@PathVariable String identifier) {
-        return SchemaResponse.from(commandService.activate(identifier));
+        return SchemaResponse.from(commandService.activatePlatform(identifier));
     }
 
     @PatchMapping("/{identifier}/inactivate")
     public SchemaResponse inactivate(@PathVariable String identifier) {
-        return SchemaResponse.from(commandService.inactivate(identifier));
+        return SchemaResponse.from(commandService.inactivatePlatform(identifier));
     }
 
     @DeleteMapping("/{identifier}")
@@ -89,7 +89,7 @@ public class PlatformSchemaController {
             resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
     )
     public ResponseEntity<Void> quarantine(@PathVariable String identifier) {
-        commandService.quarantine(identifier);
+        commandService.quarantinePlatform(identifier);
         return ResponseEntity.noContent().build();
     }
 
@@ -105,7 +105,7 @@ public class PlatformSchemaController {
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(SchemaVersionResponse.from(
-                        versionCommandService.createDraft(identifier, request.toInput())
+                        versionCommandService.createPlatformDraft(identifier, request.toInput())
                 ));
     }
 
@@ -127,7 +127,7 @@ public class PlatformSchemaController {
             @PathVariable String versionIdentifier
     ) {
         return SchemaVersionResponse.from(
-                versionCommandService.publish(identifier, versionIdentifier)
+                versionCommandService.publishPlatform(identifier, versionIdentifier)
         );
     }
 }
