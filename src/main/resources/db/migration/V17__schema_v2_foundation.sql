@@ -30,6 +30,10 @@ CREATE TABLE schema_definitions (
     scope_code VARCHAR(50) NOT NULL,
     workspace_id BIGINT,
     owner_key BIGINT GENERATED ALWAYS AS (COALESCE(workspace_id, 0)) STORED,
+    platform_schema_type_code VARCHAR(50)
+        GENERATED ALWAYS AS (
+            CASE WHEN scope_code = 'PLATFORM' THEN schema_type_code ELSE NULL END
+        ) STORED,
     code VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(500),
@@ -40,6 +44,8 @@ CREATE TABLE schema_definitions (
     CONSTRAINT uk_schema_definitions_identifier UNIQUE (identifier),
     CONSTRAINT uk_schema_definitions_scope_owner_type_code
         UNIQUE (scope_code, owner_key, schema_type_code, code),
+    CONSTRAINT uk_schema_definitions_platform_type
+        UNIQUE (platform_schema_type_code),
     CONSTRAINT ck_schema_definitions_code CHECK (code REGEXP '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'),
     CONSTRAINT ck_schema_definitions_owner
         CHECK (
