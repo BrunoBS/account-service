@@ -65,8 +65,22 @@ public class SchemaQueryService {
     }
 
     @Transactional(readOnly = true)
-    public List<SchemaVersionOutput> findVersions(String schemaIdentifier) {
-        Schema schema = required(schemaIdentifier);
+    public List<SchemaVersionOutput> findPlatformVersions(String schemaIdentifier) {
+        Schema schema = requiredScoped(schemaIdentifier, "PLATFORM", null);
+        return versions(schema);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SchemaVersionOutput> findWorkspaceVersions(
+            String workspaceIdentifier,
+            String schemaIdentifier
+    ) {
+        Long workspaceId = workspaceReferenceResolver.resolveInternalId(workspaceIdentifier);
+        Schema schema = requiredScoped(schemaIdentifier, "WORKSPACE", workspaceId);
+        return versions(schema);
+    }
+
+    private List<SchemaVersionOutput> versions(Schema schema) {
         return versionRepository.findBySchema_IdOrderBySchemaVersionDesc(schema.getId())
                 .stream()
                 .map(SchemaVersionOutput::from)
