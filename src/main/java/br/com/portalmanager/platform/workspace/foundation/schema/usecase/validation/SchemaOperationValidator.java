@@ -18,7 +18,6 @@ import java.util.regex.Pattern;
  */
 public class SchemaOperationValidator {
     private static final Pattern CODE = Pattern.compile("^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$");
-    private static final String SCOPE_INVALID = "workspace-service.schema.scope.invalid";
 
     public void validateCreateInput(CreateSchemaInput input) {
         if (input == null) throw invalid("schema", SchemaMessageKeys.REQUEST_INVALID);
@@ -32,7 +31,7 @@ public class SchemaOperationValidator {
     }
 
     public void validateOwnership(SchemaScopeTypeCode scope, Long workspaceId) {
-        if (scope == null) throw invalid("scope", SCOPE_INVALID);
+        if (scope == null) throw invalid("scope", SchemaMessageKeys.SCOPE_INVALID);
         if (SchemaScopeTypeCode.workspace().equals(scope) && workspaceId == null) {
             throw invalid("workspaceIdentifier", SchemaMessageKeys.WORKSPACE_REQUIRED);
         }
