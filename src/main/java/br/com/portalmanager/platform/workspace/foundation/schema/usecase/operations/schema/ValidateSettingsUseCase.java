@@ -5,17 +5,15 @@ import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.S
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.ValidateSettingsInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ValidateSettingsUseCase {
 
-    private static final String SCOPE_INVALID = "workspace-service.schema.scope.invalid";
-
     private final SchemaResolver resolver;
     private final SchemaValidator validator;
+    private final SchemaOperationValidator operationValidator = new SchemaOperationValidator();
 
     public ValidateSettingsUseCase(
             SchemaResolver resolver,
@@ -26,41 +24,25 @@ public class ValidateSettingsUseCase {
     }
 
     public SchemaResolution validate(ValidateSettingsInput input) {
-        if (input == null) {
-            throw validation("schema", SCOPE_INVALID);
-        }
-
+        SchemaScopeTypeCode scope = operationValidator.validateSettingsScope(input);
         SchemaResolution resolution;
-        if (SchemaScopeTypeCode.platform().value().equals(input.scope())) {
+        if (SchemaScopeTypeCode.platform().equals(scope)) {
             resolution = resolver.resolvePlatform(input.schemaTypeCode());
-        } else if (SchemaScopeTypeCode.workspace().value().equals(input.scope())) {
+        } else {
             resolution = resolver.resolveWorkspace(
                     input.workspaceIdentifier(),
                     input.schemaTypeCode(),
                     input.schemaCode()
             );
-        } else {
-            throw validation("scope", SCOPE_INVALID);
         }
 
-        ValidationResult result = new ValidationResult();
-        validator.validateJson(
+        validator.requireValidJson(
                 resolution.definition(),
                 input.settings(),
-                "settings",
-                result
+                "settings"
         );
-
-        if (result.hasErrors()) {
-            throw new ValidationException(result);
-        }
 
         return resolution;
     }
 
-    private ValidationException validation(String field, String messageKey) {
-        ValidationResult result = new ValidationResult();
-        result.addError(field, messageKey);
-        return new ValidationException(result);
-    }
 }

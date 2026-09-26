@@ -14,13 +14,10 @@ import jakarta.persistence.Version;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 @Entity
 @Table(name = "schema_definitions")
 public class Schema {
-
-    private static final Pattern CODE_PATTERN = Pattern.compile("^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -74,20 +71,6 @@ public class Schema {
             String description,
             LocalDateTime now
     ) {
-        if (schemaTypeCode == null || schemaTypeCode.isBlank()) {
-            throw new IllegalArgumentException("Schema type code is required");
-        }
-        if (scope == null) {
-            throw new IllegalArgumentException("Schema scope is required");
-        }
-        validateOwnership(scope, workspaceId);
-        if (code == null || !CODE_PATTERN.matcher(code).matches()) {
-            throw new IllegalArgumentException("Schema code must use lowercase kebab-case");
-        }
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Schema name is required");
-        }
-
         this.identifier = UUID.randomUUID().toString();
         this.schemaTypeCode = schemaTypeCode.trim();
         this.scope = scope;
@@ -101,9 +84,6 @@ public class Schema {
     }
 
     public void update(String name, String description, LocalDateTime now) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Schema name is required");
-        }
         this.name = name.trim();
         this.description = description;
         this.updatedAt = now;
@@ -126,16 +106,6 @@ public class Schema {
 
     public boolean isActive() {
         return LifecycleTypeCode.active().equals(lifecycle);
-    }
-
-    private static void validateOwnership(SchemaScopeTypeCode scope, Long workspaceId) {
-        boolean workspaceScope = SchemaScopeTypeCode.workspace().equals(scope);
-        if (workspaceScope && workspaceId == null) {
-            throw new IllegalArgumentException("Workspace id is required for WORKSPACE schema");
-        }
-        if (!workspaceScope && workspaceId != null) {
-            throw new IllegalArgumentException("Workspace id must be empty for PLATFORM schema");
-        }
     }
 
     public Long getId() { return id; }

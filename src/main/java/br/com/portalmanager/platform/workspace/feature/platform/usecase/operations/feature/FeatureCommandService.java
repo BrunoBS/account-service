@@ -48,6 +48,7 @@ public class FeatureCommandService {
         validator.validateCreate(input, input != null && features.existsByCode(input.code()),
                 input != null && features.existsByName(input.name()));
         Service service = requiredService(input.serviceIdentifier());
+        validator.validateService(service);
         return FeatureOutput.from(features.save(new Feature(
                 input.code(),
                 input.name(),
@@ -64,6 +65,7 @@ public class FeatureCommandService {
         validator.validateUpdate(input, input != null && !feature.getName().equals(input.name())
                 && features.existsByName(input.name()));
         Service service = requiredService(input.serviceIdentifier());
+        validator.validateService(service);
         if (!feature.getService().getIdentifier().equals(service.getIdentifier())) {
             feature.changeService(service, now());
         }
@@ -74,6 +76,7 @@ public class FeatureCommandService {
     @Transactional
     public FeatureOutput activate(String identifier) {
         Feature feature = requiredFeature(identifier);
+        validator.validateService(feature.getService());
         feature.activate(now());
         return FeatureOutput.from(feature);
     }
@@ -97,6 +100,7 @@ public class FeatureCommandService {
         Feature feature = requiredFeature(identifier);
         FeatureContext context = contexts.findByIdentifier(contextIdentifier)
                 .orElseThrow(() -> new IllegalArgumentException("Feature context not found"));
+        validator.validateContext(context);
         feature.addContext(context);
         return FeatureOutput.from(feature);
     }

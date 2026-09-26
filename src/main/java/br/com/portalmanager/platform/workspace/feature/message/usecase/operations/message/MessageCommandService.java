@@ -1,7 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.message.usecase.operations.message;
 
 import br.com.portalmanager.platform.workspace.feature.message.domain.Message;
-import br.com.portalmanager.platform.workspace.feature.message.domain.MessageMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.message.domain.MessageTranslation;
 import br.com.portalmanager.platform.workspace.feature.message.repository.MessageRepository;
 import br.com.portalmanager.platform.workspace.feature.message.repository.MessageTranslationRepository;
@@ -13,14 +12,11 @@ import br.com.portalmanager.platform.workspace.feature.message.usecase.operation
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageNormalizer;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.validation.MessageValidator;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.service.ServiceQueryService;
-import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -114,7 +110,7 @@ public class MessageCommandService {
                 );
 
         validator.validateForUpdate(input, keyDuplicate, codeDuplicate);
-        validateVersion(message.getVersion(), input.version());
+        validator.validateVersion(message.getVersion(), input.version());
 
         message.update(
                 serviceId,
@@ -144,9 +140,7 @@ public class MessageCommandService {
     @Transactional
     public void delete(String identifier) {
         Message message = finder.findMessage(identifier);
-        if (!message.isInactive()) {
-            throw new ValidationException(MessageMessageKeys.DELETE_INVALID);
-        }
+        validator.validateDeletion(message);
         message.quarantine(LocalDateTime.now());
         messageRepository.saveAndFlush(message);
     }
@@ -172,9 +166,4 @@ public class MessageCommandService {
         }
     }
 
-    private void validateVersion(Long currentVersion, Long inputVersion) {
-        if (!Objects.equals(currentVersion, inputVersion)) {
-            throw new ResourceVersionConflictException();
-        }
-    }
 }

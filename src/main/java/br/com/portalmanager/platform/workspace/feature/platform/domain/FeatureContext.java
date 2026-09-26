@@ -1,7 +1,5 @@
 package br.com.portalmanager.platform.workspace.feature.platform.domain;
 
-import br.com.portalmanager.platform.workspace.feature.platform.domain.validation.PlatformCodeValidator;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.validation.PlatformNameValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
 
@@ -33,8 +31,8 @@ public class FeatureContext {
 
     public FeatureContext(String code, String name, String description, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
-        this.code = PlatformCodeValidator.requireValid(code);
-        this.name = PlatformNameValidator.requireValid(name);
+        this.code = code;
+        this.name = name;
         this.description = description;
         this.lifecycle = LifecycleTypeCode.active();
         this.createdAt = now;
@@ -42,7 +40,7 @@ public class FeatureContext {
     }
 
     public void update(String name, String description, LocalDateTime now) {
-        this.name = PlatformNameValidator.requireValid(name);
+        this.name = name;
         this.description = description;
         this.updatedAt = now;
     }

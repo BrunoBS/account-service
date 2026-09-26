@@ -2,6 +2,8 @@ package br.com.portalmanager.platform.workspace.feature.platform.usecase.validat
 
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateFeatureInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateFeatureInput;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.Service;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,5 +18,17 @@ public class FeatureValidator {
         PlatformValidation.requireInput(input);
         PlatformValidation.validate(null, false, input.name(), input.description(), false,
                 nameDuplicate, input.serviceIdentifier(), true, input.settings(), true);
+    }
+
+    public void validateService(Service service) {
+        if (service == null || !service.isActive()) {
+            PlatformValidation.reject("serviceIdentifier", "service.inactive");
+        }
+    }
+
+    public void validateContext(FeatureContext context) {
+        if (context == null || !context.isActive()) {
+            PlatformValidation.reject("contextIdentifier", "context.inactive");
+        }
     }
 }

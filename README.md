@@ -55,6 +55,17 @@ br.com.itau.portalmanager.workspace
 
 Pacotes vazios não são criados apenas para completar a árvore.
 
+### Ponto único de validação
+
+Para Workspace, Message, Platform e Schema, as decisões de validade pertencem a
+`usecase/validation`: formato e obrigatoriedade dos dados, duplicidade, lifecycle,
+relações e pré-condições de transição. As operações consultam repositórios quando
+necessário, passam os dados ao validador e só então modificam as entidades.
+Entidades executam as transições sem repetir essas regras. Toda escrita deve passar
+pelo use case; as restrições do banco permanecem como proteção de integridade e de
+concorrência. Os catálogos ficam fora deste padrão por enquanto: usam contratos de
+validação próprios da `platform-catalog`.
+
 Princípios principais:
 
 - Golden Platform Foundation fornece capabilities; este serviço demonstra padrões de aplicação.

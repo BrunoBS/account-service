@@ -59,7 +59,7 @@ public class ServiceCommandService {
     @Transactional
     public ServiceOutput delete(String identifier) {
         Service service = required(identifier);
-        if (!service.getFeatures().isEmpty()) throw new IllegalStateException("Service with features cannot be quarantined");
+        validator.validateDelete(service);
         service.quarantine(now());
         return ServiceOutput.from(service);
     }

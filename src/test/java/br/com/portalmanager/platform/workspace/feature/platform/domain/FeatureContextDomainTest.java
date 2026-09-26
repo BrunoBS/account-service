@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class FeatureContextDomainTest {
 
@@ -24,12 +23,7 @@ class FeatureContextDomainTest {
         assertThat(context.isActive()).isTrue();
         assertThat(context.getLifecycle()).isEqualTo(LifecycleTypeCode.active());
 
-        assertThatThrownBy(() -> new FeatureContext(
-                "MANAGER_ACCOUNT",
-                "Any friendly name",
-                null,
-                NOW
-        )).isInstanceOf(IllegalArgumentException.class);
+
     }
 
     @Test

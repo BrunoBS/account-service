@@ -25,6 +25,60 @@ import static org.mockito.Mockito.*;
 class PlatformCommandServiceTest {
 
     @Test
+    void shouldRejectInvalidCodeThroughUseCase() {
+        ServiceRepository services = mock(ServiceRepository.class);
+        ServiceCommandService command = new ServiceCommandService(services);
+
+        assertThatThrownBy(() -> command.create(new CreateServiceInput("AUDIT_SERVICE", "Audit Service", null)))
+                .isInstanceOf(ValidationException.class);
+        verify(services, never()).save(any(Service.class));
+    }
+
+    @Test
+    void shouldRejectInvalidContextCodeThroughUseCase() {
+        FeatureContextRepository contexts = mock(FeatureContextRepository.class);
+        FeatureContextCommandService command = new FeatureContextCommandService(contexts);
+
+        assertThatThrownBy(() -> command.create(
+                new CreateFeatureContextInput("MANAGER_ACCOUNT", "Manager Account", null)))
+                .isInstanceOf(ValidationException.class);
+        verify(contexts, never()).save(any(FeatureContext.class));
+    }
+
+    @Test
+    void shouldRejectInactiveServiceWhenCreatingFeature() {
+        FeatureRepository features = mock(FeatureRepository.class);
+        ServiceRepository services = mock(ServiceRepository.class);
+        FeatureContextRepository contexts = mock(FeatureContextRepository.class);
+        Service service = new Service("audit-service", "Audit Service", null, LocalDateTime.now());
+        service.inactivate(LocalDateTime.now());
+        when(services.findByIdentifier(service.getIdentifier())).thenReturn(Optional.of(service));
+        FeatureCommandService command = new FeatureCommandService(features, services, contexts);
+
+        assertThatThrownBy(() -> command.create(
+                new CreateFeatureInput("audit", "Audit", null, service.getIdentifier(), "{}")))
+                .isInstanceOf(ValidationException.class);
+        verify(features, never()).save(any(Feature.class));
+    }
+
+    @Test
+    void shouldRejectFeatureActivationWhenServiceIsInactive() {
+        FeatureRepository features = mock(FeatureRepository.class);
+        ServiceRepository services = mock(ServiceRepository.class);
+        FeatureContextRepository contexts = mock(FeatureContextRepository.class);
+        Service service = new Service("audit-service", "Audit Service", null, LocalDateTime.now());
+        Feature feature = new Feature("audit", "Audit", null, service, "{}", LocalDateTime.now());
+        feature.inactivate(LocalDateTime.now());
+        service.inactivate(LocalDateTime.now());
+        when(features.findByIdentifier(feature.getIdentifier())).thenReturn(Optional.of(feature));
+        FeatureCommandService command = new FeatureCommandService(features, services, contexts);
+
+        assertThatThrownBy(() -> command.activate(feature.getIdentifier()))
+                .isInstanceOf(ValidationException.class);
+        verify(features, never()).save(any(Feature.class));
+    }
+
+    @Test
     void shouldRejectDuplicateServiceCode() {
         ServiceRepository repository = mock(ServiceRepository.class);
         when(repository.existsByCode("audit-service")).thenReturn(true);
@@ -80,8 +134,7 @@ class PlatformCommandServiceTest {
         FeatureContextCommandService command = new FeatureContextCommandService(contexts);
 
         assertThatThrownBy(() -> command.delete(context.getIdentifier()))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Feature context with features cannot be quarantined");
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test
@@ -99,8 +152,7 @@ class PlatformCommandServiceTest {
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
         assertThatThrownBy(() -> command.associateContext(feature.getIdentifier(), context.getIdentifier()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Feature context must be active");
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test
@@ -127,7 +179,6 @@ class PlatformCommandServiceTest {
         ServiceCommandService command = new ServiceCommandService(repository);
 
         assertThatThrownBy(() -> command.delete(service.getIdentifier()))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Service with features cannot be quarantined");
+                .isInstanceOf(ValidationException.class);
     }
 }

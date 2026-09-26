@@ -47,11 +47,6 @@ public class SchemaVersion {
             SchemaVersionStatusTypeCode status,
             LocalDateTime now
     ) {
-        if (schema == null) throw new IllegalArgumentException("Schema is required");
-        if (schemaVersion == null || schemaVersion < 1) throw new IllegalArgumentException("Schema version must be positive");
-        if (definition == null || definition.isBlank()) throw new IllegalArgumentException("Schema definition is required");
-        if (status == null) throw new IllegalArgumentException("Schema version status is required");
-
         this.identifier = UUID.randomUUID().toString();
         this.schema = schema;
         this.schemaVersion = schemaVersion;
@@ -62,12 +57,6 @@ public class SchemaVersion {
     }
 
     public void updateDraft(String versionName, String definition) {
-        if (!isDraft()) {
-            throw new IllegalStateException("Published schema version is immutable");
-        }
-        if (definition == null || definition.isBlank()) {
-            throw new IllegalArgumentException("Schema definition is required");
-        }
         this.versionName = versionName == null || versionName.isBlank() ? "v" + schemaVersion : versionName.trim();
         this.definition = definition;
     }

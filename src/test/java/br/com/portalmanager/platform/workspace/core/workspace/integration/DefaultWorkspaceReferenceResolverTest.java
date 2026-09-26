@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspace.integration;
 
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceFinder;
@@ -29,9 +30,10 @@ class DefaultWorkspaceReferenceResolverTest {
         Workspace workspace = mock(Workspace.class);
         when(workspace.getId()).thenReturn(7L);
         when(workspace.getIdentifier()).thenReturn("workspace-identifier");
-        when(repository.findByIdentifierAndLifecycleValue("workspace-identifier", "ACTIVE"))
+        when(workspace.getLifecycle()).thenReturn(LifecycleTypeCode.active());
+        when(repository.findByIdentifier("workspace-identifier"))
                 .thenReturn(Optional.of(workspace));
-        when(repository.findByIdAndLifecycleValue(7L, "ACTIVE"))
+        when(repository.findById(7L))
                 .thenReturn(Optional.of(workspace));
 
         assertThat(resolver.resolveInternalId("workspace-identifier")).isEqualTo(7L);
@@ -40,14 +42,22 @@ class DefaultWorkspaceReferenceResolverTest {
 
     @Test
     void rejectsInactiveQuarantinedAndMissingWorkspacesInBothDirections() {
-        // A query restricted to ACTIVE returns empty for each of these lifecycle states.
         for (String state : new String[]{"INACTIVE", "QUARANTINED", "MISSING"}) {
+            Workspace workspace = mock(Workspace.class);
+            if (!state.equals("MISSING")) {
+                when(workspace.getLifecycle()).thenReturn(state.equals("INACTIVE")
+                        ? LifecycleTypeCode.inactive() : LifecycleTypeCode.quarantined());
+                when(repository.findByIdentifier("workspace-" + state)).thenReturn(Optional.of(workspace));
+                when(repository.findById(7L)).thenReturn(Optional.of(workspace));
+            } else {
+                when(repository.findById(7L)).thenReturn(Optional.empty());
+            }
             assertThatThrownBy(() -> resolver.resolveInternalId("workspace-" + state))
                     .isInstanceOf(NotFoundException.class);
             assertThatThrownBy(() -> resolver.resolveIdentifier(7L))
                     .isInstanceOf(NotFoundException.class);
-            verify(repository).findByIdentifierAndLifecycleValue("workspace-" + state, "ACTIVE");
+            verify(repository).findByIdentifier("workspace-" + state);
         }
-        verify(repository, org.mockito.Mockito.times(3)).findByIdAndLifecycleValue(7L, "ACTIVE");
+        verify(repository, org.mockito.Mockito.times(3)).findById(7L);
     }
 }

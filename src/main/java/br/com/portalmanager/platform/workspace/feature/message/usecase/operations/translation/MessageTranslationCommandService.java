@@ -1,7 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.message.usecase.operations.translation;
 
 import br.com.portalmanager.platform.workspace.feature.message.domain.Message;
-import br.com.portalmanager.platform.workspace.feature.message.domain.MessageMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.message.domain.MessageTranslation;
 import br.com.portalmanager.platform.workspace.feature.message.repository.MessageTranslationRepository;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
@@ -10,13 +9,10 @@ import br.com.portalmanager.platform.workspace.feature.message.usecase.model.Upd
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageFinder;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageNormalizer;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.validation.MessageValidator;
-import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Service
 public class MessageTranslationCommandService {
@@ -82,7 +78,7 @@ public class MessageTranslationCommandService {
                 );
 
         validator.validateTranslationForUpdate(input, localeDuplicate);
-        validateVersion(translation.getVersion(), input.version());
+        validator.validateVersion(translation.getVersion(), input.version());
 
         translation.update(
                 input.locale(),
@@ -120,16 +116,9 @@ public class MessageTranslationCommandService {
     public void delete(String messageIdentifier, String translationIdentifier) {
         Message message = finder.findMessage(messageIdentifier);
         MessageTranslation translation = finder.findTranslation(message, translationIdentifier);
-        if (!translation.isInactive()) {
-            throw new ValidationException(MessageMessageKeys.TRANSLATION_DELETE_INVALID);
-        }
+        validator.validateDeletion(translation);
         translation.quarantine(LocalDateTime.now());
         repository.saveAndFlush(translation);
     }
 
-    private void validateVersion(Long currentVersion, Long inputVersion) {
-        if (!Objects.equals(currentVersion, inputVersion)) {
-            throw new ResourceVersionConflictException();
-        }
-    }
 }

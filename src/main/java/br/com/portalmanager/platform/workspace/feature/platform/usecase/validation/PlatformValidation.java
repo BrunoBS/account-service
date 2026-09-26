@@ -40,9 +40,11 @@ final class PlatformValidation {
 
     static void requireInput(Object input) {
         if (input == null) {
-            ValidationResult result = new ValidationResult();
-            result.addError("request", PREFIX + "request.required");
-            throw new ValidationException(result);
+            reject("request", "request.required");
         }
+    }
+
+    static void reject(String field, String key) {
+        throw new ValidationException(new ValidationResult(field, PREFIX + key));
     }
 }

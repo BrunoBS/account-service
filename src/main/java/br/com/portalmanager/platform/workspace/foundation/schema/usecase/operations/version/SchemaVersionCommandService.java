@@ -9,9 +9,8 @@ import br.com.portalmanager.platform.workspace.foundation.schema.repository.Sche
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaVersionOperationValidator;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
@@ -25,6 +24,7 @@ public class SchemaVersionCommandService {
     private final SchemaRepository schemaRepository;
     private final SchemaVersionRepository versionRepository;
     private final SchemaValidator validator;
+    private final SchemaVersionOperationValidator operationValidator = new SchemaVersionOperationValidator();
     private final WorkspaceReferenceResolver workspaceReferenceResolver;
 
     public SchemaVersionCommandService(
@@ -116,11 +116,7 @@ public class SchemaVersionCommandService {
             CreateSchemaVersionInput input
     ) {
         JsonNode definition = input == null ? null : input.definition();
-        ValidationResult validation = new ValidationResult();
-        validator.validateSchemaSyntax(definition, validation);
-        if (validation.hasErrors()) {
-            throw new ValidationException(validation);
-        }
+        validator.requireValidSchemaSyntax(definition);
 
         String serialized = validator.toJsonString(definition);
         List<SchemaVersion> versions = versionRepository.findAllForUpdate(schema.getId());
@@ -131,6 +127,7 @@ public class SchemaVersionCommandService {
                 .orElse(null);
 
         if (existingDraft != null) {
+            operationValidator.validateDraftUpdate(existingDraft, serialized);
             existingDraft.updateDraft(input.versionName(), serialized);
             return SchemaVersionOutput.from(existingDraft);
         }
@@ -151,6 +148,7 @@ public class SchemaVersionCommandService {
                 ? serialized
                 : latestPublished.getDefinition();
 
+        operationValidator.validateCreate(schema, nextVersion, initialDefinition, SchemaVersionStatusTypeCode.draft());
         SchemaVersion created = new SchemaVersion(
                 schema,
                 nextVersion,
@@ -161,6 +159,7 @@ public class SchemaVersionCommandService {
         );
 
         if (!initialDefinition.equals(serialized)) {
+            operationValidator.validateDraftUpdate(created, serialized);
             created.updateDraft(input.versionName(), serialized);
         }
 
@@ -191,9 +190,7 @@ public class SchemaVersionCommandService {
                 .findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Schema version not found"));
 
-        if (!version.isDraft()) {
-            throw new IllegalStateException("Published schema version cannot be physically deleted");
-        }
+        operationValidator.validateDraftDeletion(version);
 
         versionRepository.delete(version);
     }

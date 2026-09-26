@@ -1,19 +1,39 @@
 package br.com.portalmanager.platform.workspace.feature.message.usecase.validation;
 
 import br.com.portalmanager.platform.workspace.feature.message.domain.MessageMessageKeys;
+import br.com.portalmanager.platform.workspace.feature.message.domain.Message;
+import br.com.portalmanager.platform.workspace.feature.message.domain.MessageTranslation;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.CreateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageTranslationInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.service.ServiceQueryService;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;
 
 import java.util.regex.Pattern;
+import java.util.Objects;
 
 @Component
 public class MessageValidator {
+
+    public void validateVersion(Long currentVersion, Long requestedVersion) {
+        if (!Objects.equals(currentVersion, requestedVersion)) {
+            throw new ResourceVersionConflictException();
+        }
+    }
+
+    public void validateDeletion(Message message) {
+        if (!message.isInactive()) throw new ValidationException(MessageMessageKeys.DELETE_INVALID);
+    }
+
+    public void validateDeletion(MessageTranslation translation) {
+        if (!translation.isInactive()) {
+            throw new ValidationException(MessageMessageKeys.TRANSLATION_DELETE_INVALID);
+        }
+    }
 
     private static final Pattern MESSAGE_KEY_PATTERN =
             Pattern.compile("^[a-z0-9][a-z0-9._-]{0,254}$");

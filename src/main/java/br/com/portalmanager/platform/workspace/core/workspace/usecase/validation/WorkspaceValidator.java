@@ -1,20 +1,47 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.validation;
 
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceMessageKeys;
+import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.usecase.WorkspaceTypeService;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
 @Component
 public class WorkspaceValidator {
+
+    public static void requireActive(Workspace workspace) {
+        if (!LifecycleTypeCode.active().equals(workspace.getLifecycle())) {
+            throw new NotFoundException(WorkspaceMessageKeys.NOT_FOUND);
+        }
+    }
+
+    public static void requireRestorable(Workspace workspace) {
+        if (!LifecycleTypeCode.inactive().equals(workspace.getLifecycle())) {
+            throw new ValidationException(WorkspaceMessageKeys.RESTORE_INVALID);
+        }
+    }
+
+    public static void requireDeletable(Workspace workspace) {
+        if (!LifecycleTypeCode.inactive().equals(workspace.getLifecycle())) {
+            throw new ValidationException(WorkspaceMessageKeys.DELETE_INVALID);
+        }
+    }
+
+    public static void requireVersion(Long current, Long requested) {
+        if (!Objects.equals(current, requested)) throw new ResourceVersionConflictException();
+    }
 
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");

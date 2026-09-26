@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ServiceDomainTest {
 
@@ -38,9 +37,4 @@ class ServiceDomainTest {
         assertThat(service.getFeatures()).containsExactly(feature);
     }
 
-    @Test
-    void shouldRejectInvalidCodeFormat() {
-        assertThatThrownBy(() -> new Service("AUDIT_SERVICE", "Audit Service", null, NOW))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
 }

@@ -62,9 +62,7 @@ public class FeatureContextCommandService {
     @Transactional
     public FeatureContextOutput delete(String identifier) {
         FeatureContext context = required(identifier);
-        if (!context.getFeatures().isEmpty()) {
-            throw new IllegalStateException("Feature context with features cannot be quarantined");
-        }
+        validator.validateDelete(context);
         context.quarantine(now());
         return FeatureContextOutput.from(context);
     }

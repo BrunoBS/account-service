@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.feature.platform.usecase.validat
 
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateServiceInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateServiceInput;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.Service;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,5 +17,11 @@ public class ServiceValidator {
         PlatformValidation.requireInput(input);
         PlatformValidation.validate(null, false, input.name(), input.description(), false,
                 nameDuplicate, null, false, null, false);
+    }
+
+    public void validateDelete(Service service) {
+        if (!service.getFeatures().isEmpty()) {
+            PlatformValidation.reject("service", "service.has-features");
+        }
     }
 }

@@ -63,6 +63,18 @@ public class SchemaValidator {
         }
     }
 
+    public void requireValidJson(String schemaDefinition, JsonNode configNode, String attributeName) {
+        ValidationResult result = new ValidationResult();
+        validateJson(schemaDefinition, configNode, attributeName, result);
+        if (result.hasErrors()) throw new ValidationException(result);
+    }
+
+    public void requireValidSchemaSyntax(JsonNode schemaNode) {
+        ValidationResult result = new ValidationResult();
+        validateSchemaSyntax(schemaNode, result);
+        if (result.hasErrors()) throw new ValidationException(result);
+    }
+
     public void validateSchemaSyntax(JsonNode schemaNode, ValidationResult result) {
         if (schemaNode == null || schemaNode.isEmpty() || !schemaNode.isObject()) {
             result.addError("jsonSchema", INVALID_SYNTAX);

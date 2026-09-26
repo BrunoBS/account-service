@@ -1,7 +1,5 @@
 package br.com.portalmanager.platform.workspace.feature.platform.domain;
 
-import br.com.portalmanager.platform.workspace.feature.platform.domain.validation.PlatformCodeValidator;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.validation.PlatformNameValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -29,8 +27,8 @@ public class Service {
 
     public Service(String code, String name, String description, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
-        this.code = PlatformCodeValidator.requireValid(code);
-        this.name = PlatformNameValidator.requireValid(name);
+        this.code = code;
+        this.name = name;
         this.description = description;
         this.lifecycle = LifecycleTypeCode.active();
         this.createdAt = now;
@@ -38,7 +36,7 @@ public class Service {
     }
 
     public void update(String name, String description, LocalDateTime now) {
-        this.name = PlatformNameValidator.requireValid(name); this.description = description; this.updatedAt = now;
+        this.name = name; this.description = description; this.updatedAt = now;
     }
     public void activate(LocalDateTime now) { lifecycle = LifecycleTypeCode.active(); updatedAt = now; }
     public void inactivate(LocalDateTime now) { lifecycle = LifecycleTypeCode.inactive(); updatedAt = now; }

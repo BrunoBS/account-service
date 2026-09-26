@@ -11,9 +11,9 @@ import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.C
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaOutput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaVersionOperationValidator;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +26,8 @@ public class SchemaCommandService {
     private final SchemaVersionRepository versionRepository;
     private final SchemaTypeService schemaTypeService;
     private final SchemaValidator validator;
+    private final SchemaOperationValidator operationValidator = new SchemaOperationValidator();
+    private final SchemaVersionOperationValidator versionValidator = new SchemaVersionOperationValidator();
     private final WorkspaceReferenceResolver workspaceReferenceResolver;
 
     public SchemaCommandService(
@@ -44,21 +46,19 @@ public class SchemaCommandService {
 
     @Transactional
     public SchemaOutput createPlatform(CreateSchemaInput input) {
-        if (repository.findByTypeAndScope(
+        operationValidator.validateCreateInput(input);
+        operationValidator.validatePlatformTypeAvailable(repository.findByTypeAndScope(
                 input.schemaTypeCode(),
                 SchemaScopeTypeCode.platform().value(),
                 null
-        ).isPresent()) {
-            throw new IllegalArgumentException("Platform schema type already has a schema");
-        }
+        ).isPresent());
         return create(input, SchemaScopeTypeCode.platform(), null);
     }
 
     @Transactional
     public SchemaOutput createWorkspace(CreateSchemaInput input) {
-        if (input.workspaceIdentifier() == null || input.workspaceIdentifier().isBlank()) {
-            throw new IllegalArgumentException("Workspace identifier is required");
-        }
+        operationValidator.validateCreateInput(input);
+        operationValidator.validateWorkspaceIdentifier(input.workspaceIdentifier());
         Long workspaceId = workspaceReferenceResolver.resolveInternalId(input.workspaceIdentifier().trim());
         return create(
                 input,
@@ -128,9 +128,7 @@ public class SchemaCommandService {
     }
 
     private SchemaOutput update(Schema schema, UpdateSchemaInput input) {
-        if (input.version() == null || !input.version().equals(schema.getVersion())) {
-            throw new IllegalStateException("Schema version conflict");
-        }
+        operationValidator.validateUpdate(schema, input);
         schema.update(input.name(), input.description(), LocalDateTime.now());
         return output(schema);
     }
@@ -155,24 +153,17 @@ public class SchemaCommandService {
             SchemaScopeTypeCode scope,
             Long workspaceId
     ) {
-        if (!schemaTypeService.existsActive(input.schemaTypeCode())) {
-            throw new IllegalArgumentException("Active schema type not found");
-        }
+        operationValidator.validateOwnership(scope, workspaceId);
+        operationValidator.validateTypeActive(schemaTypeService.existsActive(input.schemaTypeCode()));
 
-        if (repository.findByTypeScopeAndCode(
+        operationValidator.validateCodeAvailable(repository.findByTypeScopeAndCode(
                 input.schemaTypeCode(),
                 scope.value(),
                 workspaceId,
                 input.code()
-        ).isPresent()) {
-            throw new IllegalArgumentException("Schema code already exists in scope");
-        }
+        ).isPresent());
 
-        ValidationResult validation = new ValidationResult();
-        validator.validateSchemaSyntax(input.definition(), validation);
-        if (validation.hasErrors()) {
-            throw new ValidationException(validation);
-        }
+        validator.requireValidSchemaSyntax(input.definition());
 
         LocalDateTime now = LocalDateTime.now();
         Schema schema = repository.save(new Schema(
@@ -185,11 +176,13 @@ public class SchemaCommandService {
                 now
         ));
 
+        String definition = validator.toJsonString(input.definition());
+        versionValidator.validateCreate(schema, 1, definition, SchemaVersionStatusTypeCode.draft());
         versionRepository.save(new SchemaVersion(
                 schema,
                 1,
                 input.versionName(),
-                validator.toJsonString(input.definition()),
+                definition,
                 SchemaVersionStatusTypeCode.draft(),
                 now
         ));
@@ -212,4 +205,3 @@ public class SchemaCommandService {
         return SchemaOutput.from(schema, workspaceIdentifier);
     }
 }
-

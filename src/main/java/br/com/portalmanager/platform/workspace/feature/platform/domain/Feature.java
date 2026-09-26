@@ -1,7 +1,5 @@
 package br.com.portalmanager.platform.workspace.feature.platform.domain;
 
-import br.com.portalmanager.platform.workspace.feature.platform.domain.validation.PlatformCodeValidator;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.validation.PlatformNameValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
 
@@ -40,10 +38,9 @@ public class Feature {
     }
 
     public Feature(String code, String name, String description, Service service, String settings, LocalDateTime now) {
-        if (service == null || !service.isActive()) throw new IllegalArgumentException("Feature requires an active service");
         this.identifier = UUID.randomUUID().toString();
-        this.code = PlatformCodeValidator.requireValid(code);
-        this.name = PlatformNameValidator.requireValid(name);
+        this.code = code;
+        this.name = name;
         this.description = description;
         this.service = service;
         this.settings = settings;
@@ -54,14 +51,13 @@ public class Feature {
     }
 
     public void update(String name, String description, String settings, LocalDateTime now) {
-        this.name = PlatformNameValidator.requireValid(name);
+        this.name = name;
         this.description = description;
         this.settings = settings;
         this.updatedAt = now;
     }
 
     public void changeService(Service newService, LocalDateTime now) {
-        if (newService == null || !newService.isActive()) throw new IllegalArgumentException("Feature requires an active service");
         if (service != null) service.detach(this);
         service = newService;
         newService.attach(this);
@@ -69,8 +65,6 @@ public class Feature {
     }
 
     public void addContext(FeatureContext context) {
-        if (context == null) throw new IllegalArgumentException("Feature context is required");
-        if (!context.isActive()) throw new IllegalArgumentException("Feature context must be active");
         contexts.add(context);
         context.attach(this);
     }
@@ -81,7 +75,6 @@ public class Feature {
     }
 
     public void activate(LocalDateTime now) {
-        if (service == null || !service.isActive()) throw new IllegalStateException("Feature requires an active service");
         lifecycle = LifecycleTypeCode.active();
         updatedAt = now;
     }
