@@ -1,5 +1,6 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.usecase;
 
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
@@ -31,7 +32,7 @@ class SchemaResolverTest {
                 .thenReturn(Optional.of(schema));
         when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
                 nullable(Long.class),
-                eq(SchemaVersion.PUBLISHED)
+                eq(SchemaVersionStatusTypeCode.published())
         )).thenReturn(Optional.of(version));
 
         SchemaResolution resolution = resolver.resolvePlatform("APPLICATION");
@@ -53,7 +54,7 @@ class SchemaResolverTest {
                 .thenReturn(Optional.of(fallback));
         when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
                 nullable(Long.class),
-                eq(SchemaVersion.PUBLISHED)
+                eq(SchemaVersionStatusTypeCode.published())
         )).thenReturn(Optional.of(version));
 
         SchemaResolution resolution = resolver.resolvePlatform("APPLICATION");
