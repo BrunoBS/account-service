@@ -5,6 +5,8 @@ import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaOutput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import org.springframework.stereotype.Service;
@@ -91,7 +93,7 @@ public class SchemaQueryService {
             Long workspaceId
     ) {
         return schemaRepository.findByIdentifierAndScope(identifier, scope.value(), workspaceId)
-                .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
+                .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.NOT_FOUND));
     }
     private SchemaOutput output(Schema schema) {
         String workspaceIdentifier = schema.getWorkspaceId() == null
@@ -100,4 +102,3 @@ public class SchemaQueryService {
         return SchemaOutput.from(schema, workspaceIdentifier);
     }
 }
-

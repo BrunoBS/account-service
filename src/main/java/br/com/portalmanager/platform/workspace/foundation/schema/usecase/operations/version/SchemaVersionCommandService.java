@@ -8,6 +8,8 @@ import br.com.portalmanager.platform.workspace.foundation.schema.repository.Sche
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaVersionOperationValidator;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
@@ -174,7 +176,7 @@ public class SchemaVersionCommandService {
 
         SchemaVersion version = versionRepository
                 .findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Schema version not found"));
+                .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.VERSION_NOT_FOUND));
 
         version.publish();
         return SchemaVersionOutput.from(version);
@@ -188,7 +190,7 @@ public class SchemaVersionCommandService {
 
         SchemaVersion version = versionRepository
                 .findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Schema version not found"));
+                .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.VERSION_NOT_FOUND));
 
         operationValidator.validateDraftDeletion(version);
 
@@ -201,6 +203,6 @@ public class SchemaVersionCommandService {
             Long workspaceId
     ) {
         return schemaRepository.findByIdentifierAndScopeForUpdate(identifier, scope.value(), workspaceId)
-                .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
+                .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.NOT_FOUND));
     }
 }

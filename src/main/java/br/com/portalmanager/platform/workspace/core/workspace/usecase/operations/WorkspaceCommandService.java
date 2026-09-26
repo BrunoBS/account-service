@@ -22,12 +22,12 @@ public class WorkspaceCommandService {
     private final WorkspaceFinder finder;
     private final WorkspaceNormalizer normalizer;
     private final WorkspaceValidator validator;
-    private final WorkspaceTagManager taggingSupport;
+    private final WorkspaceTagManager tagManager;
 
     public WorkspaceCommandService(WorkspaceRepository repository, WorkspaceFinder finder, WorkspaceNormalizer normalizer,
-                                   WorkspaceValidator validator, WorkspaceTagManager taggingSupport) {
+                                   WorkspaceValidator validator, WorkspaceTagManager tagManager) {
         this.repository = repository; this.finder = finder; this.normalizer = normalizer;
-        this.validator = validator; this.taggingSupport = taggingSupport;
+        this.validator = validator; this.tagManager = tagManager;
     }
 
     @Transactional
@@ -40,8 +40,8 @@ public class WorkspaceCommandService {
                 input.requester(), input.acronym(), input.settings(), input.authorizerGroup(), input.emailGroup(), now);
         input.approvers().forEach(a -> workspace.addApprover(a.functional(), a.email()));
         Workspace saved = repository.saveAndFlush(workspace);
-        taggingSupport.reconcile(saved, input.tags());
-        return WorkspaceOutput.from(saved, taggingSupport.findManual(saved));
+        tagManager.reconcile(saved, input.tags());
+        return WorkspaceOutput.from(saved, tagManager.findManual(saved));
     }
 
     @Transactional
@@ -57,8 +57,8 @@ public class WorkspaceCommandService {
         repository.deleteApproversByWorkspaceId(workspace.getId());
         input.approvers().forEach(a -> workspace.addApprover(a.functional(), a.email()));
         Workspace saved = repository.saveAndFlush(workspace);
-        taggingSupport.reconcile(saved, input.tags());
-        return WorkspaceOutput.from(saved, taggingSupport.findManual(saved));
+        tagManager.reconcile(saved, input.tags());
+        return WorkspaceOutput.from(saved, tagManager.findManual(saved));
     }
 
     @Transactional public void inactivate(String identifier) {
@@ -69,11 +69,11 @@ public class WorkspaceCommandService {
 
     @Transactional public WorkspaceOutput restore(String identifier) {
         Workspace workspace = finder.findInactiveForRestore(identifier);
-        List<String> manualTags = taggingSupport.findManual(workspace);
+        List<String> manualTags = tagManager.findManual(workspace);
         workspace.restore(LocalDateTime.now());
         Workspace saved = repository.saveAndFlush(workspace);
-        taggingSupport.reconcile(saved, manualTags);
-        return WorkspaceOutput.from(saved, taggingSupport.findManual(saved));
+        tagManager.reconcile(saved, manualTags);
+        return WorkspaceOutput.from(saved, tagManager.findManual(saved));
     }
 
     @Transactional public void delete(String identifier) {

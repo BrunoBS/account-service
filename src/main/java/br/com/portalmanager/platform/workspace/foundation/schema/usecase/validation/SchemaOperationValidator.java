@@ -3,9 +3,12 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase.valida
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaInput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.ValidateSettingsInput;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.exception.ConflictException;
+import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 
 import java.util.Objects;
@@ -24,52 +27,58 @@ public class SchemaOperationValidator {
     }
 
     public void validateCreateInput(CreateSchemaInput input) {
-        if (input == null) throw new IllegalArgumentException("Schema input is required");
+        if (input == null) throw invalid("schema", SchemaMessageKeys.REQUEST_INVALID);
         if (input.schemaTypeCode() == null || input.schemaTypeCode().isBlank()) {
-            throw new IllegalArgumentException("Schema type code is required");
+            throw invalid("schemaTypeCode", SchemaMessageKeys.TYPE_INVALID);
         }
         if (input.code() == null || !CODE.matcher(input.code()).matches()) {
-            throw new IllegalArgumentException("Schema code must use lowercase kebab-case");
+            throw invalid("code", SchemaMessageKeys.CODE_INVALID);
         }
         validateName(input.name());
     }
 
     public void validateOwnership(SchemaScopeTypeCode scope, Long workspaceId) {
-        if (scope == null) throw new IllegalArgumentException("Schema scope is required");
+        if (scope == null) throw invalid("scope", SCOPE_INVALID);
         if (SchemaScopeTypeCode.workspace().equals(scope) && workspaceId == null) {
-            throw new IllegalArgumentException("Workspace id is required for WORKSPACE schema");
+            throw invalid("workspaceIdentifier", SchemaMessageKeys.WORKSPACE_REQUIRED);
         }
         if (!SchemaScopeTypeCode.workspace().equals(scope) && workspaceId != null) {
-            throw new IllegalArgumentException("Workspace id must be empty for PLATFORM schema");
+            throw invalid("workspaceIdentifier", SchemaMessageKeys.OWNERSHIP_INVALID);
         }
     }
 
     public void validateWorkspaceIdentifier(String identifier) {
         if (identifier == null || identifier.isBlank()) {
-            throw new IllegalArgumentException("Workspace identifier is required");
+            throw invalid("workspaceIdentifier", SchemaMessageKeys.WORKSPACE_REQUIRED);
         }
     }
 
     public void validatePlatformTypeAvailable(boolean alreadyExists) {
-        if (alreadyExists) throw new IllegalArgumentException("Platform schema type already has a schema");
+        if (alreadyExists) throw new ConflictException(SchemaMessageKeys.TYPE_DUPLICATE);
     }
 
     public void validateTypeActive(boolean active) {
-        if (!active) throw new IllegalArgumentException("Active schema type not found");
+        if (!active) throw invalid("schemaTypeCode", SchemaMessageKeys.TYPE_INACTIVE);
     }
 
     public void validateCodeAvailable(boolean alreadyExists) {
-        if (alreadyExists) throw new IllegalArgumentException("Schema code already exists in scope");
+        if (alreadyExists) throw new ConflictException(SchemaMessageKeys.CODE_DUPLICATE);
     }
 
     public void validateUpdate(Schema schema, UpdateSchemaInput input) {
-        if (input == null || !Objects.equals(input.version(), schema.getVersion())) {
-            throw new IllegalStateException("Schema version conflict");
+        if (input == null) throw invalid("schema", SchemaMessageKeys.REQUEST_INVALID);
+        if (input.version() == null) throw invalid("version", SchemaMessageKeys.VERSION_INVALID);
+        if (!Objects.equals(input.version(), schema.getVersion())) {
+            throw new ResourceVersionConflictException();
         }
         validateName(input.name());
     }
 
     private void validateName(String name) {
-        if (name == null || name.isBlank()) throw new IllegalArgumentException("Schema name is required");
+        if (name == null || name.isBlank()) throw invalid("name", SchemaMessageKeys.NAME_REQUIRED);
+    }
+
+    private ValidationException invalid(String field, String key) {
+        return new ValidationException(new ValidationResult(field, key));
     }
 }

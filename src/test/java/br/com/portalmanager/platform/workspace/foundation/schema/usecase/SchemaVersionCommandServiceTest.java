@@ -9,6 +9,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validat
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.version.SchemaVersionCommandService;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
+import br.com.portalmanager.platform.library.messaging.exception.ConflictException;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 
@@ -193,7 +194,7 @@ class SchemaVersionCommandServiceTest {
 
         assertThatThrownBy(() ->
                 service.deletePlatformDraft("schema-1", published.getIdentifier())
-        ).isInstanceOf(IllegalStateException.class);
+        ).isInstanceOf(ConflictException.class);
 
         verify(versionRepository, never()).delete(any(SchemaVersion.class));
     }

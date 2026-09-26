@@ -9,6 +9,8 @@ import br.com.portalmanager.platform.workspace.foundation.schema.repository.Sche
 import br.com.portalmanager.platform.workspace.foundation.catalog.schematype.usecase.SchemaTypeService;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaOutput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
@@ -196,7 +198,7 @@ public class SchemaCommandService {
             Long workspaceId
     ) {
         return repository.findByIdentifierAndScope(identifier, scope.value(), workspaceId)
-                .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
+                .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.NOT_FOUND));
     }
     private SchemaOutput output(Schema schema) {
         String workspaceIdentifier = schema.getWorkspaceId() == null

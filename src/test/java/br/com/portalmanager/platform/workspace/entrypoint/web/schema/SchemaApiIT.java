@@ -104,6 +104,42 @@ class SchemaApiIT {
                 .path("identifier");
 
         authorized()
+                .get("/api/v1/schemas/" + UUID.randomUUID())
+                .then()
+                .statusCode(404);
+
+        authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "schemaTypeCode", "APPLICATION",
+                        "code", "INVALID_CODE",
+                        "name", "Invalid Schema",
+                        "definition", Map.of("type", "object")
+                ))
+                .post("/api/v1/schemas")
+                .then()
+                .statusCode(400);
+
+        authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "schemaTypeCode", "APPLICATION",
+                        "code", "application",
+                        "name", "Duplicate Schema",
+                        "definition", Map.of("type", "object")
+                ))
+                .post("/api/v1/schemas")
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of("version", -1, "name", "Updated schema"))
+                .put("/api/v1/schemas/" + platformSchemaIdentifier)
+                .then()
+                .statusCode(409);
+
+        authorized()
                 .get("/api/v1/schemas/" + platformSchemaIdentifier + "/versions")
                 .then()
                 .statusCode(200)
@@ -135,6 +171,18 @@ class SchemaApiIT {
                 .then()
                 .statusCode(200)
                 .body("status", equalTo("PUBLISHED"));
+
+        authorized()
+                .delete("/api/v1/schemas/" + platformSchemaIdentifier
+                        + "/versions/" + versionIdentifier)
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .patch("/api/v1/schemas/" + platformSchemaIdentifier
+                        + "/versions/" + UUID.randomUUID() + "/publish")
+                .then()
+                .statusCode(404);
 
         authorized()
                 .get("/api/v1/schemas/" + platformSchemaIdentifier + "/versions")

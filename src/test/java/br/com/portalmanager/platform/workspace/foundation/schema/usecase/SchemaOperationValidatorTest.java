@@ -7,6 +7,8 @@ import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVe
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaVersionOperationValidator;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.exception.ConflictException;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -21,15 +23,13 @@ class SchemaOperationValidatorTest {
     void rejectsInvalidCodeBeforeCreatingSchema() {
         assertThatThrownBy(() -> schemas.validateCreateInput(
                 new CreateSchemaInput("JSON", "INVALID_CODE", "My schema", null, null, "v1", null)))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Schema code must use lowercase kebab-case");
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test
     void rejectsWorkspaceScopeWithoutWorkspaceId() {
         assertThatThrownBy(() -> schemas.validateOwnership(SchemaScopeTypeCode.workspace(), null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Workspace id is required for WORKSPACE schema");
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test
@@ -41,7 +41,6 @@ class SchemaOperationValidatorTest {
         version.publish();
 
         assertThatThrownBy(() -> versions.validateDraftUpdate(version, "{\"type\":\"object\"}"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Published schema version is immutable");
+                .isInstanceOf(ConflictException.class);
     }
 }

@@ -20,11 +20,11 @@ import java.util.Map;
 public class WorkspaceQueryService {
     private final WorkspaceRepository repository; private final WorkspaceFinder finder;
     private final WorkspaceNormalizer normalizer; private final WorkspaceValidator validator;
-    private final WorkspaceTagManager taggingSupport;
+    private final WorkspaceTagManager tagManager;
 
     public WorkspaceQueryService(WorkspaceRepository repository, WorkspaceFinder finder, WorkspaceNormalizer normalizer,
-                                 WorkspaceValidator validator, WorkspaceTagManager taggingSupport) {
-        this.repository=repository; this.finder=finder; this.normalizer=normalizer; this.validator=validator; this.taggingSupport=taggingSupport;
+                                 WorkspaceValidator validator, WorkspaceTagManager tagManager) {
+        this.repository=repository; this.finder=finder; this.normalizer=normalizer; this.validator=validator; this.tagManager=tagManager;
     }
 
     @Transactional(readOnly = true)
@@ -40,7 +40,7 @@ public class WorkspaceQueryService {
     @ResourceVisibility @Transactional(readOnly = true)
     public WorkspaceOutput findByIdentifier(String identifier) {
         Workspace workspace=finder.findActive(identifier);
-        return WorkspaceOutput.from(workspace, taggingSupport.findManual(workspace));
+        return WorkspaceOutput.from(workspace, tagManager.findManual(workspace));
     }
 
     @ResourceVisibility @Transactional(readOnly = true)
@@ -53,11 +53,11 @@ public class WorkspaceQueryService {
         List<Workspace> workspaces;
         if (normalizedTag == null) workspaces=repository.findFiltered(lifecycleCode, normalizedType);
         else {
-            List<String> identifiers=taggingSupport.findIdentifiersByTag(normalizedTag);
+            List<String> identifiers=tagManager.findIdentifiersByTag(normalizedTag);
             if (identifiers.isEmpty()) return List.of();
             workspaces=repository.findFilteredByIdentifiers(lifecycleCode, normalizedType, identifiers);
         }
-        Map<String,List<String>> manualTags=taggingSupport.findManualByIdentifiers(workspaces.stream().map(Workspace::getIdentifier).toList());
+        Map<String,List<String>> manualTags=tagManager.findManualByIdentifiers(workspaces.stream().map(Workspace::getIdentifier).toList());
         return workspaces.stream().map(w -> WorkspaceOutput.from(w, manualTags.getOrDefault(w.getIdentifier(), List.of()))).toList();
     }
 }
