@@ -43,6 +43,12 @@ br.com.portalmanager.platform.workspace
 
 Pacotes vazios não são criados apenas para completar a árvore.
 
+O cadastro administrativo de microserviços usa `feature/platform` e
+`/api/v1/platform/microservices`. A migração V19 renomeia as referências de
+Feature e Message e remove os catálogos de linguagem e infraestrutura. Consulte
+[`MICROSERVICE-MIGRATION-V19.md`](docs/refinamentos/foundation/MICROSERVICE-MIGRATION-V19.md)
+para os contratos de atualização.
+
 ### Ponto único de validação
 
 Para Workspace, Message, Platform e Schema, as decisões de validade pertencem a

@@ -5,7 +5,7 @@ import br.com.portalmanager.platform.workspace.feature.message.usecase.model.Mes
 public record MessageResponse(
         String identifier,
         Long version,
-        String serviceIdentifier,
+        String microserviceIdentifier,
         String messageKey,
         String code,
         Integer httpStatus,
@@ -16,7 +16,7 @@ public record MessageResponse(
         return new MessageResponse(
                 output.identifier(),
                 output.version(),
-                output.serviceIdentifier(),
+                output.microserviceIdentifier(),
                 output.messageKey(),
                 output.code(),
                 output.httpStatus(),

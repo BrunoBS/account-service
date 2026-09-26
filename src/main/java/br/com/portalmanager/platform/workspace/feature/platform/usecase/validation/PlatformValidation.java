@@ -12,7 +12,7 @@ final class PlatformValidation {
     private PlatformValidation() {}
 
     static void validate(String code, boolean requireCode, String name, String description, boolean codeDuplicate,
-                         boolean nameDuplicate, String serviceIdentifier, boolean requireService,
+                         boolean nameDuplicate, String microserviceIdentifier, boolean requireMicroservice,
                          String settings, boolean requireSettings) {
         ValidationResult result = new ValidationResult();
         if ((requireCode && code == null) || (code != null &&
@@ -29,8 +29,8 @@ final class PlatformValidation {
         if (description != null && description.length() > 500) {
             result.addError("description", PREFIX + "description.invalid");
         }
-        if (requireService && (serviceIdentifier == null || serviceIdentifier.isBlank())) {
-            result.addError("serviceIdentifier", PREFIX + "service.required");
+        if (requireMicroservice && (microserviceIdentifier == null || microserviceIdentifier.isBlank())) {
+            result.addError("microserviceIdentifier", PREFIX + "microservice.required");
         }
         if (requireSettings && (settings == null || settings.isBlank())) {
             result.addError("settings", PREFIX + "settings.required");

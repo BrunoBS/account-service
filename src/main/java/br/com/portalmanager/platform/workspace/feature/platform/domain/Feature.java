@@ -18,7 +18,7 @@ public class Feature {
     @Column(name = "code", nullable = false, unique = true, length = 50) private String code;
     @Column(name = "name", nullable = false, unique = true, length = 100) private String name;
     @Column(name = "description", length = 500) private String description;
-    @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "service_id", nullable = false) private Service service;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "microservice_id", nullable = false) private Microservice microservice;
 
     @ManyToMany
     @JoinTable(
@@ -37,17 +37,17 @@ public class Feature {
     protected Feature() {
     }
 
-    public Feature(String code, String name, String description, Service service, String settings, LocalDateTime now) {
+    public Feature(String code, String name, String description, Microservice microservice, String settings, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.code = code;
         this.name = name;
         this.description = description;
-        this.service = service;
+        this.microservice = microservice;
         this.settings = settings;
         this.lifecycle = LifecycleTypeCode.active();
         this.createdAt = now;
         this.updatedAt = now;
-        service.attach(this);
+        microservice.attach(this);
     }
 
     public void update(String name, String description, String settings, LocalDateTime now) {
@@ -57,9 +57,9 @@ public class Feature {
         this.updatedAt = now;
     }
 
-    public void changeService(Service newService, LocalDateTime now) {
-        if (service != null) service.detach(this);
-        service = newService;
+    public void changeMicroservice(Microservice newService, LocalDateTime now) {
+        if (microservice != null) microservice.detach(this);
+        microservice = newService;
         newService.attach(this);
         updatedAt = now;
     }
@@ -88,7 +88,7 @@ public class Feature {
     public String getCode() { return code; }
     public String getName() { return name; }
     public String getDescription() { return description; }
-    public Service getService() { return service; }
+    public Microservice getMicroservice() { return microservice; }
     public Set<FeatureContext> getContexts() { return Collections.unmodifiableSet(contexts); }
     public LifecycleTypeCode getLifecycle() { return lifecycle; }
     public String getSettings() { return settings; }

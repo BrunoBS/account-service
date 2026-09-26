@@ -1,14 +1,14 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase;
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.Service;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureContextRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureRepository;
-import br.com.portalmanager.platform.workspace.feature.platform.repository.ServiceRepository;
+import br.com.portalmanager.platform.workspace.feature.platform.repository.MicroserviceRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context.FeatureContextQueryService;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature.FeatureQueryService;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.service.ServiceQueryService;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceQueryService;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -22,9 +22,9 @@ class PlatformNotFoundTest {
 
     @Test
     void missingResourcesUseTheirOwnNotFoundMessageKeys() {
-        assertThatThrownBy(() -> new ServiceQueryService(mock(ServiceRepository.class)).findByIdentifier("missing"))
+        assertThatThrownBy(() -> new MicroserviceQueryService(mock(MicroserviceRepository.class)).findByIdentifier("missing"))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage(PlatformMessageKeys.SERVICE_NOT_FOUND);
+                .hasMessage(PlatformMessageKeys.MICROSERVICE_NOT_FOUND);
         assertThatThrownBy(() -> new FeatureQueryService(mock(FeatureRepository.class)).findByIdentifier("missing"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(PlatformMessageKeys.FEATURE_NOT_FOUND);
@@ -36,14 +36,14 @@ class PlatformNotFoundTest {
 
     @Test
     void inactiveServiceHasSpecificNotFoundMessageKeyForActiveLookup() {
-        ServiceRepository repository = mock(ServiceRepository.class);
-        Service inactive = new Service("service", "Service", null, LocalDateTime.now());
+        MicroserviceRepository repository = mock(MicroserviceRepository.class);
+        Microservice inactive = new Microservice("microservice", "Microservice", null, LocalDateTime.now());
         inactive.inactivate(LocalDateTime.now());
         when(repository.findByIdentifier(inactive.getIdentifier())).thenReturn(Optional.of(inactive));
 
-        assertThatThrownBy(() -> new ServiceQueryService(repository)
+        assertThatThrownBy(() -> new MicroserviceQueryService(repository)
                 .findActiveInternalIdByIdentifier(inactive.getIdentifier()))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage(PlatformMessageKeys.ACTIVE_SERVICE_NOT_FOUND);
+                .hasMessage(PlatformMessageKeys.ACTIVE_MICROSERVICE_NOT_FOUND);
     }
 }

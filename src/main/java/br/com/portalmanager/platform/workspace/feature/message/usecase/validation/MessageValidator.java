@@ -7,7 +7,7 @@ import br.com.portalmanager.platform.workspace.feature.message.usecase.model.Cre
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageTranslationInput;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.service.ServiceQueryService;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceQueryService;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
@@ -42,10 +42,10 @@ public class MessageValidator {
     private static final Pattern LOCALE_PATTERN =
             Pattern.compile("^[a-z]{2,3}(?:-[A-Z]{2}|-[0-9]{3})?(?:-[A-Za-z0-9]{4,8})*$");
 
-    private final ServiceQueryService serviceQueryService;
+    private final MicroserviceQueryService microserviceQueryService;
 
-    public MessageValidator(ServiceQueryService serviceQueryService) {
-        this.serviceQueryService = serviceQueryService;
+    public MessageValidator(MicroserviceQueryService microserviceQueryService) {
+        this.microserviceQueryService = microserviceQueryService;
     }
 
     public void validateForCreate(
@@ -55,7 +55,7 @@ public class MessageValidator {
     ) {
         ValidationResult result = new ValidationResult();
         validateMessage(
-                input == null ? null : input.serviceIdentifier(),
+                input == null ? null : input.microserviceIdentifier(),
                 input == null ? null : input.messageKey(),
                 input == null ? null : input.code(),
                 input == null ? null : input.httpStatus(),
@@ -76,7 +76,7 @@ public class MessageValidator {
             result.addError("version", MessageMessageKeys.VERSION_REQUIRED);
         }
         validateMessage(
-                input == null ? null : input.serviceIdentifier(),
+                input == null ? null : input.microserviceIdentifier(),
                 input == null ? null : input.messageKey(),
                 input == null ? null : input.code(),
                 input == null ? null : input.httpStatus(),
@@ -127,17 +127,17 @@ public class MessageValidator {
     }
 
     private void validateMessage(
-            String serviceIdentifier,
+            String microserviceIdentifier,
             String messageKey,
             String code,
             Integer httpStatus,
             String observation,
             ValidationResult result
     ) {
-        if (serviceIdentifier == null || serviceIdentifier.isBlank()) {
-            result.addError("serviceIdentifier", MessageMessageKeys.SERVICE_REQUIRED);
-        } else if (!serviceQueryService.existsActiveByIdentifier(serviceIdentifier)) {
-            result.addError("serviceIdentifier", MessageMessageKeys.SERVICE_INVALID);
+        if (microserviceIdentifier == null || microserviceIdentifier.isBlank()) {
+            result.addError("microserviceIdentifier", MessageMessageKeys.MICROSERVICE_REQUIRED);
+        } else if (!microserviceQueryService.existsActiveByIdentifier(microserviceIdentifier)) {
+            result.addError("microserviceIdentifier", MessageMessageKeys.MICROSERVICE_INVALID);
         }
 
         if (messageKey == null || messageKey.isBlank()) {

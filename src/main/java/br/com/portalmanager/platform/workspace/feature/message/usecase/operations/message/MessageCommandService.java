@@ -11,7 +11,7 @@ import br.com.portalmanager.platform.workspace.feature.message.usecase.model.Upd
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageFinder;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageNormalizer;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.validation.MessageValidator;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.service.ServiceQueryService;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +27,7 @@ public class MessageCommandService {
     private final MessageFinder finder;
     private final MessageNormalizer normalizer;
     private final MessageValidator validator;
-    private final ServiceQueryService serviceQueryService;
+    private final MicroserviceQueryService microserviceQueryService;
 
     public MessageCommandService(
             MessageRepository messageRepository,
@@ -35,14 +35,14 @@ public class MessageCommandService {
             MessageFinder finder,
             MessageNormalizer normalizer,
             MessageValidator validator,
-            ServiceQueryService serviceQueryService
+            MicroserviceQueryService microserviceQueryService
     ) {
         this.messageRepository = messageRepository;
         this.translationRepository = translationRepository;
         this.finder = finder;
         this.normalizer = normalizer;
         this.validator = validator;
-        this.serviceQueryService = serviceQueryService;
+        this.microserviceQueryService = microserviceQueryService;
     }
 
     @Transactional
@@ -50,19 +50,19 @@ public class MessageCommandService {
         CreateMessageInput input = normalizer.normalize(rawInput);
 
         validator.validateForCreate(input, false, false);
-        Long serviceId = serviceQueryService.findActiveInternalIdByIdentifier(input.serviceIdentifier());
+        Long microserviceId = microserviceQueryService.findActiveInternalIdByIdentifier(input.microserviceIdentifier());
 
         boolean keyDuplicate = input.messageKey() != null
-                && messageRepository.existsByServiceIdAndMessageKey(serviceId, input.messageKey());
+                && messageRepository.existsByMicroserviceIdAndMessageKey(microserviceId, input.messageKey());
         boolean codeDuplicate = input.code() != null
-                && messageRepository.existsByServiceIdAndCode(serviceId, input.code());
+                && messageRepository.existsByMicroserviceIdAndCode(microserviceId, input.code());
 
         validator.validateForCreate(input, keyDuplicate, codeDuplicate);
         validateTranslationsForCreate(input);
 
         LocalDateTime now = LocalDateTime.now();
         Message message = new Message(
-                serviceId,
+                microserviceId,
                 input.messageKey(),
                 input.code(),
                 input.httpStatus(),
@@ -94,17 +94,17 @@ public class MessageCommandService {
         UpdateMessageInput input = normalizer.normalize(rawInput);
 
         validator.validateForUpdate(input, false, false);
-        Long serviceId = serviceQueryService.findActiveInternalIdByIdentifier(input.serviceIdentifier());
+        Long microserviceId = microserviceQueryService.findActiveInternalIdByIdentifier(input.microserviceIdentifier());
 
         boolean keyDuplicate = input.messageKey() != null
-                && messageRepository.existsByServiceIdAndMessageKeyAndIdNot(
-                        serviceId,
+                && messageRepository.existsByMicroserviceIdAndMessageKeyAndIdNot(
+                        microserviceId,
                         input.messageKey(),
                         message.getId()
                 );
         boolean codeDuplicate = input.code() != null
-                && messageRepository.existsByServiceIdAndCodeAndIdNot(
-                        serviceId,
+                && messageRepository.existsByMicroserviceIdAndCodeAndIdNot(
+                        microserviceId,
                         input.code(),
                         message.getId()
                 );
@@ -113,7 +113,7 @@ public class MessageCommandService {
         validator.validateVersion(message.getVersion(), input.version());
 
         message.update(
-                serviceId,
+                microserviceId,
                 input.messageKey(),
                 input.code(),
                 input.httpStatus(),
@@ -148,7 +148,7 @@ public class MessageCommandService {
     private MessageOutput output(Message message) {
         return MessageOutput.from(
                 message,
-                serviceQueryService.findIdentifierByInternalId(message.getServiceId())
+                microserviceQueryService.findIdentifierByInternalId(message.getMicroserviceId())
         );
     }
 

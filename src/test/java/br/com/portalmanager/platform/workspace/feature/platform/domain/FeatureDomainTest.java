@@ -12,8 +12,8 @@ class FeatureDomainTest {
 
     @Test
     void shouldAssociateAndRemoveActiveContext() {
-        Service service = new Service("audit-service", "Audit Service", null, NOW);
-        Feature feature = new Feature("audit", "audit", null, service, "{}", NOW);
+        Microservice microservice = new Microservice("audit-service", "Audit Service", null, NOW);
+        Feature feature = new Feature("audit", "audit", null, microservice, "{}", NOW);
         FeatureContext context = new FeatureContext("administration", "administration", null, NOW);
 
         feature.addContext(context);
@@ -27,14 +27,14 @@ class FeatureDomainTest {
 
     @Test
     void shouldMoveFeatureBetweenActiveServicesMaintainingBidirectionalRelation() {
-        Service original = new Service("workspace-service", "Workspace Service", null, NOW);
-        Service target = new Service("audit-service", "Audit Service", null, NOW);
+        Microservice original = new Microservice("workspace-service", "Workspace Service", null, NOW);
+        Microservice target = new Microservice("audit-service", "Audit Service", null, NOW);
         Feature feature = new Feature("audit", "audit", null, original, "{}", NOW);
 
-        feature.changeService(target, NOW.plusMinutes(1));
+        feature.changeMicroservice(target, NOW.plusMinutes(1));
 
         assertThat(original.getFeatures()).doesNotContain(feature);
         assertThat(target.getFeatures()).containsExactly(feature);
-        assertThat(feature.getService()).isSameAs(target);
+        assertThat(feature.getMicroservice()).isSameAs(target);
     }
 }

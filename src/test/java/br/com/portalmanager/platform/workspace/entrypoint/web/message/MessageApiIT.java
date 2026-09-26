@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.not;
 @WithMockAuthorization
 class MessageApiIT {
 
-    private static final String SERVICE_IDENTIFIER = "11111111-1111-1111-1111-111111111111";
+    private static final String MICROSERVICE_IDENTIFIER = "11111111-1111-1111-1111-111111111111";
 
     @LocalServerPort
     private int port;
@@ -43,7 +43,7 @@ class MessageApiIT {
     @BeforeEach
     void authorizeAsOwner() {
         seedLifecycleTypes();
-        seedPlatformServices();
+        seedPlatformMicroservices();
         authorizationMock.reset();
         authorizationMock.allow(session -> session.groups("PM5_OWNER"));
     }
@@ -71,7 +71,7 @@ class MessageApiIT {
 
         String identifier = post(body)
                 .statusCode(201)
-                .body("serviceIdentifier", equalTo(SERVICE_IDENTIFIER))
+                .body("microserviceIdentifier", equalTo(MICROSERVICE_IDENTIFIER))
                 .extract()
                 .path("identifier");
 
@@ -87,18 +87,18 @@ class MessageApiIT {
                 messageId
         );
 
-        Long serviceId = jdbcTemplate.queryForObject(
-                "select id from platform_services where identifier = ?",
+        Long microserviceId = jdbcTemplate.queryForObject(
+                "select id from platform_microservices where identifier = ?",
                 Long.class,
-                SERVICE_IDENTIFIER
+                MICROSERVICE_IDENTIFIER
         );
-        Long persistedServiceId = jdbcTemplate.queryForObject(
-                "select service_id from messages where identifier = ?",
+        Long persistedMicroserviceId = jdbcTemplate.queryForObject(
+                "select microservice_id from messages where identifier = ?",
                 Long.class,
                 identifier
         );
 
-        assertThat(persistedServiceId).isEqualTo(serviceId);
+        assertThat(persistedMicroserviceId).isEqualTo(microserviceId);
         assertThat(translationCount).isEqualTo(2);
         assertThat(viewCount("workspace-service.workspace.batch.not-found", "pt-BR"))
                 .isEqualTo(1);
@@ -255,7 +255,7 @@ class MessageApiIT {
         patch("/api/v1/messages/" + inactiveIdentifier + "/inactivate")
                 .statusCode(200);
 
-        get("/api/v1/messages?serviceIdentifier=" + SERVICE_IDENTIFIER + "&active=true&code=workspace-0206")
+        get("/api/v1/messages?microserviceIdentifier=" + MICROSERVICE_IDENTIFIER + "&active=true&code=workspace-0206")
                 .statusCode(200)
                 .body("size()", equalTo(1))
                 .body("[0].identifier", equalTo(activeIdentifier));
@@ -291,21 +291,21 @@ class MessageApiIT {
                 .path("version");
 
         jdbcTemplate.update(
-                "update platform_services set lifecycle_code = 'INACTIVE' where identifier = ?",
-                SERVICE_IDENTIFIER
+                "update platform_microservices set lifecycle_code = 'INACTIVE' where identifier = ?",
+                MICROSERVICE_IDENTIFIER
         );
 
-        get("/api/v1/messages?serviceIdentifier=" + SERVICE_IDENTIFIER)
+        get("/api/v1/messages?microserviceIdentifier=" + MICROSERVICE_IDENTIFIER)
                 .statusCode(200)
                 .body("size()", equalTo(1))
                 .body("[0].identifier", equalTo(identifier))
-                .body("[0].serviceIdentifier", equalTo(SERVICE_IDENTIFIER))
-                .body("[0]", not(hasKey("serviceId")));
+                .body("[0].microserviceIdentifier", equalTo(MICROSERVICE_IDENTIFIER))
+                .body("[0]", not(hasKey("microserviceId")));
 
         get("/api/v1/messages/" + identifier)
                 .statusCode(200)
-                .body("serviceIdentifier", equalTo(SERVICE_IDENTIFIER))
-                .body("$", not(hasKey("serviceId")));
+                .body("microserviceIdentifier", equalTo(MICROSERVICE_IDENTIFIER))
+                .body("$", not(hasKey("microserviceId")));
 
         assertThat(viewCount("workspace-service.workspace.service.inactive", "pt-BR"))
                 .isZero();
@@ -313,7 +313,7 @@ class MessageApiIT {
         post(message("workspace.service.inactive.new", "WORKSPACE-0209"))
                 .statusCode(400)
                 .body("code", equalTo("GLOBAL-0001"))
-                .body("details.field", hasItem("serviceIdentifier"));
+                .body("details.field", hasItem("microserviceIdentifier"));
 
         Map<String, Object> update = message(
                 "workspace.service.inactive",
@@ -324,7 +324,7 @@ class MessageApiIT {
         put("/api/v1/messages/" + identifier, update)
                 .statusCode(400)
                 .body("code", equalTo("GLOBAL-0001"))
-                .body("details.field", hasItem("serviceIdentifier"));
+                .body("details.field", hasItem("microserviceIdentifier"));
     }
 
     @Test
@@ -413,7 +413,7 @@ class MessageApiIT {
     private String createMessage(String key, String code) {
         return post(message(key, code))
                 .statusCode(201)
-                .body("serviceIdentifier", equalTo(SERVICE_IDENTIFIER))
+                .body("microserviceIdentifier", equalTo(MICROSERVICE_IDENTIFIER))
                 .body("lifecycle", equalTo("ACTIVE"))
                 .extract()
                 .path("identifier");
@@ -421,7 +421,7 @@ class MessageApiIT {
 
     private Map<String, Object> message(String key, String code) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("serviceIdentifier", " " + SERVICE_IDENTIFIER + " ");
+        body.put("microserviceIdentifier", " " + MICROSERVICE_IDENTIFIER + " ");
         body.put("messageKey", key);
         body.put("code", code);
         body.put("httpStatus", 400);
@@ -509,15 +509,15 @@ class MessageApiIT {
         return authorized().when().delete(path).then();
     }
 
-    private void seedPlatformServices() {
+    private void seedPlatformMicroservices() {
         jdbcTemplate.update("""
-                INSERT IGNORE INTO platform_services
+                INSERT IGNORE INTO platform_microservices
                     (identifier, code, name, description, lifecycle_code, created_at, updated_at)
                 VALUES
                     (?, 'workspace-service', 'Workspace Service',
                      'Workspace and platform administration service',
                      'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                """, SERVICE_IDENTIFIER);
+                """, MICROSERVICE_IDENTIFIER);
     }
 
     private void seedLifecycleTypes() {

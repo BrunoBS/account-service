@@ -9,8 +9,8 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "platform_services")
-public class Service {
+@Table(name = "platform_microservices")
+public class Microservice {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id") private Long id;
     @Version @Column(name = "version", nullable = false) private Long version;
     @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false) private String identifier;
@@ -21,11 +21,11 @@ public class Service {
     private LifecycleTypeCode lifecycle;
     @Column(name = "created_at", nullable = false, updatable = false) private LocalDateTime createdAt;
     @Column(name = "updated_at", nullable = false) private LocalDateTime updatedAt;
-    @OneToMany(mappedBy = "service") private Set<Feature> features = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "microservice") private Set<Feature> features = new LinkedHashSet<>();
 
-    protected Service() {}
+    protected Microservice() {}
 
-    public Service(String code, String name, String description, LocalDateTime now) {
+    public Microservice(String code, String name, String description, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.code = code;
         this.name = name;

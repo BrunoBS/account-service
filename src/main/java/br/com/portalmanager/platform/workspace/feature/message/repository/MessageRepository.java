@@ -15,19 +15,19 @@ public interface MessageRepository extends JpaRepository<Message,Long>{
 
     @Query("""
             select m from Message m
-             where (:serviceId is null or m.serviceId = :serviceId)
+             where (:microserviceId is null or m.microserviceId = :microserviceId)
                and (:lifecycle is null or m.lifecycle.value = :lifecycle)
                and (:code is null or m.code = :code)
                and (:messageKey is null or m.messageKey = :messageKey)
-             order by m.serviceId asc, m.messageKey asc
+             order by m.microserviceId asc, m.messageKey asc
             """)
-    List<Message> findFiltered(@Param("serviceId") Long serviceId,
+    List<Message> findFiltered(@Param("microserviceId") Long microserviceId,
                                @Param("lifecycle") String lifecycle,
                                @Param("code") String code,
                                @Param("messageKey") String messageKey);
 
-    boolean existsByServiceIdAndMessageKey(Long serviceId,String messageKey);
-    boolean existsByServiceIdAndMessageKeyAndIdNot(Long serviceId,String messageKey,Long id);
-    boolean existsByServiceIdAndCode(Long serviceId,String code);
-    boolean existsByServiceIdAndCodeAndIdNot(Long serviceId,String code,Long id);
+    boolean existsByMicroserviceIdAndMessageKey(Long microserviceId,String messageKey);
+    boolean existsByMicroserviceIdAndMessageKeyAndIdNot(Long microserviceId,String messageKey,Long id);
+    boolean existsByMicroserviceIdAndCode(Long microserviceId,String code);
+    boolean existsByMicroserviceIdAndCodeAndIdNot(Long microserviceId,String code,Long id);
 }

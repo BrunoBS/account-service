@@ -56,12 +56,12 @@ public class MessageController {
 
     @GetMapping
     public List<MessageResponse> findAll(
-            @RequestParam(required = false) String serviceIdentifier,
+            @RequestParam(required = false) String microserviceIdentifier,
             @RequestParam(required = false) Boolean active,
             @RequestParam(required = false) String code,
             @RequestParam(required = false) String messageKey
     ) {
-        return queryService.findAll(serviceIdentifier, active, code, messageKey).stream()
+        return queryService.findAll(microserviceIdentifier, active, code, messageKey).stream()
                 .map(MessageResponse::from)
                 .toList();
     }

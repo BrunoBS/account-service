@@ -16,7 +16,7 @@ public class MessageNormalizer {
             return null;
         }
         return new CreateMessageInput(
-                normalizeServiceIdentifier(input.serviceIdentifier()),
+                normalizeMicroserviceIdentifier(input.microserviceIdentifier()),
                 trim(input.messageKey()),
                 upper(input.code()),
                 input.httpStatus(),
@@ -33,7 +33,7 @@ public class MessageNormalizer {
         }
         return new UpdateMessageInput(
                 input.version(),
-                normalizeServiceIdentifier(input.serviceIdentifier()),
+                normalizeMicroserviceIdentifier(input.microserviceIdentifier()),
                 trim(input.messageKey()),
                 upper(input.code()),
                 input.httpStatus(),
@@ -66,8 +66,8 @@ public class MessageNormalizer {
         );
     }
 
-    public String normalizeServiceIdentifierFilter(String serviceIdentifier) {
-        return normalizeServiceIdentifier(serviceIdentifier);
+    public String normalizeMicroserviceIdentifierFilter(String microserviceIdentifier) {
+        return normalizeMicroserviceIdentifier(microserviceIdentifier);
     }
 
     public String normalizeMessageKeyFilter(String messageKey) {
@@ -82,7 +82,7 @@ public class MessageNormalizer {
         return normalizeLocale(locale);
     }
 
-    private String normalizeServiceIdentifier(String value) {
+    private String normalizeMicroserviceIdentifier(String value) {
         return trimOptional(value);
     }
 

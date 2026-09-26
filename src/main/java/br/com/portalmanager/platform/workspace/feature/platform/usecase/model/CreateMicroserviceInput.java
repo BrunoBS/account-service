@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.model;
 
-public record CreateServiceInput(
+public record CreateMicroserviceInput(
         String code,
         String name,
         String description

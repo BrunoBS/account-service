@@ -42,8 +42,6 @@ class CatalogApiIT {
                 new CatalogCase("/api/v1/application-scope-type", "BACKEND"),
                 new CatalogCase("/api/v1/authorization-type", "DEV"),
                 new CatalogCase("/api/v1/environment-type", "DEFAULT"),
-                new CatalogCase("/api/v1/infrastructure-type", "VM"),
-                new CatalogCase("/api/v1/language-type", "JAVA"),
                 new CatalogCase("/api/v1/lifecycle-type", "ACTIVE"),
                 new CatalogCase("/api/v1/onboarding-type", "WORKSPACE_REGISTRATION"),
                 new CatalogCase("/api/v1/tag-origin-type", "MANUAL"),

@@ -5,7 +5,7 @@ import br.com.portalmanager.platform.workspace.feature.message.repository.Messag
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.MessageOutput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageFinder;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageNormalizer;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.service.ServiceQueryService;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceQueryService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,18 +18,18 @@ public class MessageQueryService {
     private final MessageRepository repository;
     private final MessageFinder finder;
     private final MessageNormalizer normalizer;
-    private final ServiceQueryService serviceQueryService;
+    private final MicroserviceQueryService microserviceQueryService;
 
     public MessageQueryService(
             MessageRepository repository,
             MessageFinder finder,
             MessageNormalizer normalizer,
-            ServiceQueryService serviceQueryService
+            MicroserviceQueryService microserviceQueryService
     ) {
         this.repository = repository;
         this.finder = finder;
         this.normalizer = normalizer;
-        this.serviceQueryService = serviceQueryService;
+        this.microserviceQueryService = microserviceQueryService;
     }
 
     @Transactional(readOnly = true)
@@ -39,19 +39,19 @@ public class MessageQueryService {
 
     @Transactional(readOnly = true)
     public List<MessageOutput> findAll(
-            String serviceIdentifier,
+            String microserviceIdentifier,
             Boolean active,
             String code,
             String messageKey
     ) {
-        String normalizedServiceIdentifier =
-                normalizer.normalizeServiceIdentifierFilter(serviceIdentifier);
-        Long serviceId = normalizedServiceIdentifier == null
+        String normalizedMicroserviceIdentifier =
+                normalizer.normalizeMicroserviceIdentifierFilter(microserviceIdentifier);
+        Long microserviceId = normalizedMicroserviceIdentifier == null
                 ? null
-                : serviceQueryService.findInternalIdByIdentifier(normalizedServiceIdentifier);
+                : microserviceQueryService.findInternalIdByIdentifier(normalizedMicroserviceIdentifier);
 
         return repository.findFiltered(
-                        serviceId,
+                        microserviceId,
                         lifecycle(active),
                         normalizer.normalizeCodeFilter(code),
                         normalizer.normalizeMessageKeyFilter(messageKey)
@@ -63,7 +63,7 @@ public class MessageQueryService {
     private MessageOutput output(Message message) {
         return MessageOutput.from(
                 message,
-                serviceQueryService.findIdentifierByInternalId(message.getServiceId())
+                microserviceQueryService.findIdentifierByInternalId(message.getMicroserviceId())
         );
     }
 

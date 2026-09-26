@@ -48,14 +48,14 @@ class PlatformApiIT {
 
     @Test
     void shouldAdministerServicesFeaturesAndContexts() {
-        String serviceIdentifier = authorized()
+        String microserviceIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                         "code", "portal-manager",
                         "name", "Portal Manager",
                         "description", "Portal owner"
                 ))
-                .post("/api/v1/platform/services")
+                .post("/api/v1/platform/microservices")
                 .then()
                 .statusCode(201)
                 .body("name", equalTo("Portal Manager"))
@@ -82,13 +82,13 @@ class PlatformApiIT {
                         "code", "application",
                         "name", "Application",
                         "description", "Application feature",
-                        "serviceIdentifier", serviceIdentifier,
+                        "microserviceIdentifier", microserviceIdentifier,
                         "settings", "{}"
                 ))
                 .post("/api/v1/platform/features")
                 .then()
                 .statusCode(201)
-                .body("serviceCode", equalTo("portal-manager"))
+                .body("microserviceCode", equalTo("portal-manager"))
                 .extract()
                 .path("identifier");
 

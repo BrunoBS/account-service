@@ -2,16 +2,16 @@ package br.com.portalmanager.platform.workspace.feature.platform.usecase;
 
 import br.com.portalmanager.platform.workspace.feature.platform.domain.Feature;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.Service;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureContextRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureRepository;
-import br.com.portalmanager.platform.workspace.feature.platform.repository.ServiceRepository;
+import br.com.portalmanager.platform.workspace.feature.platform.repository.MicroserviceRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context.FeatureContextCommandService;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature.FeatureCommandService;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateFeatureContextInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateFeatureInput;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateServiceInput;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.service.ServiceCommandService;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateMicroserviceInput;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceCommandService;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import org.junit.jupiter.api.Test;
 
@@ -26,12 +26,12 @@ class PlatformCommandServiceTest {
 
     @Test
     void shouldRejectInvalidCodeThroughUseCase() {
-        ServiceRepository services = mock(ServiceRepository.class);
-        ServiceCommandService command = new ServiceCommandService(services);
+        MicroserviceRepository services = mock(MicroserviceRepository.class);
+        MicroserviceCommandService command = new MicroserviceCommandService(services);
 
-        assertThatThrownBy(() -> command.create(new CreateServiceInput("AUDIT_SERVICE", "Audit Service", null)))
+        assertThatThrownBy(() -> command.create(new CreateMicroserviceInput("AUDIT_SERVICE", "Audit Service", null)))
                 .isInstanceOf(ValidationException.class);
-        verify(services, never()).save(any(Service.class));
+        verify(services, never()).save(any(Microservice.class));
     }
 
     @Test
@@ -48,15 +48,15 @@ class PlatformCommandServiceTest {
     @Test
     void shouldRejectInactiveServiceWhenCreatingFeature() {
         FeatureRepository features = mock(FeatureRepository.class);
-        ServiceRepository services = mock(ServiceRepository.class);
+        MicroserviceRepository services = mock(MicroserviceRepository.class);
         FeatureContextRepository contexts = mock(FeatureContextRepository.class);
-        Service service = new Service("audit-service", "Audit Service", null, LocalDateTime.now());
-        service.inactivate(LocalDateTime.now());
-        when(services.findByIdentifier(service.getIdentifier())).thenReturn(Optional.of(service));
+        Microservice microservice = new Microservice("audit-service", "Audit Service", null, LocalDateTime.now());
+        microservice.inactivate(LocalDateTime.now());
+        when(services.findByIdentifier(microservice.getIdentifier())).thenReturn(Optional.of(microservice));
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
         assertThatThrownBy(() -> command.create(
-                new CreateFeatureInput("audit", "Audit", null, service.getIdentifier(), "{}")))
+                new CreateFeatureInput("audit", "Audit", null, microservice.getIdentifier(), "{}")))
                 .isInstanceOf(ValidationException.class);
         verify(features, never()).save(any(Feature.class));
     }
@@ -64,12 +64,12 @@ class PlatformCommandServiceTest {
     @Test
     void shouldRejectFeatureActivationWhenServiceIsInactive() {
         FeatureRepository features = mock(FeatureRepository.class);
-        ServiceRepository services = mock(ServiceRepository.class);
+        MicroserviceRepository services = mock(MicroserviceRepository.class);
         FeatureContextRepository contexts = mock(FeatureContextRepository.class);
-        Service service = new Service("audit-service", "Audit Service", null, LocalDateTime.now());
-        Feature feature = new Feature("audit", "Audit", null, service, "{}", LocalDateTime.now());
+        Microservice microservice = new Microservice("audit-service", "Audit Service", null, LocalDateTime.now());
+        Feature feature = new Feature("audit", "Audit", null, microservice, "{}", LocalDateTime.now());
         feature.inactivate(LocalDateTime.now());
-        service.inactivate(LocalDateTime.now());
+        microservice.inactivate(LocalDateTime.now());
         when(features.findByIdentifier(feature.getIdentifier())).thenReturn(Optional.of(feature));
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
@@ -79,34 +79,34 @@ class PlatformCommandServiceTest {
     }
 
     @Test
-    void shouldRejectDuplicateServiceCode() {
-        ServiceRepository repository = mock(ServiceRepository.class);
+    void shouldRejectDuplicateMicroserviceCode() {
+        MicroserviceRepository repository = mock(MicroserviceRepository.class);
         when(repository.existsByCode("audit-service")).thenReturn(true);
-        ServiceCommandService command = new ServiceCommandService(repository);
+        MicroserviceCommandService command = new MicroserviceCommandService(repository);
 
-        assertThatThrownBy(() -> command.create(new CreateServiceInput("audit-service", "Audit Service", null)))
+        assertThatThrownBy(() -> command.create(new CreateMicroserviceInput("audit-service", "Audit Service", null)))
                 .isInstanceOf(ValidationException.class);
     }
 
     @Test
     void shouldRejectDuplicateServiceName() {
-        ServiceRepository repository = mock(ServiceRepository.class);
+        MicroserviceRepository repository = mock(MicroserviceRepository.class);
         when(repository.existsByName("Audit Service")).thenReturn(true);
-        ServiceCommandService command = new ServiceCommandService(repository);
+        MicroserviceCommandService command = new MicroserviceCommandService(repository);
 
-        assertThatThrownBy(() -> command.create(new CreateServiceInput("audit-service", "Audit Service", null)))
+        assertThatThrownBy(() -> command.create(new CreateMicroserviceInput("audit-service", "Audit Service", null)))
                 .isInstanceOf(ValidationException.class);
     }
 
     @Test
     void shouldRejectDuplicateFeatureName() {
         FeatureRepository features = mock(FeatureRepository.class);
-        ServiceRepository services = mock(ServiceRepository.class);
+        MicroserviceRepository services = mock(MicroserviceRepository.class);
         FeatureContextRepository contexts = mock(FeatureContextRepository.class);
         when(features.existsByName("Audit")).thenReturn(true);
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
-        assertThatThrownBy(() -> command.create(new CreateFeatureInput("audit", "Audit", null, "service-id", "{}")))
+        assertThatThrownBy(() -> command.create(new CreateFeatureInput("audit", "Audit", null, "microservice-id", "{}")))
                 .isInstanceOf(ValidationException.class);
     }
 
@@ -126,8 +126,8 @@ class PlatformCommandServiceTest {
     void shouldRejectFeatureContextQuarantineWhileItOwnsFeatures() {
         FeatureContextRepository contexts = mock(FeatureContextRepository.class);
         FeatureContext context = new FeatureContext("manager-account", "Manager Account", null, LocalDateTime.now());
-        Service service = new Service("portal-manager", "Portal Manager", null, LocalDateTime.now());
-        Feature feature = new Feature("application", "Application", null, service, "{}", LocalDateTime.now());
+        Microservice microservice = new Microservice("portal-manager", "Portal Manager", null, LocalDateTime.now());
+        Feature feature = new Feature("application", "Application", null, microservice, "{}", LocalDateTime.now());
         feature.addContext(context);
 
         when(contexts.findByIdentifier(context.getIdentifier())).thenReturn(Optional.of(context));
@@ -140,10 +140,10 @@ class PlatformCommandServiceTest {
     @Test
     void shouldRejectInactiveContextAssociation() {
         FeatureRepository features = mock(FeatureRepository.class);
-        ServiceRepository services = mock(ServiceRepository.class);
+        MicroserviceRepository services = mock(MicroserviceRepository.class);
         FeatureContextRepository contexts = mock(FeatureContextRepository.class);
-        Service service = new Service("audit-service", "Audit Service", null, LocalDateTime.now());
-        Feature feature = new Feature("audit", "Audit", null, service, "{}", LocalDateTime.now());
+        Microservice microservice = new Microservice("audit-service", "Audit Service", null, LocalDateTime.now());
+        Feature feature = new Feature("audit", "Audit", null, microservice, "{}", LocalDateTime.now());
         FeatureContext context = new FeatureContext("administration", "administration", null, LocalDateTime.now());
         context.inactivate(LocalDateTime.now());
 
@@ -158,27 +158,27 @@ class PlatformCommandServiceTest {
     @Test
     void shouldPersistFeatureCreatedWithActiveService() {
         FeatureRepository features = mock(FeatureRepository.class);
-        ServiceRepository services = mock(ServiceRepository.class);
+        MicroserviceRepository services = mock(MicroserviceRepository.class);
         FeatureContextRepository contexts = mock(FeatureContextRepository.class);
-        Service service = new Service("audit-service", "Audit Service", null, LocalDateTime.now());
-        when(services.findByIdentifier(service.getIdentifier())).thenReturn(Optional.of(service));
+        Microservice microservice = new Microservice("audit-service", "Audit Service", null, LocalDateTime.now());
+        when(services.findByIdentifier(microservice.getIdentifier())).thenReturn(Optional.of(microservice));
         when(features.save(any(Feature.class))).thenAnswer(invocation -> invocation.getArgument(0));
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
-        command.create(new CreateFeatureInput("audit", "Audit", null, service.getIdentifier(), "{}"));
+        command.create(new CreateFeatureInput("audit", "Audit", null, microservice.getIdentifier(), "{}"));
 
         verify(features).save(any(Feature.class));
     }
 
     @Test
     void shouldRejectServiceQuarantineWhileItOwnsFeatures() {
-        ServiceRepository repository = mock(ServiceRepository.class);
-        Service service = new Service("audit-service", "Audit Service", null, LocalDateTime.now());
-        new Feature("audit", "Audit", null, service, "{}", LocalDateTime.now());
-        when(repository.findByIdentifier(service.getIdentifier())).thenReturn(Optional.of(service));
-        ServiceCommandService command = new ServiceCommandService(repository);
+        MicroserviceRepository repository = mock(MicroserviceRepository.class);
+        Microservice microservice = new Microservice("audit-service", "Audit Service", null, LocalDateTime.now());
+        new Feature("audit", "Audit", null, microservice, "{}", LocalDateTime.now());
+        when(repository.findByIdentifier(microservice.getIdentifier())).thenReturn(Optional.of(microservice));
+        MicroserviceCommandService command = new MicroserviceCommandService(repository);
 
-        assertThatThrownBy(() -> command.delete(service.getIdentifier()))
+        assertThatThrownBy(() -> command.delete(microservice.getIdentifier()))
                 .isInstanceOf(ValidationException.class);
     }
 }

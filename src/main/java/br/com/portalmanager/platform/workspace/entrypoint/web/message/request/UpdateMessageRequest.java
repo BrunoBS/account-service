@@ -4,7 +4,7 @@ import br.com.portalmanager.platform.workspace.feature.message.usecase.model.Upd
 
 public record UpdateMessageRequest(
         Long version,
-        String serviceIdentifier,
+        String microserviceIdentifier,
         String messageKey,
         String code,
         Integer httpStatus,
@@ -13,7 +13,7 @@ public record UpdateMessageRequest(
     public UpdateMessageInput toInput() {
         return new UpdateMessageInput(
                 version,
-                serviceIdentifier,
+                microserviceIdentifier,
                 messageKey,
                 code,
                 httpStatus,

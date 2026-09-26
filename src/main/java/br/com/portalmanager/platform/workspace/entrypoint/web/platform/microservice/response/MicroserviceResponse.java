@@ -1,10 +1,10 @@
-package br.com.portalmanager.platform.workspace.entrypoint.web.platform.service.response;
+package br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice.response;
 
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.ServiceOutput;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.MicroserviceOutput;
 
 import java.time.LocalDateTime;
 
-public record ServiceResponse(
+public record MicroserviceResponse(
         Long version,
         String identifier,
         String code,
@@ -14,8 +14,8 @@ public record ServiceResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static ServiceResponse from(ServiceOutput output) {
-        return new ServiceResponse(
+    public static MicroserviceResponse from(MicroserviceOutput output) {
+        return new MicroserviceResponse(
                 output.version(),
                 output.identifier(),
                 output.code(),

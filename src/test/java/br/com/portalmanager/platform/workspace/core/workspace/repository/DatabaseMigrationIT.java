@@ -23,7 +23,10 @@ class DatabaseMigrationIT {
         assertThat(tableCount("type_resource_scopes")).isEqualTo(1);
         assertThat(tableCount("type_publisher_scopes")).isZero();
         assertThat(tableCount("type_schemas")).isZero();
-        assertThat(tableCount("platform_services")).isEqualTo(1);
+        assertThat(tableCount("platform_microservices")).isEqualTo(1);
+        assertThat(tableCount("platform_services")).isZero();
+        assertThat(tableCount("type_languages")).isZero();
+        assertThat(tableCount("type_infrastructures")).isZero();
         assertThat(tableCount("platform_features")).isEqualTo(1);
         assertThat(tableCount("platform_feature_contexts")).isEqualTo(1);
         assertThat(tableCount("platform_feature_context_relations")).isEqualTo(1);

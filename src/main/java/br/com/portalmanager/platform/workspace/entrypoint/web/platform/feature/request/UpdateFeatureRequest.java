@@ -5,10 +5,10 @@ import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.Up
 public record UpdateFeatureRequest(
         String name,
         String description,
-        String serviceIdentifier,
+        String microserviceIdentifier,
         String settings
 ) {
     public UpdateFeatureInput toInput() {
-        return new UpdateFeatureInput(name, description, serviceIdentifier, settings);
+        return new UpdateFeatureInput(name, description, microserviceIdentifier, settings);
     }
 }

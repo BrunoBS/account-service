@@ -4,7 +4,7 @@ public record CreateFeatureInput(
         String code,
         String name,
         String description,
-        String serviceIdentifier,
+        String microserviceIdentifier,
         String settings
 ) {
 }

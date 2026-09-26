@@ -6,10 +6,10 @@ public record CreateFeatureRequest(
         String code,
         String name,
         String description,
-        String serviceIdentifier,
+        String microserviceIdentifier,
         String settings
 ) {
     public CreateFeatureInput toInput() {
-        return new CreateFeatureInput(code, name, description, serviceIdentifier, settings);
+        return new CreateFeatureInput(code, name, description, microserviceIdentifier, settings);
     }
 }

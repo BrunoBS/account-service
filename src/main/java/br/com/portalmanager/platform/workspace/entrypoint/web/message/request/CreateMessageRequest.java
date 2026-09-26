@@ -5,7 +5,7 @@ import br.com.portalmanager.platform.workspace.feature.message.usecase.model.Cre
 import java.util.List;
 
 public record CreateMessageRequest(
-        String serviceIdentifier,
+        String microserviceIdentifier,
         String messageKey,
         String code,
         Integer httpStatus,
@@ -14,7 +14,7 @@ public record CreateMessageRequest(
 ) {
     public CreateMessageInput toInput() {
         return new CreateMessageInput(
-                serviceIdentifier,
+                microserviceIdentifier,
                 messageKey,
                 code,
                 httpStatus,

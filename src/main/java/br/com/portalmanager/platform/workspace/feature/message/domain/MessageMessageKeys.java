@@ -8,8 +8,8 @@ public final class MessageMessageKeys {
     public static final String TRANSLATION_DELETE_INVALID =
             "message.translation.delete.invalid";
 
-    public static final String SERVICE_REQUIRED = "validation.message.service.required";
-    public static final String SERVICE_INVALID = "validation.message.service.invalid";
+    public static final String MICROSERVICE_REQUIRED = "validation.message.microservice.required";
+    public static final String MICROSERVICE_INVALID = "validation.message.microservice.invalid";
     public static final String KEY_REQUIRED = "validation.message.key.required";
     public static final String KEY_INVALID = "validation.message.key.invalid";
     public static final String KEY_DUPLICATE = "validation.message.key.duplicate";
