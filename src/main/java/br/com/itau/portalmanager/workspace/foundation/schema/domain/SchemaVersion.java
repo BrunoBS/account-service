@@ -30,7 +30,7 @@ public class SchemaVersion {
     private String definition;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "status", nullable = false, length = 50))
+    @AttributeOverride(name = "value", column = @Column(name = "status", nullable = false, length = 20))
     private SchemaVersionStatusTypeCode status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
