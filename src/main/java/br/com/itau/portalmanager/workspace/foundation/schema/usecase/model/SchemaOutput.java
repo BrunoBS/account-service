@@ -13,13 +13,13 @@ public record SchemaOutput(
         String description,
         String lifecycle
 ) {
-    public static SchemaOutput from(Schema schema) {
+    public static SchemaOutput from(Schema schema, String workspaceIdentifier) {
         return new SchemaOutput(
                 schema.getIdentifier(),
                 schema.getVersion(),
                 schema.getSchemaTypeCode(),
                 schema.getScope().toString(),
-                schema.getWorkspaceIdentifier(),
+                workspaceIdentifier,
                 schema.getCode(),
                 schema.getName(),
                 schema.getDescription(),
