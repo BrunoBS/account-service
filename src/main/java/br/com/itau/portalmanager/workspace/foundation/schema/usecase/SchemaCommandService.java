@@ -2,10 +2,14 @@ package br.com.itau.portalmanager.workspace.foundation.schema.usecase;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
+import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
+import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.CreateSchemaInput;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaOutput;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.UpdateSchemaInput;
+import br.com.portalmanager.platform.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,14 +19,20 @@ import java.time.LocalDateTime;
 public class SchemaCommandService {
 
     private final SchemaRepository repository;
+    private final SchemaVersionRepository versionRepository;
     private final SchemaTypeService schemaTypeService;
+    private final SchemaValidator validator;
 
     public SchemaCommandService(
             SchemaRepository repository,
-            SchemaTypeService schemaTypeService
+            SchemaVersionRepository versionRepository,
+            SchemaTypeService schemaTypeService,
+            SchemaValidator validator
     ) {
         this.repository = repository;
+        this.versionRepository = versionRepository;
         this.schemaTypeService = schemaTypeService;
+        this.validator = validator;
     }
 
     @Transactional
@@ -132,6 +142,13 @@ public class SchemaCommandService {
             throw new IllegalArgumentException("Schema code already exists in scope");
         }
 
+        ValidationResult validation = new ValidationResult();
+        validator.validateSchemaSyntax(input.definition(), validation);
+        if (validation.hasErrors()) {
+            throw new ValidationException(validation);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
         Schema schema = repository.save(new Schema(
                 input.schemaTypeCode(),
                 scope,
@@ -139,8 +156,18 @@ public class SchemaCommandService {
                 input.code(),
                 input.name(),
                 input.description(),
-                LocalDateTime.now()
+                now
         ));
+
+        versionRepository.save(new SchemaVersion(
+                schema,
+                1,
+                input.versionName(),
+                validator.toJsonString(input.definition()),
+                SchemaVersion.DRAFT,
+                now
+        ));
+
         return SchemaOutput.from(schema);
     }
 
