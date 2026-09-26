@@ -19,6 +19,11 @@ public class SchemaWorkspaceReferenceResolver implements WorkspaceReferenceResol
     }
 
     @Override
+    public Long resolveActiveInternalId(String workspaceIdentifier) {
+        return workspaceQueryService.findActiveInternalIdByIdentifier(workspaceIdentifier);
+    }
+
+    @Override
     public String resolveIdentifier(Long workspaceId) {
         return workspaceQueryService.findIdentifierByInternalId(workspaceId);
     }
