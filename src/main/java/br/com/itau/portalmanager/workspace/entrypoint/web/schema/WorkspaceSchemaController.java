@@ -115,6 +115,16 @@ public class WorkspaceSchemaController {
                 ));
     }
 
+    @DeleteMapping("/{identifier}/versions/{versionIdentifier}")
+    public ResponseEntity<Void> deleteDraft(
+            @PathVariable String workspaceIdentifier,
+            @PathVariable String identifier,
+            @PathVariable String versionIdentifier
+    ) {
+        versionCommandService.deleteWorkspaceDraft(workspaceIdentifier, identifier, versionIdentifier);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{identifier}/versions")
     public List<SchemaVersionResponse> findVersions(
             @PathVariable String workspaceIdentifier,
