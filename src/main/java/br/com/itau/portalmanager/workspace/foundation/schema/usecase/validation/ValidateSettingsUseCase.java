@@ -2,7 +2,7 @@ package br.com.itau.portalmanager.workspace.foundation.schema.usecase.validation
 
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaResolution;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.ValidateSettingsInput;
-import br.com.itau.portalmanager.workspace.foundation.schema.usecase.support.SchemaResolver;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.resolution.SchemaResolver;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Service;
