@@ -2,7 +2,6 @@ package br.com.itau.portalmanager.workspace.foundation.schema.usecase;
 
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
-import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersionStatus;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
 import org.junit.jupiter.api.Test;
@@ -10,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
@@ -33,7 +31,7 @@ class SchemaResolverTest {
                 .thenReturn(Optional.of(schema));
         when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
                 nullable(Long.class),
-                eq(SchemaVersionStatus.PUBLISHED)
+                eq(SchemaVersion.PUBLISHED)
         )).thenReturn(Optional.of(version));
 
         SchemaResolution resolution = resolver.resolvePlatform("APPLICATION");
@@ -55,7 +53,7 @@ class SchemaResolverTest {
                 .thenReturn(Optional.of(fallback));
         when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
                 nullable(Long.class),
-                eq(SchemaVersionStatus.PUBLISHED)
+                eq(SchemaVersion.PUBLISHED)
         )).thenReturn(Optional.of(version));
 
         SchemaResolution resolution = resolver.resolvePlatform("APPLICATION");
@@ -79,7 +77,7 @@ class SchemaResolverTest {
         when(version.getSchema()).thenReturn(schema);
         when(version.getIdentifier()).thenReturn(identifier);
         when(version.getSchemaVersion()).thenReturn(number);
-        when(version.getDefinition()).thenReturn("{\"type\":\"object\"}");
+        when(version.getDefinition()).thenReturn("{"type":"object"}");
         return version;
     }
 }
