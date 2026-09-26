@@ -1,0 +1,193 @@
+package br.com.itau.portalmanager.workspace.foundation.schema.usecase.version;
+
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
+import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
+import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
+import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
+import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.support.SchemaFinder;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.validation.SchemaValidator;
+import br.com.portalmanager.platform.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.messaging.validation.ValidationResult;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+public class SchemaVersionCommandService {
+
+    private final SchemaRepository schemaRepository;
+    private final SchemaVersionRepository versionRepository;
+    private final SchemaValidator validator;
+    private final SchemaFinder finder;
+
+    public SchemaVersionCommandService(
+            SchemaRepository schemaRepository,
+            SchemaVersionRepository versionRepository,
+            SchemaValidator validator,
+            SchemaFinder finder
+    ) {
+        this.schemaRepository = schemaRepository;
+        this.versionRepository = versionRepository;
+        this.validator = validator;
+        this.finder = finder;
+    }
+
+    @Transactional
+    public SchemaVersionOutput createPlatformDraft(
+            String schemaIdentifier,
+            CreateSchemaVersionInput input
+    ) {
+        return createOrUpdateDraft(finder.findScopedForUpdate(schemaIdentifier, "PLATFORM", null), input);
+    }
+
+    @Transactional
+    public SchemaVersionOutput createWorkspaceDraft(
+            String workspaceIdentifier,
+            String schemaIdentifier,
+            CreateSchemaVersionInput input
+    ) {
+        return createOrUpdateDraft(
+                finder.findScopedForUpdate(schemaIdentifier, "WORKSPACE", workspaceIdentifier),
+                input
+        );
+    }
+
+    @Transactional
+    public SchemaVersionOutput publishPlatform(
+            String schemaIdentifier,
+            String versionIdentifier
+    ) {
+        return publish(finder.findScopedForUpdate(schemaIdentifier, "PLATFORM", null), versionIdentifier);
+    }
+
+    @Transactional
+    public SchemaVersionOutput publishWorkspace(
+            String workspaceIdentifier,
+            String schemaIdentifier,
+            String versionIdentifier
+    ) {
+        return publish(
+                finder.findScopedForUpdate(schemaIdentifier, "WORKSPACE", workspaceIdentifier),
+                versionIdentifier
+        );
+    }
+
+    @Transactional
+    public void deletePlatformDraft(
+            String schemaIdentifier,
+            String versionIdentifier
+    ) {
+        deleteDraft(finder.findScopedForUpdate(schemaIdentifier, "PLATFORM", null), versionIdentifier);
+    }
+
+    @Transactional
+    public void deleteWorkspaceDraft(
+            String workspaceIdentifier,
+            String schemaIdentifier,
+            String versionIdentifier
+    ) {
+        deleteDraft(
+                finder.findScopedForUpdate(schemaIdentifier, "WORKSPACE", workspaceIdentifier),
+                versionIdentifier
+        );
+    }
+
+    private SchemaVersionOutput createOrUpdateDraft(
+            Schema schema,
+            CreateSchemaVersionInput input
+    ) {
+        JsonNode definition = input == null ? null : input.definition();
+        ValidationResult validation = new ValidationResult();
+        validator.validateSchemaSyntax(definition, validation);
+        if (validation.hasErrors()) {
+            throw new ValidationException(validation);
+        }
+
+        String serialized = validator.toJsonString(definition);
+        List<SchemaVersion> versions = versionRepository.findAllForUpdate(schema.getId());
+
+        SchemaVersion existingDraft = versions.stream()
+                .filter(SchemaVersion::isDraft)
+                .findFirst()
+                .orElse(null);
+
+        if (existingDraft != null) {
+            existingDraft.updateDraft(input.versionName(), serialized);
+            return SchemaVersionOutput.from(existingDraft);
+        }
+
+        SchemaVersion latestPublished = versions.stream()
+                .filter(SchemaVersion::isPublished)
+                .findFirst()
+                .orElse(null);
+
+        if (latestPublished != null
+                && validator.fromString(latestPublished.getDefinition()).equals(definition)) {
+            return SchemaVersionOutput.from(latestPublished);
+        }
+
+        int nextVersion = versions.isEmpty()
+                ? 1
+                : versions.stream()
+                        .mapToInt(SchemaVersion::getSchemaVersion)
+                        .max()
+                        .orElse(0) + 1;
+
+        String initialDefinition = latestPublished == null
+                ? serialized
+                : latestPublished.getDefinition();
+
+        SchemaVersion created = new SchemaVersion(
+                schema,
+                nextVersion,
+                input.versionName(),
+                initialDefinition,
+                SchemaVersionStatusTypeCode.draft(),
+                LocalDateTime.now()
+        );
+
+        if (!initialDefinition.equals(serialized)) {
+            created.updateDraft(input.versionName(), serialized);
+        }
+
+        return SchemaVersionOutput.from(versionRepository.save(created));
+    }
+
+    private SchemaVersionOutput publish(
+            Schema schema,
+            String versionIdentifier
+    ) {
+        versionRepository.findAllForUpdate(schema.getId());
+
+        SchemaVersion version = versionRepository
+                .findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Schema version not found"));
+
+        version.publish();
+        return SchemaVersionOutput.from(version);
+    }
+
+    private void deleteDraft(
+            Schema schema,
+            String versionIdentifier
+    ) {
+        versionRepository.findAllForUpdate(schema.getId());
+
+        SchemaVersion version = versionRepository
+                .findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Schema version not found"));
+
+        if (!version.isDraft()) {
+            throw new IllegalStateException("Published schema version cannot be physically deleted");
+        }
+
+        versionRepository.delete(version);
+    }
+
+}
