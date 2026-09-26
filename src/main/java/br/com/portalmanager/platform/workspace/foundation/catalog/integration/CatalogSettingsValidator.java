@@ -2,23 +2,23 @@ package br.com.portalmanager.platform.workspace.foundation.catalog.integration;
 
 import br.com.portalmanager.platform.library.catalog.validation.CatalogValidationResult;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.workspace.foundation.integration.JsonSchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaDefaults;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 
 @Component
 public class CatalogSettingsValidator {
 
-    private final SchemaValidator schemaValidator;
+    private final JsonSchemaValidator jsonSchemaValidator;
 
-    public CatalogSettingsValidator(SchemaValidator schemaValidator) {
-        this.schemaValidator = schemaValidator;
+    public CatalogSettingsValidator(JsonSchemaValidator jsonSchemaValidator) {
+        this.jsonSchemaValidator = jsonSchemaValidator;
     }
 
     public void validateSettings(JsonNode settings, CatalogValidationResult result) {
         ValidationResult schemaResult = new ValidationResult();
-        schemaValidator.validateJson(
+        jsonSchemaValidator.validateJson(
                 SchemaDefaults.DEFAULT_JSON_SCHEMA,
                 settings,
                 "settings",
@@ -31,6 +31,6 @@ public class CatalogSettingsValidator {
     }
 
     public JsonNode fromString(String json) {
-        return schemaValidator.fromString(json);
+        return jsonSchemaValidator.fromString(json);
     }
 }
