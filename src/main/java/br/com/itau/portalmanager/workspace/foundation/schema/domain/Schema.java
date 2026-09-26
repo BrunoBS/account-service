@@ -2,8 +2,15 @@ package br.com.itau.portalmanager.workspace.foundation.schema.domain;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
-import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeEnum;
-import jakarta.persistence.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,9 +22,16 @@ public class Schema {
 
     private static final Pattern CODE_PATTERN = Pattern.compile("^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$");
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
-    @Version @Column(nullable = false) private Long version;
-    @Column(nullable = false, unique = true, length = 36, updatable = false) private String identifier;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
+    @Column(nullable = false, unique = true, length = 36, updatable = false)
+    private String identifier;
 
     @Column(name = "schema_type_code", nullable = false, length = 50)
     private String schemaTypeCode;
@@ -26,19 +40,27 @@ public class Schema {
     @AttributeOverride(name = "value", column = @Column(name = "scope_code", nullable = false, length = 50))
     private SchemaScopeTypeCode scope;
 
-    @Column(name = "workspace_identifier", length = 36)
+    @Column(name = "workspace_id")
     private Long workspaceId;
 
-    @Column(nullable = false, length = 50) private String code;
-    @Column(nullable = false, length = 100) private String name;
-    @Column(length = 500) private String description;
+    @Column(nullable = false, length = 50)
+    private String code;
+
+    @Column(nullable = false, length = 100)
+    private String name;
+
+    @Column(length = 500)
+    private String description;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
     private LifecycleTypeCode lifecycle;
 
-    @Column(name = "created_at", nullable = false, updatable = false) private LocalDateTime createdAt;
-    @Column(name = "updated_at", nullable = false) private LocalDateTime updatedAt;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     protected Schema() {
     }
@@ -55,12 +77,16 @@ public class Schema {
         if (schemaTypeCode == null || schemaTypeCode.isBlank()) {
             throw new IllegalArgumentException("Schema type code is required");
         }
-        if (scope == null) throw new IllegalArgumentException("Schema scope is required");
+        if (scope == null) {
+            throw new IllegalArgumentException("Schema scope is required");
+        }
         validateOwnership(scope, workspaceId);
         if (code == null || !CODE_PATTERN.matcher(code).matches()) {
             throw new IllegalArgumentException("Schema code must use lowercase kebab-case");
         }
-        if (name == null || name.isBlank()) throw new IllegalArgumentException("Schema name is required");
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Schema name is required");
+        }
 
         this.identifier = UUID.randomUUID().toString();
         this.schemaTypeCode = schemaTypeCode.trim();
@@ -75,24 +101,40 @@ public class Schema {
     }
 
     public void update(String name, String description, LocalDateTime now) {
-        if (name == null || name.isBlank()) throw new IllegalArgumentException("Schema name is required");
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Schema name is required");
+        }
         this.name = name.trim();
         this.description = description;
         this.updatedAt = now;
     }
 
-    public void activate(LocalDateTime now) { lifecycle = LifecycleTypeCode.active(); updatedAt = now; }
-    public void inactivate(LocalDateTime now) { lifecycle = LifecycleTypeCode.inactive(); updatedAt = now; }
-    public void quarantine(LocalDateTime now) { lifecycle = LifecycleTypeCode.quarantined(); updatedAt = now; }
-    public boolean isActive() { return LifecycleTypeCode.active().equals(lifecycle); }
+    public void activate(LocalDateTime now) {
+        lifecycle = LifecycleTypeCode.active();
+        updatedAt = now;
+    }
+
+    public void inactivate(LocalDateTime now) {
+        lifecycle = LifecycleTypeCode.inactive();
+        updatedAt = now;
+    }
+
+    public void quarantine(LocalDateTime now) {
+        lifecycle = LifecycleTypeCode.quarantined();
+        updatedAt = now;
+    }
+
+    public boolean isActive() {
+        return LifecycleTypeCode.active().equals(lifecycle);
+    }
 
     private static void validateOwnership(SchemaScopeTypeCode scope, Long workspaceId) {
         boolean workspaceScope = SchemaScopeTypeCode.workspace().equals(scope);
-        if (workspaceScope && (workspaceId == null)) {
-            throw new IllegalArgumentException("Workspace identifier is required for WORKSPACE schema");
+        if (workspaceScope && workspaceId == null) {
+            throw new IllegalArgumentException("Workspace id is required for WORKSPACE schema");
         }
         if (!workspaceScope && workspaceId != null) {
-            throw new IllegalArgumentException("Workspace identifier must be empty for PLATFORM schema");
+            throw new IllegalArgumentException("Workspace id must be empty for PLATFORM schema");
         }
     }
 
@@ -101,7 +143,7 @@ public class Schema {
     public String getIdentifier() { return identifier; }
     public String getSchemaTypeCode() { return schemaTypeCode; }
     public SchemaScopeTypeCode getScope() { return scope; }
-    public String getWorkspaceIdentifier() { return workspaceId; }
+    public Long getWorkspaceId() { return workspaceId; }
     public String getCode() { return code; }
     public String getName() { return name; }
     public String getDescription() { return description; }
