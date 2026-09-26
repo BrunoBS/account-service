@@ -1,5 +1,6 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.usecase.model;
 
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import tools.jackson.databind.JsonNode;
 
 public record ValidateSettingsInput(
@@ -10,7 +11,13 @@ public record ValidateSettingsInput(
         JsonNode settings
 ) {
     public static ValidateSettingsInput platform(String schemaTypeCode, JsonNode settings) {
-        return new ValidateSettingsInput(schemaTypeCode, "PLATFORM", null, null, settings);
+        return new ValidateSettingsInput(
+                schemaTypeCode,
+                SchemaScopeTypeCode.platform().value(),
+                null,
+                null,
+                settings
+        );
     }
 
     public static ValidateSettingsInput workspace(
@@ -21,7 +28,7 @@ public record ValidateSettingsInput(
     ) {
         return new ValidateSettingsInput(
                 schemaTypeCode,
-                "WORKSPACE",
+                SchemaScopeTypeCode.workspace().value(),
                 workspaceIdentifier,
                 schemaCode,
                 settings
