@@ -1,7 +1,7 @@
 package br.com.itau.portalmanager.workspace.foundation.catalog.support;
 
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaDefaults;
-import br.com.itau.portalmanager.workspace.foundation.schema.usecase.SchemaValidator;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.validation.SchemaValidator;
 import br.com.portalmanager.platform.catalog.validation.CatalogValidationResult;
 import br.com.portalmanager.platform.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;
