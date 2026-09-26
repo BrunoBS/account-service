@@ -19,9 +19,8 @@ public class Schema {
     @Version @Column(nullable = false) private Long version;
     @Column(nullable = false, unique = true, length = 36, updatable = false) private String identifier;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "schema_type_id", nullable = false)
-    private SchemaType schemaType;
+    @Column(name = "schema_type_code", nullable = false, length = 50)
+    private String schemaTypeCode;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "scope_code", nullable = false, length = 50))
@@ -45,7 +44,7 @@ public class Schema {
     }
 
     public Schema(
-            SchemaType schemaType,
+            String schemaTypeCode,
             SchemaScopeTypeCode scope,
             String workspaceIdentifier,
             String code,
@@ -53,7 +52,9 @@ public class Schema {
             String description,
             LocalDateTime now
     ) {
-        if (schemaType == null) throw new IllegalArgumentException("Schema type is required");
+        if (schemaTypeCode == null || schemaTypeCode.isBlank()) {
+            throw new IllegalArgumentException("Schema type code is required");
+        }
         if (scope == null) throw new IllegalArgumentException("Schema scope is required");
         validateOwnership(scope, workspaceIdentifier);
         if (code == null || !CODE_PATTERN.matcher(code).matches()) {
@@ -62,7 +63,7 @@ public class Schema {
         if (name == null || name.isBlank()) throw new IllegalArgumentException("Schema name is required");
 
         this.identifier = UUID.randomUUID().toString();
-        this.schemaType = schemaType;
+        this.schemaTypeCode = schemaTypeCode.trim();
         this.scope = scope;
         this.workspaceIdentifier = normalizeWorkspace(workspaceIdentifier);
         this.code = code;
@@ -102,7 +103,7 @@ public class Schema {
     public Long getId() { return id; }
     public Long getVersion() { return version; }
     public String getIdentifier() { return identifier; }
-    public SchemaType getSchemaType() { return schemaType; }
+    public String getSchemaTypeCode() { return schemaTypeCode; }
     public SchemaScopeTypeCode getScope() { return scope; }
     public String getWorkspaceIdentifier() { return workspaceIdentifier; }
     public String getCode() { return code; }
