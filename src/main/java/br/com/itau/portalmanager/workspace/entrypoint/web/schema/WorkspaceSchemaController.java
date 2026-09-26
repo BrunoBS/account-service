@@ -5,9 +5,9 @@ import br.com.itau.portalmanager.workspace.entrypoint.web.schema.request.CreateS
 import br.com.itau.portalmanager.workspace.entrypoint.web.schema.request.UpdateSchemaRequest;
 import br.com.itau.portalmanager.workspace.entrypoint.web.schema.response.SchemaResponse;
 import br.com.itau.portalmanager.workspace.entrypoint.web.schema.response.SchemaVersionResponse;
-import br.com.itau.portalmanager.workspace.foundation.schema.usecase.SchemaCommandService;
-import br.com.itau.portalmanager.workspace.foundation.schema.usecase.SchemaQueryService;
-import br.com.itau.portalmanager.workspace.foundation.schema.usecase.SchemaVersionCommandService;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.schema.SchemaCommandService;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.schema.SchemaQueryService;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.version.SchemaVersionCommandService;
 import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.audit.annotation.AuditField;
