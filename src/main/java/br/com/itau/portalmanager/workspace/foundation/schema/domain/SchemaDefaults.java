@@ -5,7 +5,26 @@ public final class SchemaDefaults {
     private SchemaDefaults() {
     }
 
+    /**
+     * Legacy/catalog fallback kept intentionally restrictive until catalog settings
+     * are migrated to explicit Schema V2 contracts.
+     */
     public static final String DEFAULT_JSON_SCHEMA = """
+            {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "title": "Default Dynamic Schema",
+              "type": "object",
+              "additionalProperties": {
+                "type": ["string", "number", "boolean", "null"]
+              }
+            }
+            """;
+
+    /**
+     * Schema V2 platform fallback. This is the contract seeded by V17 and used
+     * only through SchemaResolver when no specific PLATFORM schema exists.
+     */
+    public static final String PLATFORM_DEFAULT_JSON_SCHEMA = """
             {
               "$schema": "https://json-schema.org/draft/2020-12/schema",
               "title": "Default Dynamic Schema",
