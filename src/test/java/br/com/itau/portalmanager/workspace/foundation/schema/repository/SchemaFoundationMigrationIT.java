@@ -56,6 +56,14 @@ class SchemaFoundationMigrationIT {
                 Integer.class
         )).isEqualTo(1);
 
+        assertThat(jdbc.queryForObject(
+                "select count(*) from information_schema.table_constraints " +
+                        "where table_schema = database() " +
+                        "and table_name = 'schema_definitions' " +
+                        "and constraint_name = 'uk_schema_definitions_platform_type'",
+                Integer.class
+        )).isEqualTo(1);
+
         Flyway upgradeFlyway = Flyway.configure()
                 .dataSource(dataSource)
                 .locations("classpath:db/migration")
