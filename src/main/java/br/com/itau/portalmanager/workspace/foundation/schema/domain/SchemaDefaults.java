@@ -2,6 +2,8 @@ package br.com.itau.portalmanager.workspace.foundation.schema.domain;
 
 public final class SchemaDefaults {
 
+    public static final String DEFAULT_SCHEMA_TYPE_CODE = "DEFAULT";
+
     private SchemaDefaults() {
     }
 
