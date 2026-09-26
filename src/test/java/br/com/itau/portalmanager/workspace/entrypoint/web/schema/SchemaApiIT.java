@@ -76,7 +76,7 @@ class SchemaApiIT {
                 .get("/api/v1/schema-type/APPLICATION")
                 .then()
                 .statusCode(200)
-                .body("code", equalTo("application"));
+                .body("code", equalTo("APPLICATION"));
 
         String platformSchemaIdentifier = authorized()
                 .contentType(ContentType.JSON)
