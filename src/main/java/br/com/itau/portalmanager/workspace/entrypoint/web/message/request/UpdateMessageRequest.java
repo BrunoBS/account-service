@@ -4,7 +4,7 @@ import br.com.itau.portalmanager.workspace.feature.message.usecase.model.UpdateM
 
 public record UpdateMessageRequest(
         Long version,
-        String service,
+        String serviceIdentifier,
         String messageKey,
         String code,
         Integer httpStatus,
@@ -13,7 +13,7 @@ public record UpdateMessageRequest(
     public UpdateMessageInput toInput() {
         return new UpdateMessageInput(
                 version,
-                service,
+                serviceIdentifier,
                 messageKey,
                 code,
                 httpStatus,
