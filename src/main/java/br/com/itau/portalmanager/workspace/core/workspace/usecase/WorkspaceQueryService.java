@@ -29,6 +29,13 @@ public class WorkspaceQueryService {
 
     @Transactional(readOnly = true)
     public Long findInternalIdByIdentifier(String identifier) {
+        return repository.findByIdentifier(identifier)
+                .map(Workspace::getId)
+                .orElseThrow(() -> new IllegalArgumentException("Workspace not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public Long findActiveInternalIdByIdentifier(String identifier) {
         return finder.findActive(identifier).getId();
     }
 
