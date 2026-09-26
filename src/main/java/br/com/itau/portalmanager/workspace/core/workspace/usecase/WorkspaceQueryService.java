@@ -27,6 +27,18 @@ public class WorkspaceQueryService {
         this.repository=repository; this.finder=finder; this.normalizer=normalizer; this.validator=validator; this.taggingSupport=taggingSupport;
     }
 
+    @Transactional(readOnly = true)
+    public Long findInternalIdByIdentifier(String identifier) {
+        return finder.findActive(identifier).getId();
+    }
+
+    @Transactional(readOnly = true)
+    public String findIdentifierByInternalId(Long id) {
+        return repository.findById(id)
+                .map(Workspace::getIdentifier)
+                .orElseThrow(() -> new IllegalArgumentException("Workspace not found"));
+    }
+
     @ResourceVisibility @Transactional(readOnly = true)
     public WorkspaceOutput findByIdentifier(String identifier) {
         Workspace workspace=finder.findActive(identifier);
