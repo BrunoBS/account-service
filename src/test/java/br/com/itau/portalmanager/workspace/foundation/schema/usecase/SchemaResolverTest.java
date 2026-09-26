@@ -26,42 +26,42 @@ class SchemaResolverTest {
 
     @Test
     void shouldResolveLatestPublishedPlatformSchema() {
-        Schema schema = activeSchema("application", "schema-app");
+        Schema schema = activeSchema("APPLICATION", "schema-app");
         SchemaVersion version = publishedVersion(schema, "version-app", 3);
 
-        when(schemaRepository.findByTypeScopeAndCode("application", "PLATFORM", null, "application"))
+        when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
                 .thenReturn(Optional.of(schema));
         when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
                 nullable(Long.class),
                 eq(SchemaVersionStatus.PUBLISHED)
         )).thenReturn(Optional.of(version));
 
-        SchemaResolution resolution = resolver.resolvePlatform("application");
+        SchemaResolution resolution = resolver.resolvePlatform("APPLICATION");
 
-        assertThat(resolution.requestedSchemaType()).isEqualTo("application");
-        assertThat(resolution.resolvedSchemaType()).isEqualTo("application");
+        assertThat(resolution.requestedSchemaType()).isEqualTo("APPLICATION");
+        assertThat(resolution.resolvedSchemaType()).isEqualTo("APPLICATION");
         assertThat(resolution.schemaVersion()).isEqualTo(3);
         assertThat(resolution.fallback()).isFalse();
     }
 
     @Test
     void shouldFallbackToDefaultPlatformSchema() {
-        Schema fallback = activeSchema("default", "schema-default");
+        Schema fallback = activeSchema("DEFAULT", "schema-default");
         SchemaVersion version = publishedVersion(fallback, "version-default", 1);
 
-        when(schemaRepository.findByTypeScopeAndCode("application", "PLATFORM", null, "application"))
+        when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
                 .thenReturn(Optional.empty());
-        when(schemaRepository.findByTypeScopeAndCode("default", "PLATFORM", null, "default"))
+        when(schemaRepository.findByTypeAndScope("DEFAULT", "PLATFORM", null))
                 .thenReturn(Optional.of(fallback));
         when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
                 nullable(Long.class),
                 eq(SchemaVersionStatus.PUBLISHED)
         )).thenReturn(Optional.of(version));
 
-        SchemaResolution resolution = resolver.resolvePlatform("application");
+        SchemaResolution resolution = resolver.resolvePlatform("APPLICATION");
 
-        assertThat(resolution.requestedSchemaType()).isEqualTo("application");
-        assertThat(resolution.resolvedSchemaType()).isEqualTo("default");
+        assertThat(resolution.requestedSchemaType()).isEqualTo("APPLICATION");
+        assertThat(resolution.resolvedSchemaType()).isEqualTo("DEFAULT");
         assertThat(resolution.fallback()).isTrue();
     }
 
