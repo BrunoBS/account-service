@@ -21,13 +21,16 @@ public class SchemaResolver {
 
     private final SchemaRepository schemaRepository;
     private final SchemaVersionRepository versionRepository;
+    private final SchemaTypeService schemaTypeService;
 
     public SchemaResolver(
             SchemaRepository schemaRepository,
-            SchemaVersionRepository versionRepository
+            SchemaVersionRepository versionRepository,
+            SchemaTypeService schemaTypeService
     ) {
         this.schemaRepository = schemaRepository;
         this.versionRepository = versionRepository;
+        this.schemaTypeService = schemaTypeService;
     }
 
     @Transactional(readOnly = true)
@@ -82,7 +85,7 @@ public class SchemaResolver {
             Schema schema,
             boolean fallback
     ) {
-        if (!schema.isActive() || !schema.getSchemaType().isActive()) {
+        if (!schema.isActive() || !schemaTypeService.existsActive(schema.getSchemaTypeCode())) {
             throw validation("schema", INACTIVE);
         }
 
@@ -95,7 +98,7 @@ public class SchemaResolver {
 
         return new SchemaResolution(
                 requestedType,
-                schema.getSchemaType().getCode(),
+                schema.getSchemaTypeCode(),
                 schema.getIdentifier(),
                 version.getIdentifier(),
                 version.getSchemaVersion(),
