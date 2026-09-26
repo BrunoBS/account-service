@@ -29,11 +29,6 @@ public class SchemaQueryService {
     }
 
     @Transactional(readOnly = true)
-    public SchemaOutput findByIdentifier(String identifier) {
-        return output(required(identifier));
-    }
-
-    @Transactional(readOnly = true)
     public SchemaOutput findPlatformByIdentifier(String identifier) {
         return output(requiredScoped(identifier, "PLATFORM", null));
     }
@@ -41,11 +36,6 @@ public class SchemaQueryService {
     @Transactional(readOnly = true)
     public SchemaOutput findWorkspaceByIdentifier(String workspaceIdentifier, String identifier) {
         return output(requiredScoped(identifier, "WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)));
-    }
-
-    @Transactional(readOnly = true)
-    public List<SchemaOutput> findAll() {
-        return schemaRepository.findAll().stream().map(this::output).toList();
     }
 
     @Transactional(readOnly = true)
