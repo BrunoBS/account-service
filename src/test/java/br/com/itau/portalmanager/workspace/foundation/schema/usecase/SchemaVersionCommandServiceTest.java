@@ -29,12 +29,14 @@ class SchemaVersionCommandServiceTest {
     @Test
     void shouldCreateFirstDraftAsVersionOne() throws Exception {
         Schema schema = schema(42L);
+        when(schemaRepository.findByIdentifierAndScope("schema-1", "PLATFORM", null))
+                .thenReturn(Optional.of(schema));
         when(schemaRepository.findByIdentifierForUpdate("schema-1")).thenReturn(Optional.of(schema));
         when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of());
         when(versionRepository.save(any(SchemaVersion.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        var output = service.createDraft(
+        var output = service.createPlatformDraft(
                 "schema-1",
                 new CreateSchemaVersionInput(
                         null,
@@ -59,10 +61,12 @@ class SchemaVersionCommandServiceTest {
                 LocalDateTime.now()
         );
 
+        when(schemaRepository.findByIdentifierAndScope("schema-1", "PLATFORM", null))
+                .thenReturn(Optional.of(schema));
         when(schemaRepository.findByIdentifierForUpdate("schema-1")).thenReturn(Optional.of(schema));
         when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(existing));
 
-        var output = service.createDraft(
+        var output = service.createPlatformDraft(
                 "schema-1",
                 new CreateSchemaVersionInput(
                         "ignored",
@@ -86,12 +90,14 @@ class SchemaVersionCommandServiceTest {
                 LocalDateTime.now()
         );
 
+        when(schemaRepository.findByIdentifierAndScope("schema-1", "PLATFORM", null))
+                .thenReturn(Optional.of(schema));
         when(schemaRepository.findByIdentifierForUpdate("schema-1")).thenReturn(Optional.of(schema));
         when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(existing));
         when(versionRepository.save(any(SchemaVersion.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        var output = service.createDraft(
+        var output = service.createPlatformDraft(
                 "schema-1",
                 new CreateSchemaVersionInput(
                         "v2-candidate",
@@ -116,12 +122,14 @@ class SchemaVersionCommandServiceTest {
                 LocalDateTime.now()
         );
 
+        when(schemaRepository.findByIdentifierAndScope("schema-1", "PLATFORM", null))
+                .thenReturn(Optional.of(schema));
         when(schemaRepository.findByIdentifierForUpdate("schema-1")).thenReturn(Optional.of(schema));
         when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(draft));
         when(versionRepository.findByIdentifierAndSchema_Id(draft.getIdentifier(), 42L))
                 .thenReturn(Optional.of(draft));
 
-        var output = service.publish("schema-1", draft.getIdentifier());
+        var output = service.publishPlatform("schema-1", draft.getIdentifier());
 
         assertThat(output.status()).isEqualTo("PUBLISHED");
         assertThat(draft.isPublished()).isTrue();
