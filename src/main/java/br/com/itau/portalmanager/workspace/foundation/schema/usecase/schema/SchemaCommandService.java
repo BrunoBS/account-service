@@ -10,7 +10,6 @@ import br.com.itau.portalmanager.workspace.foundation.catalog.schematype.usecase
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.CreateSchemaInput;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaOutput;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.UpdateSchemaInput;
-import br.com.itau.portalmanager.workspace.foundation.schema.usecase.support.SchemaFinder;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.validation.SchemaValidator;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.messaging.validation.ValidationResult;
@@ -26,20 +25,17 @@ public class SchemaCommandService {
     private final SchemaVersionRepository versionRepository;
     private final SchemaTypeService schemaTypeService;
     private final SchemaValidator validator;
-    private final SchemaFinder finder;
 
     public SchemaCommandService(
             SchemaRepository repository,
             SchemaVersionRepository versionRepository,
             SchemaTypeService schemaTypeService,
-            SchemaValidator validator,
-            SchemaFinder finder
+            SchemaValidator validator
     ) {
         this.repository = repository;
         this.versionRepository = versionRepository;
         this.schemaTypeService = schemaTypeService;
         this.validator = validator;
-        this.finder = finder;
     }
 
     @Transactional
@@ -65,7 +61,7 @@ public class SchemaCommandService {
 
     @Transactional
     public SchemaOutput updatePlatform(String identifier, UpdateSchemaInput input) {
-        return update(finder.findScoped(identifier, "PLATFORM", null), input);
+        return update(requiredScoped(identifier, "PLATFORM", null), input);
     }
 
     @Transactional
@@ -74,37 +70,37 @@ public class SchemaCommandService {
             String identifier,
             UpdateSchemaInput input
     ) {
-        return update(finder.findScoped(identifier, "WORKSPACE", workspaceIdentifier), input);
+        return update(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier), input);
     }
 
     @Transactional
     public SchemaOutput activatePlatform(String identifier) {
-        return activate(finder.findScoped(identifier, "PLATFORM", null));
+        return activate(requiredScoped(identifier, "PLATFORM", null));
     }
 
     @Transactional
     public SchemaOutput activateWorkspace(String workspaceIdentifier, String identifier) {
-        return activate(finder.findScoped(identifier, "WORKSPACE", workspaceIdentifier));
+        return activate(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier));
     }
 
     @Transactional
     public SchemaOutput inactivatePlatform(String identifier) {
-        return inactivate(finder.findScoped(identifier, "PLATFORM", null));
+        return inactivate(requiredScoped(identifier, "PLATFORM", null));
     }
 
     @Transactional
     public SchemaOutput inactivateWorkspace(String workspaceIdentifier, String identifier) {
-        return inactivate(finder.findScoped(identifier, "WORKSPACE", workspaceIdentifier));
+        return inactivate(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier));
     }
 
     @Transactional
     public SchemaOutput quarantinePlatform(String identifier) {
-        return quarantine(finder.findScoped(identifier, "PLATFORM", null));
+        return quarantine(requiredScoped(identifier, "PLATFORM", null));
     }
 
     @Transactional
     public SchemaOutput quarantineWorkspace(String workspaceIdentifier, String identifier) {
-        return quarantine(finder.findScoped(identifier, "WORKSPACE", workspaceIdentifier));
+        return quarantine(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier));
     }
 
     private SchemaOutput update(Schema schema, UpdateSchemaInput input) {
@@ -178,4 +174,12 @@ public class SchemaCommandService {
         return SchemaOutput.from(schema);
     }
 
+    private Schema requiredScoped(
+            String identifier,
+            String scope,
+            String workspaceIdentifier
+    ) {
+        return repository.findByIdentifierAndScope(identifier, scope, workspaceIdentifier)
+                .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
+    }
 }
