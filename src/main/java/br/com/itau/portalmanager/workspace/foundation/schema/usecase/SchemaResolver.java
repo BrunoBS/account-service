@@ -2,7 +2,6 @@ package br.com.itau.portalmanager.workspace.foundation.schema.usecase;
 
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
-import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersionStatus;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
@@ -90,7 +89,7 @@ public class SchemaResolver {
         SchemaVersion version = versionRepository
                 .findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
                         schema.getId(),
-                        SchemaVersionStatus.PUBLISHED
+                        SchemaVersion.PUBLISHED
                 )
                 .orElseThrow(() -> validation("schemaVersion", PUBLISHED_NOT_FOUND));
 
