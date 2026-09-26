@@ -339,6 +339,8 @@ class GoldenArchitectureTest {
                             ROOT + ".foundation.catalog.lifecycletype.domain"
                     ) || targetPackage.startsWith(
                             ROOT + ".foundation.catalog.schemascopetype.domain"
+                    ) || targetPackage.startsWith(
+                            ROOT + ".foundation.catalog.schemaversionstatustype.domain"
                     );
                     if (!approved) {
                         events.add(SimpleConditionEvent.violated(
