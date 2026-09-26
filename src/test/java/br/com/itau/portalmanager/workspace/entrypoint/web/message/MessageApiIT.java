@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.not;
 
 @PlatformIntegrationTest
 @WithMySql
@@ -262,6 +264,39 @@ class MessageApiIT {
                 .statusCode(200)
                 .body("size()", equalTo(1))
                 .body("[0].identifier", equalTo(inactiveIdentifier));
+    }
+
+    @Test
+    void shouldKeepAdministrativeReadAvailableWhenServiceBecomesInactive() {
+        String identifier = createMessage(
+                "workspace.service.inactive",
+                "WORKSPACE-0208"
+        );
+
+        jdbcTemplate.update(
+                "update platform_services set lifecycle_code = 'INACTIVE' where identifier = ?",
+                SERVICE_IDENTIFIER
+        );
+
+        get("/api/v1/messages?serviceIdentifier=" + SERVICE_IDENTIFIER)
+                .statusCode(200)
+                .body("size()", equalTo(1))
+                .body("[0].identifier", equalTo(identifier))
+                .body("[0].serviceIdentifier", equalTo(SERVICE_IDENTIFIER))
+                .body("[0]", not(hasKey("serviceId")));
+
+        get("/api/v1/messages/" + identifier)
+                .statusCode(200)
+                .body("serviceIdentifier", equalTo(SERVICE_IDENTIFIER))
+                .body("$", not(hasKey("serviceId")));
+
+        assertThat(viewCount("workspace-service.workspace.service.inactive", "pt-BR"))
+                .isZero();
+
+        post(message("workspace.service.inactive.new", "WORKSPACE-0209"))
+                .statusCode(400)
+                .body("code", equalTo("GLOBAL-0001"))
+                .body("details.field", hasItem("serviceIdentifier"));
     }
 
     @Test
