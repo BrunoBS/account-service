@@ -18,6 +18,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 class SchemaResolverTest {
 
@@ -67,6 +68,36 @@ class SchemaResolverTest {
         assertThat(resolution.requestedSchemaType()).isEqualTo("APPLICATION");
         assertThat(resolution.resolvedSchemaType()).isEqualTo("DEFAULT");
         assertThat(resolution.fallback()).isTrue();
+    }
+
+
+    @Test
+    void shouldResolveWorkspaceThroughActiveWorkspaceBoundary() {
+        Schema schema = activeSchema("APPLICATION", "schema-workspace");
+        SchemaVersion version = publishedVersion(schema, "version-workspace", 2);
+
+        when(workspaceReferenceResolver.resolveActiveInternalId("workspace-identifier"))
+                .thenReturn(7L);
+        when(schemaRepository.findByTypeScopeAndCode(
+                "APPLICATION",
+                "WORKSPACE",
+                7L,
+                "custom-application"
+        )).thenReturn(Optional.of(schema));
+        when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
+                nullable(Long.class),
+                eq(SchemaVersionStatusTypeCode.published())
+        )).thenReturn(Optional.of(version));
+
+        SchemaResolution resolution = resolver.resolveWorkspace(
+                "workspace-identifier",
+                "APPLICATION",
+                "custom-application"
+        );
+
+        assertThat(resolution.schemaVersion()).isEqualTo(2);
+        verify(workspaceReferenceResolver)
+                .resolveActiveInternalId("workspace-identifier");
     }
 
     private Schema activeSchema(String typeCode, String identifier) {
