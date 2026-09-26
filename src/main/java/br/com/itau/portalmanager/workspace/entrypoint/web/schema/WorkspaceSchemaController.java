@@ -130,7 +130,7 @@ public class WorkspaceSchemaController {
             @PathVariable String workspaceIdentifier,
             @PathVariable String identifier
     ) {
-        return queryService.findVersions(identifier).stream()
+        return queryService.findWorkspaceVersions(workspaceIdentifier, identifier).stream()
                 .map(SchemaVersionResponse::from)
                 .toList();
     }
