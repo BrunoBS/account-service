@@ -127,11 +127,6 @@ public class SchemaVersionCommandService {
                 .findFirst()
                 .orElse(null);
 
-        if (latestPublished != null
-                && validator.fromString(latestPublished.getDefinition()).equals(definition)) {
-            return SchemaVersionOutput.from(latestPublished);
-        }
-
         int nextVersion = versions.isEmpty()
                 ? 1
                 : versions.stream()
