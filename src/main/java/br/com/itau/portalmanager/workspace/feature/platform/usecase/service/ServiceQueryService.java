@@ -23,6 +23,13 @@ public class ServiceQueryService {
     }
 
     @Transactional(readOnly = true)
+    public boolean existsActiveByIdentifier(String identifier) {
+        return identifier != null && repository.findByIdentifier(identifier)
+                .filter(service -> LifecycleTypeCode.active().equals(service.getLifecycle()))
+                .isPresent();
+    }
+
+    @Transactional(readOnly = true)
     public ServiceOutput findByIdentifier(String identifier) {
         return repository.findByIdentifier(identifier)
                 .map(ServiceOutput::from)
