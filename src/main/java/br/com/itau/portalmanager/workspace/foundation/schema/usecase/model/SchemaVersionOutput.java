@@ -14,7 +14,7 @@ public record SchemaVersionOutput(
                 version.getIdentifier(),
                 version.getSchemaVersion(),
                 version.getVersionName(),
-                version.getStatus(),
+                version.getStatus().toString(),
                 version.getDefinition()
         );
     }
