@@ -16,6 +16,19 @@ public interface SchemaRepository extends JpaRepository<Schema, Long> {
 
     @Query("""
             select s from Schema s
+             where s.identifier = :identifier
+               and s.scope.value = :scopeCode
+               and ((:workspaceIdentifier is null and s.workspaceIdentifier is null)
+                    or s.workspaceIdentifier = :workspaceIdentifier)
+            """)
+    Optional<Schema> findByIdentifierAndScope(
+            @Param("identifier") String identifier,
+            @Param("scopeCode") String scopeCode,
+            @Param("workspaceIdentifier") String workspaceIdentifier
+    );
+
+    @Query("""
+            select s from Schema s
              where s.scope.value = :scopeCode
                and ((:workspaceIdentifier is null and s.workspaceIdentifier is null)
                     or s.workspaceIdentifier = :workspaceIdentifier)
