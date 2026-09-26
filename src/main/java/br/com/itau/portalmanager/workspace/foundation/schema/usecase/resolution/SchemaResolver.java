@@ -70,7 +70,7 @@ public class SchemaResolver {
             String schemaCode
     ) {
         String workspace = normalizeRequired(workspaceIdentifier);
-        Long workspaceId = workspaceReferenceResolver.resolveInternalId(workspace);
+        Long workspaceId = workspaceReferenceResolver.resolveActiveInternalId(workspace);
         String type = normalizeRequired(schemaTypeCode);
         String code = normalizeRequired(schemaCode);
 
