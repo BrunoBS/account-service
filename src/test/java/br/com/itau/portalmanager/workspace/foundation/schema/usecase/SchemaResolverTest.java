@@ -78,7 +78,7 @@ class SchemaResolverTest {
         when(version.getSchema()).thenReturn(schema);
         when(version.getIdentifier()).thenReturn(identifier);
         when(version.getSchemaVersion()).thenReturn(number);
-        when(version.getDefinition()).thenReturn("{"type":"object"}");
+        when(version.getDefinition()).thenReturn("{\"type\":\"object\"}");
         return version;
     }
 }
