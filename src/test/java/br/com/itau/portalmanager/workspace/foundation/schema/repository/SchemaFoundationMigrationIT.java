@@ -47,15 +47,14 @@ class SchemaFoundationMigrationIT {
         )).isEqualTo(2);
 
         assertThat(jdbc.queryForObject(
-                "select count(*) from schema_types where code = 'default' and lifecycle_code = 'ACTIVE'",
+                "select count(*) from type_schema_types where code = 'default' and is_active = true",
                 Integer.class
         )).isEqualTo(1);
 
         assertThat(jdbc.queryForObject("""
                 select count(*)
                   from schema_definitions s
-                  join schema_types st on st.id = s.schema_type_id
-                 where st.code = 'default'
+                 where s.schema_type_code = 'default'
                    and s.scope_code = 'PLATFORM'
                    and s.workspace_identifier is null
                    and s.code = 'default'
