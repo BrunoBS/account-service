@@ -33,7 +33,7 @@ public class MessageNormalizer {
         }
         return new UpdateMessageInput(
                 input.version(),
-                normalizeService(input.serviceIdentifier()),
+                normalizeServiceIdentifier(input.serviceIdentifier()),
                 trim(input.messageKey()),
                 upper(input.code()),
                 input.httpStatus(),
