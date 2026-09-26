@@ -57,22 +57,23 @@ class SchemaApiIT {
 
     @Test
     void shouldAdministerPlatformAndWorkspaceSchemasWithVersionPublication() {
-        String typeIdentifier = authorized()
+        authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                         "code", "application",
-                        "name", "Application",
-                        "description", "Application settings schema"
+                        "label", "Application",
+                        "description", "Application settings schema",
+                        "sortOrder", 10,
+                        "settings", Map.of()
                 ))
-                .post("/api/v1/schema-types")
+                .post("/api/v1/schema-type")
                 .then()
                 .statusCode(201)
                 .body("code", equalTo("application"))
-                .extract()
-                .path("identifier");
+                .body("label", equalTo("Application"));
 
         authorized()
-                .get("/api/v1/schema-types/" + typeIdentifier)
+                .get("/api/v1/schema-type/application")
                 .then()
                 .statusCode(200)
                 .body("code", equalTo("application"));
