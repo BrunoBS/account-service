@@ -27,6 +27,8 @@ import static org.hamcrest.Matchers.notNullValue;
 @WithMockAuthorization
 class MessageApiIT {
 
+    private static final String SERVICE_IDENTIFIER = "11111111-1111-1111-1111-111111111111";
+
     @LocalServerPort
     private int port;
 
@@ -67,7 +69,7 @@ class MessageApiIT {
 
         String identifier = post(body)
                 .statusCode(201)
-                .body("service", equalTo("workspace-service"))
+                .body("serviceIdentifier", equalTo(SERVICE_IDENTIFIER))
                 .extract()
                 .path("identifier");
 
@@ -83,6 +85,18 @@ class MessageApiIT {
                 messageId
         );
 
+        Long serviceId = jdbcTemplate.queryForObject(
+                "select id from platform_services where identifier = ?",
+                Long.class,
+                SERVICE_IDENTIFIER
+        );
+        Long persistedServiceId = jdbcTemplate.queryForObject(
+                "select service_id from messages where identifier = ?",
+                Long.class,
+                identifier
+        );
+
+        assertThat(persistedServiceId).isEqualTo(serviceId);
         assertThat(translationCount).isEqualTo(2);
         assertThat(viewCount("workspace-service.workspace.batch.not-found", "pt-BR"))
                 .isEqualTo(1);
@@ -239,7 +253,7 @@ class MessageApiIT {
         patch("/api/v1/messages/" + inactiveIdentifier + "/inactivate")
                 .statusCode(200);
 
-        get("/api/v1/messages?service=workspace-service&active=true&code=workspace-0206")
+        get("/api/v1/messages?serviceIdentifier=" + SERVICE_IDENTIFIER + "&active=true&code=workspace-0206")
                 .statusCode(200)
                 .body("size()", equalTo(1))
                 .body("[0].identifier", equalTo(activeIdentifier));
@@ -336,7 +350,7 @@ class MessageApiIT {
     private String createMessage(String key, String code) {
         return post(message(key, code))
                 .statusCode(201)
-                .body("service", equalTo("workspace-service"))
+                .body("serviceIdentifier", equalTo(SERVICE_IDENTIFIER))
                 .body("lifecycle", equalTo("ACTIVE"))
                 .extract()
                 .path("identifier");
@@ -344,7 +358,7 @@ class MessageApiIT {
 
     private Map<String, Object> message(String key, String code) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("service", " workspace-service ");
+        body.put("serviceIdentifier", " " + SERVICE_IDENTIFIER + " ");
         body.put("messageKey", key);
         body.put("code", code);
         body.put("httpStatus", 400);
@@ -437,10 +451,10 @@ class MessageApiIT {
                 INSERT IGNORE INTO platform_services
                     (identifier, code, name, description, lifecycle_code, created_at, updated_at)
                 VALUES
-                    (UUID(), 'workspace-service', 'Workspace Service',
+                    (?, 'workspace-service', 'Workspace Service',
                      'Workspace and platform administration service',
                      'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                """);
+                """, SERVICE_IDENTIFIER);
     }
 
     private void seedLifecycleTypes() {
