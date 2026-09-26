@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SchemaResolver {
 
     private static final String PLATFORM = "PLATFORM";
-    private static final String DEFAULT = "default";
+    private static final String DEFAULT = "DEFAULT";
     private static final String NOT_FOUND = "workspace-service.schema.resolution.not-found";
     private static final String PUBLISHED_NOT_FOUND = "workspace-service.schema.published.not-found";
     private static final String INACTIVE = "workspace-service.schema.inactive";
@@ -37,22 +37,20 @@ public class SchemaResolver {
     public SchemaResolution resolvePlatform(String schemaTypeCode) {
         String requestedType = normalizeRequired(schemaTypeCode);
 
-        var specific = schemaRepository.findByTypeScopeAndCode(
+        var specific = schemaRepository.findByTypeAndScope(
                 requestedType,
                 PLATFORM,
-                null,
-                requestedType
+                null
         );
 
         if (specific.isPresent()) {
             return resolution(requestedType, specific.get(), false);
         }
 
-        Schema fallback = schemaRepository.findByTypeScopeAndCode(
+        Schema fallback = schemaRepository.findByTypeAndScope(
                         DEFAULT,
                         PLATFORM,
-                        null,
-                        DEFAULT
+                        null
                 )
                 .orElseThrow(() -> validation("schemaType", NOT_FOUND));
 
