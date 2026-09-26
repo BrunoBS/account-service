@@ -7,6 +7,7 @@ import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersio
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaResolution;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.workspace.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;
@@ -24,15 +25,18 @@ public class SchemaResolver {
     private final SchemaRepository schemaRepository;
     private final SchemaVersionRepository versionRepository;
     private final SchemaTypeService schemaTypeService;
+    private final WorkspaceReferenceResolver workspaceReferenceResolver;
 
     public SchemaResolver(
             SchemaRepository schemaRepository,
             SchemaVersionRepository versionRepository,
-            SchemaTypeService schemaTypeService
+            SchemaTypeService schemaTypeService,
+            WorkspaceReferenceResolver workspaceReferenceResolver
     ) {
         this.schemaRepository = schemaRepository;
         this.versionRepository = versionRepository;
         this.schemaTypeService = schemaTypeService;
+        this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
 
     @Transactional(readOnly = true)
@@ -66,13 +70,14 @@ public class SchemaResolver {
             String schemaCode
     ) {
         String workspace = normalizeRequired(workspaceIdentifier);
+        Long workspaceId = workspaceReferenceResolver.resolveInternalId(workspace);
         String type = normalizeRequired(schemaTypeCode);
         String code = normalizeRequired(schemaCode);
 
         Schema schema = schemaRepository.findByTypeScopeAndCode(
                         type,
                         "WORKSPACE",
-                        workspace,
+                        workspaceId,
                         code
                 )
                 .orElseThrow(() -> validation("schema", NOT_FOUND));
