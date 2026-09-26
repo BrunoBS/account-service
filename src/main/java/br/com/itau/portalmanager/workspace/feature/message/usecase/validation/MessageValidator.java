@@ -35,7 +35,7 @@ public class MessageValidator {
     ) {
         ValidationResult result = new ValidationResult();
         validateMessage(
-                input == null ? null : input.service(),
+                input == null ? null : input.serviceIdentifier(),
                 input == null ? null : input.messageKey(),
                 input == null ? null : input.code(),
                 input == null ? null : input.httpStatus(),
@@ -56,7 +56,7 @@ public class MessageValidator {
             result.addError("version", MessageMessageKeys.VERSION_REQUIRED);
         }
         validateMessage(
-                input == null ? null : input.service(),
+                input == null ? null : input.serviceIdentifier(),
                 input == null ? null : input.messageKey(),
                 input == null ? null : input.code(),
                 input == null ? null : input.httpStatus(),
@@ -107,17 +107,17 @@ public class MessageValidator {
     }
 
     private void validateMessage(
-            String service,
+            String serviceIdentifier,
             String messageKey,
             String code,
             Integer httpStatus,
             String observation,
             ValidationResult result
     ) {
-        if (service == null || service.isBlank()) {
-            result.addError("service", MessageMessageKeys.SERVICE_REQUIRED);
-        } else if (!serviceQueryService.existsActive(service)) {
-            result.addError("service", MessageMessageKeys.SERVICE_INVALID);
+        if (serviceIdentifier == null || serviceIdentifier.isBlank()) {
+            result.addError("serviceIdentifier", MessageMessageKeys.SERVICE_REQUIRED);
+        } else if (!serviceQueryService.existsActiveByIdentifier(serviceIdentifier)) {
+            result.addError("serviceIdentifier", MessageMessageKeys.SERVICE_INVALID);
         }
 
         if (messageKey == null || messageKey.isBlank()) {
