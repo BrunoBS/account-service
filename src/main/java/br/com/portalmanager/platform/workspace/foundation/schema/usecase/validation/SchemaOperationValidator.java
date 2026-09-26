@@ -9,7 +9,6 @@ import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaInput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.ValidateSettingsInput;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -20,13 +19,6 @@ import java.util.regex.Pattern;
 public class SchemaOperationValidator {
     private static final Pattern CODE = Pattern.compile("^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$");
     private static final String SCOPE_INVALID = "workspace-service.schema.scope.invalid";
-
-    public SchemaScopeTypeCode validateSettingsScope(ValidateSettingsInput input) {
-        if (input == null) throw new ValidationException(new ValidationResult("schema", SCOPE_INVALID));
-        if (SchemaScopeTypeCode.platform().value().equals(input.scope())) return SchemaScopeTypeCode.platform();
-        if (SchemaScopeTypeCode.workspace().value().equals(input.scope())) return SchemaScopeTypeCode.workspace();
-        throw new ValidationException(new ValidationResult("scope", SCOPE_INVALID));
-    }
 
     public void validateCreateInput(CreateSchemaInput input) {
         if (input == null) throw invalid("schema", SchemaMessageKeys.REQUEST_INVALID);
