@@ -44,10 +44,14 @@ public class SchemaCommandService {
 
     @Transactional
     public SchemaOutput createPlatform(CreateSchemaInput input) {
-        if (repository.findByTypeAndScope(input.schemaTypeCode(), "PLATFORM", null).isPresent()) {
+        if (repository.findByTypeAndScope(
+                input.schemaTypeCode(),
+                SchemaScopeTypeCode.platform().value(),
+                null
+        ).isPresent()) {
             throw new IllegalArgumentException("Platform schema type already has a schema");
         }
-        return create(input, SchemaScopeTypeCode.platform(), null, "PLATFORM");
+        return create(input, SchemaScopeTypeCode.platform(), null);
     }
 
     @Transactional
@@ -59,14 +63,13 @@ public class SchemaCommandService {
         return create(
                 input,
                 SchemaScopeTypeCode.workspace(),
-                workspaceId,
-                "WORKSPACE"
+                workspaceId
         );
     }
 
     @Transactional
     public SchemaOutput updatePlatform(String identifier, UpdateSchemaInput input) {
-        return update(requiredScoped(identifier, "PLATFORM", null), input);
+        return update(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null), input);
     }
 
     @Transactional
@@ -75,37 +78,53 @@ public class SchemaCommandService {
             String identifier,
             UpdateSchemaInput input
     ) {
-        return update(requiredScoped(identifier, "WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)), input);
+        return update(requiredScoped(
+                identifier,
+                SchemaScopeTypeCode.workspace(),
+                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+        ), input);
     }
 
     @Transactional
     public SchemaOutput activatePlatform(String identifier) {
-        return activate(requiredScoped(identifier, "PLATFORM", null));
+        return activate(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null));
     }
 
     @Transactional
     public SchemaOutput activateWorkspace(String workspaceIdentifier, String identifier) {
-        return activate(requiredScoped(identifier, "WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)));
+        return activate(requiredScoped(
+                identifier,
+                SchemaScopeTypeCode.workspace(),
+                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+        ));
     }
 
     @Transactional
     public SchemaOutput inactivatePlatform(String identifier) {
-        return inactivate(requiredScoped(identifier, "PLATFORM", null));
+        return inactivate(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null));
     }
 
     @Transactional
     public SchemaOutput inactivateWorkspace(String workspaceIdentifier, String identifier) {
-        return inactivate(requiredScoped(identifier, "WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)));
+        return inactivate(requiredScoped(
+                identifier,
+                SchemaScopeTypeCode.workspace(),
+                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+        ));
     }
 
     @Transactional
     public SchemaOutput quarantinePlatform(String identifier) {
-        return quarantine(requiredScoped(identifier, "PLATFORM", null));
+        return quarantine(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null));
     }
 
     @Transactional
     public SchemaOutput quarantineWorkspace(String workspaceIdentifier, String identifier) {
-        return quarantine(requiredScoped(identifier, "WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)));
+        return quarantine(requiredScoped(
+                identifier,
+                SchemaScopeTypeCode.workspace(),
+                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+        ));
     }
 
     private SchemaOutput update(Schema schema, UpdateSchemaInput input) {
@@ -134,8 +153,7 @@ public class SchemaCommandService {
     private SchemaOutput create(
             CreateSchemaInput input,
             SchemaScopeTypeCode scope,
-            Long workspaceId,
-            String scopeCode
+            Long workspaceId
     ) {
         if (!schemaTypeService.existsActive(input.schemaTypeCode())) {
             throw new IllegalArgumentException("Active schema type not found");
@@ -143,7 +161,7 @@ public class SchemaCommandService {
 
         if (repository.findByTypeScopeAndCode(
                 input.schemaTypeCode(),
-                scopeCode,
+                scope.value(),
                 workspaceId,
                 input.code()
         ).isPresent()) {
@@ -181,10 +199,10 @@ public class SchemaCommandService {
 
     private Schema requiredScoped(
             String identifier,
-            String scope,
+            SchemaScopeTypeCode scope,
             Long workspaceId
     ) {
-        return repository.findByIdentifierAndScope(identifier, scope, workspaceId)
+        return repository.findByIdentifierAndScope(identifier, scope.value(), workspaceId)
                 .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
     }
     private SchemaOutput output(Schema schema) {
