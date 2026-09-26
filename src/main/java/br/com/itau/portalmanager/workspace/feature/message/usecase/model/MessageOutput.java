@@ -12,11 +12,11 @@ public record MessageOutput(
         String lifecycle,
         String observation
 ) {
-    public static MessageOutput from(Message message) {
+    public static MessageOutput from(Message message, String serviceIdentifier) {
         return new MessageOutput(
                 message.getIdentifier(),
                 message.getVersion(),
-                message.getServiceIdentifier(),
+                serviceIdentifier,
                 message.getMessageKey(),
                 message.getCode(),
                 message.getHttpStatus(),
