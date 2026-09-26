@@ -272,6 +272,23 @@ class MessageApiIT {
                 "workspace.service.inactive",
                 "WORKSPACE-0208"
         );
+        postTranslation(
+                identifier,
+                translation(
+                        "pt-BR",
+                        "Service inactive",
+                        "Message owned by a service that becomes inactive.",
+                        "Reactivate the service to expose the runtime message."
+                )
+        ).statusCode(201);
+
+        assertThat(viewCount("workspace-service.workspace.service.inactive", "pt-BR"))
+                .isEqualTo(1);
+
+        Integer version = get("/api/v1/messages/" + identifier)
+                .statusCode(200)
+                .extract()
+                .path("version");
 
         jdbcTemplate.update(
                 "update platform_services set lifecycle_code = 'INACTIVE' where identifier = ?",
@@ -294,6 +311,17 @@ class MessageApiIT {
                 .isZero();
 
         post(message("workspace.service.inactive.new", "WORKSPACE-0209"))
+                .statusCode(400)
+                .body("code", equalTo("GLOBAL-0001"))
+                .body("details.field", hasItem("serviceIdentifier"));
+
+        Map<String, Object> update = message(
+                "workspace.service.inactive",
+                "WORKSPACE-0208"
+        );
+        update.put("version", version);
+
+        put("/api/v1/messages/" + identifier, update)
                 .statusCode(400)
                 .body("code", equalTo("GLOBAL-0001"))
                 .body("details.field", hasItem("serviceIdentifier"));
