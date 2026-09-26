@@ -27,6 +27,9 @@ public class SchemaCommandService {
 
     @Transactional
     public SchemaOutput createPlatform(CreateSchemaInput input) {
+        if (repository.findByTypeAndScope(input.schemaTypeCode(), "PLATFORM", null).isPresent()) {
+            throw new IllegalArgumentException("Platform schema type already has a schema");
+        }
         return create(input, SchemaScopeTypeCode.platform(), null, "PLATFORM");
     }
 
