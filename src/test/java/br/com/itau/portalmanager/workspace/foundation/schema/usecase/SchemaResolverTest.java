@@ -11,6 +11,9 @@ import org.junit.jupiter.api.Test;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,8 +31,8 @@ class SchemaResolverTest {
         when(schemaRepository.findByTypeScopeAndCode("application", "PLATFORM", null, "application"))
                 .thenReturn(Optional.of(schema));
         when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
-                null,
-                SchemaVersionStatus.PUBLISHED
+                nullable(Long.class),
+                eq(SchemaVersionStatus.PUBLISHED)
         )).thenReturn(Optional.of(version));
 
         SchemaResolution resolution = resolver.resolvePlatform("application");
@@ -50,8 +53,8 @@ class SchemaResolverTest {
         when(schemaRepository.findByTypeScopeAndCode("default", "PLATFORM", null, "default"))
                 .thenReturn(Optional.of(fallback));
         when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
-                null,
-                SchemaVersionStatus.PUBLISHED
+                nullable(Long.class),
+                eq(SchemaVersionStatus.PUBLISHED)
         )).thenReturn(Optional.of(version));
 
         SchemaResolution resolution = resolver.resolvePlatform("application");
