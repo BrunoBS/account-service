@@ -7,7 +7,6 @@ import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRe
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
-import br.com.itau.portalmanager.workspace.foundation.schema.usecase.support.SchemaFinder;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.validation.SchemaValidator;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.messaging.validation.ValidationResult;
@@ -24,18 +23,15 @@ public class SchemaVersionCommandService {
     private final SchemaRepository schemaRepository;
     private final SchemaVersionRepository versionRepository;
     private final SchemaValidator validator;
-    private final SchemaFinder finder;
 
     public SchemaVersionCommandService(
             SchemaRepository schemaRepository,
             SchemaVersionRepository versionRepository,
-            SchemaValidator validator,
-            SchemaFinder finder
+            SchemaValidator validator
     ) {
         this.schemaRepository = schemaRepository;
         this.versionRepository = versionRepository;
         this.validator = validator;
-        this.finder = finder;
     }
 
     @Transactional
@@ -43,7 +39,7 @@ public class SchemaVersionCommandService {
             String schemaIdentifier,
             CreateSchemaVersionInput input
     ) {
-        return createOrUpdateDraft(finder.findScopedForUpdate(schemaIdentifier, "PLATFORM", null), input);
+        return createOrUpdateDraft(requiredScoped(schemaIdentifier, "PLATFORM", null), input);
     }
 
     @Transactional
@@ -53,7 +49,7 @@ public class SchemaVersionCommandService {
             CreateSchemaVersionInput input
     ) {
         return createOrUpdateDraft(
-                finder.findScopedForUpdate(schemaIdentifier, "WORKSPACE", workspaceIdentifier),
+                requiredScoped(schemaIdentifier, "WORKSPACE", workspaceIdentifier),
                 input
         );
     }
@@ -63,7 +59,7 @@ public class SchemaVersionCommandService {
             String schemaIdentifier,
             String versionIdentifier
     ) {
-        return publish(finder.findScopedForUpdate(schemaIdentifier, "PLATFORM", null), versionIdentifier);
+        return publish(requiredScoped(schemaIdentifier, "PLATFORM", null), versionIdentifier);
     }
 
     @Transactional
@@ -73,7 +69,7 @@ public class SchemaVersionCommandService {
             String versionIdentifier
     ) {
         return publish(
-                finder.findScopedForUpdate(schemaIdentifier, "WORKSPACE", workspaceIdentifier),
+                requiredScoped(schemaIdentifier, "WORKSPACE", workspaceIdentifier),
                 versionIdentifier
         );
     }
@@ -83,7 +79,7 @@ public class SchemaVersionCommandService {
             String schemaIdentifier,
             String versionIdentifier
     ) {
-        deleteDraft(finder.findScopedForUpdate(schemaIdentifier, "PLATFORM", null), versionIdentifier);
+        deleteDraft(requiredScoped(schemaIdentifier, "PLATFORM", null), versionIdentifier);
     }
 
     @Transactional
@@ -93,7 +89,7 @@ public class SchemaVersionCommandService {
             String versionIdentifier
     ) {
         deleteDraft(
-                finder.findScopedForUpdate(schemaIdentifier, "WORKSPACE", workspaceIdentifier),
+                requiredScoped(schemaIdentifier, "WORKSPACE", workspaceIdentifier),
                 versionIdentifier
         );
     }
@@ -190,4 +186,12 @@ public class SchemaVersionCommandService {
         versionRepository.delete(version);
     }
 
+    private Schema requiredScoped(
+            String identifier,
+            String scope,
+            String workspaceIdentifier
+    ) {
+        return schemaRepository.findByIdentifierAndScopeForUpdate(identifier, scope, workspaceIdentifier)
+                .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
+    }
 }
