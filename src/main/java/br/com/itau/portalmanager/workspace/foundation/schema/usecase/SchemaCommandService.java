@@ -2,9 +2,7 @@ package br.com.itau.portalmanager.workspace.foundation.schema.usecase;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
-import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaType;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
-import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaTypeRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.CreateSchemaInput;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaOutput;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.UpdateSchemaInput;
@@ -17,14 +15,14 @@ import java.time.LocalDateTime;
 public class SchemaCommandService {
 
     private final SchemaRepository repository;
-    private final SchemaTypeRepository typeRepository;
+    private final SchemaTypeService schemaTypeService;
 
     public SchemaCommandService(
             SchemaRepository repository,
-            SchemaTypeRepository typeRepository
+            SchemaTypeService schemaTypeService
     ) {
         this.repository = repository;
-        this.typeRepository = typeRepository;
+        this.schemaTypeService = schemaTypeService;
     }
 
     @Transactional
@@ -118,9 +116,9 @@ public class SchemaCommandService {
             String workspaceIdentifier,
             String scopeCode
     ) {
-        SchemaType type = typeRepository.findByCode(input.schemaTypeCode())
-                .filter(SchemaType::isActive)
-                .orElseThrow(() -> new IllegalArgumentException("Active schema type not found"));
+        if (!schemaTypeService.existsActive(input.schemaTypeCode())) {
+            throw new IllegalArgumentException("Active schema type not found");
+        }
 
         if (repository.findByTypeScopeAndCode(
                 input.schemaTypeCode(),
@@ -132,7 +130,7 @@ public class SchemaCommandService {
         }
 
         Schema schema = repository.save(new Schema(
-                type,
+                input.schemaTypeCode(),
                 scope,
                 workspaceIdentifier,
                 input.code(),
