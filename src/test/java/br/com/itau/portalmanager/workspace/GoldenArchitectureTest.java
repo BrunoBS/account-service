@@ -193,6 +193,23 @@ class GoldenArchitectureTest {
     }
 
     @Test
+    void webResponsesMustNotExposeTechnicalIds() {
+        String responsePackage = ROOT + ".entrypoint.web.";
+
+        var invalidFields = classes.stream()
+                .filter(javaClass -> javaClass.getPackageName().startsWith(responsePackage))
+                .filter(javaClass -> javaClass.getPackageName().contains(".response"))
+                .flatMap(javaClass -> javaClass.getFields().stream())
+                .map(field -> field.getOwner().getName() + "." + field.getName())
+                .filter(name -> name.endsWith(".id") || name.matches(".*\\.[a-zA-Z0-9]+Id$"))
+                .toList();
+
+        assertThat(invalidFields)
+                .as("HTTP responses must expose stable identifiers, never technical database ids")
+                .isEmpty();
+    }
+
+    @Test
     void restControllersMustResideInEntrypoint() {
         classes()
                 .that().areAnnotatedWith(RestController.class)
