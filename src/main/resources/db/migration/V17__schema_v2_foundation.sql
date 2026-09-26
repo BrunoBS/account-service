@@ -1,3 +1,10 @@
+INSERT IGNORE INTO type_life_cycle
+    (code, label, description, sort_order, is_active, settings)
+VALUES
+    ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}'),
+    ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}'),
+    ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}');
+
 INSERT IGNORE INTO type_schema_scopes
     (code, label, description, sort_order, is_active, settings)
 VALUES
