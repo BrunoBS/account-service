@@ -34,13 +34,13 @@ public class MessageQueryService {
 
     @Transactional(readOnly = true)
     public List<MessageOutput> findAll(
-            String service,
+            String serviceIdentifier,
             Boolean active,
             String code,
             String messageKey
     ) {
         return repository.findFiltered(
-                        normalizer.normalizeServiceFilter(service),
+                        normalizer.normalizeServiceIdentifierFilter(serviceIdentifier),
                         lifecycle(active),
                         normalizer.normalizeCodeFilter(code),
                         normalizer.normalizeMessageKeyFilter(messageKey)
