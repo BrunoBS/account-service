@@ -5,6 +5,9 @@ import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.support.SchemaFinder;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.validation.SchemaValidator;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.version.SchemaVersionCommandService;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
@@ -23,8 +26,9 @@ class SchemaVersionCommandServiceTest {
     private final SchemaRepository schemaRepository = mock(SchemaRepository.class);
     private final SchemaVersionRepository versionRepository = mock(SchemaVersionRepository.class);
     private final SchemaValidator validator = new SchemaValidator(new ObjectMapper());
+    private final SchemaFinder finder = new SchemaFinder(schemaRepository);
     private final SchemaVersionCommandService service =
-            new SchemaVersionCommandService(schemaRepository, versionRepository, validator);
+            new SchemaVersionCommandService(schemaRepository, versionRepository, validator, finder);
 
     @Test
     void shouldContinueEditingExistingDraftInsteadOfCreatingAnotherVersion() throws Exception {
