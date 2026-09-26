@@ -48,7 +48,7 @@ public class MessageQueryService {
                 normalizer.normalizeServiceIdentifierFilter(serviceIdentifier);
         Long serviceId = normalizedServiceIdentifier == null
                 ? null
-                : serviceQueryService.findActiveInternalIdByIdentifier(normalizedServiceIdentifier);
+                : serviceQueryService.findInternalIdByIdentifier(normalizedServiceIdentifier);
 
         return repository.findFiltered(
                         serviceId,
