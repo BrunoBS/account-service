@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class WorkspaceTaggingSupport {
+public class WorkspaceTagManager {
 
     private static final TagOwnerType WORKSPACE_OWNER = () -> "WORKSPACE";
 
     private final TagManager tagManager;
 
-    public WorkspaceTaggingSupport(TagManager tagManager) {
+    public WorkspaceTagManager(TagManager tagManager) {
         this.tagManager = tagManager;
     }
 

@@ -3,7 +3,7 @@ package br.com.portalmanager.platform.workspace.foundation.catalog.authorization
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.repository.AuthorizationTypeRepository;
-import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSchemaValidationSupport;
+import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSettingsValidator;
 import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
@@ -14,7 +14,7 @@ public class AuthorizationTypeService extends EnumCatalogService<AuthorizationTy
     public AuthorizationTypeService(
             AuthorizationTypeRepository repository,
             ObjectMapper objectMapper,
-            CatalogSchemaValidationSupport settingsValidator) {
+            CatalogSettingsValidator settingsValidator) {
         super(
                 repository,
                 objectMapper,

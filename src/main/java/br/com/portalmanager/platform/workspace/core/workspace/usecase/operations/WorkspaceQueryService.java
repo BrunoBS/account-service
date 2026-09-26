@@ -6,7 +6,7 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.Find
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOutput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceFinder;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceNormalizer;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceTaggingSupport;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceTagManager;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.library.authorization.annotation.ResourceVisibility;
@@ -20,10 +20,10 @@ import java.util.Map;
 public class WorkspaceQueryService {
     private final WorkspaceRepository repository; private final WorkspaceFinder finder;
     private final WorkspaceNormalizer normalizer; private final WorkspaceValidator validator;
-    private final WorkspaceTaggingSupport taggingSupport;
+    private final WorkspaceTagManager taggingSupport;
 
     public WorkspaceQueryService(WorkspaceRepository repository, WorkspaceFinder finder, WorkspaceNormalizer normalizer,
-                                 WorkspaceValidator validator, WorkspaceTaggingSupport taggingSupport) {
+                                 WorkspaceValidator validator, WorkspaceTagManager taggingSupport) {
         this.repository=repository; this.finder=finder; this.normalizer=normalizer; this.validator=validator; this.taggingSupport=taggingSupport;
     }
 

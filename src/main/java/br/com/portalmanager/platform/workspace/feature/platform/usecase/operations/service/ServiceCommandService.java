@@ -1,15 +1,18 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.service;
 
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.Service;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.ServiceRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateServiceInput;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.ServiceOutput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateServiceInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.validation.ServiceValidator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 @org.springframework.stereotype.Service
 public class ServiceCommandService {
@@ -65,7 +68,7 @@ public class ServiceCommandService {
     }
 
     private Service required(String identifier) {
-        return repository.findByIdentifier(identifier).orElseThrow(() -> new IllegalArgumentException("Service not found"));
+        return repository.findByIdentifier(identifier).orElseThrow(() -> new NotFoundException(PlatformMessageKeys.SERVICE_NOT_FOUND));
     }
 
     private LocalDateTime now() {

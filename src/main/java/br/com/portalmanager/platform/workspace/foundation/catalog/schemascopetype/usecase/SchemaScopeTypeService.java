@@ -3,7 +3,7 @@ package br.com.portalmanager.platform.workspace.foundation.catalog.schemascopety
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.repository.SchemaScopeTypeRepository;
-import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSchemaValidationSupport;
+import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSettingsValidator;
 import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
@@ -14,7 +14,7 @@ public class SchemaScopeTypeService extends EnumCatalogService<SchemaScopeType, 
     public SchemaScopeTypeService(
             SchemaScopeTypeRepository repository,
             ObjectMapper objectMapper,
-            CatalogSchemaValidationSupport settingsValidator) {
+            CatalogSettingsValidator settingsValidator) {
         super(
                 repository,
                 objectMapper,

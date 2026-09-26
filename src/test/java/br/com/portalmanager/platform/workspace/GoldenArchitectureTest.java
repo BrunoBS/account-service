@@ -178,6 +178,40 @@ class GoldenArchitectureTest {
     }
 
     @Test
+    void businessAndSchemaUseCasesMustUseApprovedPackages() {
+        Set<String> approved = Set.of("model", "operations", "validation");
+        var invalid = classes.stream()
+                .map(JavaClass::getPackageName)
+                .filter(packageName -> packageName.startsWith(ROOT + ".core.workspace.usecase.")
+                        || packageName.startsWith(ROOT + ".feature.message.usecase.")
+                        || packageName.startsWith(ROOT + ".feature.platform.usecase.")
+                        || packageName.startsWith(ROOT + ".foundation.schema.usecase."))
+                .filter(packageName -> {
+                    String relative = packageName.substring(packageName.indexOf(".usecase.") + ".usecase.".length());
+                    return !approved.contains(relative.split("\\.")[0]);
+                })
+                .distinct()
+                .toList();
+
+        assertThat(invalid)
+                .as("Use case implementations belong in model, operations or validation")
+                .isEmpty();
+    }
+
+    @Test
+    void genericSupportPackagesMustNotBeReintroduced() {
+        var invalid = classes.stream()
+                .map(JavaClass::getPackageName)
+                .filter(packageName -> packageName.equals(ROOT + ".support")
+                        || packageName.contains(".support.")
+                        || packageName.endsWith(".support"))
+                .distinct()
+                .toList();
+
+        assertThat(invalid).isEmpty();
+    }
+
+    @Test
     void entitiesMustNotPersistCrossAggregateIdentifiers() {
         var invalidFields = classes.stream()
                 .filter(javaClass -> javaClass.isAnnotatedWith(jakarta.persistence.Entity.class))

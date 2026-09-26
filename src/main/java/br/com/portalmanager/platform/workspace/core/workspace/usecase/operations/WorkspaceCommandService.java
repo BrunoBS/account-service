@@ -7,7 +7,7 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.Upda
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOutput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceFinder;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceNormalizer;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceTaggingSupport;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceTagManager;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import org.springframework.stereotype.Service;
@@ -22,10 +22,10 @@ public class WorkspaceCommandService {
     private final WorkspaceFinder finder;
     private final WorkspaceNormalizer normalizer;
     private final WorkspaceValidator validator;
-    private final WorkspaceTaggingSupport taggingSupport;
+    private final WorkspaceTagManager taggingSupport;
 
     public WorkspaceCommandService(WorkspaceRepository repository, WorkspaceFinder finder, WorkspaceNormalizer normalizer,
-                                   WorkspaceValidator validator, WorkspaceTaggingSupport taggingSupport) {
+                                   WorkspaceValidator validator, WorkspaceTagManager taggingSupport) {
         this.repository = repository; this.finder = finder; this.normalizer = normalizer;
         this.validator = validator; this.taggingSupport = taggingSupport;
     }

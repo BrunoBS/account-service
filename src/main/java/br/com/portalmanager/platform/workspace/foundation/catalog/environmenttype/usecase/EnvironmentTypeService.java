@@ -3,7 +3,7 @@ package br.com.portalmanager.platform.workspace.foundation.catalog.environmentty
 import br.com.portalmanager.platform.workspace.foundation.catalog.environmenttype.domain.EnvironmentType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.environmenttype.domain.EnvironmentTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.environmenttype.repository.EnvironmentTypeRepository;
-import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSchemaValidationSupport;
+import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSettingsValidator;
 import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
@@ -14,7 +14,7 @@ public class EnvironmentTypeService extends EnumCatalogService<EnvironmentType, 
     public EnvironmentTypeService(
             EnvironmentTypeRepository repository,
             ObjectMapper objectMapper,
-            CatalogSchemaValidationSupport settingsValidator) {
+            CatalogSettingsValidator settingsValidator) {
         super(
                 repository,
                 objectMapper,

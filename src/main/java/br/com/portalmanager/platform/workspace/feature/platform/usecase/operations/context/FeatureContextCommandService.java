@@ -1,15 +1,18 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context;
 
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureContextRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateFeatureContextInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.FeatureContextOutput;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateFeatureContextInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.validation.FeatureContextValidator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 @org.springframework.stereotype.Service
 public class FeatureContextCommandService {
@@ -69,7 +72,7 @@ public class FeatureContextCommandService {
 
     private FeatureContext required(String identifier) {
         return repository.findByIdentifier(identifier)
-                .orElseThrow(() -> new IllegalArgumentException("Feature context not found"));
+                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.CONTEXT_NOT_FOUND));
     }
 
     private LocalDateTime now() {

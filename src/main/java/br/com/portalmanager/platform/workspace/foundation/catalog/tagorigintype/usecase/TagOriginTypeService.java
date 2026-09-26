@@ -3,7 +3,7 @@ package br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype
 import br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.domain.TagOriginType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.domain.TagOriginTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.repository.TagOriginTypeRepository;
-import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSchemaValidationSupport;
+import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSettingsValidator;
 import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
@@ -14,7 +14,7 @@ public class TagOriginTypeService extends EnumCatalogService<TagOriginType, TagO
     public TagOriginTypeService(
             TagOriginTypeRepository repository,
             ObjectMapper objectMapper,
-            CatalogSchemaValidationSupport settingsValidator) {
+            CatalogSettingsValidator settingsValidator) {
         super(
                 repository,
                 objectMapper,

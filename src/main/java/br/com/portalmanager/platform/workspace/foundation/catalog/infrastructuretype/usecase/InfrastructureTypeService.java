@@ -3,7 +3,7 @@ package br.com.portalmanager.platform.workspace.foundation.catalog.infrastructur
 import br.com.portalmanager.platform.workspace.foundation.catalog.infrastructuretype.domain.InfrastructureType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.infrastructuretype.domain.InfrastructureTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.infrastructuretype.repository.InfrastructureTypeRepository;
-import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSchemaValidationSupport;
+import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSettingsValidator;
 import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
@@ -14,7 +14,7 @@ public class InfrastructureTypeService extends EnumCatalogService<Infrastructure
     public InfrastructureTypeService(
             InfrastructureTypeRepository repository,
             ObjectMapper objectMapper,
-            CatalogSchemaValidationSupport settingsValidator) {
+            CatalogSettingsValidator settingsValidator) {
         super(
                 repository,
                 objectMapper,

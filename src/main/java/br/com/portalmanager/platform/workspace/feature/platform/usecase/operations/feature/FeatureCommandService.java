@@ -1,5 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature;
 
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.Feature;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.Service;
@@ -8,12 +9,14 @@ import br.com.portalmanager.platform.workspace.feature.platform.repository.Featu
 import br.com.portalmanager.platform.workspace.feature.platform.repository.ServiceRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateFeatureInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.FeatureOutput;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateFeatureInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.validation.FeatureValidator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 @org.springframework.stereotype.Service
 public class FeatureCommandService {
@@ -99,7 +102,7 @@ public class FeatureCommandService {
     public FeatureOutput associateContext(String identifier, String contextIdentifier) {
         Feature feature = requiredFeature(identifier);
         FeatureContext context = contexts.findByIdentifier(contextIdentifier)
-                .orElseThrow(() -> new IllegalArgumentException("Feature context not found"));
+                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.CONTEXT_NOT_FOUND));
         validator.validateContext(context);
         feature.addContext(context);
         return FeatureOutput.from(feature);
@@ -109,19 +112,19 @@ public class FeatureCommandService {
     public FeatureOutput removeContext(String identifier, String contextIdentifier) {
         Feature feature = requiredFeature(identifier);
         FeatureContext context = contexts.findByIdentifier(contextIdentifier)
-                .orElseThrow(() -> new IllegalArgumentException("Feature context not found"));
+                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.CONTEXT_NOT_FOUND));
         feature.removeContext(context);
         return FeatureOutput.from(feature);
     }
 
     private Feature requiredFeature(String identifier) {
         return features.findByIdentifier(identifier)
-                .orElseThrow(() -> new IllegalArgumentException("Feature not found"));
+                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND));
     }
 
     private Service requiredService(String identifier) {
         return services.findByIdentifier(identifier)
-                .orElseThrow(() -> new IllegalArgumentException("Service not found"));
+                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.SERVICE_NOT_FOUND));
     }
 
     private LocalDateTime now() {

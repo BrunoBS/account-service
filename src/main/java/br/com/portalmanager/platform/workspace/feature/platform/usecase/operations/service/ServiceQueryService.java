@@ -1,11 +1,14 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.service;
 
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.ServiceRepository;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.ServiceOutput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import org.springframework.transaction.annotation.Transactional;
 
 @org.springframework.stereotype.Service
 public class ServiceQueryService {
@@ -33,7 +36,7 @@ public class ServiceQueryService {
     public Long findInternalIdByIdentifier(String identifier) {
         return repository.findByIdentifier(identifier)
                 .map(br.com.portalmanager.platform.workspace.feature.platform.domain.Service::getId)
-                .orElseThrow(() -> new IllegalArgumentException("Service not found"));
+                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.SERVICE_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
@@ -41,21 +44,21 @@ public class ServiceQueryService {
         return repository.findByIdentifier(identifier)
                 .filter(service -> LifecycleTypeCode.active().equals(service.getLifecycle()))
                 .map(br.com.portalmanager.platform.workspace.feature.platform.domain.Service::getId)
-                .orElseThrow(() -> new IllegalArgumentException("Active service not found"));
+                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.ACTIVE_SERVICE_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
     public String findIdentifierByInternalId(Long id) {
         return repository.findById(id)
                 .map(br.com.portalmanager.platform.workspace.feature.platform.domain.Service::getIdentifier)
-                .orElseThrow(() -> new IllegalArgumentException("Service not found"));
+                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.SERVICE_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
     public ServiceOutput findByIdentifier(String identifier) {
         return repository.findByIdentifier(identifier)
                 .map(ServiceOutput::from)
-                .orElseThrow(() -> new IllegalArgumentException("Service not found"));
+                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.SERVICE_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)

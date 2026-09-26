@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 
 @Component
-public class CatalogSchemaValidationSupport {
+public class CatalogSettingsValidator {
 
     private final SchemaValidator schemaValidator;
 
-    public CatalogSchemaValidationSupport(SchemaValidator schemaValidator) {
+    public CatalogSettingsValidator(SchemaValidator schemaValidator) {
         this.schemaValidator = schemaValidator;
     }
 
