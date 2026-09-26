@@ -1,9 +1,10 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema;
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.workspace.foundation.catalog.integration.FoundationDynamicCatalogReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.schematype.usecase.SchemaTypeService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.integration.DynamicCatalogReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
@@ -28,18 +29,18 @@ public class SchemaCommandService {
 
     private final SchemaRepository repository;
     private final SchemaVersionRepository versionRepository;
-    private final SchemaTypeService schemaTypeService;
+    private final DynamicCatalogReferenceResolver catalogReferenceResolver;
     private final SchemaValidator validator;
     private final SchemaOperationValidator operationValidator = new SchemaOperationValidator();
     private final SchemaVersionOperationValidator versionValidator = new SchemaVersionOperationValidator();
     private final WorkspaceReferenceResolver workspaceReferenceResolver;
 
     public SchemaCommandService(SchemaRepository repository, SchemaVersionRepository versionRepository,
-                                SchemaTypeService schemaTypeService, SchemaValidator validator,
+                                DynamicCatalogReferenceResolver catalogReferenceResolver, SchemaValidator validator,
                                 WorkspaceReferenceResolver workspaceReferenceResolver) {
         this.repository = repository;
         this.versionRepository = versionRepository;
-        this.schemaTypeService = schemaTypeService;
+        this.catalogReferenceResolver = catalogReferenceResolver;
         this.validator = validator;
         this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
@@ -107,7 +108,8 @@ public class SchemaCommandService {
 
     private SchemaOutput create(CreateSchemaInput input, SchemaScopeTypeCode scope, Long workspaceId) {
         operationValidator.validateOwnership(scope, workspaceId);
-        operationValidator.validateTypeActive(schemaTypeService.existsActive(input.schemaTypeCode()));
+        operationValidator.validateTypeActive(catalogReferenceResolver.existsActive(
+                FoundationDynamicCatalogReferenceResolver.SCHEMA_TYPE, input.schemaTypeCode()));
         operationValidator.validateCodeAvailable(repository.findByTypeScopeAndCode(
                 input.schemaTypeCode(), scope.value(), workspaceId, input.code()).isPresent());
 
