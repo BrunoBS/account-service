@@ -3,6 +3,7 @@ package br.com.portalmanager.platform.workspace.feature.platform.usecase.validat
 import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateFeatureInput;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateFeatureInput;
 import org.springframework.stereotype.Component;
 
@@ -22,13 +23,13 @@ public class FeatureValidator {
 
     public void validateMicroservice(Microservice microservice) {
         if (microservice == null || !microservice.isActive()) {
-            PlatformValidation.reject("microserviceIdentifier", "microservice.inactive");
+            PlatformValidation.reject("microserviceIdentifier", PlatformMessageKeys.MICROSERVICE_INACTIVE);
         }
     }
 
     public void validateContext(FeatureContext context) {
         if (context == null || !context.isActive()) {
-            PlatformValidation.reject("contextIdentifier", "context.inactive");
+            PlatformValidation.reject("contextIdentifier", PlatformMessageKeys.CONTEXT_INACTIVE);
         }
     }
 }
