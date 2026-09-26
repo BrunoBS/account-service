@@ -46,8 +46,50 @@ public class SchemaCommandService {
     }
 
     @Transactional
-    public SchemaOutput update(String identifier, UpdateSchemaInput input) {
-        Schema schema = required(identifier);
+    public SchemaOutput updatePlatform(String identifier, UpdateSchemaInput input) {
+        return update(requiredScoped(identifier, "PLATFORM", null), input);
+    }
+
+    @Transactional
+    public SchemaOutput updateWorkspace(
+            String workspaceIdentifier,
+            String identifier,
+            UpdateSchemaInput input
+    ) {
+        return update(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier), input);
+    }
+
+    @Transactional
+    public SchemaOutput activatePlatform(String identifier) {
+        return activate(requiredScoped(identifier, "PLATFORM", null));
+    }
+
+    @Transactional
+    public SchemaOutput activateWorkspace(String workspaceIdentifier, String identifier) {
+        return activate(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier));
+    }
+
+    @Transactional
+    public SchemaOutput inactivatePlatform(String identifier) {
+        return inactivate(requiredScoped(identifier, "PLATFORM", null));
+    }
+
+    @Transactional
+    public SchemaOutput inactivateWorkspace(String workspaceIdentifier, String identifier) {
+        return inactivate(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier));
+    }
+
+    @Transactional
+    public SchemaOutput quarantinePlatform(String identifier) {
+        return quarantine(requiredScoped(identifier, "PLATFORM", null));
+    }
+
+    @Transactional
+    public SchemaOutput quarantineWorkspace(String workspaceIdentifier, String identifier) {
+        return quarantine(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier));
+    }
+
+    private SchemaOutput update(Schema schema, UpdateSchemaInput input) {
         if (input.version() == null || !input.version().equals(schema.getVersion())) {
             throw new IllegalStateException("Schema version conflict");
         }
@@ -55,23 +97,17 @@ public class SchemaCommandService {
         return SchemaOutput.from(schema);
     }
 
-    @Transactional
-    public SchemaOutput activate(String identifier) {
-        Schema schema = required(identifier);
+    private SchemaOutput activate(Schema schema) {
         schema.activate(LocalDateTime.now());
         return SchemaOutput.from(schema);
     }
 
-    @Transactional
-    public SchemaOutput inactivate(String identifier) {
-        Schema schema = required(identifier);
+    private SchemaOutput inactivate(Schema schema) {
         schema.inactivate(LocalDateTime.now());
         return SchemaOutput.from(schema);
     }
 
-    @Transactional
-    public SchemaOutput quarantine(String identifier) {
-        Schema schema = required(identifier);
+    private SchemaOutput quarantine(Schema schema) {
         schema.quarantine(LocalDateTime.now());
         return SchemaOutput.from(schema);
     }
@@ -107,8 +143,12 @@ public class SchemaCommandService {
         return SchemaOutput.from(schema);
     }
 
-    private Schema required(String identifier) {
-        return repository.findByIdentifier(identifier)
-                .orElseThrow(() -> new IllegalArgumentException("Schema not found"));
+    private Schema requiredScoped(
+            String identifier,
+            String scopeCode,
+            String workspaceIdentifier
+    ) {
+        return repository.findByIdentifierAndScope(identifier, scopeCode, workspaceIdentifier)
+                .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
     }
 }
