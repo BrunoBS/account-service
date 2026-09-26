@@ -95,6 +95,13 @@ class SchemaApiIT {
                 .extract()
                 .path("identifier");
 
+        authorized()
+                .get("/api/v1/schemas/" + platformSchemaIdentifier + "/versions")
+                .then()
+                .statusCode(200)
+                .body("version", hasItem(1))
+                .body("status", hasItem("DRAFT"));
+
         String versionIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
