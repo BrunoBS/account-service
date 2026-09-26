@@ -120,7 +120,7 @@ public class PlatformSchemaController {
 
     @GetMapping("/{identifier}/versions")
     public List<SchemaVersionResponse> findVersions(@PathVariable String identifier) {
-        return queryService.findVersions(identifier).stream()
+        return queryService.findPlatformVersions(identifier).stream()
                 .map(SchemaVersionResponse::from)
                 .toList();
     }
