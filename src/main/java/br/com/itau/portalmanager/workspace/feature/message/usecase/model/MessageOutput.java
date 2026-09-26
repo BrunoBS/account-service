@@ -5,7 +5,7 @@ import br.com.itau.portalmanager.workspace.feature.message.domain.Message;
 public record MessageOutput(
         String identifier,
         Long version,
-        String service,
+        String serviceIdentifier,
         String messageKey,
         String code,
         Integer httpStatus,
@@ -16,7 +16,7 @@ public record MessageOutput(
         return new MessageOutput(
                 message.getIdentifier(),
                 message.getVersion(),
-                message.getService().getCode(),
+                message.getServiceIdentifier(),
                 message.getMessageKey(),
                 message.getCode(),
                 message.getHttpStatus(),
