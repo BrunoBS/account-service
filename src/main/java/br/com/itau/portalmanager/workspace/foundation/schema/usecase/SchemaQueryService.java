@@ -30,6 +30,16 @@ public class SchemaQueryService {
     }
 
     @Transactional(readOnly = true)
+    public SchemaOutput findPlatformByIdentifier(String identifier) {
+        return SchemaOutput.from(requiredScoped(identifier, "PLATFORM", null));
+    }
+
+    @Transactional(readOnly = true)
+    public SchemaOutput findWorkspaceByIdentifier(String workspaceIdentifier, String identifier) {
+        return SchemaOutput.from(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier));
+    }
+
+    @Transactional(readOnly = true)
     public List<SchemaOutput> findAll() {
         return schemaRepository.findAll().stream().map(SchemaOutput::from).toList();
     }
@@ -62,5 +72,10 @@ public class SchemaQueryService {
     private Schema required(String identifier) {
         return schemaRepository.findByIdentifier(identifier)
                 .orElseThrow(() -> new IllegalArgumentException("Schema not found"));
+    }
+
+    private Schema requiredScoped(String identifier, String scope, String workspaceIdentifier) {
+        return schemaRepository.findByIdentifierAndScope(identifier, scope, workspaceIdentifier)
+                .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
     }
 }
