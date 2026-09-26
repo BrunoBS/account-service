@@ -8,6 +8,7 @@ import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRe
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaResolution;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.resolution.SchemaResolver;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.workspace.WorkspaceReferenceResolver;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -23,8 +24,9 @@ class SchemaResolverTest {
     private final SchemaRepository schemaRepository = mock(SchemaRepository.class);
     private final SchemaVersionRepository versionRepository = mock(SchemaVersionRepository.class);
     private final SchemaTypeService schemaTypeService = mock(SchemaTypeService.class);
+    private final WorkspaceReferenceResolver workspaceReferenceResolver = mock(WorkspaceReferenceResolver.class);
     private final SchemaResolver resolver =
-            new SchemaResolver(schemaRepository, versionRepository, schemaTypeService);
+            new SchemaResolver(schemaRepository, versionRepository, schemaTypeService, workspaceReferenceResolver);
 
     @Test
     void shouldResolveLatestPublishedPlatformSchema() {
