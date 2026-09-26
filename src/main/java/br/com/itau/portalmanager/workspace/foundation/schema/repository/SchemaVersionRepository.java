@@ -1,7 +1,6 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.repository;
 
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
-import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -18,7 +17,12 @@ public interface SchemaVersionRepository extends JpaRepository<SchemaVersion, Lo
 
     Optional<SchemaVersion> findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
             Long schemaId,
-            SchemaVersionStatus status
+            String status
+    );
+
+    Optional<SchemaVersion> findFirstBySchema_IdAndStatus(
+            Long schemaId,
+            String status
     );
 
     List<SchemaVersion> findBySchema_IdOrderBySchemaVersionDesc(Long schemaId);
