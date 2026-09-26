@@ -30,6 +30,13 @@ public class ServiceQueryService {
     }
 
     @Transactional(readOnly = true)
+    public Long findInternalIdByIdentifier(String identifier) {
+        return repository.findByIdentifier(identifier)
+                .map(br.com.itau.portalmanager.workspace.feature.platform.domain.Service::getId)
+                .orElseThrow(() -> new IllegalArgumentException("Service not found"));
+    }
+
+    @Transactional(readOnly = true)
     public Long findActiveInternalIdByIdentifier(String identifier) {
         return repository.findByIdentifier(identifier)
                 .filter(service -> LifecycleTypeCode.active().equals(service.getLifecycle()))
