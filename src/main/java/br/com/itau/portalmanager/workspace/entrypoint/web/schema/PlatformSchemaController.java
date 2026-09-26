@@ -109,6 +109,15 @@ public class PlatformSchemaController {
                 ));
     }
 
+    @DeleteMapping("/{identifier}/versions/{versionIdentifier}")
+    public ResponseEntity<Void> deleteDraft(
+            @PathVariable String identifier,
+            @PathVariable String versionIdentifier
+    ) {
+        versionCommandService.deletePlatformDraft(identifier, versionIdentifier);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{identifier}/versions")
     public List<SchemaVersionResponse> findVersions(@PathVariable String identifier) {
         return queryService.findVersions(identifier).stream()
