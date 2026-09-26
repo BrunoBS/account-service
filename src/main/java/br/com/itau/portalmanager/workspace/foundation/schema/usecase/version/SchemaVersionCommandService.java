@@ -1,5 +1,6 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.usecase.version;
 
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.itau.portalmanager.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
@@ -43,7 +44,7 @@ public class SchemaVersionCommandService {
             String schemaIdentifier,
             CreateSchemaVersionInput input
     ) {
-        return createOrUpdateDraft(requiredScoped(schemaIdentifier, "PLATFORM", null), input);
+        return createOrUpdateDraft(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null), input);
     }
 
     @Transactional
@@ -53,7 +54,11 @@ public class SchemaVersionCommandService {
             CreateSchemaVersionInput input
     ) {
         return createOrUpdateDraft(
-                requiredScoped(schemaIdentifier, "WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)),
+                requiredScoped(
+                        schemaIdentifier,
+                        SchemaScopeTypeCode.workspace(),
+                        workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+                ),
                 input
         );
     }
@@ -63,7 +68,7 @@ public class SchemaVersionCommandService {
             String schemaIdentifier,
             String versionIdentifier
     ) {
-        return publish(requiredScoped(schemaIdentifier, "PLATFORM", null), versionIdentifier);
+        return publish(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null), versionIdentifier);
     }
 
     @Transactional
@@ -73,7 +78,11 @@ public class SchemaVersionCommandService {
             String versionIdentifier
     ) {
         return publish(
-                requiredScoped(schemaIdentifier, "WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)),
+                requiredScoped(
+                        schemaIdentifier,
+                        SchemaScopeTypeCode.workspace(),
+                        workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+                ),
                 versionIdentifier
         );
     }
@@ -83,7 +92,7 @@ public class SchemaVersionCommandService {
             String schemaIdentifier,
             String versionIdentifier
     ) {
-        deleteDraft(requiredScoped(schemaIdentifier, "PLATFORM", null), versionIdentifier);
+        deleteDraft(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null), versionIdentifier);
     }
 
     @Transactional
@@ -93,7 +102,11 @@ public class SchemaVersionCommandService {
             String versionIdentifier
     ) {
         deleteDraft(
-                requiredScoped(schemaIdentifier, "WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)),
+                requiredScoped(
+                        schemaIdentifier,
+                        SchemaScopeTypeCode.workspace(),
+                        workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+                ),
                 versionIdentifier
         );
     }
@@ -187,10 +200,10 @@ public class SchemaVersionCommandService {
 
     private Schema requiredScoped(
             String identifier,
-            String scope,
+            SchemaScopeTypeCode scope,
             Long workspaceId
     ) {
-        return schemaRepository.findByIdentifierAndScopeForUpdate(identifier, scope, workspaceId)
+        return schemaRepository.findByIdentifierAndScopeForUpdate(identifier, scope.value(), workspaceId)
                 .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
     }
 }
