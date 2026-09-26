@@ -27,9 +27,9 @@ class SchemaFoundationMigrationIT {
     @Autowired private Flyway flyway;
 
     @Test
-    void shouldCreateSchemaV2FoundationAndSeedDefaultPublishedSchema() {
+    void shouldApplySchemaV3VersionStatusCatalog() {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("18");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("17");
 
         Flyway upgradeFlyway = Flyway.configure()
                 .dataSource(dataSource)
@@ -39,7 +39,7 @@ class SchemaFoundationMigrationIT {
 
         upgradeFlyway.migrate();
 
-        assertThat(upgradeFlyway.info().current().getVersion().getVersion()).isEqualTo("17");
+        assertThat(upgradeFlyway.info().current().getVersion().getVersion()).isEqualTo("18");
 
         assertThat(jdbc.queryForObject(
                 "select count(*) from type_schema_scopes where code in ('PLATFORM','WORKSPACE')",
@@ -71,7 +71,7 @@ class SchemaFoundationMigrationIT {
                 select count(*)
                   from schema_versions sv
                   join schema_definitions s on s.id = sv.schema_id
-                 where s.code = 'DEFAULT'
+                 where s.code = 'default'
                    and sv.schema_version = 1
                    and sv.status = 'PUBLISHED'
                 """, Integer.class
