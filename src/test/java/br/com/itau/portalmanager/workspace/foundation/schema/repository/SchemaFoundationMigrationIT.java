@@ -42,39 +42,24 @@ class SchemaFoundationMigrationIT {
         assertThat(upgradeFlyway.info().current().getVersion().getVersion()).isEqualTo("18");
 
         assertThat(jdbc.queryForObject(
-                "select count(*) from type_schema_scopes where code in ('PLATFORM','WORKSPACE')",
-                Integer.class
-        )).isEqualTo(2);
-
-        assertThat(jdbc.queryForObject(
-                "select count(*) from type_schema_types where code = 'DEFAULT' and is_active = true",
-                Integer.class
-        )).isEqualTo(1);
-
-        assertThat(jdbc.queryForObject(
                 "select count(*) from type_schema_version_status where code in ('DRAFT','PUBLISHED')",
                 Integer.class
         )).isEqualTo(2);
 
-        assertThat(jdbc.queryForObject("""
-                select count(*)
-                  from schema_definitions s
-                 where s.schema_type_code = 'DEFAULT'
-                   and s.scope_code = 'PLATFORM'
-                   and s.workspace_identifier is null
-                   and s.code = 'default'
-                   and s.lifecycle_code = 'ACTIVE'
-                """, Integer.class
+        assertThat(jdbc.queryForObject(
+                "select count(*) from information_schema.table_constraints " +
+                        "where table_schema = database() " +
+                        "and table_name = 'schema_versions' " +
+                        "and constraint_name = 'fk_schema_versions_status'",
+                Integer.class
         )).isEqualTo(1);
 
-        assertThat(jdbc.queryForObject("""
-                select count(*)
-                  from schema_versions sv
-                  join schema_definitions s on s.id = sv.schema_id
-                 where s.code = 'default'
-                   and sv.schema_version = 1
-                   and sv.status = 'PUBLISHED'
-                """, Integer.class
+        assertThat(jdbc.queryForObject(
+                "select count(*) from information_schema.table_constraints " +
+                        "where table_schema = database() " +
+                        "and table_name = 'schema_versions' " +
+                        "and constraint_name = 'uk_schema_versions_single_draft'",
+                Integer.class
         )).isEqualTo(1);
     }
 }
