@@ -12,6 +12,9 @@ import java.util.UUID;
 )
 public class SchemaVersion {
 
+    public static final String DRAFT = "DRAFT";
+    public static final String PUBLISHED = "PUBLISHED";
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Column(nullable = false, unique = true, length = 36, updatable = false) private String identifier;
 
@@ -28,9 +31,8 @@ public class SchemaVersion {
     @Column(name = "definition", nullable = false, columnDefinition = "json")
     private String definition;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private SchemaVersionStatus status;
+    @Column(name = "status", nullable = false, length = 50)
+    private String status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -43,13 +45,15 @@ public class SchemaVersion {
             Integer schemaVersion,
             String versionName,
             String definition,
-            SchemaVersionStatus status,
+            String status,
             LocalDateTime now
     ) {
         if (schema == null) throw new IllegalArgumentException("Schema is required");
         if (schemaVersion == null || schemaVersion < 1) throw new IllegalArgumentException("Schema version must be positive");
         if (definition == null || definition.isBlank()) throw new IllegalArgumentException("Schema definition is required");
-        if (status == null) throw new IllegalArgumentException("Schema version status is required");
+        if (!DRAFT.equals(status) && !PUBLISHED.equals(status)) {
+            throw new IllegalArgumentException("Schema version status is invalid");
+        }
 
         this.identifier = UUID.randomUUID().toString();
         this.schema = schema;
@@ -60,8 +64,25 @@ public class SchemaVersion {
         this.createdAt = now;
     }
 
-    public void publish() { this.status = SchemaVersionStatus.PUBLISHED; }
-    public boolean isPublished() { return status == SchemaVersionStatus.PUBLISHED; }
+    public void updateDraft(String versionName, String definition) {
+        if (!isDraft()) {
+            throw new IllegalStateException("Published schema version is immutable");
+        }
+        if (definition == null || definition.isBlank()) {
+            throw new IllegalArgumentException("Schema definition is required");
+        }
+        this.versionName = versionName == null || versionName.isBlank() ? "v" + schemaVersion : versionName.trim();
+        this.definition = definition;
+    }
+
+    public void publish() {
+        if (isDraft()) {
+            this.status = PUBLISHED;
+        }
+    }
+
+    public boolean isDraft() { return DRAFT.equals(status); }
+    public boolean isPublished() { return PUBLISHED.equals(status); }
 
     public Long getId() { return id; }
     public String getIdentifier() { return identifier; }
@@ -69,6 +90,6 @@ public class SchemaVersion {
     public Integer getSchemaVersion() { return schemaVersion; }
     public String getVersionName() { return versionName; }
     public String getDefinition() { return definition; }
-    public SchemaVersionStatus getStatus() { return status; }
+    public String getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 }
