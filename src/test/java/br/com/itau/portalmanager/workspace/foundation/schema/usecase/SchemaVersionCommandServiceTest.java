@@ -2,7 +2,6 @@ package br.com.itau.portalmanager.workspace.foundation.schema.usecase;
 
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
-import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersionStatus;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
@@ -14,9 +13,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class SchemaVersionCommandServiceTest {
 
@@ -27,95 +26,91 @@ class SchemaVersionCommandServiceTest {
             new SchemaVersionCommandService(schemaRepository, versionRepository, validator);
 
     @Test
-    void shouldCreateFirstDraftAsVersionOne() throws Exception {
+    void shouldContinueEditingExistingDraftInsteadOfCreatingAnotherVersion() throws Exception {
         Schema schema = schema(42L);
-        when(schemaRepository.findByIdentifierAndScopeForUpdate("schema-1", "PLATFORM", null))
-                .thenReturn(Optional.of(schema));
-        when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of());
-        when(versionRepository.save(any(SchemaVersion.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        var output = service.createPlatformDraft(
-                "schema-1",
-                new CreateSchemaVersionInput(
-                        null,
-                        new ObjectMapper().readTree("{\"type\":\"object\"}")
-                )
-        );
-
-        assertThat(output.version()).isEqualTo(1);
-        assertThat(output.versionName()).isEqualTo("v1");
-        assertThat(output.status()).isEqualTo("DRAFT");
-    }
-
-    @Test
-    void shouldNotCreateNewVersionWhenDefinitionDidNotChange() throws Exception {
-        Schema schema = schema(42L);
-        SchemaVersion existing = new SchemaVersion(
+        SchemaVersion draft = new SchemaVersion(
                 schema,
                 1,
                 "v1",
-                "{\"type\":\"object\"}",
-                SchemaVersionStatus.PUBLISHED,
+                "{"type":"object"}",
+                SchemaVersion.DRAFT,
                 LocalDateTime.now()
         );
 
         when(schemaRepository.findByIdentifierAndScopeForUpdate("schema-1", "PLATFORM", null))
                 .thenReturn(Optional.of(schema));
-        when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(existing));
+        when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(draft));
+
+        var output = service.createPlatformDraft(
+                "schema-1",
+                new CreateSchemaVersionInput(
+                        "v1-edit",
+                        new ObjectMapper().readTree("{"type":"object","required":["name"]}")
+                )
+        );
+
+        assertThat(output.identifier()).isEqualTo(draft.getIdentifier());
+        assertThat(output.version()).isEqualTo(1);
+        assertThat(output.versionName()).isEqualTo("v1-edit");
+        assertThat(output.status()).isEqualTo("DRAFT");
+        verify(versionRepository, never()).save(any(SchemaVersion.class));
+    }
+
+    @Test
+    void shouldNotCreateDraftWhenPublishedDefinitionDidNotChange() throws Exception {
+        Schema schema = schema(42L);
+        SchemaVersion published = published(schema, 1, "{"type":"object"}");
+
+        when(schemaRepository.findByIdentifierAndScopeForUpdate("schema-1", "PLATFORM", null))
+                .thenReturn(Optional.of(schema));
+        when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(published));
 
         var output = service.createPlatformDraft(
                 "schema-1",
                 new CreateSchemaVersionInput(
                         "ignored",
-                        new ObjectMapper().readTree("{\"type\":\"object\"}")
+                        new ObjectMapper().readTree("{"type":"object"}")
                 )
         );
 
         assertThat(output.version()).isEqualTo(1);
         assertThat(output.status()).isEqualTo("PUBLISHED");
+        verify(versionRepository, never()).save(any(SchemaVersion.class));
     }
 
     @Test
-    void shouldCreateNextDraftWhenDefinitionChanges() throws Exception {
+    void shouldCreateNextDraftWhenPublishedDefinitionChanges() throws Exception {
         Schema schema = schema(42L);
-        SchemaVersion existing = new SchemaVersion(
-                schema,
-                1,
-                "v1",
-                "{\"type\":\"object\"}",
-                SchemaVersionStatus.PUBLISHED,
-                LocalDateTime.now()
-        );
+        SchemaVersion published = published(schema, 1, "{"type":"object"}");
 
         when(schemaRepository.findByIdentifierAndScopeForUpdate("schema-1", "PLATFORM", null))
                 .thenReturn(Optional.of(schema));
-        when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(existing));
+        when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(published));
         when(versionRepository.save(any(SchemaVersion.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         var output = service.createPlatformDraft(
                 "schema-1",
                 new CreateSchemaVersionInput(
-                        "v2-candidate",
-                        new ObjectMapper().readTree("{\"type\":\"object\",\"required\":[\"name\"]}")
+                        "v2",
+                        new ObjectMapper().readTree("{"type":"object","required":["name"]}")
                 )
         );
 
         assertThat(output.version()).isEqualTo(2);
-        assertThat(output.versionName()).isEqualTo("v2-candidate");
         assertThat(output.status()).isEqualTo("DRAFT");
+        assertThat(output.definition()).contains("required");
     }
 
     @Test
-    void shouldPublishDraftIdempotently() {
+    void shouldPublishDraft() {
         Schema schema = schema(42L);
         SchemaVersion draft = new SchemaVersion(
                 schema,
                 2,
                 "v2",
-                "{\"type\":\"object\"}",
-                SchemaVersionStatus.DRAFT,
+                "{"type":"object"}",
+                SchemaVersion.DRAFT,
                 LocalDateTime.now()
         );
 
@@ -129,6 +124,58 @@ class SchemaVersionCommandServiceTest {
 
         assertThat(output.status()).isEqualTo("PUBLISHED");
         assertThat(draft.isPublished()).isTrue();
+    }
+
+    @Test
+    void shouldDeleteDraftPhysically() {
+        Schema schema = schema(42L);
+        SchemaVersion draft = new SchemaVersion(
+                schema,
+                2,
+                "v2",
+                "{"type":"object"}",
+                SchemaVersion.DRAFT,
+                LocalDateTime.now()
+        );
+
+        when(schemaRepository.findByIdentifierAndScopeForUpdate("schema-1", "PLATFORM", null))
+                .thenReturn(Optional.of(schema));
+        when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(draft));
+        when(versionRepository.findByIdentifierAndSchema_Id(draft.getIdentifier(), 42L))
+                .thenReturn(Optional.of(draft));
+
+        service.deletePlatformDraft("schema-1", draft.getIdentifier());
+
+        verify(versionRepository).delete(draft);
+    }
+
+    @Test
+    void shouldRejectPhysicalDeleteOfPublishedVersion() {
+        Schema schema = schema(42L);
+        SchemaVersion published = published(schema, 1, "{"type":"object"}");
+
+        when(schemaRepository.findByIdentifierAndScopeForUpdate("schema-1", "PLATFORM", null))
+                .thenReturn(Optional.of(schema));
+        when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(published));
+        when(versionRepository.findByIdentifierAndSchema_Id(published.getIdentifier(), 42L))
+                .thenReturn(Optional.of(published));
+
+        assertThatThrownBy(() ->
+                service.deletePlatformDraft("schema-1", published.getIdentifier())
+        ).isInstanceOf(IllegalStateException.class);
+
+        verify(versionRepository, never()).delete(any(SchemaVersion.class));
+    }
+
+    private SchemaVersion published(Schema schema, int version, String definition) {
+        return new SchemaVersion(
+                schema,
+                version,
+                "v" + version,
+                definition,
+                SchemaVersion.PUBLISHED,
+                LocalDateTime.now()
+        );
     }
 
     private Schema schema(Long id) {
