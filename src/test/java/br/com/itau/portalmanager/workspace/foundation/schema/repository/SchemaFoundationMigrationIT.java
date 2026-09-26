@@ -47,17 +47,17 @@ class SchemaFoundationMigrationIT {
         )).isEqualTo(2);
 
         assertThat(jdbc.queryForObject(
-                "select count(*) from type_schema_types where code = 'default' and is_active = true",
+                "select count(*) from type_schema_types where code = 'DEFAULT' and is_active = true",
                 Integer.class
         )).isEqualTo(1);
 
         assertThat(jdbc.queryForObject("""
                 select count(*)
                   from schema_definitions s
-                 where s.schema_type_code = 'default'
+                 where s.schema_type_code = 'DEFAULT'
                    and s.scope_code = 'PLATFORM'
                    and s.workspace_identifier is null
-                   and s.code = 'default'
+                   and s.code = 'DEFAULT'
                    and s.lifecycle_code = 'ACTIVE'
                 """, Integer.class
         )).isEqualTo(1);
@@ -66,7 +66,7 @@ class SchemaFoundationMigrationIT {
                 select count(*)
                   from schema_versions sv
                   join schema_definitions s on s.id = sv.schema_id
-                 where s.code = 'default'
+                 where s.code = 'DEFAULT'
                    and sv.schema_version = 1
                    and sv.status = 'PUBLISHED'
                 """, Integer.class
