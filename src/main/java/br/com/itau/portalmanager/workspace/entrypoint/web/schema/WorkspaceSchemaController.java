@@ -66,7 +66,7 @@ public class WorkspaceSchemaController {
             @PathVariable String workspaceIdentifier,
             @PathVariable String identifier
     ) {
-        return SchemaResponse.from(queryService.findByIdentifier(identifier));
+        return SchemaResponse.from(queryService.findWorkspaceByIdentifier(workspaceIdentifier, identifier));
     }
 
     @PutMapping("/{identifier}")
@@ -75,7 +75,7 @@ public class WorkspaceSchemaController {
             @PathVariable String identifier,
             @RequestBody UpdateSchemaRequest request
     ) {
-        return SchemaResponse.from(commandService.update(identifier, request.toInput()));
+        return SchemaResponse.from(commandService.updateWorkspace(workspaceIdentifier, identifier, request.toInput()));
     }
 
     @PatchMapping("/{identifier}/activate")
@@ -83,7 +83,7 @@ public class WorkspaceSchemaController {
             @PathVariable String workspaceIdentifier,
             @PathVariable String identifier
     ) {
-        return SchemaResponse.from(commandService.activate(identifier));
+        return SchemaResponse.from(commandService.activateWorkspace(workspaceIdentifier, identifier));
     }
 
     @PatchMapping("/{identifier}/inactivate")
@@ -91,7 +91,7 @@ public class WorkspaceSchemaController {
             @PathVariable String workspaceIdentifier,
             @PathVariable String identifier
     ) {
-        return SchemaResponse.from(commandService.inactivate(identifier));
+        return SchemaResponse.from(commandService.inactivateWorkspace(workspaceIdentifier, identifier));
     }
 
     @DeleteMapping("/{identifier}")
@@ -99,7 +99,7 @@ public class WorkspaceSchemaController {
             @PathVariable String workspaceIdentifier,
             @PathVariable String identifier
     ) {
-        commandService.quarantine(identifier);
+        commandService.quarantineWorkspace(workspaceIdentifier, identifier);
         return ResponseEntity.noContent().build();
     }
 
@@ -111,7 +111,7 @@ public class WorkspaceSchemaController {
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(SchemaVersionResponse.from(
-                        versionCommandService.createDraft(identifier, request.toInput())
+                        versionCommandService.createWorkspaceDraft(workspaceIdentifier, identifier, request.toInput())
                 ));
     }
 
@@ -132,7 +132,7 @@ public class WorkspaceSchemaController {
             @PathVariable String versionIdentifier
     ) {
         return SchemaVersionResponse.from(
-                versionCommandService.publish(identifier, versionIdentifier)
+                versionCommandService.publishWorkspace(workspaceIdentifier, identifier, versionIdentifier)
         );
     }
 }
