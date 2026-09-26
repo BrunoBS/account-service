@@ -7,7 +7,7 @@ import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersio
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaResolution;
-import br.com.itau.portalmanager.workspace.foundation.schema.usecase.support.SchemaResolver;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.resolution.SchemaResolver;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
