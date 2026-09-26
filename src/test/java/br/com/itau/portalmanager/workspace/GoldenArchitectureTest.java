@@ -193,19 +193,20 @@ class GoldenArchitectureTest {
     }
 
     @Test
-    void webResponsesMustNotExposeTechnicalIds() {
-        String responsePackage = ROOT + ".entrypoint.web.";
+    void webContractsMustNotExposeTechnicalIds() {
+        String webPackage = ROOT + ".entrypoint.web.";
 
         var invalidFields = classes.stream()
-                .filter(javaClass -> javaClass.getPackageName().startsWith(responsePackage))
-                .filter(javaClass -> javaClass.getPackageName().contains(".response"))
+                .filter(javaClass -> javaClass.getPackageName().startsWith(webPackage))
+                .filter(javaClass -> javaClass.getPackageName().contains(".response")
+                        || javaClass.getPackageName().contains(".request"))
                 .flatMap(javaClass -> javaClass.getFields().stream())
                 .map(field -> field.getOwner().getName() + "." + field.getName())
                 .filter(name -> name.endsWith(".id") || name.matches(".*\\.[a-zA-Z0-9]+Id$"))
                 .toList();
 
         assertThat(invalidFields)
-                .as("HTTP responses must expose stable identifiers, never technical database ids")
+                .as("HTTP requests and responses must use stable identifiers, never technical database ids")
                 .isEmpty();
     }
 
