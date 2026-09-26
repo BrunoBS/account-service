@@ -2,7 +2,6 @@ package br.com.itau.portalmanager.workspace.foundation.schema.usecase;
 
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
-import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersionStatus;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
@@ -38,7 +37,7 @@ public class SchemaVersionCommandService {
             String schemaIdentifier,
             CreateSchemaVersionInput input
     ) {
-        return createDraft(requiredScoped(schemaIdentifier, "PLATFORM", null), input);
+        return createOrUpdateDraft(requiredScoped(schemaIdentifier, "PLATFORM", null), input);
     }
 
     @Transactional
@@ -47,7 +46,10 @@ public class SchemaVersionCommandService {
             String schemaIdentifier,
             CreateSchemaVersionInput input
     ) {
-        return createDraft(requiredScoped(schemaIdentifier, "WORKSPACE", workspaceIdentifier), input);
+        return createOrUpdateDraft(
+                requiredScoped(schemaIdentifier, "WORKSPACE", workspaceIdentifier),
+                input
+        );
     }
 
     @Transactional
@@ -70,7 +72,27 @@ public class SchemaVersionCommandService {
         );
     }
 
-    private SchemaVersionOutput createDraft(
+    @Transactional
+    public void deletePlatformDraft(
+            String schemaIdentifier,
+            String versionIdentifier
+    ) {
+        deleteDraft(requiredScoped(schemaIdentifier, "PLATFORM", null), versionIdentifier);
+    }
+
+    @Transactional
+    public void deleteWorkspaceDraft(
+            String workspaceIdentifier,
+            String schemaIdentifier,
+            String versionIdentifier
+    ) {
+        deleteDraft(
+                requiredScoped(schemaIdentifier, "WORKSPACE", workspaceIdentifier),
+                versionIdentifier
+        );
+    }
+
+    private SchemaVersionOutput createOrUpdateDraft(
             Schema schema,
             CreateSchemaVersionInput input
     ) {
@@ -84,23 +106,51 @@ public class SchemaVersionCommandService {
         String serialized = validator.toJsonString(definition);
         List<SchemaVersion> versions = versionRepository.findAllForUpdate(schema.getId());
 
-        if (!versions.isEmpty()) {
-            SchemaVersion latest = versions.getFirst();
-            if (validator.fromString(latest.getDefinition()).equals(definition)) {
-                return SchemaVersionOutput.from(latest);
-            }
+        SchemaVersion existingDraft = versions.stream()
+                .filter(SchemaVersion::isDraft)
+                .findFirst()
+                .orElse(null);
+
+        if (existingDraft != null) {
+            existingDraft.updateDraft(input.versionName(), serialized);
+            return SchemaVersionOutput.from(existingDraft);
         }
 
-        int nextVersion = versions.isEmpty() ? 1 : versions.getFirst().getSchemaVersion() + 1;
-        SchemaVersion created = versionRepository.save(new SchemaVersion(
+        SchemaVersion latestPublished = versions.stream()
+                .filter(SchemaVersion::isPublished)
+                .findFirst()
+                .orElse(null);
+
+        if (latestPublished != null
+                && validator.fromString(latestPublished.getDefinition()).equals(definition)) {
+            return SchemaVersionOutput.from(latestPublished);
+        }
+
+        int nextVersion = versions.isEmpty()
+                ? 1
+                : versions.stream()
+                        .mapToInt(SchemaVersion::getSchemaVersion)
+                        .max()
+                        .orElse(0) + 1;
+
+        String initialDefinition = latestPublished == null
+                ? serialized
+                : latestPublished.getDefinition();
+
+        SchemaVersion created = new SchemaVersion(
                 schema,
                 nextVersion,
                 input.versionName(),
-                serialized,
-                SchemaVersionStatus.DRAFT,
+                initialDefinition,
+                SchemaVersion.DRAFT,
                 LocalDateTime.now()
-        ));
-        return SchemaVersionOutput.from(created);
+        );
+
+        if (!initialDefinition.equals(serialized)) {
+            created.updateDraft(input.versionName(), serialized);
+        }
+
+        return SchemaVersionOutput.from(versionRepository.save(created));
     }
 
     private SchemaVersionOutput publish(
@@ -113,10 +163,25 @@ public class SchemaVersionCommandService {
                 .findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Schema version not found"));
 
-        if (!version.isPublished()) {
-            version.publish();
-        }
+        version.publish();
         return SchemaVersionOutput.from(version);
+    }
+
+    private void deleteDraft(
+            Schema schema,
+            String versionIdentifier
+    ) {
+        versionRepository.findAllForUpdate(schema.getId());
+
+        SchemaVersion version = versionRepository
+                .findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Schema version not found"));
+
+        if (!version.isDraft()) {
+            throw new IllegalStateException("Published schema version cannot be physically deleted");
+        }
+
+        versionRepository.delete(version);
     }
 
     private Schema requiredScoped(
