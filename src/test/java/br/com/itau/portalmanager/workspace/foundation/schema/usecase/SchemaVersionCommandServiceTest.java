@@ -33,7 +33,7 @@ class SchemaVersionCommandServiceTest {
                 schema,
                 1,
                 "v1",
-                "{"type":"object"}",
+                "{\"type\":\"object\"}",
                 SchemaVersionStatusTypeCode.draft(),
                 LocalDateTime.now()
         );
@@ -46,7 +46,7 @@ class SchemaVersionCommandServiceTest {
                 "schema-1",
                 new CreateSchemaVersionInput(
                         "v1-edit",
-                        new ObjectMapper().readTree("{"type":"object","required":["name"]}")
+                        new ObjectMapper().readTree("{\"type\":\"object\",\"required\":[\"name\"]}")
                 )
         );
 
@@ -60,7 +60,7 @@ class SchemaVersionCommandServiceTest {
     @Test
     void shouldNotCreateDraftWhenPublishedDefinitionDidNotChange() throws Exception {
         Schema schema = schema(42L);
-        SchemaVersion published = published(schema, 1, "{"type":"object"}");
+        SchemaVersion published = published(schema, 1, "{\"type\":\"object\"}");
 
         when(schemaRepository.findByIdentifierAndScopeForUpdate("schema-1", "PLATFORM", null))
                 .thenReturn(Optional.of(schema));
@@ -70,7 +70,7 @@ class SchemaVersionCommandServiceTest {
                 "schema-1",
                 new CreateSchemaVersionInput(
                         "ignored",
-                        new ObjectMapper().readTree("{"type":"object"}")
+                        new ObjectMapper().readTree("{\"type\":\"object\"}")
                 )
         );
 
@@ -82,7 +82,7 @@ class SchemaVersionCommandServiceTest {
     @Test
     void shouldCreateNextDraftWhenPublishedDefinitionChanges() throws Exception {
         Schema schema = schema(42L);
-        SchemaVersion published = published(schema, 1, "{"type":"object"}");
+        SchemaVersion published = published(schema, 1, "{\"type\":\"object\"}");
 
         when(schemaRepository.findByIdentifierAndScopeForUpdate("schema-1", "PLATFORM", null))
                 .thenReturn(Optional.of(schema));
@@ -94,7 +94,7 @@ class SchemaVersionCommandServiceTest {
                 "schema-1",
                 new CreateSchemaVersionInput(
                         "v2",
-                        new ObjectMapper().readTree("{"type":"object","required":["name"]}")
+                        new ObjectMapper().readTree("{\"type\":\"object\",\"required\":[\"name\"]}")
                 )
         );
 
@@ -110,7 +110,7 @@ class SchemaVersionCommandServiceTest {
                 schema,
                 2,
                 "v2",
-                "{"type":"object"}",
+                "{\"type\":\"object\"}",
                 SchemaVersionStatusTypeCode.draft(),
                 LocalDateTime.now()
         );
@@ -134,7 +134,7 @@ class SchemaVersionCommandServiceTest {
                 schema,
                 2,
                 "v2",
-                "{"type":"object"}",
+                "{\"type\":\"object\"}",
                 SchemaVersionStatusTypeCode.draft(),
                 LocalDateTime.now()
         );
@@ -153,7 +153,7 @@ class SchemaVersionCommandServiceTest {
     @Test
     void shouldRejectPhysicalDeleteOfPublishedVersion() {
         Schema schema = schema(42L);
-        SchemaVersion published = published(schema, 1, "{"type":"object"}");
+        SchemaVersion published = published(schema, 1, "{\"type\":\"object\"}");
 
         when(schemaRepository.findByIdentifierAndScopeForUpdate("schema-1", "PLATFORM", null))
                 .thenReturn(Optional.of(schema));
