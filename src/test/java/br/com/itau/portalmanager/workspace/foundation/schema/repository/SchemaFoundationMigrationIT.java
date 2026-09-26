@@ -31,6 +31,31 @@ class SchemaFoundationMigrationIT {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
         assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("17");
 
+        assertThat(jdbc.queryForObject(
+                "select count(*) from information_schema.columns " +
+                        "where table_schema = database() " +
+                        "and table_name = 'schema_definitions' " +
+                        "and column_name = 'workspace_id' " +
+                        "and data_type = 'bigint'",
+                Integer.class
+        )).isEqualTo(1);
+
+        assertThat(jdbc.queryForObject(
+                "select count(*) from information_schema.columns " +
+                        "where table_schema = database() " +
+                        "and table_name = 'schema_definitions' " +
+                        "and column_name = 'workspace_identifier'",
+                Integer.class
+        )).isZero();
+
+        assertThat(jdbc.queryForObject(
+                "select count(*) from information_schema.table_constraints " +
+                        "where table_schema = database() " +
+                        "and table_name = 'schema_definitions' " +
+                        "and constraint_name = 'fk_schema_definitions_workspace'",
+                Integer.class
+        )).isEqualTo(1);
+
         Flyway upgradeFlyway = Flyway.configure()
                 .dataSource(dataSource)
                 .locations("classpath:db/migration")
