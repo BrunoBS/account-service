@@ -13,6 +13,10 @@ public final class PlatformMessageKeys {
     public static final String MICROSERVICE_REQUIRED = "platform.microservice.required";
     public static final String SETTINGS_REQUIRED = "platform.settings.required";
     public static final String REQUEST_REQUIRED = "platform.request.required";
+    public static final String MICROSERVICE_INACTIVE = "platform.microservice.inactive";
+    public static final String CONTEXT_INACTIVE = "platform.context.inactive";
+    public static final String CONTEXT_HAS_FEATURES = "platform.context.has-features";
+    public static final String MICROSERVICE_HAS_FEATURES = "platform.microservice.has-features";
 
     private PlatformMessageKeys() {
     }
