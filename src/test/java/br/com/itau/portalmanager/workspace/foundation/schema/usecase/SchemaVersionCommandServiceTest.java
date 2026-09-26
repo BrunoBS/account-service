@@ -1,5 +1,6 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.usecase;
 
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
@@ -33,7 +34,7 @@ class SchemaVersionCommandServiceTest {
                 1,
                 "v1",
                 "{"type":"object"}",
-                SchemaVersion.DRAFT,
+                SchemaVersionStatusTypeCode.draft(),
                 LocalDateTime.now()
         );
 
@@ -110,7 +111,7 @@ class SchemaVersionCommandServiceTest {
                 2,
                 "v2",
                 "{"type":"object"}",
-                SchemaVersion.DRAFT,
+                SchemaVersionStatusTypeCode.draft(),
                 LocalDateTime.now()
         );
 
@@ -134,7 +135,7 @@ class SchemaVersionCommandServiceTest {
                 2,
                 "v2",
                 "{"type":"object"}",
-                SchemaVersion.DRAFT,
+                SchemaVersionStatusTypeCode.draft(),
                 LocalDateTime.now()
         );
 
@@ -173,7 +174,7 @@ class SchemaVersionCommandServiceTest {
                 version,
                 "v" + version,
                 definition,
-                SchemaVersion.PUBLISHED,
+                SchemaVersionStatusTypeCode.published(),
                 LocalDateTime.now()
         );
     }
