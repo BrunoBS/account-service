@@ -24,6 +24,8 @@ import java.time.LocalDateTime;
 @Service
 public class SchemaCommandService {
 
+    private static final String DEFINITION = "definition";
+
     private final SchemaRepository repository;
     private final SchemaVersionRepository versionRepository;
     private final SchemaTypeService schemaTypeService;
@@ -32,13 +34,9 @@ public class SchemaCommandService {
     private final SchemaVersionOperationValidator versionValidator = new SchemaVersionOperationValidator();
     private final WorkspaceReferenceResolver workspaceReferenceResolver;
 
-    public SchemaCommandService(
-            SchemaRepository repository,
-            SchemaVersionRepository versionRepository,
-            SchemaTypeService schemaTypeService,
-            SchemaValidator validator,
-            WorkspaceReferenceResolver workspaceReferenceResolver
-    ) {
+    public SchemaCommandService(SchemaRepository repository, SchemaVersionRepository versionRepository,
+                                SchemaTypeService schemaTypeService, SchemaValidator validator,
+                                WorkspaceReferenceResolver workspaceReferenceResolver) {
         this.repository = repository;
         this.versionRepository = versionRepository;
         this.schemaTypeService = schemaTypeService;
@@ -50,10 +48,7 @@ public class SchemaCommandService {
     public SchemaOutput createPlatform(CreateSchemaInput input) {
         operationValidator.validateCreateInput(input);
         operationValidator.validatePlatformTypeAvailable(repository.findByTypeAndScope(
-                input.schemaTypeCode(),
-                SchemaScopeTypeCode.platform().value(),
-                null
-        ).isPresent());
+                input.schemaTypeCode(), SchemaScopeTypeCode.platform().value(), null).isPresent());
         return create(input, SchemaScopeTypeCode.platform(), null);
     }
 
@@ -62,11 +57,7 @@ public class SchemaCommandService {
         operationValidator.validateCreateInput(input);
         operationValidator.validateWorkspaceIdentifier(input.workspaceIdentifier());
         Long workspaceId = workspaceReferenceResolver.resolveInternalId(input.workspaceIdentifier().trim());
-        return create(
-                input,
-                SchemaScopeTypeCode.workspace(),
-                workspaceId
-        );
+        return create(input, SchemaScopeTypeCode.workspace(), workspaceId);
     }
 
     @Transactional
@@ -75,58 +66,33 @@ public class SchemaCommandService {
     }
 
     @Transactional
-    public SchemaOutput updateWorkspace(
-            String workspaceIdentifier,
-            String identifier,
-            UpdateSchemaInput input
-    ) {
-        return update(requiredScoped(
-                identifier,
-                SchemaScopeTypeCode.workspace(),
-                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
-        ), input);
+    public SchemaOutput updateWorkspace(String workspaceIdentifier, String identifier, UpdateSchemaInput input) {
+        return update(requiredScoped(identifier, SchemaScopeTypeCode.workspace(),
+                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)), input);
     }
 
     @Transactional
-    public SchemaOutput activatePlatform(String identifier) {
-        return activate(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null));
-    }
+    public SchemaOutput activatePlatform(String identifier) { return activate(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null)); }
 
     @Transactional
     public SchemaOutput activateWorkspace(String workspaceIdentifier, String identifier) {
-        return activate(requiredScoped(
-                identifier,
-                SchemaScopeTypeCode.workspace(),
-                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
-        ));
+        return activate(requiredScoped(identifier, SchemaScopeTypeCode.workspace(), workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)));
     }
 
     @Transactional
-    public SchemaOutput inactivatePlatform(String identifier) {
-        return inactivate(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null));
-    }
+    public SchemaOutput inactivatePlatform(String identifier) { return inactivate(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null)); }
 
     @Transactional
     public SchemaOutput inactivateWorkspace(String workspaceIdentifier, String identifier) {
-        return inactivate(requiredScoped(
-                identifier,
-                SchemaScopeTypeCode.workspace(),
-                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
-        ));
+        return inactivate(requiredScoped(identifier, SchemaScopeTypeCode.workspace(), workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)));
     }
 
     @Transactional
-    public SchemaOutput quarantinePlatform(String identifier) {
-        return quarantine(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null));
-    }
+    public SchemaOutput quarantinePlatform(String identifier) { return quarantine(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null)); }
 
     @Transactional
     public SchemaOutput quarantineWorkspace(String workspaceIdentifier, String identifier) {
-        return quarantine(requiredScoped(
-                identifier,
-                SchemaScopeTypeCode.workspace(),
-                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
-        ));
+        return quarantine(requiredScoped(identifier, SchemaScopeTypeCode.workspace(), workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)));
     }
 
     private SchemaOutput update(Schema schema, UpdateSchemaInput input) {
@@ -135,75 +101,36 @@ public class SchemaCommandService {
         return output(schema);
     }
 
-    private SchemaOutput activate(Schema schema) {
-        schema.activate(LocalDateTime.now());
-        return output(schema);
-    }
+    private SchemaOutput activate(Schema schema) { schema.activate(LocalDateTime.now()); return output(schema); }
+    private SchemaOutput inactivate(Schema schema) { schema.inactivate(LocalDateTime.now()); return output(schema); }
+    private SchemaOutput quarantine(Schema schema) { schema.quarantine(LocalDateTime.now()); return output(schema); }
 
-    private SchemaOutput inactivate(Schema schema) {
-        schema.inactivate(LocalDateTime.now());
-        return output(schema);
-    }
-
-    private SchemaOutput quarantine(Schema schema) {
-        schema.quarantine(LocalDateTime.now());
-        return output(schema);
-    }
-
-    private SchemaOutput create(
-            CreateSchemaInput input,
-            SchemaScopeTypeCode scope,
-            Long workspaceId
-    ) {
+    private SchemaOutput create(CreateSchemaInput input, SchemaScopeTypeCode scope, Long workspaceId) {
         operationValidator.validateOwnership(scope, workspaceId);
         operationValidator.validateTypeActive(schemaTypeService.existsActive(input.schemaTypeCode()));
-
         operationValidator.validateCodeAvailable(repository.findByTypeScopeAndCode(
-                input.schemaTypeCode(),
-                scope.value(),
-                workspaceId,
-                input.code()
-        ).isPresent());
+                input.schemaTypeCode(), scope.value(), workspaceId, input.code()).isPresent());
 
-        validator.requireValidSchemaSyntax(input.definition());
+        validator.requireValidSchemaSyntax(input.definition(), DEFINITION);
 
         LocalDateTime now = LocalDateTime.now();
-        Schema schema = repository.save(new Schema(
-                input.schemaTypeCode(),
-                scope,
-                workspaceId,
-                input.code(),
-                input.name(),
-                input.description(),
-                now
-        ));
+        Schema schema = repository.save(new Schema(input.schemaTypeCode(), scope, workspaceId, input.code(),
+                input.name(), input.description(), now));
 
-        String definition = validator.toJsonString(input.definition());
+        String definition = validator.toJsonString(input.definition(), DEFINITION);
         versionValidator.validateCreate(schema, 1, definition, SchemaVersionStatusTypeCode.draft());
-        versionRepository.save(new SchemaVersion(
-                schema,
-                1,
-                input.versionName(),
-                definition,
-                SchemaVersionStatusTypeCode.draft(),
-                now
-        ));
-
+        versionRepository.save(new SchemaVersion(schema, 1, input.versionName(), definition,
+                SchemaVersionStatusTypeCode.draft(), now));
         return output(schema);
     }
 
-    private Schema requiredScoped(
-            String identifier,
-            SchemaScopeTypeCode scope,
-            Long workspaceId
-    ) {
+    private Schema requiredScoped(String identifier, SchemaScopeTypeCode scope, Long workspaceId) {
         return repository.findByIdentifierAndScope(identifier, scope.value(), workspaceId)
                 .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.NOT_FOUND));
     }
 
     private SchemaOutput output(Schema schema) {
-        String workspaceIdentifier = schema.getWorkspaceId() == null
-                ? null
+        String workspaceIdentifier = schema.getWorkspaceId() == null ? null
                 : workspaceReferenceResolver.resolveIdentifier(schema.getWorkspaceId());
         return SchemaOutput.from(schema, workspaceIdentifier);
     }
