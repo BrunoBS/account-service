@@ -124,14 +124,11 @@ public class SchemaVersionCommandService {
             String scopeCode,
             String workspaceIdentifier
     ) {
-        Schema schema = schemaRepository.findByIdentifierAndScope(
+        return schemaRepository.findByIdentifierAndScopeForUpdate(
                         identifier,
                         scopeCode,
                         workspaceIdentifier
                 )
                 .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
-
-        return schemaRepository.findByIdentifierForUpdate(schema.getIdentifier())
-                .orElseThrow(() -> new IllegalArgumentException("Schema not found"));
     }
 }
