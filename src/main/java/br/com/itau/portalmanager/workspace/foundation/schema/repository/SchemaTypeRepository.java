@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface SchemaTypeRepository extends JpaRepository<SchemaType, Long> {
     Optional<SchemaType> findByIdentifier(String identifier);
     Optional<SchemaType> findByCode(String code);
+    boolean existsByCode(String code);
+    boolean existsByName(String name);
 }
