@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>br.com.portalmanager</groupId>
+    <groupId>br.com.portalmanager.platform</groupId>
     <artifactId>workspace-service</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
