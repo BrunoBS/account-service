@@ -12,6 +12,7 @@ import br.com.itau.portalmanager.workspace.feature.message.usecase.model.UpdateM
 import br.com.itau.portalmanager.workspace.feature.message.usecase.support.MessageFinder;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.support.MessageNormalizer;
 import br.com.itau.portalmanager.workspace.feature.message.usecase.validation.MessageValidator;
+import br.com.itau.portalmanager.workspace.feature.platform.usecase.service.ServiceQueryService;
 import br.com.portalmanager.platform.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import org.springframework.stereotype.Service;
@@ -30,43 +31,42 @@ public class MessageCommandService {
     private final MessageFinder finder;
     private final MessageNormalizer normalizer;
     private final MessageValidator validator;
+    private final ServiceQueryService serviceQueryService;
 
     public MessageCommandService(
             MessageRepository messageRepository,
             MessageTranslationRepository translationRepository,
             MessageFinder finder,
             MessageNormalizer normalizer,
-            MessageValidator validator
+            MessageValidator validator,
+            ServiceQueryService serviceQueryService
     ) {
         this.messageRepository = messageRepository;
         this.translationRepository = translationRepository;
         this.finder = finder;
         this.normalizer = normalizer;
         this.validator = validator;
+        this.serviceQueryService = serviceQueryService;
     }
 
     @Transactional
     public MessageOutput create(CreateMessageInput rawInput) {
         CreateMessageInput input = normalizer.normalize(rawInput);
 
-        boolean keyDuplicate = input != null
-                && input.serviceIdentifier() != null
-                && input.messageKey() != null
-                && messageRepository.existsByServiceIdentifierAndMessageKey(
-                        input.serviceIdentifier(),
-                        input.messageKey()
-                );
-        boolean codeDuplicate = input != null
-                && input.serviceIdentifier() != null
-                && input.code() != null
-                && messageRepository.existsByServiceIdentifierAndCode(input.serviceIdentifier(), input.code());
+        validator.validateForCreate(input, false, false);
+        Long serviceId = serviceQueryService.findActiveInternalIdByIdentifier(input.serviceIdentifier());
+
+        boolean keyDuplicate = input.messageKey() != null
+                && messageRepository.existsByServiceIdAndMessageKey(serviceId, input.messageKey());
+        boolean codeDuplicate = input.code() != null
+                && messageRepository.existsByServiceIdAndCode(serviceId, input.code());
 
         validator.validateForCreate(input, keyDuplicate, codeDuplicate);
         validateTranslationsForCreate(input);
 
         LocalDateTime now = LocalDateTime.now();
         Message message = new Message(
-                input.serviceIdentifier(),
+                serviceId,
                 input.messageKey(),
                 input.code(),
                 input.httpStatus(),
@@ -89,7 +89,7 @@ public class MessageCommandService {
             translationRepository.flush();
         }
 
-        return MessageOutput.from(saved);
+        return output(saved);
     }
 
     @Transactional
@@ -97,19 +97,18 @@ public class MessageCommandService {
         Message message = finder.findMessage(identifier);
         UpdateMessageInput input = normalizer.normalize(rawInput);
 
-        boolean keyDuplicate = input != null
-                && input.serviceIdentifier() != null
-                && input.messageKey() != null
-                && messageRepository.existsByServiceIdentifierAndMessageKeyAndIdNot(
-                        input.serviceIdentifier(),
+        validator.validateForUpdate(input, false, false);
+        Long serviceId = serviceQueryService.findActiveInternalIdByIdentifier(input.serviceIdentifier());
+
+        boolean keyDuplicate = input.messageKey() != null
+                && messageRepository.existsByServiceIdAndMessageKeyAndIdNot(
+                        serviceId,
                         input.messageKey(),
                         message.getId()
                 );
-        boolean codeDuplicate = input != null
-                && input.serviceIdentifier() != null
-                && input.code() != null
-                && messageRepository.existsByServiceIdentifierAndCodeAndIdNot(
-                        input.serviceIdentifier(),
+        boolean codeDuplicate = input.code() != null
+                && messageRepository.existsByServiceIdAndCodeAndIdNot(
+                        serviceId,
                         input.code(),
                         message.getId()
                 );
@@ -118,28 +117,28 @@ public class MessageCommandService {
         validateVersion(message.getVersion(), input.version());
 
         message.update(
-                input.serviceIdentifier(),
+                serviceId,
                 input.messageKey(),
                 input.code(),
                 input.httpStatus(),
                 input.observation(),
                 LocalDateTime.now()
         );
-        return MessageOutput.from(messageRepository.saveAndFlush(message));
+        return output(messageRepository.saveAndFlush(message));
     }
 
     @Transactional
     public MessageOutput activate(String identifier) {
         Message message = finder.findMessage(identifier);
         message.activate(LocalDateTime.now());
-        return MessageOutput.from(messageRepository.saveAndFlush(message));
+        return output(messageRepository.saveAndFlush(message));
     }
 
     @Transactional
     public MessageOutput inactivate(String identifier) {
         Message message = finder.findMessage(identifier);
         message.inactivate(LocalDateTime.now());
-        return MessageOutput.from(messageRepository.saveAndFlush(message));
+        return output(messageRepository.saveAndFlush(message));
     }
 
     @Transactional
@@ -150,6 +149,13 @@ public class MessageCommandService {
         }
         message.quarantine(LocalDateTime.now());
         messageRepository.saveAndFlush(message);
+    }
+
+    private MessageOutput output(Message message) {
+        return MessageOutput.from(
+                message,
+                serviceQueryService.findIdentifierByInternalId(message.getServiceId())
+        );
     }
 
     private void validateTranslationsForCreate(CreateMessageInput input) {
