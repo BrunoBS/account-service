@@ -1,10 +1,10 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.repository;
 
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.Lock;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
@@ -18,25 +18,25 @@ public interface SchemaRepository extends JpaRepository<Schema, Long> {
             select s from Schema s
              where s.identifier = :identifier
                and s.scope.value = :scopeCode
-               and ((:workspaceIdentifier is null and s.workspaceIdentifier is null)
-                    or s.workspaceIdentifier = :workspaceIdentifier)
+               and ((:workspaceId is null and s.workspaceId is null)
+                    or s.workspaceId = :workspaceId)
             """)
     Optional<Schema> findByIdentifierAndScope(
             @Param("identifier") String identifier,
             @Param("scopeCode") String scopeCode,
-            @Param("workspaceIdentifier") String workspaceIdentifier
+            @Param("workspaceId") Long workspaceId
     );
 
     @Query("""
             select s from Schema s
              where s.scope.value = :scopeCode
-               and ((:workspaceIdentifier is null and s.workspaceIdentifier is null)
-                    or s.workspaceIdentifier = :workspaceIdentifier)
+               and ((:workspaceId is null and s.workspaceId is null)
+                    or s.workspaceId = :workspaceId)
              order by s.code
             """)
     List<Schema> findAllByScope(
             @Param("scopeCode") String scopeCode,
-            @Param("workspaceIdentifier") String workspaceIdentifier
+            @Param("workspaceId") Long workspaceId
     );
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -48,41 +48,40 @@ public interface SchemaRepository extends JpaRepository<Schema, Long> {
             select s from Schema s
              where s.identifier = :identifier
                and s.scope.value = :scopeCode
-               and ((:workspaceIdentifier is null and s.workspaceIdentifier is null)
-                    or s.workspaceIdentifier = :workspaceIdentifier)
+               and ((:workspaceId is null and s.workspaceId is null)
+                    or s.workspaceId = :workspaceId)
             """)
     Optional<Schema> findByIdentifierAndScopeForUpdate(
             @Param("identifier") String identifier,
             @Param("scopeCode") String scopeCode,
-            @Param("workspaceIdentifier") String workspaceIdentifier
+            @Param("workspaceId") Long workspaceId
     );
 
-    
     @Query("""
             select s from Schema s
              where s.schemaTypeCode = :schemaTypeCode
                and s.scope.value = :scopeCode
-               and ((:workspaceIdentifier is null and s.workspaceIdentifier is null)
-                    or s.workspaceIdentifier = :workspaceIdentifier)
+               and ((:workspaceId is null and s.workspaceId is null)
+                    or s.workspaceId = :workspaceId)
             """)
     Optional<Schema> findByTypeAndScope(
             @Param("schemaTypeCode") String schemaTypeCode,
             @Param("scopeCode") String scopeCode,
-            @Param("workspaceIdentifier") String workspaceIdentifier
+            @Param("workspaceId") Long workspaceId
     );
 
     @Query("""
             select s from Schema s
              where s.schemaTypeCode = :schemaTypeCode
                and s.scope.value = :scopeCode
-               and ((:workspaceIdentifier is null and s.workspaceIdentifier is null)
-                    or s.workspaceIdentifier = :workspaceIdentifier)
+               and ((:workspaceId is null and s.workspaceId is null)
+                    or s.workspaceId = :workspaceId)
                and s.code = :code
             """)
     Optional<Schema> findByTypeScopeAndCode(
             @Param("schemaTypeCode") String schemaTypeCode,
             @Param("scopeCode") String scopeCode,
-            @Param("workspaceIdentifier") String workspaceIdentifier,
+            @Param("workspaceId") Long workspaceId,
             @Param("code") String code
     );
 }
