@@ -1,8 +1,10 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.usecase.resolution;
 
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.itau.portalmanager.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.itau.portalmanager.workspace.foundation.catalog.schematype.usecase.SchemaTypeService;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
+import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaDefaults;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
@@ -16,8 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class SchemaResolver {
 
-    private static final String PLATFORM = "PLATFORM";
-    private static final String DEFAULT = "DEFAULT";
     private static final String NOT_FOUND = "workspace-service.schema.resolution.not-found";
     private static final String PUBLISHED_NOT_FOUND = "workspace-service.schema.published.not-found";
     private static final String INACTIVE = "workspace-service.schema.inactive";
@@ -45,7 +45,7 @@ public class SchemaResolver {
 
         var specific = schemaRepository.findByTypeAndScope(
                 requestedType,
-                PLATFORM,
+                SchemaScopeTypeCode.platform().value(),
                 null
         );
 
@@ -54,8 +54,8 @@ public class SchemaResolver {
         }
 
         Schema fallback = schemaRepository.findByTypeAndScope(
-                        DEFAULT,
-                        PLATFORM,
+                        SchemaDefaults.DEFAULT_SCHEMA_TYPE_CODE,
+                        SchemaScopeTypeCode.platform().value(),
                         null
                 )
                 .orElseThrow(() -> validation("schemaType", NOT_FOUND));
@@ -76,7 +76,7 @@ public class SchemaResolver {
 
         Schema schema = schemaRepository.findByTypeScopeAndCode(
                         type,
-                        "WORKSPACE",
+                        SchemaScopeTypeCode.workspace().value(),
                         workspaceId,
                         code
                 )
