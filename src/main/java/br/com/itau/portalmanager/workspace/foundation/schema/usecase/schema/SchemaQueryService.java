@@ -1,5 +1,6 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.usecase.schema;
 
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
@@ -30,17 +31,21 @@ public class SchemaQueryService {
 
     @Transactional(readOnly = true)
     public SchemaOutput findPlatformByIdentifier(String identifier) {
-        return output(requiredScoped(identifier, "PLATFORM", null));
+        return output(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null));
     }
 
     @Transactional(readOnly = true)
     public SchemaOutput findWorkspaceByIdentifier(String workspaceIdentifier, String identifier) {
-        return output(requiredScoped(identifier, "WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)));
+        return output(requiredScoped(
+                identifier,
+                SchemaScopeTypeCode.workspace(),
+                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+        ));
     }
 
     @Transactional(readOnly = true)
     public List<SchemaOutput> findPlatform() {
-        return schemaRepository.findAllByScope("PLATFORM", null)
+        return schemaRepository.findAllByScope(SchemaScopeTypeCode.platform().value(), null)
                 .stream()
                 .map(this::output)
                 .toList();
@@ -48,7 +53,10 @@ public class SchemaQueryService {
 
     @Transactional(readOnly = true)
     public List<SchemaOutput> findWorkspace(String workspaceIdentifier) {
-        return schemaRepository.findAllByScope("WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier))
+        return schemaRepository.findAllByScope(
+                        SchemaScopeTypeCode.workspace().value(),
+                        workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+                )
                 .stream()
                 .map(this::output)
                 .toList();
@@ -56,7 +64,7 @@ public class SchemaQueryService {
 
     @Transactional(readOnly = true)
     public List<SchemaVersionOutput> findPlatformVersions(String schemaIdentifier) {
-        Schema schema = requiredScoped(schemaIdentifier, "PLATFORM", null);
+        Schema schema = requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null);
         return versions(schema);
     }
 
@@ -66,7 +74,7 @@ public class SchemaQueryService {
             String schemaIdentifier
     ) {
         Long workspaceId = workspaceReferenceResolver.resolveInternalId(workspaceIdentifier);
-        Schema schema = requiredScoped(schemaIdentifier, "WORKSPACE", workspaceId);
+        Schema schema = requiredScoped(schemaIdentifier, SchemaScopeTypeCode.workspace(), workspaceId);
         return versions(schema);
     }
 
@@ -77,17 +85,12 @@ public class SchemaQueryService {
                 .toList();
     }
 
-    private Schema required(String identifier) {
-        return schemaRepository.findByIdentifier(identifier)
-                .orElseThrow(() -> new IllegalArgumentException("Schema not found"));
-    }
-
     private Schema requiredScoped(
             String identifier,
-            String scope,
+            SchemaScopeTypeCode scope,
             Long workspaceId
     ) {
-        return schemaRepository.findByIdentifierAndScope(identifier, scope, workspaceId)
+        return schemaRepository.findByIdentifierAndScope(identifier, scope.value(), workspaceId)
                 .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
     }
     private SchemaOutput output(Schema schema) {
