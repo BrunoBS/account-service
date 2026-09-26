@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Map;
 import java.util.UUID;
@@ -28,10 +29,30 @@ class SchemaApiIT {
     @Autowired
     private AuthorizationMock authorizationMock;
 
+    @Autowired
+    private JdbcTemplate jdbc;
+
     @BeforeEach
     void authorizeAsOwner() {
         authorizationMock.reset();
         authorizationMock.allow(session -> session.groups("PM5_OWNER"));
+
+        jdbc.update("""
+                insert into type_life_cycle (code, label, description, sort_order, is_active, settings)
+                values
+                    ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}'),
+                    ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}'),
+                    ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')
+                on duplicate key update code = values(code)
+                """);
+
+        jdbc.update("""
+                insert into type_schema_scopes (code, label, description, sort_order, is_active, settings)
+                values
+                    ('PLATFORM', 'Platform', 'Platform-owned schema', 1, true, '{}'),
+                    ('WORKSPACE', 'Workspace', 'Workspace-owned schema', 2, true, '{}')
+                on duplicate key update code = values(code)
+                """);
     }
 
     @Test
