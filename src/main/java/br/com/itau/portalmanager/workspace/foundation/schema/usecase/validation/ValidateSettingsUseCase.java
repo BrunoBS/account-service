@@ -1,5 +1,6 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.usecase.validation;
 
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaResolution;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.ValidateSettingsInput;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.resolution.SchemaResolver;
@@ -29,9 +30,9 @@ public class ValidateSettingsUseCase {
         }
 
         SchemaResolution resolution;
-        if ("PLATFORM".equals(input.scope())) {
+        if (SchemaScopeTypeCode.platform().value().equals(input.scope())) {
             resolution = resolver.resolvePlatform(input.schemaTypeCode());
-        } else if ("WORKSPACE".equals(input.scope())) {
+        } else if (SchemaScopeTypeCode.workspace().value().equals(input.scope())) {
             resolution = resolver.resolveWorkspace(
                     input.workspaceIdentifier(),
                     input.schemaTypeCode(),
