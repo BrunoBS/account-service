@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.model;
 
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
-import br.com.portalmanager.platform.authorization.resource.AuthorizableResource;
+import br.com.portalmanager.platform.library.authorization.resource.AuthorizableResource;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;

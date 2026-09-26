@@ -9,7 +9,7 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.support.Wo
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import br.com.portalmanager.platform.authorization.annotation.ResourceVisibility;
+import br.com.portalmanager.platform.library.authorization.annotation.ResourceVisibility;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,21 +29,12 @@ public class WorkspaceQueryService {
 
     @Transactional(readOnly = true)
     public Long findInternalIdByIdentifier(String identifier) {
-        return repository.findByIdentifier(identifier)
-                .map(Workspace::getId)
-                .orElseThrow(() -> new IllegalArgumentException("Workspace not found"));
-    }
-
-    @Transactional(readOnly = true)
-    public Long findActiveInternalIdByIdentifier(String identifier) {
         return finder.findActive(identifier).getId();
     }
 
     @Transactional(readOnly = true)
     public String findIdentifierByInternalId(Long id) {
-        return repository.findById(id)
-                .map(Workspace::getIdentifier)
-                .orElseThrow(() -> new IllegalArgumentException("Workspace not found"));
+        return finder.findActive(id).getIdentifier();
     }
 
     @ResourceVisibility @Transactional(readOnly = true)

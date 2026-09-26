@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.environmenttype.domain;
 
-import br.com.portalmanager.platform.catalog.model.CatalogEnum;
+import br.com.portalmanager.platform.library.catalog.model.CatalogEnum;
 
 public enum EnvironmentTypeEnum implements CatalogEnum<EnvironmentTypeEnum> {
     DEFAULT,

@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation;
 
-import br.com.portalmanager.platform.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.SpecificationVersion;

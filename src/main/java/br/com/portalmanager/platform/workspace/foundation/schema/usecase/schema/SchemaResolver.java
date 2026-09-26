@@ -1,4 +1,4 @@
-package br.com.portalmanager.platform.workspace.foundation.schema.usecase.resolution;
+package br.com.portalmanager.platform.workspace.foundation.schema.usecase.schema;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
@@ -9,9 +9,9 @@ import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVe
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaResolution;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.workspace.WorkspaceReferenceResolver;
-import br.com.portalmanager.platform.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,7 +70,7 @@ public class SchemaResolver {
             String schemaCode
     ) {
         String workspace = normalizeRequired(workspaceIdentifier);
-        Long workspaceId = workspaceReferenceResolver.resolveActiveInternalId(workspace);
+        Long workspaceId = workspaceReferenceResolver.resolveInternalId(workspace);
         String type = normalizeRequired(schemaTypeCode);
         String code = normalizeRequired(schemaCode);
 

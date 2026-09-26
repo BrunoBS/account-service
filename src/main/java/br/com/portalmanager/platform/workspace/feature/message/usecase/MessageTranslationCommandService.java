@@ -10,8 +10,8 @@ import br.com.portalmanager.platform.workspace.feature.message.usecase.model.Upd
 import br.com.portalmanager.platform.workspace.feature.message.usecase.support.MessageFinder;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.support.MessageNormalizer;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.validation.MessageValidator;
-import br.com.portalmanager.platform.messaging.exception.ResourceVersionConflictException;
-import br.com.portalmanager.platform.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -5,7 +5,7 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
-import br.com.portalmanager.platform.tagging.TagNormalizer;
+import br.com.portalmanager.platform.library.tagging.TagNormalizer;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

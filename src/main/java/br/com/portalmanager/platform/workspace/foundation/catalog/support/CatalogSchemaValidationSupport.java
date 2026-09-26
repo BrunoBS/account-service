@@ -2,8 +2,8 @@ package br.com.portalmanager.platform.workspace.foundation.catalog.support;
 
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaDefaults;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
-import br.com.portalmanager.platform.catalog.validation.CatalogValidationResult;
-import br.com.portalmanager.platform.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.library.catalog.validation.CatalogValidationResult;
+import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 

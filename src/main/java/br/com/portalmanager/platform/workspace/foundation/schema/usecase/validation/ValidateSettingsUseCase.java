@@ -3,9 +3,9 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase.valida
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaResolution;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.ValidateSettingsInput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.resolution.SchemaResolver;
-import br.com.portalmanager.platform.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.schema.SchemaResolver;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Service;
 
 @Service

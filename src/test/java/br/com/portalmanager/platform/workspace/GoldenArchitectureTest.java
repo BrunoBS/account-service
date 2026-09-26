@@ -7,8 +7,8 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
-import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;
+import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +32,7 @@ class GoldenArchitectureTest {
     private static final Set<String> MODULE_LAYERS =
             Set.of("domain", "usecase", "repository", "integration");
     private static final Set<String> FOUNDATION_CAPABILITY_LAYERS =
-            Set.of("domain", "usecase", "repository");
+            Set.of("domain", "usecase", "repository", "integration");
     private static final Set<String> RESERVED_CATALOG_SEGMENTS =
             Set.of("domain", "usecase", "repository");
 

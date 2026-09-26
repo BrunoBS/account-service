@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.message.repository;
 
-import br.com.portalmanager.platform.testing.annotation.PlatformIntegrationTest;
-import br.com.portalmanager.platform.testing.annotation.WithMySql;
+import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

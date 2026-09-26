@@ -2,8 +2,8 @@ package br.com.portalmanager.platform.workspace.core.workspace.usecase.support;
 
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceSystemTags;
-import br.com.portalmanager.platform.tagging.TagManager;
-import br.com.portalmanager.platform.tagging.model.TagOwnerType;
+import br.com.portalmanager.platform.library.tagging.TagManager;
+import br.com.portalmanager.platform.library.tagging.model.TagOwnerType;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;

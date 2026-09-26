@@ -5,11 +5,11 @@ import br.com.portalmanager.platform.workspace.entrypoint.web.platform.context.r
 import br.com.portalmanager.platform.workspace.entrypoint.web.platform.context.response.FeatureContextResponse;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.context.FeatureContextCommandService;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.context.FeatureContextQueryService;
-import br.com.portalmanager.platform.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.audit.annotation.AuditField;
-import br.com.portalmanager.platform.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
+import br.com.portalmanager.platform.library.audit.annotation.AuditField;
+import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

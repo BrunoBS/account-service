@@ -3,8 +3,8 @@ package br.com.portalmanager.platform.workspace.core.workspace.usecase.validatio
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.usecase.WorkspaceTypeService;
-import br.com.portalmanager.platform.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;

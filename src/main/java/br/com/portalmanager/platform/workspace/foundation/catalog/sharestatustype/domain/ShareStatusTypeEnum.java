@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain;
 
-import br.com.portalmanager.platform.catalog.model.CatalogEnum;
+import br.com.portalmanager.platform.library.catalog.model.CatalogEnum;
 
 public enum ShareStatusTypeEnum implements CatalogEnum<ShareStatusTypeEnum> {
     WAITING_DESTINATION_APPROVAL {

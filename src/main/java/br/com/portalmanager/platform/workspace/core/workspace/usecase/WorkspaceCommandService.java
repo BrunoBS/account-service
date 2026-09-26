@@ -10,7 +10,7 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.support.Wo
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.support.WorkspaceTaggingSupport;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
-import br.com.portalmanager.platform.messaging.exception.ResourceVersionConflictException;
+import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

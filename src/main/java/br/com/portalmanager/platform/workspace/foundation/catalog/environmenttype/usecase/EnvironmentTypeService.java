@@ -4,7 +4,7 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.environmenttyp
 import br.com.portalmanager.platform.workspace.foundation.catalog.environmenttype.domain.EnvironmentTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.environmenttype.repository.EnvironmentTypeRepository;
 import br.com.portalmanager.platform.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
-import br.com.portalmanager.platform.catalog.service.EnumCatalogService;
+import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 

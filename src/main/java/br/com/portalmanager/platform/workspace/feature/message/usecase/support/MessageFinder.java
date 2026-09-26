@@ -5,7 +5,7 @@ import br.com.portalmanager.platform.workspace.feature.message.domain.MessageMes
 import br.com.portalmanager.platform.workspace.feature.message.domain.MessageTranslation;
 import br.com.portalmanager.platform.workspace.feature.message.repository.MessageRepository;
 import br.com.portalmanager.platform.workspace.feature.message.repository.MessageTranslationRepository;
-import br.com.portalmanager.platform.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import org.springframework.stereotype.Component;
 
 @Component

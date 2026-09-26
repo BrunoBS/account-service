@@ -7,8 +7,8 @@ import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVe
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaResolution;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.resolution.SchemaResolver;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.workspace.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.schema.SchemaResolver;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.WorkspaceReferenceResolver;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -76,7 +76,7 @@ class SchemaResolverTest {
         Schema schema = activeSchema("APPLICATION", "schema-workspace");
         SchemaVersion version = publishedVersion(schema, "version-workspace", 2);
 
-        when(workspaceReferenceResolver.resolveActiveInternalId("workspace-identifier"))
+        when(workspaceReferenceResolver.resolveInternalId("workspace-identifier"))
                 .thenReturn(7L);
         when(schemaRepository.findByTypeScopeAndCode(
                 "APPLICATION",
@@ -97,7 +97,7 @@ class SchemaResolverTest {
 
         assertThat(resolution.schemaVersion()).isEqualTo(2);
         verify(workspaceReferenceResolver)
-                .resolveActiveInternalId("workspace-identifier");
+                .resolveInternalId("workspace-identifier");
     }
 
     private Schema activeSchema(String typeCode, String identifier) {
