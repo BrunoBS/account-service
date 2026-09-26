@@ -60,7 +60,7 @@ class SchemaApiIT {
         authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                        "code", "application",
+                        "code", "APPLICATION",
                         "label", "Application",
                         "description", "Application settings schema",
                         "sortOrder", 10,
@@ -69,11 +69,11 @@ class SchemaApiIT {
                 .post("/api/v1/schema-type")
                 .then()
                 .statusCode(201)
-                .body("code", equalTo("application"))
+                .body("code", equalTo("APPLICATION"))
                 .body("label", equalTo("Application"));
 
         authorized()
-                .get("/api/v1/schema-type/application")
+                .get("/api/v1/schema-type/APPLICATION")
                 .then()
                 .statusCode(200)
                 .body("code", equalTo("application"));
@@ -81,7 +81,7 @@ class SchemaApiIT {
         String platformSchemaIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                        "schemaTypeCode", "application",
+                        "schemaTypeCode", "APPLICATION",
                         "code", "application",
                         "name", "Application Platform Schema",
                         "description", "Platform schema for application settings"
@@ -89,7 +89,7 @@ class SchemaApiIT {
                 .post("/api/v1/schemas")
                 .then()
                 .statusCode(201)
-                .body("schemaTypeCode", equalTo("application"))
+                .body("schemaTypeCode", equalTo("APPLICATION"))
                 .body("scope", equalTo("PLATFORM"))
                 .extract()
                 .path("identifier");
@@ -132,7 +132,7 @@ class SchemaApiIT {
         String workspaceSchemaIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                        "schemaTypeCode", "application",
+                        "schemaTypeCode", "APPLICATION",
                         "code", "custom-application",
                         "name", "Workspace Application Schema",
                         "description", "Workspace-owned application schema"
