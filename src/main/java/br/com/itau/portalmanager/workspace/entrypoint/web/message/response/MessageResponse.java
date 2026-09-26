@@ -5,7 +5,7 @@ import br.com.itau.portalmanager.workspace.feature.message.usecase.model.Message
 public record MessageResponse(
         String identifier,
         Long version,
-        String service,
+        String serviceIdentifier,
         String messageKey,
         String code,
         Integer httpStatus,
@@ -16,7 +16,7 @@ public record MessageResponse(
         return new MessageResponse(
                 output.identifier(),
                 output.version(),
-                output.service(),
+                output.serviceIdentifier(),
                 output.messageKey(),
                 output.code(),
                 output.httpStatus(),
