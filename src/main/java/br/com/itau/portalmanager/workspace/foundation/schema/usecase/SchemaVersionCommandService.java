@@ -34,13 +34,46 @@ public class SchemaVersionCommandService {
     }
 
     @Transactional
-    public SchemaVersionOutput createDraft(
+    public SchemaVersionOutput createPlatformDraft(
             String schemaIdentifier,
             CreateSchemaVersionInput input
     ) {
-        Schema schema = schemaRepository.findByIdentifierForUpdate(schemaIdentifier)
-                .orElseThrow(() -> new IllegalArgumentException("Schema not found"));
+        return createDraft(requiredScoped(schemaIdentifier, "PLATFORM", null), input);
+    }
 
+    @Transactional
+    public SchemaVersionOutput createWorkspaceDraft(
+            String workspaceIdentifier,
+            String schemaIdentifier,
+            CreateSchemaVersionInput input
+    ) {
+        return createDraft(requiredScoped(schemaIdentifier, "WORKSPACE", workspaceIdentifier), input);
+    }
+
+    @Transactional
+    public SchemaVersionOutput publishPlatform(
+            String schemaIdentifier,
+            String versionIdentifier
+    ) {
+        return publish(requiredScoped(schemaIdentifier, "PLATFORM", null), versionIdentifier);
+    }
+
+    @Transactional
+    public SchemaVersionOutput publishWorkspace(
+            String workspaceIdentifier,
+            String schemaIdentifier,
+            String versionIdentifier
+    ) {
+        return publish(
+                requiredScoped(schemaIdentifier, "WORKSPACE", workspaceIdentifier),
+                versionIdentifier
+        );
+    }
+
+    private SchemaVersionOutput createDraft(
+            Schema schema,
+            CreateSchemaVersionInput input
+    ) {
         JsonNode definition = input == null ? null : input.definition();
         ValidationResult validation = new ValidationResult();
         validator.validateSchemaSyntax(definition, validation);
@@ -70,14 +103,10 @@ public class SchemaVersionCommandService {
         return SchemaVersionOutput.from(created);
     }
 
-    @Transactional
-    public SchemaVersionOutput publish(
-            String schemaIdentifier,
+    private SchemaVersionOutput publish(
+            Schema schema,
             String versionIdentifier
     ) {
-        Schema schema = schemaRepository.findByIdentifierForUpdate(schemaIdentifier)
-                .orElseThrow(() -> new IllegalArgumentException("Schema not found"));
-
         versionRepository.findAllForUpdate(schema.getId());
 
         SchemaVersion version = versionRepository
@@ -88,5 +117,21 @@ public class SchemaVersionCommandService {
             version.publish();
         }
         return SchemaVersionOutput.from(version);
+    }
+
+    private Schema requiredScoped(
+            String identifier,
+            String scopeCode,
+            String workspaceIdentifier
+    ) {
+        Schema schema = schemaRepository.findByIdentifierAndScope(
+                        identifier,
+                        scopeCode,
+                        workspaceIdentifier
+                )
+                .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
+
+        return schemaRepository.findByIdentifierForUpdate(schema.getIdentifier())
+                .orElseThrow(() -> new IllegalArgumentException("Schema not found"));
     }
 }
