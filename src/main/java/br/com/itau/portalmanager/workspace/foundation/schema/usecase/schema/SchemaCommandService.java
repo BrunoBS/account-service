@@ -11,6 +11,7 @@ import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.Creat
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaOutput;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.UpdateSchemaInput;
 import br.com.itau.portalmanager.workspace.foundation.schema.usecase.validation.SchemaValidator;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.workspace.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Service;
@@ -25,17 +26,20 @@ public class SchemaCommandService {
     private final SchemaVersionRepository versionRepository;
     private final SchemaTypeService schemaTypeService;
     private final SchemaValidator validator;
+    private final WorkspaceReferenceResolver workspaceReferenceResolver;
 
     public SchemaCommandService(
             SchemaRepository repository,
             SchemaVersionRepository versionRepository,
             SchemaTypeService schemaTypeService,
-            SchemaValidator validator
+            SchemaValidator validator,
+            WorkspaceReferenceResolver workspaceReferenceResolver
     ) {
         this.repository = repository;
         this.versionRepository = versionRepository;
         this.schemaTypeService = schemaTypeService;
         this.validator = validator;
+        this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
 
     @Transactional
@@ -51,10 +55,11 @@ public class SchemaCommandService {
         if (input.workspaceIdentifier() == null || input.workspaceIdentifier().isBlank()) {
             throw new IllegalArgumentException("Workspace identifier is required");
         }
+        Long workspaceId = workspaceReferenceResolver.resolveInternalId(input.workspaceIdentifier().trim());
         return create(
                 input,
                 SchemaScopeTypeCode.workspace(),
-                input.workspaceIdentifier().trim(),
+                workspaceId,
                 "WORKSPACE"
         );
     }
@@ -70,7 +75,7 @@ public class SchemaCommandService {
             String identifier,
             UpdateSchemaInput input
     ) {
-        return update(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier), input);
+        return update(requiredScoped(identifier, "WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)), input);
     }
 
     @Transactional
@@ -80,7 +85,7 @@ public class SchemaCommandService {
 
     @Transactional
     public SchemaOutput activateWorkspace(String workspaceIdentifier, String identifier) {
-        return activate(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier));
+        return activate(requiredScoped(identifier, "WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)));
     }
 
     @Transactional
@@ -90,7 +95,7 @@ public class SchemaCommandService {
 
     @Transactional
     public SchemaOutput inactivateWorkspace(String workspaceIdentifier, String identifier) {
-        return inactivate(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier));
+        return inactivate(requiredScoped(identifier, "WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)));
     }
 
     @Transactional
@@ -100,7 +105,7 @@ public class SchemaCommandService {
 
     @Transactional
     public SchemaOutput quarantineWorkspace(String workspaceIdentifier, String identifier) {
-        return quarantine(requiredScoped(identifier, "WORKSPACE", workspaceIdentifier));
+        return quarantine(requiredScoped(identifier, "WORKSPACE", workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)));
     }
 
     private SchemaOutput update(Schema schema, UpdateSchemaInput input) {
@@ -108,28 +113,28 @@ public class SchemaCommandService {
             throw new IllegalStateException("Schema version conflict");
         }
         schema.update(input.name(), input.description(), LocalDateTime.now());
-        return SchemaOutput.from(schema);
+        return output(schema);
     }
 
     private SchemaOutput activate(Schema schema) {
         schema.activate(LocalDateTime.now());
-        return SchemaOutput.from(schema);
+        return output(schema);
     }
 
     private SchemaOutput inactivate(Schema schema) {
         schema.inactivate(LocalDateTime.now());
-        return SchemaOutput.from(schema);
+        return output(schema);
     }
 
     private SchemaOutput quarantine(Schema schema) {
         schema.quarantine(LocalDateTime.now());
-        return SchemaOutput.from(schema);
+        return output(schema);
     }
 
     private SchemaOutput create(
             CreateSchemaInput input,
             SchemaScopeTypeCode scope,
-            String workspaceIdentifier,
+            Long workspaceId,
             String scopeCode
     ) {
         if (!schemaTypeService.existsActive(input.schemaTypeCode())) {
@@ -139,7 +144,7 @@ public class SchemaCommandService {
         if (repository.findByTypeScopeAndCode(
                 input.schemaTypeCode(),
                 scopeCode,
-                workspaceIdentifier,
+                workspaceId,
                 input.code()
         ).isPresent()) {
             throw new IllegalArgumentException("Schema code already exists in scope");
@@ -155,7 +160,7 @@ public class SchemaCommandService {
         Schema schema = repository.save(new Schema(
                 input.schemaTypeCode(),
                 scope,
-                workspaceIdentifier,
+                workspaceId,
                 input.code(),
                 input.name(),
                 input.description(),
@@ -171,15 +176,22 @@ public class SchemaCommandService {
                 now
         ));
 
-        return SchemaOutput.from(schema);
+        return output(schema);
     }
 
     private Schema requiredScoped(
             String identifier,
             String scope,
-            String workspaceIdentifier
+            Long workspaceId
     ) {
-        return repository.findByIdentifierAndScope(identifier, scope, workspaceIdentifier)
+        return repository.findByIdentifierAndScope(identifier, scope, workspaceId)
                 .orElseThrow(() -> new IllegalArgumentException("Schema not found in requested scope"));
     }
+    private SchemaOutput output(Schema schema) {
+        String workspaceIdentifier = schema.getWorkspaceId() == null
+                ? null
+                : workspaceReferenceResolver.resolveIdentifier(schema.getWorkspaceId());
+        return SchemaOutput.from(schema, workspaceIdentifier);
+    }
 }
+
