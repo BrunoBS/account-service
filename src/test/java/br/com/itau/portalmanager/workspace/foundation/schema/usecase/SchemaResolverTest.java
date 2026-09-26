@@ -1,10 +1,13 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.usecase;
 
 import br.com.itau.portalmanager.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
+import br.com.itau.portalmanager.workspace.foundation.catalog.schematype.usecase.SchemaTypeService;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaVersionRepository;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.model.SchemaResolution;
+import br.com.itau.portalmanager.workspace.foundation.schema.usecase.support.SchemaResolver;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
