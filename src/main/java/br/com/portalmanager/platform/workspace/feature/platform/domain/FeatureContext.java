@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.platform.domain;
 
-import br.com.portalmanager.platform.workspace.feature.platform.domain.support.PlatformCodeValidator;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.support.PlatformNameValidator;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.validation.PlatformCodeValidator;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.validation.PlatformNameValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
 

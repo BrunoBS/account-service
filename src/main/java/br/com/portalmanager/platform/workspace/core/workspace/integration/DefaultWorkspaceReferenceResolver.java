@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.workspace.integration;
 
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.WorkspaceQueryService;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import org.springframework.stereotype.Component;

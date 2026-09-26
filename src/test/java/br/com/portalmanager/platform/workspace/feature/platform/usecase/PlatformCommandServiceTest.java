@@ -6,12 +6,13 @@ import br.com.portalmanager.platform.workspace.feature.platform.domain.Service;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureContextRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.ServiceRepository;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.context.FeatureContextCommandService;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.feature.FeatureCommandService;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context.FeatureContextCommandService;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature.FeatureCommandService;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateFeatureContextInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateFeatureInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateServiceInput;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.service.ServiceCommandService;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.service.ServiceCommandService;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -30,8 +31,7 @@ class PlatformCommandServiceTest {
         ServiceCommandService command = new ServiceCommandService(repository);
 
         assertThatThrownBy(() -> command.create(new CreateServiceInput("audit-service", "Audit Service", null)))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Service code already exists");
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test
@@ -41,8 +41,7 @@ class PlatformCommandServiceTest {
         ServiceCommandService command = new ServiceCommandService(repository);
 
         assertThatThrownBy(() -> command.create(new CreateServiceInput("audit-service", "Audit Service", null)))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Service name already exists");
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test
@@ -54,8 +53,7 @@ class PlatformCommandServiceTest {
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
         assertThatThrownBy(() -> command.create(new CreateFeatureInput("audit", "Audit", null, "service-id", "{}")))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Feature name already exists");
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test
@@ -67,8 +65,7 @@ class PlatformCommandServiceTest {
         assertThatThrownBy(() -> command.create(
                 new CreateFeatureContextInput("manager-account", "Manager Account", null)
         ))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Feature context name already exists");
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test

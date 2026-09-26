@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.workspace;
 
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.WorkspaceCommandService;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceCommandService;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.WorkspaceQueryService;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.CreateWorkspaceRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.UpdateWorkspaceRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.response.WorkspaceResponse;

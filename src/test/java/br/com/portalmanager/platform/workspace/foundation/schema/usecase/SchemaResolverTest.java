@@ -7,7 +7,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVe
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaResolution;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.schema.SchemaResolver;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaResolver;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import org.junit.jupiter.api.Test;
 

@@ -5,7 +5,7 @@ import br.com.portalmanager.platform.workspace.feature.message.usecase.model.Cre
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageTranslationInput;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.service.ServiceQueryService;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.service.ServiceQueryService;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import org.springframework.stereotype.Component;

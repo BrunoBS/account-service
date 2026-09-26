@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.platform.repository;
 
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.feature.FeatureQueryService;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature.FeatureQueryService;
 import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import org.junit.jupiter.api.Test;

@@ -94,8 +94,8 @@ class GoldenArchitectureTest {
                 .map(JavaClass::getPackageName)
                 .filter(packageName -> packageName.startsWith(prefix))
                 .map(packageName -> packageName.substring(prefix.length()))
-                .filter(relative -> !relative.equals("support"))
-                .filter(relative -> !relative.startsWith("support."))
+                .filter(relative -> !relative.equals("integration"))
+                .filter(relative -> !relative.startsWith("integration."))
                 .filter(relative -> {
                     String[] segments = relative.split("\\.");
                     if (segments.length < 2) {
@@ -125,7 +125,7 @@ class GoldenArchitectureTest {
                 .map(relative -> relative.substring(0, relative.indexOf('.') < 0
                         ? relative.length()
                         : relative.indexOf('.')))
-                .filter(module -> !module.equals("support"))
+                .filter(module -> !module.equals("integration"))
                 .filter(module -> !module.endsWith("type"))
                 .distinct()
                 .toList();

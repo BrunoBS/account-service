@@ -3,7 +3,7 @@ package br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype
 import br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.domain.TagOriginType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.domain.TagOriginTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.repository.TagOriginTypeRepository;
-import br.com.portalmanager.platform.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
+import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;

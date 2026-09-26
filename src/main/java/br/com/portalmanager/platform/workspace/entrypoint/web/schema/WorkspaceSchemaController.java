@@ -5,9 +5,9 @@ import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.Cre
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.UpdateSchemaRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.response.SchemaResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.response.SchemaVersionResponse;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.schema.SchemaCommandService;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.schema.SchemaQueryService;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.version.SchemaVersionCommandService;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaCommandService;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaQueryService;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.version.SchemaVersionCommandService;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.library.audit.annotation.AuditField;

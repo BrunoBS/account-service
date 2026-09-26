@@ -2,8 +2,8 @@ package br.com.portalmanager.platform.workspace.core.workspace.integration;
 
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.WorkspaceQueryService;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.support.WorkspaceFinder;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceFinder;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import org.junit.jupiter.api.Test;
 

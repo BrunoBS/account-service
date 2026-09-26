@@ -3,7 +3,7 @@ package br.com.portalmanager.platform.workspace.foundation.catalog.infrastructur
 import br.com.portalmanager.platform.workspace.foundation.catalog.infrastructuretype.domain.InfrastructureType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.infrastructuretype.domain.InfrastructureTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.infrastructuretype.repository.InfrastructureTypeRepository;
-import br.com.portalmanager.platform.workspace.foundation.catalog.support.CatalogSchemaValidationSupport;
+import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSchemaValidationSupport;
 import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
