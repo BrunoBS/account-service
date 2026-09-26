@@ -57,16 +57,10 @@ public interface SchemaRepository extends JpaRepository<Schema, Long> {
             @Param("workspaceIdentifier") String workspaceIdentifier
     );
 
-    boolean existsBySchemaType_CodeAndScope_ValueAndWorkspaceIdentifierAndCode(
-            String schemaTypeCode,
-            String scopeCode,
-            String workspaceIdentifier,
-            String code
-    );
-
+    
     @Query("""
             select s from Schema s
-             where s.schemaType.code = :schemaTypeCode
+             where s.schemaTypeCode = :schemaTypeCode
                and s.scope.value = :scopeCode
                and ((:workspaceIdentifier is null and s.workspaceIdentifier is null)
                     or s.workspaceIdentifier = :workspaceIdentifier)
@@ -79,7 +73,7 @@ public interface SchemaRepository extends JpaRepository<Schema, Long> {
 
     @Query("""
             select s from Schema s
-             where s.schemaType.code = :schemaTypeCode
+             where s.schemaTypeCode = :schemaTypeCode
                and s.scope.value = :scopeCode
                and ((:workspaceIdentifier is null and s.workspaceIdentifier is null)
                     or s.workspaceIdentifier = :workspaceIdentifier)
