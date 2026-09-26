@@ -1,7 +1,6 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.usecase;
 
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.Schema;
-import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaType;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.itau.portalmanager.workspace.foundation.schema.domain.SchemaVersionStatus;
 import br.com.itau.portalmanager.workspace.foundation.schema.repository.SchemaRepository;
@@ -21,7 +20,9 @@ class SchemaResolverTest {
 
     private final SchemaRepository schemaRepository = mock(SchemaRepository.class);
     private final SchemaVersionRepository versionRepository = mock(SchemaVersionRepository.class);
-    private final SchemaResolver resolver = new SchemaResolver(schemaRepository, versionRepository);
+    private final SchemaTypeService schemaTypeService = mock(SchemaTypeService.class);
+    private final SchemaResolver resolver =
+            new SchemaResolver(schemaRepository, versionRepository, schemaTypeService);
 
     @Test
     void shouldResolveLatestPublishedPlatformSchema() {
@@ -66,12 +67,10 @@ class SchemaResolverTest {
 
     private Schema activeSchema(String typeCode, String identifier) {
         Schema schema = mock(Schema.class);
-        SchemaType type = mock(SchemaType.class);
-        when(type.getCode()).thenReturn(typeCode);
-        when(type.isActive()).thenReturn(true);
-        when(schema.getSchemaType()).thenReturn(type);
+        when(schema.getSchemaTypeCode()).thenReturn(typeCode);
         when(schema.isActive()).thenReturn(true);
         when(schema.getIdentifier()).thenReturn(identifier);
+        when(schemaTypeService.existsActive(typeCode)).thenReturn(true);
         return schema;
     }
 
