@@ -84,7 +84,8 @@ class SchemaApiIT {
                         "schemaTypeCode", "APPLICATION",
                         "code", "application",
                         "name", "Application Platform Schema",
-                        "description", "Platform schema for application settings"
+                        "description", "Platform schema for application settings",
+                        "definition", Map.of("type", "object")
                 ))
                 .post("/api/v1/schemas")
                 .then()
@@ -135,7 +136,8 @@ class SchemaApiIT {
                         "schemaTypeCode", "APPLICATION",
                         "code", "custom-application",
                         "name", "Workspace Application Schema",
-                        "description", "Workspace-owned application schema"
+                        "description", "Workspace-owned application schema",
+                        "definition", Map.of("type", "object")
                 ))
                 .post("/api/v1/workspaces/" + workspaceIdentifier + "/schemas")
                 .then()
