@@ -1,5 +1,6 @@
 package br.com.itau.portalmanager.workspace.foundation.schema.domain;
 
+import br.com.itau.portalmanager.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -11,9 +12,6 @@ import java.util.UUID;
         uniqueConstraints = @UniqueConstraint(name = "uk_schema_versions_schema_version", columnNames = {"schema_id", "schema_version"})
 )
 public class SchemaVersion {
-
-    public static final String DRAFT = "DRAFT";
-    public static final String PUBLISHED = "PUBLISHED";
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Column(nullable = false, unique = true, length = 36, updatable = false) private String identifier;
@@ -31,8 +29,9 @@ public class SchemaVersion {
     @Column(name = "definition", nullable = false, columnDefinition = "json")
     private String definition;
 
-    @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "status", nullable = false, length = 50))
+    private SchemaVersionStatusTypeCode status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -45,15 +44,13 @@ public class SchemaVersion {
             Integer schemaVersion,
             String versionName,
             String definition,
-            String status,
+            SchemaVersionStatusTypeCode status,
             LocalDateTime now
     ) {
         if (schema == null) throw new IllegalArgumentException("Schema is required");
         if (schemaVersion == null || schemaVersion < 1) throw new IllegalArgumentException("Schema version must be positive");
         if (definition == null || definition.isBlank()) throw new IllegalArgumentException("Schema definition is required");
-        if (!DRAFT.equals(status) && !PUBLISHED.equals(status)) {
-            throw new IllegalArgumentException("Schema version status is invalid");
-        }
+        if (status == null) throw new IllegalArgumentException("Schema version status is required");
 
         this.identifier = UUID.randomUUID().toString();
         this.schema = schema;
@@ -77,12 +74,12 @@ public class SchemaVersion {
 
     public void publish() {
         if (isDraft()) {
-            this.status = PUBLISHED;
+            this.status = SchemaVersionStatusTypeCode.published();
         }
     }
 
-    public boolean isDraft() { return DRAFT.equals(status); }
-    public boolean isPublished() { return PUBLISHED.equals(status); }
+    public boolean isDraft() { return SchemaVersionStatusTypeCode.draft().equals(status); }
+    public boolean isPublished() { return SchemaVersionStatusTypeCode.published().equals(status); }
 
     public Long getId() { return id; }
     public String getIdentifier() { return identifier; }
@@ -90,6 +87,6 @@ public class SchemaVersion {
     public Integer getSchemaVersion() { return schemaVersion; }
     public String getVersionName() { return versionName; }
     public String getDefinition() { return definition; }
-    public String getStatus() { return status; }
+    public SchemaVersionStatusTypeCode getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 }
