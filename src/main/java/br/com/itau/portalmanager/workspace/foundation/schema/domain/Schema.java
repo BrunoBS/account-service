@@ -27,7 +27,7 @@ public class Schema {
     private SchemaScopeTypeCode scope;
 
     @Column(name = "workspace_identifier", length = 36)
-    private String workspaceIdentifier;
+    private Long workspaceId;
 
     @Column(nullable = false, length = 50) private String code;
     @Column(nullable = false, length = 100) private String name;
@@ -46,7 +46,7 @@ public class Schema {
     public Schema(
             String schemaTypeCode,
             SchemaScopeTypeCode scope,
-            String workspaceIdentifier,
+            Long workspaceId,
             String code,
             String name,
             String description,
@@ -56,7 +56,7 @@ public class Schema {
             throw new IllegalArgumentException("Schema type code is required");
         }
         if (scope == null) throw new IllegalArgumentException("Schema scope is required");
-        validateOwnership(scope, workspaceIdentifier);
+        validateOwnership(scope, workspaceId);
         if (code == null || !CODE_PATTERN.matcher(code).matches()) {
             throw new IllegalArgumentException("Schema code must use lowercase kebab-case");
         }
@@ -65,7 +65,7 @@ public class Schema {
         this.identifier = UUID.randomUUID().toString();
         this.schemaTypeCode = schemaTypeCode.trim();
         this.scope = scope;
-        this.workspaceIdentifier = normalizeWorkspace(workspaceIdentifier);
+        this.workspaceId = workspaceId;
         this.code = code;
         this.name = name.trim();
         this.description = description;
@@ -86,18 +86,14 @@ public class Schema {
     public void quarantine(LocalDateTime now) { lifecycle = LifecycleTypeCode.quarantined(); updatedAt = now; }
     public boolean isActive() { return LifecycleTypeCode.active().equals(lifecycle); }
 
-    private static void validateOwnership(SchemaScopeTypeCode scope, String workspaceIdentifier) {
+    private static void validateOwnership(SchemaScopeTypeCode scope, Long workspaceId) {
         boolean workspaceScope = SchemaScopeTypeCode.workspace().equals(scope);
-        if (workspaceScope && (workspaceIdentifier == null || workspaceIdentifier.isBlank())) {
+        if (workspaceScope && (workspaceId == null)) {
             throw new IllegalArgumentException("Workspace identifier is required for WORKSPACE schema");
         }
-        if (!workspaceScope && workspaceIdentifier != null && !workspaceIdentifier.isBlank()) {
+        if (!workspaceScope && workspaceId != null) {
             throw new IllegalArgumentException("Workspace identifier must be empty for PLATFORM schema");
         }
-    }
-
-    private static String normalizeWorkspace(String value) {
-        return value == null || value.isBlank() ? null : value.trim();
     }
 
     public Long getId() { return id; }
@@ -105,7 +101,7 @@ public class Schema {
     public String getIdentifier() { return identifier; }
     public String getSchemaTypeCode() { return schemaTypeCode; }
     public SchemaScopeTypeCode getScope() { return scope; }
-    public String getWorkspaceIdentifier() { return workspaceIdentifier; }
+    public String getWorkspaceIdentifier() { return workspaceId; }
     public String getCode() { return code; }
     public String getName() { return name; }
     public String getDescription() { return description; }
