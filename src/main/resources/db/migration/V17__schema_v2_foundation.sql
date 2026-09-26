@@ -28,8 +28,8 @@ CREATE TABLE schema_definitions (
     identifier VARCHAR(36) NOT NULL,
     schema_type_code VARCHAR(50) NOT NULL,
     scope_code VARCHAR(50) NOT NULL,
-    workspace_identifier VARCHAR(36),
-    owner_key VARCHAR(36) GENERATED ALWAYS AS (COALESCE(workspace_identifier, 'PLATFORM')) STORED,
+    workspace_id BIGINT,
+    owner_key BIGINT GENERATED ALWAYS AS (COALESCE(workspace_id, 0)) STORED,
     code VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(500),
@@ -43,16 +43,18 @@ CREATE TABLE schema_definitions (
     CONSTRAINT ck_schema_definitions_code CHECK (code REGEXP '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'),
     CONSTRAINT ck_schema_definitions_owner
         CHECK (
-            (scope_code = 'PLATFORM' AND workspace_identifier IS NULL)
+            (scope_code = 'PLATFORM' AND workspace_id IS NULL)
             OR
-            (scope_code = 'WORKSPACE' AND workspace_identifier IS NOT NULL)
+            (scope_code = 'WORKSPACE' AND workspace_id IS NOT NULL)
         ),
     CONSTRAINT fk_schema_definitions_type
         FOREIGN KEY (schema_type_code) REFERENCES type_schema_types(code),
     CONSTRAINT fk_schema_definitions_scope
         FOREIGN KEY (scope_code) REFERENCES type_schema_scopes(code),
     CONSTRAINT fk_schema_definitions_lifecycle
-        FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle(code)
+        FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle(code),
+    CONSTRAINT fk_schema_definitions_workspace
+        FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
 );
 
 CREATE TABLE schema_versions (
@@ -73,7 +75,7 @@ CREATE TABLE schema_versions (
 );
 
 CREATE INDEX idx_schema_definitions_type_scope_owner
-    ON schema_definitions (schema_type_code, scope_code, workspace_identifier);
+    ON schema_definitions (schema_type_code, scope_code, workspace_id);
 
 CREATE INDEX idx_schema_versions_resolution
     ON schema_versions (schema_id, status, schema_version);
@@ -84,7 +86,7 @@ VALUES
     ('DEFAULT', 'Default', 'Fallback schema type for dynamic settings', 1, true, '{}');
 
 INSERT INTO schema_definitions
-    (version, identifier, schema_type_code, scope_code, workspace_identifier, code, name, description,
+    (version, identifier, schema_type_code, scope_code, workspace_id, code, name, description,
      lifecycle_code, created_at, updated_at)
 VALUES
     (0, UUID(), 'DEFAULT', 'PLATFORM', NULL, 'default', 'Default',
