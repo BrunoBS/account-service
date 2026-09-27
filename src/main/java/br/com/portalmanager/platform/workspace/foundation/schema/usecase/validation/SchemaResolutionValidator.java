@@ -12,8 +12,8 @@ public class SchemaResolutionValidator {
         return value.trim();
     }
 
-    public void requireActive(Schema schema, boolean typeActive) {
-        if (!schema.isActive() || !typeActive) throw error("schema", SchemaMessageKeys.INACTIVE);
+    public void requireActive(Schema schema) {
+        if (!schema.isActive()) throw error("schema", SchemaMessageKeys.INACTIVE);
     }
 
     public ValidationException schemaNotFound() {
