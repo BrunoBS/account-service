@@ -1,10 +1,13 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.schema;
 
+import br.com.portalmanager.platform.library.audit.annotation.AuditField;
+import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaTypeInput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaTypeOutput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaTypeInput;
+import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.CreateSchemaTypeRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.UpdateSchemaTypeRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.schema.response.SchemaTypeResponse;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schematype.SchemaTypeCommandService;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schematype.SchemaTypeQueryService;
 import org.springframework.http.HttpStatus;
@@ -30,39 +33,65 @@ public class SchemaTypeController {
     }
 
     @PostMapping
-    public ResponseEntity<SchemaTypeOutput> create(@RequestBody CreateSchemaTypeInput input) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(commandService.create(input));
+    @Auditable(
+            resource = "SCHEMA_TYPE",
+            action = "INSERT",
+            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
+    )
+    public ResponseEntity<SchemaTypeResponse> create(@RequestBody CreateSchemaTypeRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(SchemaTypeResponse.from(commandService.create(request.toInput())));
     }
 
     @GetMapping
-    public List<SchemaTypeOutput> findAll() {
-        return queryService.findAll();
+    public List<SchemaTypeResponse> findAll() {
+        return queryService.findAll().stream().map(SchemaTypeResponse::from).toList();
     }
 
     @GetMapping("/{identifier}")
-    public SchemaTypeOutput findByIdentifier(@PathVariable String identifier) {
-        return queryService.findByIdentifier(identifier);
+    public SchemaTypeResponse findByIdentifier(@PathVariable String identifier) {
+        return SchemaTypeResponse.from(queryService.findByIdentifier(identifier));
     }
 
     @PutMapping("/{identifier}")
-    public SchemaTypeOutput update(
+    @Auditable(
+            resource = "SCHEMA_TYPE",
+            action = "UPDATE",
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
+    )
+    public SchemaTypeResponse update(
             @PathVariable String identifier,
-            @RequestBody UpdateSchemaTypeInput input
+            @RequestBody UpdateSchemaTypeRequest request
     ) {
-        return commandService.update(identifier, input);
+        return SchemaTypeResponse.from(commandService.update(identifier, request.toInput()));
     }
 
     @PatchMapping("/{identifier}/activate")
-    public SchemaTypeOutput activate(@PathVariable String identifier) {
-        return commandService.activate(identifier);
+    @Auditable(
+            resource = "SCHEMA_TYPE",
+            action = "ACTIVATE",
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
+    )
+    public SchemaTypeResponse activate(@PathVariable String identifier) {
+        return SchemaTypeResponse.from(commandService.activate(identifier));
     }
 
     @PatchMapping("/{identifier}/inactivate")
-    public SchemaTypeOutput inactivate(@PathVariable String identifier) {
-        return commandService.inactivate(identifier);
+    @Auditable(
+            resource = "SCHEMA_TYPE",
+            action = "INACTIVATE",
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
+    )
+    public SchemaTypeResponse inactivate(@PathVariable String identifier) {
+        return SchemaTypeResponse.from(commandService.inactivate(identifier));
     }
 
     @DeleteMapping("/{identifier}")
+    @Auditable(
+            resource = "SCHEMA_TYPE",
+            action = "DELETE",
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
+    )
     public ResponseEntity<Void> delete(@PathVariable String identifier) {
         commandService.delete(identifier);
         return ResponseEntity.noContent().build();
