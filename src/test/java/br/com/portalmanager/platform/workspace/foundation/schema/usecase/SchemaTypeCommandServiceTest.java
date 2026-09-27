@@ -9,6 +9,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.repository.Sche
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaTypeInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaTypeInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schematype.SchemaTypeCommandService;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaTypeValidator;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
@@ -23,7 +24,8 @@ class SchemaTypeCommandServiceTest {
 
     private final SchemaTypeRepository repository = mock(SchemaTypeRepository.class);
     private final SchemaRepository schemaRepository = mock(SchemaRepository.class);
-    private final SchemaTypeCommandService service = new SchemaTypeCommandService(repository, schemaRepository);
+    private final SchemaTypeValidator validator = new SchemaTypeValidator();
+    private final SchemaTypeCommandService service = new SchemaTypeCommandService(repository, schemaRepository, validator);
 
     @Test
     void rejectsEmptyScopesOnCreate() {
@@ -44,6 +46,44 @@ class SchemaTypeCommandServiceTest {
         assertThatThrownBy(() -> service.create(new CreateSchemaTypeInput(
                 "DEFAULT", "Default", null, Set.of("PLATFORM", "WORKSPACE")
         ))).isInstanceOf(ValidationException.class);
+    }
+
+    @Test
+    void rejectsOversizedNameAndDescription() {
+        assertThatThrownBy(() -> service.create(new CreateSchemaTypeInput(
+                "APPLICATION",
+                "N".repeat(101),
+                "D".repeat(501),
+                Set.of("PLATFORM")
+        ))).isInstanceOf(ValidationException.class);
+    }
+
+    @Test
+    void rejectsInactivatingDefaultType() throws Exception {
+        SchemaType schemaType = schemaType(
+                "default-id",
+                "DEFAULT",
+                Set.of(SchemaScopeTypeCode.platform())
+        );
+        when(repository.findByIdentifier("default-id")).thenReturn(Optional.of(schemaType));
+
+        assertThatThrownBy(() -> service.inactivate("default-id"))
+                .isInstanceOf(ConflictException.class);
+    }
+
+    @Test
+    void rejectsDeletingDefaultTypeEvenIfInactiveAndUnused() throws Exception {
+        SchemaType schemaType = schemaType(
+                "default-id",
+                "DEFAULT",
+                Set.of(SchemaScopeTypeCode.platform())
+        );
+        schemaType.inactivate(LocalDateTime.now());
+        when(repository.findByIdentifier("default-id")).thenReturn(Optional.of(schemaType));
+        when(schemaRepository.existsBySchemaTypeCode("DEFAULT")).thenReturn(false);
+
+        assertThatThrownBy(() -> service.delete("default-id"))
+                .isInstanceOf(ConflictException.class);
     }
 
     @Test
