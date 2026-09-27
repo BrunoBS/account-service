@@ -5,11 +5,9 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversions
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaDefaults;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaResolution;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schematype.SchemaTypeQueryService;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaResolutionValidator;
 import org.springframework.stereotype.Component;
@@ -40,7 +38,7 @@ public class SchemaResolver implements SchemaResolutionPort {
 
     @Override
     @Transactional(readOnly = true)
-    public SchemaResolution resolvePlatform(String schemaTypeCode) {
+    public String resolvePlatform(String schemaTypeCode) {
         String requestedType = normalizeSchemaTypeCode(schemaTypeCode);
 
         var specificType = schemaTypeQueryService.findActiveAllowed(
@@ -63,7 +61,7 @@ public class SchemaResolver implements SchemaResolutionPort {
                             .findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
                                     schema.getId(), SchemaVersionStatusTypeCode.published());
                     if (published.isPresent()) {
-                        return resolution(requestedType, schema, published.get(), false);
+                        return published.get().getDefinition();
                     }
                 }
             }
@@ -76,12 +74,12 @@ public class SchemaResolver implements SchemaResolutionPort {
                 )
                 .orElseThrow(validator::typeNotFound);
 
-        return resolution(requestedType, fallback, true);
+        return definition(fallback);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public SchemaResolution resolveWorkspace(
+    public String resolveWorkspace(
             String workspaceIdentifier,
             String schemaTypeCode,
             String schemaCode
@@ -102,46 +100,24 @@ public class SchemaResolver implements SchemaResolutionPort {
                 )
                 .orElseThrow(validator::schemaNotFound);
 
-        return resolution(canonicalType, schema, false);
+        return definition(schema);
     }
 
     private String normalizeSchemaTypeCode(String schemaTypeCode) {
         return validator.normalizeRequired(schemaTypeCode).toUpperCase(Locale.ROOT);
     }
 
-    private SchemaResolution resolution(
-            String requestedType,
-            Schema schema,
-            boolean fallback
-    ) {
+    private String definition(Schema schema) {
         String schemaTypeCode = schema.getSchemaType().value();
         schemaTypeQueryService.requireActiveAllowed(schemaTypeCode, schema.getScope());
         validator.requireActive(schema);
 
-        SchemaVersion version = versionRepository
+        return versionRepository
                 .findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
                         schema.getId(),
                         SchemaVersionStatusTypeCode.published()
                 )
-                .orElseThrow(validator::versionNotFound);
-
-        return resolution(requestedType, schema, version, fallback);
-    }
-
-    private SchemaResolution resolution(
-            String requestedType,
-            Schema schema,
-            SchemaVersion version,
-            boolean fallback
-    ) {
-        return new SchemaResolution(
-                requestedType,
-                schema.getSchemaType().value(),
-                schema.getIdentifier(),
-                version.getIdentifier(),
-                version.getSchemaVersion(),
-                version.getDefinition(),
-                fallback
-        );
+                .orElseThrow(validator::versionNotFound)
+                .getDefinition();
     }
 }

@@ -29,7 +29,7 @@ public class CatalogSettingsValidator {
             CatalogValidationResult result
     ) {
         ValidationResult schemaResult = new ValidationResult();
-        String definition = schemaResolutionPort.resolvePlatform(schemaTypeCode).definition();
+        String definition = schemaResolutionPort.resolvePlatform(schemaTypeCode);
         jsonSchemaValidator.validateJson(
                 definition,
                 settings,

@@ -9,7 +9,6 @@ import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaTy
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaResolution;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schematype.SchemaTypeQueryService;
 import org.junit.jupiter.api.Test;
@@ -41,12 +40,9 @@ class SchemaResolverTest {
                 .thenReturn(Optional.of(schema));
         published(version);
 
-        SchemaResolution resolution = resolver.resolvePlatform("APPLICATION");
+        String definition = resolver.resolvePlatform("APPLICATION");
 
-        assertThat(resolution.requestedSchemaType()).isEqualTo("APPLICATION");
-        assertThat(resolution.resolvedSchemaType()).isEqualTo("APPLICATION");
-        assertThat(resolution.schemaVersion()).isEqualTo(3);
-        assertThat(resolution.fallback()).isFalse();
+        assertThat(definition).isEqualTo(version.getDefinition());
     }
 
     @Test
@@ -62,11 +58,9 @@ class SchemaResolverTest {
                 .thenReturn(Optional.of(fallback));
         published(version);
 
-        SchemaResolution resolution = resolver.resolvePlatform("APPLICATION");
+        String definition = resolver.resolvePlatform("APPLICATION");
 
-        assertThat(resolution.requestedSchemaType()).isEqualTo("APPLICATION");
-        assertThat(resolution.resolvedSchemaType()).isEqualTo("DEFAULT");
-        assertThat(resolution.fallback()).isTrue();
+        assertThat(definition).isEqualTo(version.getDefinition());
     }
 
     @Test
@@ -83,7 +77,7 @@ class SchemaResolverTest {
                 .thenReturn(Optional.of(fallback));
         published(version);
 
-        assertThat(resolver.resolvePlatform("APPLICATION").fallback()).isTrue();
+        assertThat(resolver.resolvePlatform("APPLICATION")).isEqualTo(version.getDefinition());
     }
 
     @Test
@@ -102,9 +96,8 @@ class SchemaResolverTest {
         when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
                 20L, SchemaVersionStatusTypeCode.published())).thenReturn(Optional.of(version));
 
-        SchemaResolution resolution = resolver.resolvePlatform("APPLICATION");
-        assertThat(resolution.resolvedSchemaType()).isEqualTo("DEFAULT");
-        assertThat(resolution.fallback()).isTrue();
+        String definition = resolver.resolvePlatform("APPLICATION");
+        assertThat(definition).isEqualTo(version.getDefinition());
     }
 
     @Test
@@ -118,11 +111,9 @@ class SchemaResolverTest {
                 .thenReturn(Optional.of(fallback));
         published(version);
 
-        SchemaResolution resolution = resolver.resolvePlatform("ENVIRONMENT_TYPE");
+        String definition = resolver.resolvePlatform("ENVIRONMENT_TYPE");
 
-        assertThat(resolution.requestedSchemaType()).isEqualTo("ENVIRONMENT_TYPE");
-        assertThat(resolution.resolvedSchemaType()).isEqualTo("DEFAULT");
-        assertThat(resolution.fallback()).isTrue();
+        assertThat(definition).isEqualTo(version.getDefinition());
         verify(schemaRepository, never()).findByTypeAndScope("ENVIRONMENT_TYPE", "PLATFORM", null);
     }
 
@@ -142,14 +133,13 @@ class SchemaResolverTest {
         )).thenReturn(Optional.of(schema));
         published(version);
 
-        SchemaResolution resolution = resolver.resolveWorkspace(
+        String definition = resolver.resolveWorkspace(
                 "workspace-identifier",
                 "APPLICATION",
                 "custom-application"
         );
 
-        assertThat(resolution.schemaVersion()).isEqualTo(2);
-        assertThat(resolution.fallback()).isFalse();
+        assertThat(definition).isEqualTo(version.getDefinition());
         verify(workspaceReferenceResolver).resolveInternalId("workspace-identifier");
     }
 
@@ -164,10 +154,9 @@ class SchemaResolverTest {
                 .thenReturn(Optional.of(schema));
         published(version);
 
-        SchemaResolution resolution = resolver.resolvePlatform("application");
+        String definition = resolver.resolvePlatform("application");
 
-        assertThat(resolution.requestedSchemaType()).isEqualTo("APPLICATION");
-        assertThat(resolution.resolvedSchemaType()).isEqualTo("APPLICATION");
+        assertThat(definition).isEqualTo(version.getDefinition());
     }
 
     private void allowPlatformType(String requestedCode, String canonicalCode) {
@@ -207,7 +196,7 @@ class SchemaResolverTest {
         when(version.getSchema()).thenReturn(schema);
         when(version.getIdentifier()).thenReturn(identifier);
         when(version.getSchemaVersion()).thenReturn(number);
-        when(version.getDefinition()).thenReturn("{\"type\":\"object\"}");
+        when(version.getDefinition()).thenReturn("{\"type\":\"object\",\"title\":\"" + identifier + "\"}");
         return version;
     }
 
