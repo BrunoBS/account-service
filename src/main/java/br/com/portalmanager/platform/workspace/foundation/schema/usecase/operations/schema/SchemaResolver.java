@@ -1,8 +1,9 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema;
 
+import br.com.portalmanager.platform.workspace.foundation.catalog.integration.FoundationDynamicCatalogReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.schematype.usecase.SchemaTypeService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.integration.DynamicCatalogReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaDefaults;
@@ -19,19 +20,19 @@ public class SchemaResolver {
 
     private final SchemaRepository schemaRepository;
     private final SchemaVersionRepository versionRepository;
-    private final SchemaTypeService schemaTypeService;
+    private final DynamicCatalogReferenceResolver catalogReferenceResolver;
     private final WorkspaceReferenceResolver workspaceReferenceResolver;
     private final SchemaResolutionValidator validator = new SchemaResolutionValidator();
 
     public SchemaResolver(
             SchemaRepository schemaRepository,
             SchemaVersionRepository versionRepository,
-            SchemaTypeService schemaTypeService,
+            DynamicCatalogReferenceResolver catalogReferenceResolver,
             WorkspaceReferenceResolver workspaceReferenceResolver
     ) {
         this.schemaRepository = schemaRepository;
         this.versionRepository = versionRepository;
-        this.schemaTypeService = schemaTypeService;
+        this.catalogReferenceResolver = catalogReferenceResolver;
         this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
 
@@ -86,7 +87,9 @@ public class SchemaResolver {
             Schema schema,
             boolean fallback
     ) {
-        validator.requireActive(schema, schemaTypeService.existsActive(schema.getSchemaTypeCode()));
+        String schemaTypeCode = schema.getSchemaType().value();
+        validator.requireActive(schema, catalogReferenceResolver.existsActive(
+                FoundationDynamicCatalogReferenceResolver.SCHEMA_TYPE, schemaTypeCode));
 
         SchemaVersion version = versionRepository
                 .findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
@@ -97,7 +100,7 @@ public class SchemaResolver {
 
         return new SchemaResolution(
                 requestedType,
-                schema.getSchemaTypeCode(),
+                schemaTypeCode,
                 schema.getIdentifier(),
                 version.getIdentifier(),
                 version.getSchemaVersion(),
