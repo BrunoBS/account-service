@@ -4,7 +4,6 @@ import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.C
 import tools.jackson.databind.JsonNode;
 
 public record CreateSchemaRequest(
-        String schemaTypeCode,
         String code,
         String name,
         String description,
@@ -13,7 +12,6 @@ public record CreateSchemaRequest(
 ) {
     public CreateSchemaInput toPlatformInput() {
         return new CreateSchemaInput(
-                schemaTypeCode,
                 code,
                 name,
                 description,
@@ -25,7 +23,6 @@ public record CreateSchemaRequest(
 
     public CreateSchemaInput toWorkspaceInput(String workspaceIdentifier) {
         return new CreateSchemaInput(
-                schemaTypeCode,
                 code,
                 name,
                 description,

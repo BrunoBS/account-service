@@ -4,6 +4,9 @@ import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrat
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaDefaults;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,413 +14,114 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.*;
 
 @PlatformIntegrationTest
 @WithMySql
 @WithMockAuthorization
 class SchemaApiIT {
-
-    @LocalServerPort
-    private int port;
-
-    @Autowired
-    private AuthorizationMock authorizationMock;
-
-    @Autowired
-    private JdbcTemplate jdbc;
+    @LocalServerPort private int port;
+    @Autowired private AuthorizationMock authorization;
+    @Autowired private SchemaResolutionPort resolver;
+    @Autowired private JdbcTemplate jdbc;
 
     @BeforeEach
-    void authorizeAsOwner() {
-        authorizationMock.reset();
-        authorizationMock.allow(session -> session.groups("PM5_OWNER"));
-
-        jdbc.update("""
-                insert into type_life_cycle (code, label, description, sort_order, is_active, settings)
-                values
-                    ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}'),
-                    ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}'),
-                    ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')
-                on duplicate key update code = values(code)
-                """);
-
-        jdbc.update("""
-                insert into type_schema_scopes (code, label, description, sort_order, is_active, settings)
-                values
-                    ('PLATFORM', 'Platform', 'Platform-owned schema', 1, true, '{}'),
-                    ('WORKSPACE', 'Workspace', 'Workspace-owned schema', 2, true, '{}')
-                on duplicate key update code = values(code)
-                """);
-
-        jdbc.update("""
-                insert into type_schema_version_status (code, label, description, sort_order, is_active, settings)
-                values
-                    ('DRAFT', 'Draft', 'Schema version under edition', 1, true, '{}'),
-                    ('PUBLISHED', 'Published', 'Published immutable schema version', 2, true, '{}')
-                on duplicate key update code = values(code)
-                """);
+    void prepare() {
+        authorization.reset();
+        authorization.allow(session -> session.groups("PM5_OWNER"));
     }
 
     @Test
-    void shouldAdministerPlatformAndWorkspaceSchemasWithVersionPublication() {
-        String schemaTypeIdentifier = authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "code", "APPLICATION",
-                        "name", "Application",
-                        "description", "Application settings schema",
-                        "scope", "PLATFORM"
-                ))
-                .post("/api/v1/schema-types")
-                .then()
-                .statusCode(201)
-                .body("code", equalTo("APPLICATION"))
-                .body("name", equalTo("Application"))
-                .body("scope", equalTo("PLATFORM"))
-                .extract()
-                .path("identifier");
+    void schemaConfigurationFallsBackBeforePublicationAndResolvesPublishedDefinition() {
+        String code = "contract-" + UUID.randomUUID().toString().substring(0, 8);
+        String schema = post("/api/v1/schemas", Map.of("code", code, "name", "Platform Contract",
+                "definition", Map.of("type", "object"))).statusCode(201)
+                .body("scope", equalTo("PLATFORM")).extract().path("identifier");
 
-        authorized()
-                .get("/api/v1/schema-types/" + schemaTypeIdentifier)
-                .then()
-                .statusCode(200)
-                .body("code", equalTo("APPLICATION"));
+        String binding = post("/api/v1/schema-configurations", Map.of(
+                "resourceType", "FEATURE", "resourceCode", code, "schemaIdentifier", schema))
+                .statusCode(201).body("resourceCode", equalTo(code)).extract().path("identifier");
+        assertThat(resolver.resolve(SchemaResourceType.FEATURE, code)).isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
 
-        String platformSchemaIdentifier = authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "schemaTypeCode", "application",
-                        "code", "application",
-                        "name", "Application Platform Schema",
-                        "description", "Platform schema for application settings",
-                        "definition", Map.of("type", "object")
-                ))
-                .post("/api/v1/schemas")
-                .then()
-                .statusCode(201)
-                .body("schemaTypeCode", equalTo("APPLICATION"))
-                .body("scope", equalTo("PLATFORM"))
-                .extract()
-                .path("identifier");
-
-        authorized()
-                .get("/api/v1/schemas/" + UUID.randomUUID())
-                .then()
-                .statusCode(404);
-
-        authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "schemaTypeCode", "APPLICATION",
-                        "code", "INVALID_CODE",
-                        "name", "Invalid Schema",
-                        "definition", Map.of("type", "object")
-                ))
-                .post("/api/v1/schemas")
-                .then()
-                .statusCode(400);
-
-        authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "schemaTypeCode", "APPLICATION",
-                        "code", "application",
-                        "name", "Duplicate Schema",
-                        "definition", Map.of("type", "object")
-                ))
-                .post("/api/v1/schemas")
-                .then()
-                .statusCode(409);
-
-        authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of("version", -1, "name", "Updated schema"))
-                .put("/api/v1/schemas/" + platformSchemaIdentifier)
-                .then()
-                .statusCode(409);
-
-        authorized()
-                .get("/api/v1/schemas/" + platformSchemaIdentifier + "/versions")
-                .then()
-                .statusCode(200)
-                .body("version", hasItem(1))
-                .body("status", hasItem("DRAFT"));
-
-        String versionIdentifier = authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "versionName", "v1",
-                        "definition", Map.of(
-                                "type", "object",
-                                "properties", Map.of(
-                                        "repositoryUrl", Map.of("type", "string")
-                                )
-                        )
-                ))
-                .post("/api/v1/schemas/" + platformSchemaIdentifier + "/versions")
-                .then()
-                .statusCode(201)
-                .body("version", equalTo(1))
-                .body("status", equalTo("DRAFT"))
-                .extract()
-                .path("identifier");
-
-        authorized()
-                .patch("/api/v1/schemas/" + platformSchemaIdentifier
-                        + "/versions/" + versionIdentifier + "/publish")
-                .then()
-                .statusCode(200)
-                .body("status", equalTo("PUBLISHED"));
-
-        authorized()
-                .delete("/api/v1/schemas/" + platformSchemaIdentifier
-                        + "/versions/" + versionIdentifier)
-                .then()
-                .statusCode(409);
-
-        authorized()
-                .patch("/api/v1/schemas/" + platformSchemaIdentifier
-                        + "/versions/" + UUID.randomUUID() + "/publish")
-                .then()
-                .statusCode(404);
-
-        authorized()
-                .get("/api/v1/schemas/" + platformSchemaIdentifier + "/versions")
-                .then()
-                .statusCode(200)
-                .body("version", hasItem(1))
-                .body("status", hasItem("PUBLISHED"));
-
-        String workspaceIdentifier = UUID.randomUUID().toString();
-        seedWorkspace(workspaceIdentifier);
-
-        authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of("code", "WORKSPACE_APPLICATION", "name", "Workspace application",
-                        "scope", "WORKSPACE"))
-                .post("/api/v1/schema-types")
-                .then()
-                .statusCode(201);
-
-        String workspaceSchemaIdentifier = authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "schemaTypeCode", "WORKSPACE_APPLICATION",
-                        "code", "custom-application",
-                        "name", "Workspace Application Schema",
-                        "description", "Workspace-owned application schema",
-                        "definition", Map.of("type", "object")
-                ))
-                .post("/api/v1/workspaces/" + workspaceIdentifier + "/schemas")
-                .then()
-                .statusCode(201)
-                .body("scope", equalTo("WORKSPACE"))
-                .body("workspaceIdentifier", equalTo(workspaceIdentifier))
-                .extract()
-                .path("identifier");
-
-        authorized()
-                .get("/api/v1/workspaces/" + workspaceIdentifier + "/schemas")
-                .then()
-                .statusCode(200)
-                .body("identifier", hasItem(workspaceSchemaIdentifier));
-
-        authorized()
-                .get("/api/v1/schemas")
-                .then()
-                .statusCode(200)
-                .body("identifier", hasItem(platformSchemaIdentifier));
-    }
-
-
-    @Test
-    void shouldEnforceSchemaTypeScopeAndDeletionRules() {
-        String workspaceIdentifier = UUID.randomUUID().toString();
-        seedWorkspace(workspaceIdentifier);
-
-        Map<String, Object> platformOnlyType = authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "code", "PLATFORM_ONLY",
-                        "name", "Platform only",
-                        "description", "Platform-only schema type",
-                        "scope", "PLATFORM"
-                ))
-                .post("/api/v1/schema-types")
-                .then()
-                .statusCode(201)
-                .extract()
-                .as(Map.class);
-
-        String platformOnlyIdentifier = (String) platformOnlyType.get("identifier");
-        Number platformOnlyVersion = (Number) platformOnlyType.get("version");
-
-        authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "schemaTypeCode", "PLATFORM_ONLY",
-                        "code", "workspace-forbidden",
-                        "name", "Workspace forbidden",
-                        "definition", Map.of("type", "object")
-                ))
-                .post("/api/v1/workspaces/" + workspaceIdentifier + "/schemas")
-                .then()
-                .statusCode(400);
-
-        authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "schemaTypeCode", "PLATFORM_ONLY",
-                        "code", "platform-only",
-                        "name", "Platform only schema",
-                        "definition", Map.of("type", "object")
-                ))
-                .post("/api/v1/schemas")
-                .then()
-                .statusCode(201);
-
-        authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "version", platformOnlyVersion.longValue(),
-                        "name", "Platform only",
-                        "description", "Attempt to remove used platform scope",
-                        "scope", "WORKSPACE"
-                ))
-                .put("/api/v1/schema-types/" + platformOnlyIdentifier)
-                .then()
-                .statusCode(409);
-
-        authorized()
-                .delete("/api/v1/schema-types/" + platformOnlyIdentifier)
-                .then()
-                .statusCode(409);
-
-        authorized()
-                .patch("/api/v1/schema-types/" + platformOnlyIdentifier + "/inactivate")
-                .then()
+        String version = get("/api/v1/schemas/" + schema + "/versions").statusCode(200)
+                .extract().path("[0].identifier");
+        patch("/api/v1/schemas/" + schema + "/versions/" + version + "/publish")
                 .statusCode(200);
+        assertThat(resolver.resolve(SchemaResourceType.FEATURE, code)).contains("\"type\":\"object\"");
 
-        authorized()
-                .delete("/api/v1/schema-types/" + platformOnlyIdentifier)
-                .then()
+        post("/api/v1/schema-configurations", Map.of(
+                "resourceType", "FEATURE", "resourceCode", code, "schemaIdentifier", schema))
                 .statusCode(409);
-
-        String unusedTypeIdentifier = authorized()
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "code", "UNUSED",
-                        "name", "Unused",
-                        "scope", "PLATFORM"
-                ))
-                .post("/api/v1/schema-types")
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("identifier");
-
-        authorized()
-                .delete("/api/v1/schema-types/" + unusedTypeIdentifier)
-                .then()
-                .statusCode(409);
-
-        authorized()
-                .patch("/api/v1/schema-types/" + unusedTypeIdentifier + "/inactivate")
-                .then()
-                .statusCode(200);
-
-        authorized()
-                .delete("/api/v1/schema-types/" + unusedTypeIdentifier)
-                .then()
-                .statusCode(204);
+        patch("/api/v1/schema-configurations/" + binding + "/inactivate").statusCode(200);
+        assertThat(resolver.resolve(SchemaResourceType.FEATURE, code)).isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
+        delete("/api/v1/schema-configurations/" + binding).statusCode(204);
     }
 
     @Test
-    void shouldProtectDefaultSchemaTypeAndDefaultPlatformSchema() {
-        seedDefaultFallback();
-        String defaultTypeIdentifier = jdbc.queryForObject(
-                "select identifier from schema_types where code = 'DEFAULT'",
-                String.class
-        );
-        String defaultSchemaIdentifier = jdbc.queryForObject(
-                "select identifier from schema_definitions " +
-                        "where schema_type_code = 'DEFAULT' and scope_code = 'PLATFORM'",
-                String.class
-        );
-
-        authorized()
-                .patch("/api/v1/schema-types/" + defaultTypeIdentifier + "/inactivate")
-                .then()
-                .statusCode(409);
-
-        authorized()
-                .delete("/api/v1/schema-types/" + defaultTypeIdentifier)
-                .then()
-                .statusCode(409);
-
-        authorized()
-                .patch("/api/v1/schemas/" + defaultSchemaIdentifier + "/inactivate")
-                .then()
-                .statusCode(409);
-
-        authorized()
-                .delete("/api/v1/schemas/" + defaultSchemaIdentifier)
-                .then()
-                .statusCode(409);
+    void sameCodeCanBeBoundInTwoResourceCategoriesAndPublisherTypesRemainDistinct() {
+        String name = "contract-" + UUID.randomUUID().toString().substring(0, 8);
+        String schema = post("/api/v1/schemas", Map.of("code", name, "name", "Shared Contract",
+                "definition", Map.of("type", "object"))).statusCode(201)
+                .extract().path("identifier");
+        post("/api/v1/schema-configurations", Map.of("resourceType", "FEATURE",
+                "resourceCode", name, "schemaIdentifier", schema)).statusCode(201);
+        post("/api/v1/schema-configurations", Map.of("resourceType", "CATALOG",
+                "resourceCode", name, "schemaIdentifier", schema)).statusCode(201);
+        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
+                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
+        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "KAAS"))
+                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
     }
 
-    private void seedDefaultFallback() {
-        jdbc.update("""
-                insert into schema_types
-                    (version, identifier, code, name, description, lifecycle_code, scope_code, created_at, updated_at)
-                values
-                    (0, UUID(), 'DEFAULT', 'Default', 'Platform fallback schema type',
-                     'ACTIVE', 'PLATFORM', current_timestamp, current_timestamp)
-                """);
-
-        jdbc.update("""
-                insert into schema_definitions
-                    (version, identifier, schema_type_code, scope_code, workspace_id,
-                     code, name, description, lifecycle_code, created_at, updated_at)
-                values
-                    (0, UUID(), 'DEFAULT', 'PLATFORM', null,
-                     'default', 'Default', 'Permissive platform fallback',
-                     'ACTIVE', current_timestamp, current_timestamp)
-                """);
-    }
-
-    private void seedWorkspace(String identifier) {
+    @Test
+    void workspaceSchemasRemainScopedAndRequirePublication() {
+        String workspace = UUID.randomUUID().toString();
         jdbc.update("""
                 insert into type_workspaces (code, label, description, sort_order, is_active, settings)
                 values ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')
                 on duplicate key update code = values(code)
                 """);
-
         jdbc.update("""
-                        insert into workspaces
-                            (version, identifier, workspace_type_code, name, description, requester,
-                             acronym, settings, authorizer_group, email_group, onboarding,
-                             lifecycle_code, created_at, updated_at)
-                        values
-                            (0, ?, 'ADMIN', ?, 'Schema integration workspace', 'integration-test',
-                             'SCH', null, null, 'schema-it@example.com', false,
-                             'ACTIVE', current_timestamp, current_timestamp)
-                        """,
-                identifier,
-                "Schema IT " + identifier.substring(0, 8)
-        );
+                insert into workspaces
+                    (version, identifier, workspace_type_code, name, description, requester,
+                     acronym, settings, authorizer_group, email_group, onboarding,
+                     lifecycle_code, created_at, updated_at)
+                values (0, ?, 'ADMIN', ?, 'Schema test workspace', 'integration-test',
+                        'SCH', null, null, 'schema-it@example.com', false, 'ACTIVE',
+                        current_timestamp, current_timestamp)
+                """, workspace, "Schema " + workspace.substring(0, 8));
+        String code = "workspace-" + workspace.substring(0, 8);
+        String path = "/api/v1/workspaces/" + workspace + "/schemas";
+        String schema = post(path, Map.of("code", code, "name", "Workspace Contract",
+                "definition", Map.of("type", "object")))
+                .statusCode(201).body("workspaceIdentifier", equalTo(workspace))
+                .extract().path("identifier");
+        get(path + "/" + schema).statusCode(200).body("code", equalTo(code));
+        get("/api/v1/schemas/" + schema).statusCode(404);
+        assertThat(resolver.resolve(SchemaResourceType.WORKSPACE, code))
+                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
     }
 
-    private io.restassured.specification.RequestSpecification authorized() {
-        return given()
-                .port(port)
-                .header("X-Correlation-Id", "schema-api-it")
-                .header("Authorization", "Bearer schema-api-it")
-                .accept(ContentType.JSON);
+    private io.restassured.specification.RequestSpecification request() {
+        return given().port(port).header("X-Correlation-Id", "schema-configuration-it")
+                .header("Authorization", "Bearer schema-configuration-it").accept(ContentType.JSON);
+    }
+    private io.restassured.response.ValidatableResponse post(String path, Object body) {
+        return request().contentType(ContentType.JSON).body(body).when().post(path).then();
+    }
+    private io.restassured.response.ValidatableResponse get(String path) {
+        return request().when().get(path).then();
+    }
+    private io.restassured.response.ValidatableResponse patch(String path) {
+        return request().when().patch(path).then();
+    }
+    private io.restassured.response.ValidatableResponse delete(String path) {
+        return request().when().delete(path).then();
     }
 }

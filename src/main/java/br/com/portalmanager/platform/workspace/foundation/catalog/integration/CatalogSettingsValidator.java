@@ -3,7 +3,8 @@ package br.com.portalmanager.platform.workspace.foundation.catalog.integration;
 import br.com.portalmanager.platform.library.catalog.validation.CatalogValidationResult;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.foundation.integration.JsonSchemaValidator;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 
@@ -13,29 +14,23 @@ public class CatalogSettingsValidator {
     private static final String SETTINGS = "settings";
 
     private final JsonSchemaValidator jsonSchemaValidator;
-    private final SchemaResolutionPort schemaResolutionPort;
+    private final SchemaSettingsValidator settingsValidator;
 
     public CatalogSettingsValidator(
             JsonSchemaValidator jsonSchemaValidator,
-            SchemaResolutionPort schemaResolutionPort
+            SchemaSettingsValidator settingsValidator
     ) {
         this.jsonSchemaValidator = jsonSchemaValidator;
-        this.schemaResolutionPort = schemaResolutionPort;
+        this.settingsValidator = settingsValidator;
     }
 
     public void validateSettings(
-            String schemaTypeCode,
+            String catalogCode,
             JsonNode settings,
             CatalogValidationResult result
     ) {
         ValidationResult schemaResult = new ValidationResult();
-        String definition = schemaResolutionPort.resolvePlatform(schemaTypeCode);
-        jsonSchemaValidator.validateJson(
-                definition,
-                settings,
-                SETTINGS,
-                schemaResult
-        );
+        settingsValidator.validate(SchemaResourceType.CATALOG, catalogCode, settings, schemaResult);
 
         schemaResult.getDetails().forEach(detail ->
                 result.addError(detail.field(), detail.messageKey(), detail.parameters())

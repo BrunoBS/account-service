@@ -23,10 +23,6 @@ public class Schema {
     private String identifier;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "schema_type_code", nullable = false, length = 50))
-    private SchemaTypeCode schemaType;
-
-    @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "scope_code", nullable = false, length = 50))
     private SchemaScopeTypeCode scope;
 
@@ -56,7 +52,6 @@ public class Schema {
     }
 
     public Schema(
-            SchemaTypeCode schemaType,
             SchemaScopeTypeCode scope,
             Long workspaceId,
             String code,
@@ -65,7 +60,6 @@ public class Schema {
             LocalDateTime now
     ) {
         this.identifier = UUID.randomUUID().toString();
-        this.schemaType = schemaType;
         this.scope = scope;
         this.workspaceId = workspaceId;
         this.code = code;
@@ -111,10 +105,6 @@ public class Schema {
 
     public String getIdentifier() {
         return identifier;
-    }
-
-    public SchemaTypeCode getSchemaType() {
-        return schemaType;
     }
 
     public SchemaScopeTypeCode getScope() {

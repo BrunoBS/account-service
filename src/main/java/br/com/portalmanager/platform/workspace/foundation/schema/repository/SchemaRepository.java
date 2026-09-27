@@ -59,43 +59,14 @@ public interface SchemaRepository extends JpaRepository<Schema, Long> {
 
     @Query("""
             select s from Schema s
-             where s.schemaType.value = :schemaTypeCode
-               and s.scope.value = :scopeCode
-               and ((:workspaceId is null and s.workspaceId is null)
-                    or s.workspaceId = :workspaceId)
-            """)
-    Optional<Schema> findByTypeAndScope(
-            @Param("schemaTypeCode") String schemaTypeCode,
-            @Param("scopeCode") String scopeCode,
-            @Param("workspaceId") Long workspaceId
-    );
-
-    @Query("""
-            select s from Schema s
-             where s.schemaType.value = :schemaTypeCode
-               and s.scope.value = :scopeCode
+             where s.scope.value = :scopeCode
                and ((:workspaceId is null and s.workspaceId is null)
                     or s.workspaceId = :workspaceId)
                and s.code = :code
             """)
-    Optional<Schema> findByTypeScopeAndCode(
-            @Param("schemaTypeCode") String schemaTypeCode,
+    Optional<Schema> findByScopeAndCode(
             @Param("scopeCode") String scopeCode,
             @Param("workspaceId") Long workspaceId,
             @Param("code") String code
     );
-
-    @Query("select count(s) > 0 from Schema s where s.schemaType.value = :schemaTypeCode")
-    boolean existsBySchemaTypeCode(@Param("schemaTypeCode") String schemaTypeCode);
-
-    @Query("""
-            select count(s) > 0 from Schema s
-             where s.schemaType.value = :schemaTypeCode
-               and s.scope.value = :scopeCode
-            """)
-    boolean existsBySchemaTypeCodeAndScope(
-            @Param("schemaTypeCode") String schemaTypeCode,
-            @Param("scopeCode") String scopeCode
-    );
 }
-

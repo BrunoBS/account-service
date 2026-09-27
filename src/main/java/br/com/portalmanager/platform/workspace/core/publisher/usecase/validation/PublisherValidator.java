@@ -4,14 +4,11 @@ import br.com.portalmanager.platform.library.messaging.exception.ResourceVersion
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.core.publisher.domain.PublisherMessageKeys;
-import br.com.portalmanager.platform.workspace.core.publisher.domain.PublisherSchemaType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.usecase.ResourceScopeTypeService;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.CreatePublisherInput;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.UpdatePublisherInput;
-import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schematype.SchemaTypeQueryService;
 import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.Objects;
@@ -20,10 +17,8 @@ import java.util.regex.Pattern;
 @Component
 public class PublisherValidator {
     private static final Pattern CODE = Pattern.compile("^[A-Z][A-Z0-9_]{0,39}$");
-    private final SchemaTypeQueryService schemaTypes;
     private final ResourceScopeTypeService scopeService;
-    public PublisherValidator(SchemaTypeQueryService schemaTypes, ResourceScopeTypeService scopeService) {
-        this.schemaTypes = schemaTypes;
+    public PublisherValidator(ResourceScopeTypeService scopeService) {
         this.scopeService = scopeService;
     }
 
@@ -35,10 +30,6 @@ public class PublisherValidator {
         if (duplicate) result.addError("code", PublisherMessageKeys.CODE_DUPLICATE);
         common(input.name(), input.description(), input.scope(), result);
         reject(result);
-        if (schemaTypes.findActiveAllowed(PublisherSchemaType.forCode(input.code()), SchemaScopeTypeCode.platform()).isEmpty()) {
-            result.addError("code", PublisherMessageKeys.SCHEMA_TYPE_REQUIRED);
-            reject(result);
-        }
         return ResourceScopeTypeCode.of(input.scope());
     }
 

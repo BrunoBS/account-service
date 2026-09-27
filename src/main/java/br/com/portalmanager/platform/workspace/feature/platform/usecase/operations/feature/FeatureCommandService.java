@@ -49,6 +49,7 @@ public class FeatureCommandService {
     public FeatureOutput create(CreateFeatureInput input) {
         validator.validateCreate(input, input != null && features.existsByCode(input.code()),
                 input != null && features.existsByName(input.name()));
+        validator.validateSettings(input.code(), input.settings());
         Microservice microservice = requiredMicroservice(input.microserviceIdentifier());
         validator.validateMicroservice(microservice);
         return FeatureOutput.from(features.save(new Feature(
@@ -66,6 +67,7 @@ public class FeatureCommandService {
         Feature feature = requiredFeature(identifier);
         validator.validateUpdate(input, input != null && !feature.getName().equals(input.name())
                 && features.existsByName(input.name()));
+        validator.validateSettings(feature.getCode(), input.settings());
         Microservice microservice = requiredMicroservice(input.microserviceIdentifier());
         validator.validateMicroservice(microservice);
         if (!feature.getMicroservice().getIdentifier().equals(microservice.getIdentifier())) {
