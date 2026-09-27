@@ -40,6 +40,13 @@ class SchemaTypeCommandServiceTest {
     }
 
     @Test
+    void rejectsDefaultTypeOutsidePlatformOnly() {
+        assertThatThrownBy(() -> service.create(new CreateSchemaTypeInput(
+                "DEFAULT", "Default", null, Set.of("PLATFORM", "WORKSPACE")
+        ))).isInstanceOf(ValidationException.class);
+    }
+
+    @Test
     void rejectsDuplicateCode() {
         when(repository.existsByCode("APPLICATION")).thenReturn(true);
 
