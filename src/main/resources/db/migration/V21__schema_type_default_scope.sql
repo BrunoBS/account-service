@@ -2,6 +2,11 @@ UPDATE schema_types
 SET lifecycle_code = 'ACTIVE'
 WHERE code = 'DEFAULT';
 
+UPDATE schema_definitions
+SET lifecycle_code = 'ACTIVE'
+WHERE schema_type_code = 'DEFAULT'
+  AND scope_code = 'PLATFORM';
+
 DELETE sts
 FROM schema_type_scopes sts
 JOIN schema_types st ON st.id = sts.schema_type_id
