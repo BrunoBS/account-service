@@ -169,18 +169,11 @@ class CatalogApiIT {
                 """);
         jdbc.update("""
                 insert into schema_types
-                    (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
+                    (version, identifier, code, name, description, lifecycle_code, scope_code, created_at, updated_at)
                 values (0, UUID(), 'WORKSPACE_TYPE', 'Workspace type', null,
-                        'ACTIVE', current_timestamp, current_timestamp)
+                        'ACTIVE', 'PLATFORM', current_timestamp, current_timestamp)
                 on duplicate key update lifecycle_code = 'ACTIVE'
                 """);
-        Long typeId = jdbc.queryForObject(
-                "select id from schema_types where code = 'WORKSPACE_TYPE'", Long.class);
-        jdbc.update("""
-                insert into schema_type_scopes (schema_type_id, scope_code)
-                values (?, 'PLATFORM')
-                on duplicate key update scope_code = 'PLATFORM'
-                """, typeId);
         jdbc.update("""
                 insert into schema_definitions
                     (version, identifier, schema_type_code, scope_code, workspace_id,

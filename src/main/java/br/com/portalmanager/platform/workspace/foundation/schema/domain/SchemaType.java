@@ -5,9 +5,7 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetyp
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -38,10 +36,9 @@ public class SchemaType {
     @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
     private LifecycleTypeCode lifecycle;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "schema_type_scopes", joinColumns = @JoinColumn(name = "schema_type_id"))
+    @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "scope_code", nullable = false, length = 50))
-    private Set<SchemaScopeTypeCode> scopes = new LinkedHashSet<>();
+    private SchemaScopeTypeCode scope;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -63,7 +60,7 @@ public class SchemaType {
         this.code = code.trim().toUpperCase();
         this.name = name.trim();
         this.description = description;
-        setScope(scope);
+        this.scope = scope;
         this.lifecycle = LifecycleTypeCode.active();
         this.createdAt = now;
         this.updatedAt = now;
@@ -77,7 +74,7 @@ public class SchemaType {
     ) {
         this.name = name.trim();
         this.description = description;
-        setScope(scope);
+        this.scope = scope;
         this.updatedAt = now;
     }
 
@@ -99,13 +96,6 @@ public class SchemaType {
         this.updatedAt = now;
     }
 
-    private void setScope(SchemaScopeTypeCode scope) {
-        this.scopes.clear();
-        if (scope != null) {
-            this.scopes.add(scope);
-        }
-    }
-
     public Long getId() { return id; }
     public Long getVersion() { return version; }
     public String getIdentifier() { return identifier; }
@@ -113,7 +103,7 @@ public class SchemaType {
     public String getName() { return name; }
     public String getDescription() { return description; }
     public LifecycleTypeCode getLifecycle() { return lifecycle; }
-    public SchemaScopeTypeCode getScope() { return scopes.stream().findFirst().orElse(null); }
+    public SchemaScopeTypeCode getScope() { return scope; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

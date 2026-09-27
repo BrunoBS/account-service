@@ -374,22 +374,11 @@ class SchemaApiIT {
     private void seedDefaultFallback() {
         jdbc.update("""
                 insert into schema_types
-                    (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
+                    (version, identifier, code, name, description, lifecycle_code, scope_code, created_at, updated_at)
                 values
                     (0, UUID(), 'DEFAULT', 'Default', 'Platform fallback schema type',
-                     'ACTIVE', current_timestamp, current_timestamp)
+                     'ACTIVE', 'PLATFORM', current_timestamp, current_timestamp)
                 """);
-
-        Long schemaTypeId = jdbc.queryForObject(
-                "select id from schema_types where code = 'DEFAULT'",
-                Long.class
-        );
-
-        jdbc.update("""
-                insert into schema_type_scopes
-                    (schema_type_id, scope_code)
-                values (?, 'PLATFORM')
-                """, schemaTypeId);
 
         jdbc.update("""
                 insert into schema_definitions
