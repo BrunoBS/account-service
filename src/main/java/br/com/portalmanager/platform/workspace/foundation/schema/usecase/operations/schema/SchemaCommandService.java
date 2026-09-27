@@ -3,6 +3,7 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operat
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.integration.FoundationDynamicCatalogReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.catalog.schematype.domain.SchemaTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.DynamicCatalogReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
@@ -116,8 +117,8 @@ public class SchemaCommandService {
         validator.requireValidSchemaSyntax(input.definition(), DEFINITION);
 
         LocalDateTime now = LocalDateTime.now();
-        Schema schema = repository.save(new Schema(input.schemaTypeCode(), scope, workspaceId, input.code(),
-                input.name(), input.description(), now));
+        Schema schema = repository.save(new Schema(SchemaTypeCode.of(input.schemaTypeCode()), scope, workspaceId,
+                input.code(), input.name(), input.description(), now));
 
         String definition = validator.toJsonString(input.definition(), DEFINITION);
         versionValidator.validateCreate(schema, 1, definition, SchemaVersionStatusTypeCode.draft());
