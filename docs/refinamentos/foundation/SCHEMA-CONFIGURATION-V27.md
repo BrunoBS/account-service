@@ -27,6 +27,10 @@ resolução explícita por workspace e código, sem fallback de plataforma.
 
 V27 copia vínculos de schemas de plataforma existentes, retira o registro
 DEFAULT persistido e remove as tabelas antigas de SchemaType. Quando schemas
+possuem tipo legado fora das categorias reconhecidas, as definições permanecem
+no banco sem binding automático; o administrador deve vinculá-las após avaliar
+o recurso correto. Tipos antigos cadastrados sem Schema não geram binding.
+Quando schemas
 legados de um mesmo escopo e owner compartilham código e se distinguem apenas
 pelo antigo SchemaType, V27 acrescenta um sufixo determinístico aos códigos
 colidentes para preservar os registros. Aplicações que consultavam diretamente

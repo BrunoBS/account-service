@@ -66,6 +66,31 @@ class SchemaResolverTest {
     }
 
     @Test
+    void eachPublisherTypeUsesItsOwnPublishedJsonSchema() {
+        Schema web = schema("web-schema", SchemaScopeTypeCode.platform());
+        Schema kaas = mock(Schema.class);
+        when(kaas.isActive()).thenReturn(true);
+        when(kaas.getId()).thenReturn(10L);
+        var webBinding = new SchemaConfiguration(SchemaResourceType.PUBLISHER, "WEB_SOCKET", web, LocalDateTime.now());
+        var kaasBinding = new SchemaConfiguration(SchemaResourceType.PUBLISHER, "KAAS", kaas, LocalDateTime.now());
+        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
+                .thenReturn(Optional.of(webBinding));
+        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "KAAS"))
+                .thenReturn(Optional.of(kaasBinding));
+        var webVersion = new SchemaVersion(web, 1, "v1", "{\"required\":[\"url\"]}",
+                SchemaVersionStatusTypeCode.published(), LocalDateTime.now());
+        var kaasVersion = new SchemaVersion(kaas, 1, "v1", "{\"required\":[\"bucket\"]}",
+                SchemaVersionStatusTypeCode.published(), LocalDateTime.now());
+        when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(9L, SchemaVersionStatusTypeCode.published()))
+                .thenReturn(Optional.of(webVersion));
+        when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(10L, SchemaVersionStatusTypeCode.published()))
+                .thenReturn(Optional.of(kaasVersion));
+
+        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "WEB_SOCKET")).isEqualTo(webVersion.getDefinition());
+        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "KAAS")).isEqualTo(kaasVersion.getDefinition());
+    }
+
+    @Test
     void workspaceStillRequiresItsOwnPublishedSchemaWithoutDefaultFallback() {
         when(workspaces.resolveInternalId("workspace-id")).thenReturn(7L);
         assertThatThrownBy(() -> resolver.resolveWorkspace("workspace-id", "settings"))

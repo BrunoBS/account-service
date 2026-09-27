@@ -25,22 +25,21 @@ SELECT 0, UUID(),
        CASE
            WHEN sd.schema_type_code IN ('WORKSPACE', 'APPLICATION', 'ENVIRONMENT', 'PUBLISHER', 'FEATURE', 'MICROSERVICE')
                THEN sd.schema_type_code
-           WHEN sd.schema_type_code LIKE 'PUBLISHER\_%' THEN 'PUBLISHER'
-           WHEN sd.schema_type_code LIKE 'FEATURE\_%' THEN 'FEATURE'
-           WHEN sd.schema_type_code LIKE '%\_TYPE' THEN 'CATALOG'
-           ELSE 'CATALOG'
+           WHEN LEFT(sd.schema_type_code, 10) = 'PUBLISHER_' THEN 'PUBLISHER'
+           WHEN LEFT(sd.schema_type_code, 8) = 'FEATURE_' THEN 'FEATURE'
+           WHEN RIGHT(sd.schema_type_code, 5) = '_TYPE' THEN 'CATALOG'
        END,
        CASE
-           WHEN sd.schema_type_code LIKE 'PUBLISHER\_%'
+           WHEN LEFT(sd.schema_type_code, 10) = 'PUBLISHER_'
                THEN SUBSTRING(sd.schema_type_code, 11)
-           WHEN sd.schema_type_code LIKE 'FEATURE\_%'
+           WHEN LEFT(sd.schema_type_code, 8) = 'FEATURE_'
                THEN LOWER(REPLACE(SUBSTRING(sd.schema_type_code, 9), '_', '-'))
-           WHEN sd.schema_type_code LIKE '%\_TYPE'
+           WHEN RIGHT(sd.schema_type_code, 5) = '_TYPE'
                THEN LOWER(REPLACE(sd.schema_type_code, '_', '-'))
            WHEN sd.schema_type_code = 'ENVIRONMENT' THEN 'workspace'
-           WHEN sd.schema_type_code IN ('WORKSPACE', 'APPLICATION', 'PUBLISHER', 'FEATURE', 'MICROSERVICE')
+           WHEN sd.schema_type_code = 'PUBLISHER' THEN UPPER(sd.code)
+           WHEN sd.schema_type_code IN ('WORKSPACE', 'APPLICATION', 'FEATURE', 'MICROSERVICE')
                THEN LOWER(REPLACE(sd.code, '_', '-'))
-           ELSE LOWER(REPLACE(sd.schema_type_code, '_', '-'))
        END,
        sd.id,
        CASE WHEN st.lifecycle_code = 'ACTIVE' THEN sd.lifecycle_code ELSE 'INACTIVE' END,
@@ -49,7 +48,11 @@ FROM schema_definitions sd
 JOIN schema_types st ON st.code = sd.schema_type_code
 WHERE sd.scope_code = 'PLATFORM'
   AND sd.schema_type_code <> 'DEFAULT'
-  AND sd.lifecycle_code <> 'QUARANTINED';
+  AND sd.lifecycle_code <> 'QUARANTINED'
+  AND (sd.schema_type_code IN ('WORKSPACE', 'APPLICATION', 'ENVIRONMENT', 'PUBLISHER', 'FEATURE', 'MICROSERVICE')
+       OR LEFT(sd.schema_type_code, 10) = 'PUBLISHER_'
+       OR LEFT(sd.schema_type_code, 8) = 'FEATURE_'
+       OR RIGHT(sd.schema_type_code, 5) = '_TYPE');
 
 -- The old unique key included schema_type_code; preserve colliding schema rows
 -- by giving only the conflicting codes a deterministic, valid suffix.

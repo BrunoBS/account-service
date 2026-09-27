@@ -134,6 +134,20 @@ class PlatformApiIT {
                 .statusCode(204);
     }
 
+    @Test
+    void rejectsMalformedFeatureSettingsBeforePersistence() {
+        String microserviceIdentifier = authorized().contentType(ContentType.JSON)
+                .body(Map.of("code", "settings-service", "name", "Settings Service",
+                        "description", "Schema validation test"))
+                .post("/api/v1/platform/microservices").then().statusCode(201)
+                .extract().path("identifier");
+        authorized().contentType(ContentType.JSON)
+                .body(Map.of("code", "invalid-settings-feature", "name", "Invalid Settings",
+                        "microserviceIdentifier", microserviceIdentifier, "settings", "not-json"))
+                .post("/api/v1/platform/features").then().statusCode(400)
+                .body("details.field", hasItem("settings"));
+    }
+
     private io.restassured.specification.RequestSpecification authorized() {
         return given()
                 .port(port)
