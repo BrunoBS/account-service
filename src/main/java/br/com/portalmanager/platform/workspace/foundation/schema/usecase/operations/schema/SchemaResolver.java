@@ -15,6 +15,8 @@ import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validat
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
+
 @Component
 public class SchemaResolver implements SchemaResolutionPort {
 
@@ -39,7 +41,7 @@ public class SchemaResolver implements SchemaResolutionPort {
     @Override
     @Transactional(readOnly = true)
     public SchemaResolution resolvePlatform(String schemaTypeCode) {
-        String requestedType = validator.normalizeRequired(schemaTypeCode);
+        String requestedType = normalizeSchemaTypeCode(schemaTypeCode);
 
         var specificType = schemaTypeQueryService.findActiveAllowed(
                 requestedType,
@@ -78,7 +80,7 @@ public class SchemaResolver implements SchemaResolutionPort {
     ) {
         String workspace = validator.normalizeRequired(workspaceIdentifier);
         Long workspaceId = workspaceReferenceResolver.resolveInternalId(workspace);
-        String type = validator.normalizeRequired(schemaTypeCode);
+        String type = normalizeSchemaTypeCode(schemaTypeCode);
         String canonicalType = schemaTypeQueryService
                 .requireActiveAllowed(type, SchemaScopeTypeCode.workspace())
                 .getCode();
@@ -93,6 +95,10 @@ public class SchemaResolver implements SchemaResolutionPort {
                 .orElseThrow(validator::schemaNotFound);
 
         return resolution(canonicalType, schema, false);
+    }
+
+    private String normalizeSchemaTypeCode(String schemaTypeCode) {
+        return validator.normalizeRequired(schemaTypeCode).toUpperCase(Locale.ROOT);
     }
 
     private SchemaResolution resolution(
