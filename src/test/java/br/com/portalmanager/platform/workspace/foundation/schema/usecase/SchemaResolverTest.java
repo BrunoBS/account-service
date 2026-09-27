@@ -1,7 +1,9 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase;
 
-import br.com.portalmanager.platform.workspace.foundation.catalog.schematype.usecase.SchemaTypeService;
+import br.com.portalmanager.platform.workspace.foundation.catalog.integration.FoundationDynamicCatalogReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.catalog.schematype.domain.SchemaTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.integration.DynamicCatalogReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
@@ -22,10 +24,10 @@ class SchemaResolverTest {
 
     private final SchemaRepository schemaRepository = mock(SchemaRepository.class);
     private final SchemaVersionRepository versionRepository = mock(SchemaVersionRepository.class);
-    private final SchemaTypeService schemaTypeService = mock(SchemaTypeService.class);
+    private final DynamicCatalogReferenceResolver catalogReferenceResolver = mock(DynamicCatalogReferenceResolver.class);
     private final WorkspaceReferenceResolver workspaceReferenceResolver = mock(WorkspaceReferenceResolver.class);
     private final SchemaResolver resolver =
-            new SchemaResolver(schemaRepository, versionRepository, schemaTypeService, workspaceReferenceResolver);
+            new SchemaResolver(schemaRepository, versionRepository, catalogReferenceResolver, workspaceReferenceResolver);
 
     @Test
     void shouldResolveLatestPublishedPlatformSchema() {
@@ -68,7 +70,6 @@ class SchemaResolverTest {
         assertThat(resolution.fallback()).isTrue();
     }
 
-
     @Test
     void shouldResolveWorkspaceThroughActiveWorkspaceBoundary() {
         Schema schema = activeSchema("APPLICATION", "schema-workspace");
@@ -100,10 +101,11 @@ class SchemaResolverTest {
 
     private Schema activeSchema(String typeCode, String identifier) {
         Schema schema = mock(Schema.class);
-        when(schema.getSchemaTypeCode()).thenReturn(typeCode);
+        when(schema.getSchemaType()).thenReturn(SchemaTypeCode.of(typeCode));
         when(schema.isActive()).thenReturn(true);
         when(schema.getIdentifier()).thenReturn(identifier);
-        when(schemaTypeService.existsActive(typeCode)).thenReturn(true);
+        when(catalogReferenceResolver.existsActive(
+                FoundationDynamicCatalogReferenceResolver.SCHEMA_TYPE, typeCode)).thenReturn(true);
         return schema;
     }
 
