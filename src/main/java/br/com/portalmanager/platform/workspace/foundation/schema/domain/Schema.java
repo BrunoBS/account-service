@@ -2,7 +2,6 @@ package br.com.portalmanager.platform.workspace.foundation.schema.domain;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.schematype.domain.SchemaTypeCode;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
