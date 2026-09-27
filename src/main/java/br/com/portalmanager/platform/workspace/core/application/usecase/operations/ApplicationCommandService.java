@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.model.Ap
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.validation.ApplicationValidator;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,20 +22,26 @@ public class ApplicationCommandService {
     private final ApplicationNormalizer normalizer;
     private final ApplicationValidator validator;
     private final ApplicationTagManager tags;
+    private final ApplicationQueryService visibility;
+    private final WorkspaceQueryService workspaceVisibility;
 
     public ApplicationCommandService(ApplicationRepository repository, ApplicationFinder finder,
                                      WorkspaceReferenceResolver workspaces, ApplicationNormalizer normalizer,
-                                     ApplicationValidator validator, ApplicationTagManager tags) {
+                                     ApplicationValidator validator, ApplicationTagManager tags,
+                                     ApplicationQueryService visibility, WorkspaceQueryService workspaceVisibility) {
         this.repository = repository;
         this.finder = finder;
         this.workspaces = workspaces;
         this.normalizer = normalizer;
         this.validator = validator;
         this.tags = tags;
+        this.visibility = visibility;
+        this.workspaceVisibility = workspaceVisibility;
     }
 
     @Transactional
     public ApplicationOutput create(String workspaceIdentifier, CreateApplicationInput raw) {
+        workspaceVisibility.findByIdentifier(workspaceIdentifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         CreateApplicationInput input = normalizer.normalize(raw);
         boolean duplicate = input != null && input.name() != null &&
@@ -49,6 +56,7 @@ public class ApplicationCommandService {
 
     @Transactional
     public ApplicationOutput update(String workspaceIdentifier, String identifier, UpdateApplicationInput raw) {
+        visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findActive(identifier, workspaceId);
         UpdateApplicationInput input = normalizer.normalize(raw);
@@ -65,6 +73,7 @@ public class ApplicationCommandService {
 
     @Transactional
     public void inactivate(String workspaceIdentifier, String identifier) {
+        visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findActive(identifier, workspaceId);
         app.inactivate(LocalDateTime.now());
@@ -73,6 +82,7 @@ public class ApplicationCommandService {
 
     @Transactional
     public ApplicationOutput restore(String workspaceIdentifier, String identifier) {
+        visibility.findInactiveByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findInactive(identifier, workspaceId);
         List<String> manualTags = tags.findManual(app);
@@ -84,6 +94,7 @@ public class ApplicationCommandService {
 
     @Transactional
     public void delete(String workspaceIdentifier, String identifier) {
+        visibility.findInactiveForDeletion(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findInactiveForDeletion(identifier, workspaceId);
         app.quarantine(LocalDateTime.now());

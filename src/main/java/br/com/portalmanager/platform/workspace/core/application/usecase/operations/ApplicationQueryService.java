@@ -41,6 +41,22 @@ public class ApplicationQueryService {
 
     @ResourceVisibility
     @Transactional(readOnly = true)
+    public ApplicationOutput findInactiveByIdentifier(String workspaceIdentifier, String identifier) {
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        Application app = finder.findInactive(identifier, workspaceId);
+        return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
+    }
+
+    @ResourceVisibility
+    @Transactional(readOnly = true)
+    public ApplicationOutput findInactiveForDeletion(String workspaceIdentifier, String identifier) {
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        Application app = finder.findInactiveForDeletion(identifier, workspaceId);
+        return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
+    }
+
+    @ResourceVisibility
+    @Transactional(readOnly = true)
     public List<ApplicationOutput> findAll(String workspaceIdentifier, Boolean active, String tagName) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         String lifecycle = Boolean.FALSE.equals(active) ? LifecycleTypeCode.inactive().value() : LifecycleTypeCode.active().value();

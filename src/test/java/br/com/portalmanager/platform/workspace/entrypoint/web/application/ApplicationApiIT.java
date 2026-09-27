@@ -140,6 +140,7 @@ class ApplicationApiIT {
         Map<String, Object> teamB = request("Team B Application");
         teamB.put("authorizerGroup", "TEAM_B");
         String appB = post(path, teamB).statusCode(201).extract().path("identifier");
+        Integer versionB = get(path + "/" + appB).statusCode(200).extract().path("version");
 
         authorization.reset();
         authorization.allow(session -> session.groups("USER")
@@ -155,7 +156,14 @@ class ApplicationApiIT {
         update.put("version", version);
         put(path + "/" + appA, update).statusCode(200);
         authorization.verifyCalledWithPolicy("DEV");
+        Map<String, Object> otherUpdate = request("Team B Changed Without Access");
+        otherUpdate.put("authorizerGroup", "TEAM_B");
+        otherUpdate.put("version", versionB);
+        put(path + "/" + appB, otherUpdate).statusCode(403).body("code", equalTo("AUTH-403-004"));
+
+        authorization.forbidden();
         post(path + "/" + appA + "/inactivate", null).statusCode(403);
+        authorization.verifyCalledWithPolicy("ADM");
         post(path, request("New Application")).statusCode(403);
 
         authorization.reset();
@@ -166,9 +174,31 @@ class ApplicationApiIT {
         post(path + "/" + appA + "/restore", null).statusCode(200);
     }
 
+    @Test
+    void requiresVisibilityOfParentWorkspaceForCreate() {
+        String workspace = createWorkspace("MANAGER", "PARENT_A");
+        String path = "/api/v1/workspaces/" + workspace + "/applications";
+
+        authorization.reset();
+        authorization.allow(session -> session.groups("USER")
+                .addAuthorizerGroup("GRP_WORKSPACE_ADM_OTHER", "ADM", "ADM", "OTHER"));
+        post(path, request("Outside Workspace")).statusCode(403).body("code", equalTo("AUTH-403-004"));
+        authorization.verifyCalledWithPolicy("ADM");
+
+        authorization.reset();
+        authorization.allow(session -> session.groups("USER")
+                .addAuthorizerGroup("GRP_WORKSPACE_ADM_PARENT_A", "ADM", "ADM", "PARENT_A"));
+        post(path, request("Inside Workspace")).statusCode(201);
+    }
+
     private String createWorkspace(String type) {
+        return createWorkspace(type, null);
+    }
+
+    private String createWorkspace(String type, String authorizerGroup) {
         Map<String, Object> request = new LinkedHashMap<>();
         request.put("workspaceType", type);
+        if (authorizerGroup != null) request.put("authorizerGroup", authorizerGroup);
         request.put("name", "Workspace " + UUID.randomUUID());
         request.put("description", "Workspace de teste para aplicação");
         request.put("requester", "requester");
