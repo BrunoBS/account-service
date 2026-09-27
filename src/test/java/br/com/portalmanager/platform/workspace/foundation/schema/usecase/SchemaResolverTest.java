@@ -32,7 +32,7 @@ class SchemaResolverTest {
 
     @Test
     void shouldResolveLatestPublishedPlatformSchema() {
-        Schema schema = activeSchema("APPLICATION", "schema-app");
+        Schema schema = activeSchema("APPLICATION", "schema-app", SchemaScopeTypeCode.platform());
         SchemaVersion version = publishedVersion(schema, "version-app", 3);
         allowType("APPLICATION", SchemaScopeTypeCode.platform(), "APPLICATION");
 
@@ -53,9 +53,10 @@ class SchemaResolverTest {
 
     @Test
     void shouldFallbackToDefaultPlatformSchema() {
-        Schema fallback = activeSchema("DEFAULT", "schema-default");
+        Schema fallback = activeSchema("DEFAULT", "schema-default", SchemaScopeTypeCode.platform());
         SchemaVersion version = publishedVersion(fallback, "version-default", 1);
         allowType("APPLICATION", SchemaScopeTypeCode.platform(), "APPLICATION");
+        allowType("DEFAULT", SchemaScopeTypeCode.platform(), "DEFAULT");
 
         when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
                 .thenReturn(Optional.empty());
@@ -75,7 +76,7 @@ class SchemaResolverTest {
 
     @Test
     void shouldResolveWorkspaceThroughActiveWorkspaceBoundary() {
-        Schema schema = activeSchema("APPLICATION", "schema-workspace");
+        Schema schema = activeSchema("APPLICATION", "schema-workspace", SchemaScopeTypeCode.workspace());
         SchemaVersion version = publishedVersion(schema, "version-workspace", 2);
         allowType("APPLICATION", SchemaScopeTypeCode.workspace(), "APPLICATION");
 
@@ -127,16 +128,19 @@ class SchemaResolverTest {
         when(schemaType.getCode()).thenReturn(canonicalCode);
         when(schemaType.isActive()).thenReturn(true);
         when(schemaTypeQueryService.requireActiveAllowed(requestedCode, scope)).thenReturn(schemaType);
+        when(schemaTypeQueryService.requireActiveAllowed(canonicalCode, scope)).thenReturn(schemaType);
     }
 
-    private Schema activeSchema(String typeCode, String identifier) {
+    private Schema activeSchema(
+            String typeCode,
+            String identifier,
+            SchemaScopeTypeCode scope
+    ) {
         Schema schema = mock(Schema.class);
         when(schema.getSchemaType()).thenReturn(SchemaTypeCode.of(typeCode));
+        when(schema.getScope()).thenReturn(scope);
         when(schema.isActive()).thenReturn(true);
         when(schema.getIdentifier()).thenReturn(identifier);
-        SchemaType schemaType = mock(SchemaType.class);
-        when(schemaType.isActive()).thenReturn(true);
-        when(schemaTypeQueryService.requireActive(typeCode)).thenReturn(schemaType);
         return schema;
     }
 
