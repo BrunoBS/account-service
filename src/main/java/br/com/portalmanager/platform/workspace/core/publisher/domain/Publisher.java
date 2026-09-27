@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.publisher.domain;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeEnum;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -22,7 +23,7 @@ public class Publisher {
     private String description;
     @Enumerated(EnumType.STRING)
     @Column(name = "publisher_scope", nullable = false, length = 20)
-    private PublisherScope scope;
+    private ResourceScopeTypeEnum scope;
     @Column(nullable = false)
     private boolean deprecated;
     @Embedded
@@ -34,14 +35,14 @@ public class Publisher {
     private LocalDateTime updatedAt;
 
     protected Publisher() {}
-    public Publisher(String code, String name, String description, PublisherScope scope, boolean deprecated, LocalDateTime now) {
+    public Publisher(String code, String name, String description, ResourceScopeTypeEnum scope, boolean deprecated, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.code = code;
         update(name, description, scope, deprecated, now);
         this.lifecycle = LifecycleTypeCode.active();
         this.createdAt = now;
     }
-    public void update(String name, String description, PublisherScope scope, boolean deprecated, LocalDateTime now) {
+    public void update(String name, String description, ResourceScopeTypeEnum scope, boolean deprecated, LocalDateTime now) {
         this.name = name;
         this.description = description;
         this.scope = scope;
@@ -57,7 +58,7 @@ public class Publisher {
     public String getCode() { return code; }
     public String getName() { return name; }
     public String getDescription() { return description; }
-    public PublisherScope getScope() { return scope; }
+    public ResourceScopeTypeEnum getScope() { return scope; }
     public boolean isDeprecated() { return deprecated; }
     public LifecycleTypeCode getLifecycle() { return lifecycle; }
     public LocalDateTime getCreatedAt() { return createdAt; }

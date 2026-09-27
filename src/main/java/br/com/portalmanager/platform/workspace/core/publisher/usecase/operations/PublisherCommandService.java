@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.publisher.usecase.operations;
 
 import br.com.portalmanager.platform.workspace.core.publisher.domain.Publisher;
-import br.com.portalmanager.platform.workspace.core.publisher.domain.PublisherScope;
+import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeEnum;
 import br.com.portalmanager.platform.workspace.core.publisher.repository.PublisherRepository;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.CreatePublisherInput;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.PublisherOutput;
@@ -27,7 +27,7 @@ public class PublisherCommandService {
     @Transactional
     public PublisherOutput create(CreatePublisherInput raw) {
         CreatePublisherInput input = normalizer.normalize(raw);
-        PublisherScope scope = validator.validateCreate(input, input != null && input.code() != null
+        ResourceScopeTypeEnum scope = validator.validateCreate(input, input != null && input.code() != null
                 && repository.existsByCode(input.code()));
         Publisher publisher = new Publisher(input.code(), input.name(), input.description(), scope,
                 Boolean.TRUE.equals(input.deprecated()), LocalDateTime.now());
@@ -37,7 +37,7 @@ public class PublisherCommandService {
     public PublisherOutput update(String identifier, UpdatePublisherInput raw) {
         Publisher publisher = finder.findActive(identifier);
         UpdatePublisherInput input = normalizer.normalize(raw);
-        PublisherScope scope = validator.validateUpdate(input);
+        ResourceScopeTypeEnum scope = validator.validateUpdate(input);
         validator.requireVersion(publisher.getVersion(), input.version());
         publisher.update(input.name(), input.description(), scope,
                 input.deprecated() == null ? publisher.isDeprecated() : input.deprecated(), LocalDateTime.now());

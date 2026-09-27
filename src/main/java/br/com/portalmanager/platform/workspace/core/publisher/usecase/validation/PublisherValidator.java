@@ -5,7 +5,8 @@ import br.com.portalmanager.platform.library.messaging.exception.ValidationExcep
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.core.publisher.domain.PublisherMessageKeys;
 import br.com.portalmanager.platform.workspace.core.publisher.domain.PublisherSchemaType;
-import br.com.portalmanager.platform.workspace.core.publisher.domain.PublisherScope;
+import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeEnum;
+import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.usecase.ResourceScopeTypeService;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.CreatePublisherInput;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.UpdatePublisherInput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
@@ -19,9 +20,13 @@ import java.util.regex.Pattern;
 public class PublisherValidator {
     private static final Pattern CODE = Pattern.compile("^[A-Z][A-Z0-9_]{0,39}$");
     private final SchemaTypeQueryService schemaTypes;
-    public PublisherValidator(SchemaTypeQueryService schemaTypes) { this.schemaTypes = schemaTypes; }
+    private final ResourceScopeTypeService scopeService;
+    public PublisherValidator(SchemaTypeQueryService schemaTypes, ResourceScopeTypeService scopeService) {
+        this.schemaTypes = schemaTypes;
+        this.scopeService = scopeService;
+    }
 
-    public PublisherScope validateCreate(CreatePublisherInput input, boolean duplicate) {
+    public ResourceScopeTypeEnum validateCreate(CreatePublisherInput input, boolean duplicate) {
         ValidationResult result = new ValidationResult();
         if (input == null) { result.addError("request", PublisherMessageKeys.CODE_INVALID); reject(result); return null; }
         if (input.code() == null || !CODE.matcher(input.code()).matches())
@@ -33,17 +38,17 @@ public class PublisherValidator {
             result.addError("code", PublisherMessageKeys.SCHEMA_TYPE_REQUIRED);
             reject(result);
         }
-        return PublisherScope.valueOf(input.scope());
+        return ResourceScopeTypeEnum.valueOf(input.scope());
     }
 
-    public PublisherScope validateUpdate(UpdatePublisherInput input) {
+    public ResourceScopeTypeEnum validateUpdate(UpdatePublisherInput input) {
         ValidationResult result = new ValidationResult();
         if (input == null) { result.addError("request", PublisherMessageKeys.NAME_INVALID); reject(result); return null; }
         if (input.version() == null || input.version() < 0)
             result.addError("version", PublisherMessageKeys.VERSION_REQUIRED);
         common(input.name(), input.description(), input.scope(), result);
         reject(result);
-        return PublisherScope.valueOf(input.scope());
+        return ResourceScopeTypeEnum.valueOf(input.scope());
     }
 
     public void requireVersion(Long current, Long requested) {
@@ -54,7 +59,8 @@ public class PublisherValidator {
             result.addError("name", PublisherMessageKeys.NAME_INVALID);
         if (description == null || description.isBlank() || description.length() > 500)
             result.addError("description", PublisherMessageKeys.DESCRIPTION_INVALID);
-        if (scope == null || Arrays.stream(PublisherScope.values()).noneMatch(v -> v.name().equals(scope)))
+        if (scope == null || Arrays.stream(ResourceScopeTypeEnum.values()).noneMatch(v -> v.name().equals(scope))
+                || !scopeService.existsActive(scope))
             result.addError("scope", PublisherMessageKeys.SCOPE_INVALID);
     }
     private void reject(ValidationResult result) { if (result.hasErrors()) throw new ValidationException(result); }

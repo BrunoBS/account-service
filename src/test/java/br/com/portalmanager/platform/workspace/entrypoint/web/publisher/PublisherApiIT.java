@@ -36,6 +36,11 @@ class PublisherApiIT {
                 INSERT IGNORE INTO type_schema_scopes (code, label, description, sort_order, is_active, settings)
                 VALUES ('PLATFORM', 'Platform', 'Schema owned by the platform', 1, true, '{}')
                 """);
+        jdbc.update("""
+                INSERT IGNORE INTO type_resource_scopes (code, label, description, sort_order, is_active, settings)
+                VALUES ('WORKSPACE', 'Workspace', 'Workspace resources', 1, true, '{}'),
+                       ('APPLICATION', 'Application', 'Application resources', 2, true, '{}')
+                """);
         for (String code : new String[] {"WEB_SOCKET", "KAAS", "APPCONFIG"}) {
             jdbc.update("""
                     INSERT IGNORE INTO schema_types
@@ -74,6 +79,22 @@ class PublisherApiIT {
         String identifier = post(input(code, "New Publisher", "APPLICATION")).statusCode(201)
                 .body("schemaTypeCode", equalTo("PUBLISHER_" + code)).extract().path("identifier");
         get("/api/v1/publishers?scope=APPLICATION").statusCode(200).body("identifier", hasItem(identifier));
+    }
+
+    @Test
+    void requiresMatchingActivePlatformSchemaTypeAndActiveResourceScope() {
+        post(input("KAAS", "Kaas", "WORKSPACE")).statusCode(201)
+                .body("schemaTypeCode", equalTo("PUBLISHER_KAAS"));
+        post(input("APPCONFIG", "AppConfig", "APPLICATION")).statusCode(201)
+                .body("schemaTypeCode", equalTo("PUBLISHER_APPCONFIG"));
+
+        jdbc.update("UPDATE schema_types SET lifecycle_code = 'INACTIVE' WHERE code = 'PUBLISHER_WEB_SOCKET'");
+        post(input("WEB_SOCKET", "Web Socket", "WORKSPACE")).statusCode(400)
+                .body("details.field", hasItem("schemaTypeCode"));
+
+        jdbc.update("UPDATE type_resource_scopes SET is_active = false WHERE code = 'APPLICATION'");
+        post(input("WEB_SOCKET", "Web Socket", "APPLICATION")).statusCode(400)
+                .body("details.field", hasItem("scope"));
     }
 
     private Map<String, Object> input(String code, String name, String scope) {
