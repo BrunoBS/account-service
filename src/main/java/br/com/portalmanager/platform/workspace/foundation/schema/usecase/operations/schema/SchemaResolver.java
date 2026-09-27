@@ -93,7 +93,8 @@ public class SchemaResolver {
             boolean fallback
     ) {
         String schemaTypeCode = schema.getSchemaType().value();
-        validator.requireActive(schema, schemaTypeQueryService.requireActive(schemaTypeCode).isActive());
+        schemaTypeQueryService.requireActiveAllowed(schemaTypeCode, schema.getScope());
+        validator.requireActive(schema);
 
         SchemaVersion version = versionRepository
                 .findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
