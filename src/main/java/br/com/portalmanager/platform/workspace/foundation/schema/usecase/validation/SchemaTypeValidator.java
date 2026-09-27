@@ -68,6 +68,18 @@ public class SchemaTypeValidator {
         }
     }
 
+    public void validateActive(SchemaType schemaType) {
+        if (!schemaType.isActive()) {
+            throw invalid("schemaTypeCode", SchemaMessageKeys.TYPE_INACTIVE);
+        }
+    }
+
+    public void validateAllowedScope(SchemaType schemaType, SchemaScopeTypeCode scope) {
+        if (!schemaType.allowsScope(scope)) {
+            throw invalid("scope", SchemaMessageKeys.SCHEMA_TYPE_SCOPE_NOT_ALLOWED);
+        }
+    }
+
     public void validateInactivation(SchemaType schemaType) {
         if (isDefault(schemaType)) {
             throw new ConflictException(SchemaMessageKeys.SCHEMA_TYPE_DEFAULT_PROTECTED);
