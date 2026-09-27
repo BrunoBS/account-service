@@ -36,7 +36,8 @@ class SchemaTypeScopeMigrationIT {
                 """);
         jdbc.update("""
                 insert into type_schema_scopes (code, label, description, sort_order, is_active, settings)
-                values ('WORKSPACE', 'Workspace', 'Workspace-owned schema', 2, true, '{}')
+                values ('WORKSPACE', 'Workspace', 'Workspace-owned schema', 2, true, '{}'),
+                       ('PLATFORM', 'Platform', 'Platform-owned schema', 1, true, '{}')
                 on duplicate key update code = values(code)
                 """);
         jdbc.update("""
@@ -51,6 +52,18 @@ class SchemaTypeScopeMigrationIT {
                 insert into schema_type_scopes (schema_type_id, scope_code)
                 values (?, 'WORKSPACE')
                 """, typeId);
+        jdbc.update("""
+                insert into schema_types
+                    (version, identifier, code, name, lifecycle_code, created_at, updated_at)
+                values (0, UUID(), 'SCOPE_MIGRATION_PLATFORM', 'Platform only', 'ACTIVE',
+                        current_timestamp, current_timestamp)
+                """);
+        Long platformId = jdbc.queryForObject(
+                "select id from schema_types where code = 'SCOPE_MIGRATION_PLATFORM'", Long.class);
+        jdbc.update("""
+                insert into schema_type_scopes (schema_type_id, scope_code)
+                values (?, 'PLATFORM')
+                """, platformId);
 
         Flyway.configure().dataSource(dataSource)
                 .locations("classpath:db/migration").target("23").load().migrate();
@@ -59,7 +72,7 @@ class SchemaTypeScopeMigrationIT {
                 "select scope_code from schema_types where code = 'WORKSPACE_ONLY'", String.class))
                 .isEqualTo("WORKSPACE");
         assertThat(jdbc.queryForObject(
-                "select scope_code from schema_types where code = 'DEFAULT'", String.class))
+                "select scope_code from schema_types where code = 'SCOPE_MIGRATION_PLATFORM'", String.class))
                 .isEqualTo("PLATFORM");
         assertThat(jdbc.queryForObject("""
                 select count(*) from information_schema.tables
