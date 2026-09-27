@@ -50,12 +50,16 @@ public class SchemaOperationValidator {
         if (alreadyExists) throw new ConflictException(SchemaMessageKeys.TYPE_DUPLICATE);
     }
 
-    public void validateTypeActive(boolean active) {
-        if (!active) throw invalid("schemaTypeCode", SchemaMessageKeys.TYPE_INACTIVE);
-    }
-
     public void validateCodeAvailable(boolean alreadyExists) {
         if (alreadyExists) throw new ConflictException(SchemaMessageKeys.CODE_DUPLICATE);
+    }
+
+    public void validateDefaultLifecycleChange(Schema schema) {
+        if (schema != null
+                && SchemaScopeTypeCode.platform().equals(schema.getScope())
+                && "DEFAULT".equals(schema.getSchemaType().value())) {
+            throw new ConflictException(SchemaMessageKeys.DEFAULT_PROTECTED);
+        }
     }
 
     public void validateUpdate(Schema schema, UpdateSchemaInput input) {
