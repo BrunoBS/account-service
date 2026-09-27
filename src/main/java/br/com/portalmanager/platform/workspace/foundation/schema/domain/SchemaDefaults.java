@@ -4,8 +4,8 @@ public final class SchemaDefaults {
 
     public static final String DEFAULT_SCHEMA_TYPE_CODE = "DEFAULT";
     /**
-     * Legacy/catalog fallback kept intentionally restrictive until catalog settings
-     * are migrated to explicit Schema V2 contracts.
+     * Restrictive fallback used when validating generic values before a specific
+     * platform schema is resolved.
      */
     public static final String DEFAULT_JSON_SCHEMA = """
             {
