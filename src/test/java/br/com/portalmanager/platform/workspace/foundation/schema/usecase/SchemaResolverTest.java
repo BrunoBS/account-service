@@ -1,11 +1,11 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaType;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
@@ -34,14 +34,12 @@ class SchemaResolverTest {
     void shouldResolveLatestPublishedPlatformSchema() {
         Schema schema = activeSchema("APPLICATION", "schema-app", SchemaScopeTypeCode.platform());
         SchemaVersion version = publishedVersion(schema, "version-app", 3);
-        allowType("APPLICATION", SchemaScopeTypeCode.platform(), "APPLICATION");
+        allowPlatformType("APPLICATION", "APPLICATION");
+        allowRequiredType("APPLICATION", SchemaScopeTypeCode.platform(), "APPLICATION");
 
         when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
                 .thenReturn(Optional.of(schema));
-        when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
-                nullable(Long.class),
-                eq(SchemaVersionStatusTypeCode.published())
-        )).thenReturn(Optional.of(version));
+        published(version);
 
         SchemaResolution resolution = resolver.resolvePlatform("APPLICATION");
 
@@ -52,20 +50,17 @@ class SchemaResolverTest {
     }
 
     @Test
-    void shouldFallbackToDefaultPlatformSchema() {
+    void shouldFallbackToDefaultWhenSpecificSchemaIsMissing() {
         Schema fallback = activeSchema("DEFAULT", "schema-default", SchemaScopeTypeCode.platform());
         SchemaVersion version = publishedVersion(fallback, "version-default", 1);
-        allowType("APPLICATION", SchemaScopeTypeCode.platform(), "APPLICATION");
-        allowType("DEFAULT", SchemaScopeTypeCode.platform(), "DEFAULT");
+        allowPlatformType("APPLICATION", "APPLICATION");
+        allowRequiredType("DEFAULT", SchemaScopeTypeCode.platform(), "DEFAULT");
 
         when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
                 .thenReturn(Optional.empty());
         when(schemaRepository.findByTypeAndScope("DEFAULT", "PLATFORM", null))
                 .thenReturn(Optional.of(fallback));
-        when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
-                nullable(Long.class),
-                eq(SchemaVersionStatusTypeCode.published())
-        )).thenReturn(Optional.of(version));
+        published(version);
 
         SchemaResolution resolution = resolver.resolvePlatform("APPLICATION");
 
@@ -75,10 +70,29 @@ class SchemaResolverTest {
     }
 
     @Test
-    void shouldResolveWorkspaceThroughActiveWorkspaceBoundary() {
+    void shouldFallbackToDefaultWhenSpecificSchemaTypeDoesNotExist() {
+        Schema fallback = activeSchema("DEFAULT", "schema-default", SchemaScopeTypeCode.platform());
+        SchemaVersion version = publishedVersion(fallback, "version-default", 1);
+        when(schemaTypeQueryService.findActiveAllowed("ENVIRONMENT_TYPE", SchemaScopeTypeCode.platform()))
+                .thenReturn(Optional.empty());
+        allowRequiredType("DEFAULT", SchemaScopeTypeCode.platform(), "DEFAULT");
+        when(schemaRepository.findByTypeAndScope("DEFAULT", "PLATFORM", null))
+                .thenReturn(Optional.of(fallback));
+        published(version);
+
+        SchemaResolution resolution = resolver.resolvePlatform("ENVIRONMENT_TYPE");
+
+        assertThat(resolution.requestedSchemaType()).isEqualTo("ENVIRONMENT_TYPE");
+        assertThat(resolution.resolvedSchemaType()).isEqualTo("DEFAULT");
+        assertThat(resolution.fallback()).isTrue();
+        verify(schemaRepository, never()).findByTypeAndScope("ENVIRONMENT_TYPE", "PLATFORM", null);
+    }
+
+    @Test
+    void shouldResolveWorkspaceWithoutDefaultFallback() {
         Schema schema = activeSchema("APPLICATION", "schema-workspace", SchemaScopeTypeCode.workspace());
         SchemaVersion version = publishedVersion(schema, "version-workspace", 2);
-        allowType("APPLICATION", SchemaScopeTypeCode.workspace(), "APPLICATION");
+        allowRequiredType("APPLICATION", SchemaScopeTypeCode.workspace(), "APPLICATION");
 
         when(workspaceReferenceResolver.resolveInternalId("workspace-identifier"))
                 .thenReturn(7L);
@@ -88,10 +102,7 @@ class SchemaResolverTest {
                 7L,
                 "custom-application"
         )).thenReturn(Optional.of(schema));
-        when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
-                nullable(Long.class),
-                eq(SchemaVersionStatusTypeCode.published())
-        )).thenReturn(Optional.of(version));
+        published(version);
 
         SchemaResolution resolution = resolver.resolveWorkspace(
                 "workspace-identifier",
@@ -100,22 +111,20 @@ class SchemaResolverTest {
         );
 
         assertThat(resolution.schemaVersion()).isEqualTo(2);
-        verify(workspaceReferenceResolver)
-                .resolveInternalId("workspace-identifier");
+        assertThat(resolution.fallback()).isFalse();
+        verify(workspaceReferenceResolver).resolveInternalId("workspace-identifier");
     }
 
     @Test
     void shouldNormalizeRequestedPlatformTypeBeforeResolution() {
         Schema schema = activeSchema("APPLICATION", "schema-app", SchemaScopeTypeCode.platform());
         SchemaVersion version = publishedVersion(schema, "version-app", 1);
-        allowType("application", SchemaScopeTypeCode.platform(), "APPLICATION");
+        allowPlatformType("APPLICATION", "APPLICATION");
+        allowRequiredType("APPLICATION", SchemaScopeTypeCode.platform(), "APPLICATION");
 
         when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
                 .thenReturn(Optional.of(schema));
-        when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
-                nullable(Long.class),
-                eq(SchemaVersionStatusTypeCode.published())
-        )).thenReturn(Optional.of(version));
+        published(version);
 
         SchemaResolution resolution = resolver.resolvePlatform("application");
 
@@ -123,12 +132,22 @@ class SchemaResolverTest {
         assertThat(resolution.resolvedSchemaType()).isEqualTo("APPLICATION");
     }
 
-    private void allowType(String requestedCode, SchemaScopeTypeCode scope, String canonicalCode) {
+    private void allowPlatformType(String requestedCode, String canonicalCode) {
+        SchemaType schemaType = schemaType(canonicalCode);
+        when(schemaTypeQueryService.findActiveAllowed(requestedCode, SchemaScopeTypeCode.platform()))
+                .thenReturn(Optional.of(schemaType));
+    }
+
+    private void allowRequiredType(String requestedCode, SchemaScopeTypeCode scope, String canonicalCode) {
+        when(schemaTypeQueryService.requireActiveAllowed(requestedCode, scope))
+                .thenReturn(schemaType(canonicalCode));
+    }
+
+    private SchemaType schemaType(String canonicalCode) {
         SchemaType schemaType = mock(SchemaType.class);
         when(schemaType.getCode()).thenReturn(canonicalCode);
         when(schemaType.isActive()).thenReturn(true);
-        when(schemaTypeQueryService.requireActiveAllowed(requestedCode, scope)).thenReturn(schemaType);
-        when(schemaTypeQueryService.requireActiveAllowed(canonicalCode, scope)).thenReturn(schemaType);
+        return schemaType;
     }
 
     private Schema activeSchema(
@@ -151,5 +170,12 @@ class SchemaResolverTest {
         when(version.getSchemaVersion()).thenReturn(number);
         when(version.getDefinition()).thenReturn("{\"type\":\"object\"}");
         return version;
+    }
+
+    private void published(SchemaVersion version) {
+        when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
+                nullable(Long.class),
+                eq(SchemaVersionStatusTypeCode.published())
+        )).thenReturn(Optional.of(version));
     }
 }

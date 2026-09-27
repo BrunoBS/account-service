@@ -3,7 +3,7 @@ package br.com.portalmanager.platform.workspace.foundation.catalog.integration;
 import br.com.portalmanager.platform.library.catalog.validation.CatalogValidationResult;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.foundation.integration.JsonSchemaValidator;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaDefaults;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 
@@ -13,15 +13,25 @@ public class CatalogSettingsValidator {
     private static final String SETTINGS = "settings";
 
     private final JsonSchemaValidator jsonSchemaValidator;
+    private final SchemaResolutionPort schemaResolutionPort;
 
-    public CatalogSettingsValidator(JsonSchemaValidator jsonSchemaValidator) {
+    public CatalogSettingsValidator(
+            JsonSchemaValidator jsonSchemaValidator,
+            SchemaResolutionPort schemaResolutionPort
+    ) {
         this.jsonSchemaValidator = jsonSchemaValidator;
+        this.schemaResolutionPort = schemaResolutionPort;
     }
 
-    public void validateSettings(JsonNode settings, CatalogValidationResult result) {
+    public void validateSettings(
+            String schemaTypeCode,
+            JsonNode settings,
+            CatalogValidationResult result
+    ) {
         ValidationResult schemaResult = new ValidationResult();
+        String definition = schemaResolutionPort.resolvePlatform(schemaTypeCode).definition();
         jsonSchemaValidator.validateJson(
-                SchemaDefaults.DEFAULT_JSON_SCHEMA,
+                definition,
                 settings,
                 SETTINGS,
                 schemaResult

@@ -11,6 +11,8 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class TagOriginTypeService extends EnumCatalogService<TagOriginType, TagOriginTypeEnum> {
 
+    private static final String SCHEMA_TYPE_CODE = "TAG_ORIGIN_TYPE";
+
     public TagOriginTypeService(
             TagOriginTypeRepository repository,
             ObjectMapper objectMapper,
@@ -20,7 +22,7 @@ public class TagOriginTypeService extends EnumCatalogService<TagOriginType, TagO
                 objectMapper,
                 TagOriginType.class,
                 TagOriginTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(dto.settings(), result)
+                (dto, result) -> settingsValidator.validateSettings(SCHEMA_TYPE_CODE, dto.settings(), result)
         );
     }
 }

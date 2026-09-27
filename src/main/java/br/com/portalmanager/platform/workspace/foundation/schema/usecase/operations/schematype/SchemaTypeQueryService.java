@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SchemaTypeQueryService {
@@ -39,6 +40,16 @@ public class SchemaTypeQueryService {
     }
 
     @Transactional(readOnly = true)
+    public Optional<SchemaType> findActiveAllowed(String code, SchemaScopeTypeCode scope) {
+        return repository.findByCode(code == null ? null : code.trim().toUpperCase())
+                .map(schemaType -> {
+                    validator.validateActive(schemaType);
+                    validator.validateAllowedScope(schemaType, scope);
+                    return schemaType;
+                });
+    }
+
+    @Transactional(readOnly = true)
     public SchemaType requireActiveAllowed(String code, SchemaScopeTypeCode scope) {
         SchemaType schemaType = requireActive(code);
         validator.validateAllowedScope(schemaType, scope);
@@ -53,4 +64,3 @@ public class SchemaTypeQueryService {
         return schemaType;
     }
 }
-

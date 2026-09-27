@@ -5,8 +5,8 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetyp
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -41,7 +41,7 @@ public class SchemaType {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "schema_type_scopes", joinColumns = @JoinColumn(name = "schema_type_id"))
     @AttributeOverride(name = "value", column = @Column(name = "scope_code", nullable = false, length = 50))
-    private Set<SchemaScopeTypeCode> allowedScopes = new LinkedHashSet<>();
+    private Set<SchemaScopeTypeCode> scopes = new LinkedHashSet<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -52,28 +52,37 @@ public class SchemaType {
     protected SchemaType() {
     }
 
-    public SchemaType(String code, String name, String description,
-                      Set<SchemaScopeTypeCode> allowedScopes, LocalDateTime now) {
+    public SchemaType(
+            String code,
+            String name,
+            String description,
+            SchemaScopeTypeCode scope,
+            LocalDateTime now
+    ) {
         this.identifier = UUID.randomUUID().toString();
         this.code = code.trim().toUpperCase();
         this.name = name.trim();
         this.description = description;
-        this.allowedScopes.addAll(allowedScopes);
+        setScope(scope);
         this.lifecycle = LifecycleTypeCode.active();
         this.createdAt = now;
         this.updatedAt = now;
     }
 
-    public void update(String name, String description, Set<SchemaScopeTypeCode> allowedScopes, LocalDateTime now) {
+    public void update(
+            String name,
+            String description,
+            SchemaScopeTypeCode scope,
+            LocalDateTime now
+    ) {
         this.name = name.trim();
         this.description = description;
-        this.allowedScopes.clear();
-        this.allowedScopes.addAll(allowedScopes);
+        setScope(scope);
         this.updatedAt = now;
     }
 
     public boolean allowsScope(SchemaScopeTypeCode scope) {
-        return allowedScopes.contains(scope);
+        return Objects.equals(getScope(), scope);
     }
 
     public boolean isActive() {
@@ -90,6 +99,13 @@ public class SchemaType {
         this.updatedAt = now;
     }
 
+    private void setScope(SchemaScopeTypeCode scope) {
+        this.scopes.clear();
+        if (scope != null) {
+            this.scopes.add(scope);
+        }
+    }
+
     public Long getId() { return id; }
     public Long getVersion() { return version; }
     public String getIdentifier() { return identifier; }
@@ -97,7 +113,7 @@ public class SchemaType {
     public String getName() { return name; }
     public String getDescription() { return description; }
     public LifecycleTypeCode getLifecycle() { return lifecycle; }
-    public Set<SchemaScopeTypeCode> getAllowedScopes() { return Collections.unmodifiableSet(allowedScopes); }
+    public SchemaScopeTypeCode getScope() { return scopes.stream().findFirst().orElse(null); }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

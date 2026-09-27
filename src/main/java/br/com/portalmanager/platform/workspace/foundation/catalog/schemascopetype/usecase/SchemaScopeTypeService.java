@@ -11,6 +11,8 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class SchemaScopeTypeService extends EnumCatalogService<SchemaScopeType, SchemaScopeTypeEnum> {
 
+    private static final String SCHEMA_TYPE_CODE = "SCHEMA_SCOPE_TYPE";
+
     public SchemaScopeTypeService(
             SchemaScopeTypeRepository repository,
             ObjectMapper objectMapper,
@@ -20,7 +22,7 @@ public class SchemaScopeTypeService extends EnumCatalogService<SchemaScopeType, 
                 objectMapper,
                 SchemaScopeType.class,
                 SchemaScopeTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(dto.settings(), result)
+                (dto, result) -> settingsValidator.validateSettings(SCHEMA_TYPE_CODE, dto.settings(), result)
         );
     }
 }

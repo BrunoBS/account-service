@@ -11,6 +11,8 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class ShareStatusTypeService extends EnumCatalogService<ShareStatusType, ShareStatusTypeEnum> {
 
+    private static final String SCHEMA_TYPE_CODE = "SHARE_STATUS_TYPE";
+
     public ShareStatusTypeService(
             ShareStatusTypeRepository repository,
             ObjectMapper objectMapper,
@@ -20,7 +22,7 @@ public class ShareStatusTypeService extends EnumCatalogService<ShareStatusType, 
                 objectMapper,
                 ShareStatusType.class,
                 ShareStatusTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(dto.settings(), result)
+                (dto, result) -> settingsValidator.validateSettings(SCHEMA_TYPE_CODE, dto.settings(), result)
         );
     }
 }

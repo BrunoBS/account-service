@@ -9,20 +9,20 @@ import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
 @Service
-public class SchemaVersionStatusTypeService
-        extends EnumCatalogService<SchemaVersionStatusType, SchemaVersionStatusTypeEnum> {
+public class SchemaVersionStatusTypeService extends EnumCatalogService<SchemaVersionStatusType, SchemaVersionStatusTypeEnum> {
+
+    private static final String SCHEMA_TYPE_CODE = "SCHEMA_VERSION_STATUS_TYPE";
 
     public SchemaVersionStatusTypeService(
             SchemaVersionStatusTypeRepository repository,
             ObjectMapper objectMapper,
-            CatalogSettingsValidator settingsValidator
-    ) {
+            CatalogSettingsValidator settingsValidator) {
         super(
                 repository,
                 objectMapper,
                 SchemaVersionStatusType.class,
                 SchemaVersionStatusTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(dto.settings(), result)
+                (dto, result) -> settingsValidator.validateSettings(SCHEMA_TYPE_CODE, dto.settings(), result)
         );
     }
 }

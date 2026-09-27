@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceR
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaDefaults;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaResolution;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-public class SchemaResolver {
+public class SchemaResolver implements SchemaResolutionPort {
 
     private final SchemaRepository schemaRepository;
     private final SchemaVersionRepository versionRepository;
@@ -35,21 +36,27 @@ public class SchemaResolver {
         this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
 
+    @Override
     @Transactional(readOnly = true)
     public SchemaResolution resolvePlatform(String schemaTypeCode) {
         String requestedType = validator.normalizeRequired(schemaTypeCode);
-        String canonicalType = schemaTypeQueryService
-                .requireActiveAllowed(requestedType, SchemaScopeTypeCode.platform())
-                .getCode();
 
-        var specific = schemaRepository.findByTypeAndScope(
-                canonicalType,
-                SchemaScopeTypeCode.platform().value(),
-                null
+        var specificType = schemaTypeQueryService.findActiveAllowed(
+                requestedType,
+                SchemaScopeTypeCode.platform()
         );
 
-        if (specific.isPresent()) {
-            return resolution(canonicalType, specific.get(), false);
+        if (specificType.isPresent()) {
+            String canonicalType = specificType.get().getCode();
+            var specific = schemaRepository.findByTypeAndScope(
+                    canonicalType,
+                    SchemaScopeTypeCode.platform().value(),
+                    null
+            );
+
+            if (specific.isPresent()) {
+                return resolution(requestedType, specific.get(), false);
+            }
         }
 
         Schema fallback = schemaRepository.findByTypeAndScope(
@@ -59,9 +66,10 @@ public class SchemaResolver {
                 )
                 .orElseThrow(validator::typeNotFound);
 
-        return resolution(canonicalType, fallback, true);
+        return resolution(requestedType, fallback, true);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public SchemaResolution resolveWorkspace(
             String workspaceIdentifier,
@@ -113,5 +121,4 @@ public class SchemaResolver {
                 fallback
         );
     }
-
 }
