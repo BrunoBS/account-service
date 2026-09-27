@@ -37,6 +37,7 @@ public final class SchemaMessageKeys {
     public static final String SCHEMA_TYPE_CODE_INVALID = "workspace-service.schema-type.code.invalid";
     public static final String SCHEMA_TYPE_NAME_INVALID = "workspace-service.schema-type.name.invalid";
     public static final String SCHEMA_TYPE_DESCRIPTION_INVALID = "workspace-service.schema-type.description.invalid";
+    public static final String DEFAULT_PROTECTED = "workspace-service.schema.default.protected";
 
     private SchemaMessageKeys() {
     }
