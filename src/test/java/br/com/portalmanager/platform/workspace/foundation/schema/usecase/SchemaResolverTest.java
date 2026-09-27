@@ -106,7 +106,7 @@ class SchemaResolverTest {
 
     @Test
     void shouldNormalizeRequestedPlatformTypeBeforeResolution() {
-        Schema schema = activeSchema("APPLICATION", "schema-app");
+        Schema schema = activeSchema("APPLICATION", "schema-app", SchemaScopeTypeCode.platform());
         SchemaVersion version = publishedVersion(schema, "version-app", 1);
         allowType("application", SchemaScopeTypeCode.platform(), "APPLICATION");
 
