@@ -16,10 +16,10 @@ public class ApplicationTagManager {
 
     public ApplicationTagManager(TagManager tagManager) { this.tagManager = tagManager; }
 
-    public void reconcile(Application app, List<String> tags) {
+    public void reconcile(Application app, String workspaceIdentifier, List<String> tags) {
         tagManager.reconcile(OWNER, app.getIdentifier(), tags,
                 List.of(app.getIdentifier(), app.getName(), app.getAlias(), app.getAcronym(),
-                        app.getApplicationScope(), app.getWorkspace().getIdentifier()));
+                        app.getApplicationScope(), workspaceIdentifier));
     }
     public List<String> findManual(Application app) { return tagManager.findManual(OWNER, app.getIdentifier()); }
     public Map<String, List<String>> findManualByIds(Collection<String> ids) {

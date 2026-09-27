@@ -12,19 +12,19 @@ import java.util.Optional;
 
 @Repository
 public interface ApplicationRepository extends JpaRepository<Application, Long> {
-    Optional<Application> findByIdentifierAndWorkspace_Id(String identifier, Long workspaceId);
-    boolean existsByWorkspace_IdAndName(Long workspaceId, String name);
-    boolean existsByWorkspace_IdAndNameAndIdNot(Long workspaceId, String name, Long id);
+    Optional<Application> findByIdentifierAndWorkspaceId(String identifier, Long workspaceId);
+    boolean existsByWorkspaceIdAndName(Long workspaceId, String name);
+    boolean existsByWorkspaceIdAndNameAndIdNot(Long workspaceId, String name, Long id);
 
     @Query("""
-            select a from Application a where a.workspace.id = :workspaceId
+            select a from Application a where a.workspaceId = :workspaceId
               and a.lifecycle.value = :lifecycle order by a.id
             """)
     List<Application> findByWorkspaceAndLifecycle(@Param("workspaceId") Long workspaceId,
                                                   @Param("lifecycle") String lifecycle);
 
     @Query("""
-            select a from Application a where a.workspace.id = :workspaceId
+            select a from Application a where a.workspaceId = :workspaceId
               and a.lifecycle.value = :lifecycle and a.identifier in :identifiers order by a.id
             """)
     List<Application> findByWorkspaceLifecycleAndIdentifiers(@Param("workspaceId") Long workspaceId,

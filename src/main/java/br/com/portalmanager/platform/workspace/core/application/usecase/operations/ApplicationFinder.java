@@ -14,7 +14,7 @@ public class ApplicationFinder {
     public ApplicationFinder(ApplicationRepository repository) { this.repository = repository; }
 
     public Application findActive(String identifier, Long workspaceId) {
-        Application app = repository.findByIdentifierAndWorkspace_Id(identifier, workspaceId)
+        Application app = repository.findByIdentifierAndWorkspaceId(identifier, workspaceId)
                 .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
         if (!LifecycleTypeCode.active().equals(app.getLifecycle()))
             throw new NotFoundException(ApplicationMessageKeys.NOT_FOUND);
@@ -22,7 +22,7 @@ public class ApplicationFinder {
     }
 
     public Application findInactive(String identifier, Long workspaceId) {
-        Application app = repository.findByIdentifierAndWorkspace_Id(identifier, workspaceId)
+        Application app = repository.findByIdentifierAndWorkspaceId(identifier, workspaceId)
                 .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
         if (!LifecycleTypeCode.inactive().equals(app.getLifecycle()))
             throw new ValidationException(ApplicationMessageKeys.RESTORE_INVALID);

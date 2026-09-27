@@ -11,9 +11,9 @@ public record ApplicationOutput(Long version, String identifier, String workspac
                                 String settings, boolean isDefault, String lifecycle,
                                 LocalDateTime createdAt, LocalDateTime updatedAt, List<String> tags)
         implements AuthorizableResource {
-    public static ApplicationOutput from(Application application, List<String> tags) {
+    public static ApplicationOutput from(Application application, String workspaceIdentifier, List<String> tags) {
         return new ApplicationOutput(application.getVersion(), application.getIdentifier(),
-                application.getWorkspace().getIdentifier(), application.getName(), application.getAlias(),
+                workspaceIdentifier, application.getName(), application.getAlias(),
                 application.getAcronym(), application.getApplicationScope(), application.getAuthorizerGroup(),
                 application.getSettings(), application.isDefaultApplication(), application.getLifecycle().value(),
                 application.getCreatedAt(), application.getUpdatedAt(), tags == null ? List.of() : List.copyOf(tags));

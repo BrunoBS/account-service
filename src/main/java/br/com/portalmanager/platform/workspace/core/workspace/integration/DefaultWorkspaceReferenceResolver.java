@@ -25,4 +25,9 @@ public class DefaultWorkspaceReferenceResolver implements WorkspaceReferenceReso
         Workspace workspace = workspaceFinder.findActive(workspaceId);
         return workspace.getIdentifier();
     }
+
+    @Override
+    public String resolveWorkspaceType(String workspaceIdentifier) {
+        return workspaceFinder.findActive(workspaceIdentifier).getWorkspaceType().value();
+    }
 }

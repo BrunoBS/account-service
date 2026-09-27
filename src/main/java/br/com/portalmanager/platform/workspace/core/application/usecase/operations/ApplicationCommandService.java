@@ -6,8 +6,7 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.model.Ap
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.validation.ApplicationValidator;
-import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceFinder;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,17 +17,17 @@ import java.util.List;
 public class ApplicationCommandService {
     private final ApplicationRepository repository;
     private final ApplicationFinder finder;
-    private final WorkspaceFinder workspaceFinder;
+    private final WorkspaceReferenceResolver workspaces;
     private final ApplicationNormalizer normalizer;
     private final ApplicationValidator validator;
     private final ApplicationTagManager tags;
 
     public ApplicationCommandService(ApplicationRepository repository, ApplicationFinder finder,
-                                     WorkspaceFinder workspaceFinder, ApplicationNormalizer normalizer,
+                                     WorkspaceReferenceResolver workspaces, ApplicationNormalizer normalizer,
                                      ApplicationValidator validator, ApplicationTagManager tags) {
         this.repository = repository;
         this.finder = finder;
-        this.workspaceFinder = workspaceFinder;
+        this.workspaces = workspaces;
         this.normalizer = normalizer;
         this.validator = validator;
         this.tags = tags;
@@ -36,50 +35,50 @@ public class ApplicationCommandService {
 
     @Transactional
     public ApplicationOutput create(String workspaceIdentifier, CreateApplicationInput raw) {
-        Workspace workspace = workspaceFinder.findActive(workspaceIdentifier);
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         CreateApplicationInput input = normalizer.normalize(raw);
         boolean duplicate = input != null && input.name() != null &&
-                repository.existsByWorkspace_IdAndName(workspace.getId(), input.name());
-        validator.validateForCreate(workspace, input, duplicate);
-        Application app = new Application(workspace, input.name(), input.alias(), input.acronym(),
+                repository.existsByWorkspaceIdAndName(workspaceId, input.name());
+        validator.validateForCreate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
+        Application app = new Application(workspaceId, input.name(), input.alias(), input.acronym(),
                 input.applicationScope(), input.authorizerGroup(), input.settings(), input.isDefault(), LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
-        tags.reconcile(saved, input.tags());
-        return ApplicationOutput.from(saved, tags.findManual(saved));
+        tags.reconcile(saved, workspaceIdentifier, input.tags());
+        return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
     @Transactional
     public ApplicationOutput update(String workspaceIdentifier, String identifier, UpdateApplicationInput raw) {
-        Workspace workspace = workspaceFinder.findActive(workspaceIdentifier);
-        Application app = finder.findActive(identifier, workspace.getId());
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        Application app = finder.findActive(identifier, workspaceId);
         UpdateApplicationInput input = normalizer.normalize(raw);
         boolean duplicate = input != null && input.name() != null &&
-                repository.existsByWorkspace_IdAndNameAndIdNot(workspace.getId(), input.name(), app.getId());
-        validator.validateForUpdate(workspace, input, duplicate);
+                repository.existsByWorkspaceIdAndNameAndIdNot(workspaceId, input.name(), app.getId());
+        validator.validateForUpdate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
         validator.requireVersion(app.getVersion(), input.version());
         app.update(input.name(), input.alias(), input.acronym(), input.applicationScope(),
                 input.authorizerGroup(), input.settings(), input.isDefault(), LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
-        tags.reconcile(saved, input.tags());
-        return ApplicationOutput.from(saved, tags.findManual(saved));
+        tags.reconcile(saved, workspaceIdentifier, input.tags());
+        return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
     @Transactional
     public void inactivate(String workspaceIdentifier, String identifier) {
-        Workspace workspace = workspaceFinder.findActive(workspaceIdentifier);
-        Application app = finder.findActive(identifier, workspace.getId());
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        Application app = finder.findActive(identifier, workspaceId);
         app.inactivate(LocalDateTime.now());
         repository.saveAndFlush(app);
     }
 
     @Transactional
     public ApplicationOutput restore(String workspaceIdentifier, String identifier) {
-        Workspace workspace = workspaceFinder.findActive(workspaceIdentifier);
-        Application app = finder.findInactive(identifier, workspace.getId());
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        Application app = finder.findInactive(identifier, workspaceId);
         List<String> manualTags = tags.findManual(app);
         app.restore(LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
-        tags.reconcile(saved, manualTags);
-        return ApplicationOutput.from(saved, tags.findManual(saved));
+        tags.reconcile(saved, workspaceIdentifier, manualTags);
+        return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 }

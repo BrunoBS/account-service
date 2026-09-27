@@ -60,7 +60,7 @@ class ApplicationPersistenceIT {
     }
 
     private Application application(Workspace workspace, String name) {
-        return new Application(workspace, name, "alias", "APP", "BACKEND", "A-APP", "{}", false,
+        return new Application(workspace.getId(), name, "alias", "APP", "BACKEND", "A-APP", "{}", false,
                 LocalDateTime.now());
     }
 }

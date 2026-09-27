@@ -6,7 +6,6 @@ import br.com.portalmanager.platform.library.messaging.validation.ValidationResu
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationMessageKeys;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
-import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.usecase.ApplicationScopeTypeService;
 import br.com.portalmanager.platform.workspace.foundation.integration.JsonSchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
@@ -27,18 +26,18 @@ public class ApplicationValidator {
         this.schemaResolver = schemaResolver;
     }
 
-    public void validateForCreate(Workspace workspace, CreateApplicationInput input, boolean duplicate) {
+    public void validateForCreate(String workspaceType, CreateApplicationInput input, boolean duplicate) {
         ValidationResult result = new ValidationResult();
         if (input == null) { result.addError("request", ApplicationMessageKeys.NAME_INVALID); reject(result); return; }
-        common(workspace, input.name(), input.alias(), input.acronym(), input.applicationScope(), input.settings(), duplicate, result);
+        common(workspaceType, input.name(), input.alias(), input.acronym(), input.applicationScope(), input.settings(), duplicate, result);
         reject(result);
     }
 
-    public void validateForUpdate(Workspace workspace, UpdateApplicationInput input, boolean duplicate) {
+    public void validateForUpdate(String workspaceType, UpdateApplicationInput input, boolean duplicate) {
         ValidationResult result = new ValidationResult();
         if (input == null) { result.addError("request", ApplicationMessageKeys.NAME_INVALID); reject(result); return; }
         if (input.version() == null || input.version() < 0) result.addError("version", ApplicationMessageKeys.VERSION_REQUIRED);
-        common(workspace, input.name(), input.alias(), input.acronym(), input.applicationScope(), input.settings(), duplicate, result);
+        common(workspaceType, input.name(), input.alias(), input.acronym(), input.applicationScope(), input.settings(), duplicate, result);
         reject(result);
     }
 
@@ -46,9 +45,9 @@ public class ApplicationValidator {
         if (!Objects.equals(current, requested)) throw new ResourceVersionConflictException();
     }
 
-    private void common(Workspace workspace, String name, String alias, String acronym, String scope,
+    private void common(String workspaceType, String name, String alias, String acronym, String scope,
                         String settings, boolean duplicate, ValidationResult result) {
-        if (!"MANAGER".equals(workspace.getWorkspaceType().value()))
+        if (!"MANAGER".equals(workspaceType))
             result.addError("workspaceIdentifier", ApplicationMessageKeys.WORKSPACE_TYPE_INVALID);
         if (name == null || name.length() < 3 || name.length() > 100)
             result.addError("name", ApplicationMessageKeys.NAME_INVALID);
