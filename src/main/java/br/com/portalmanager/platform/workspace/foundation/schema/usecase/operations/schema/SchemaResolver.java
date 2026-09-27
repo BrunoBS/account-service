@@ -38,15 +38,18 @@ public class SchemaResolver {
     @Transactional(readOnly = true)
     public SchemaResolution resolvePlatform(String schemaTypeCode) {
         String requestedType = validator.normalizeRequired(schemaTypeCode);
+        String canonicalType = schemaTypeQueryService
+                .requireActiveAllowed(requestedType, SchemaScopeTypeCode.platform())
+                .getCode();
 
         var specific = schemaRepository.findByTypeAndScope(
-                requestedType,
+                canonicalType,
                 SchemaScopeTypeCode.platform().value(),
                 null
         );
 
         if (specific.isPresent()) {
-            return resolution(requestedType, specific.get(), false);
+            return resolution(canonicalType, specific.get(), false);
         }
 
         Schema fallback = schemaRepository.findByTypeAndScope(
@@ -56,7 +59,7 @@ public class SchemaResolver {
                 )
                 .orElseThrow(validator::typeNotFound);
 
-        return resolution(requestedType, fallback, true);
+        return resolution(canonicalType, fallback, true);
     }
 
     @Transactional(readOnly = true)
@@ -68,17 +71,20 @@ public class SchemaResolver {
         String workspace = validator.normalizeRequired(workspaceIdentifier);
         Long workspaceId = workspaceReferenceResolver.resolveInternalId(workspace);
         String type = validator.normalizeRequired(schemaTypeCode);
+        String canonicalType = schemaTypeQueryService
+                .requireActiveAllowed(type, SchemaScopeTypeCode.workspace())
+                .getCode();
         String code = validator.normalizeRequired(schemaCode);
 
         Schema schema = schemaRepository.findByTypeScopeAndCode(
-                        type,
+                        canonicalType,
                         SchemaScopeTypeCode.workspace().value(),
                         workspaceId,
                         code
                 )
                 .orElseThrow(validator::schemaNotFound);
 
-        return resolution(type, schema, false);
+        return resolution(canonicalType, schema, false);
     }
 
     private SchemaResolution resolution(
