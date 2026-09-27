@@ -1,0 +1,75 @@
+package br.com.portalmanager.platform.workspace.entrypoint.web.environment;
+
+import br.com.portalmanager.platform.library.audit.annotation.*;
+import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.EnvironmentCommandService;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.EnvironmentQueryService;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.CreateEnvironmentRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.UpdateEnvironmentRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/workspaces/{workspaceIdentifier}/environments")
+public class WorkspaceEnvironmentController {
+    private final EnvironmentCommandService command;
+    private final EnvironmentQueryService query;
+    public WorkspaceEnvironmentController(EnvironmentCommandService command, EnvironmentQueryService query) {
+        this.command = command;
+        this.query = query;
+    }
+
+    @PostMapping
+    @AuthorizationRequired(level = AuthorizationLevel.ADM)
+    @Auditable(resource = "ENVIRONMENT", action = "INSERT", resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier"))
+    public ResponseEntity<EnvironmentResponse> create(@PathVariable String workspaceIdentifier, @RequestBody CreateEnvironmentRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(EnvironmentResponse.from(command.createCustom(workspaceIdentifier, request.toInput())));
+    }
+
+    @GetMapping
+    @AuthorizationRequired(level = AuthorizationLevel.DEV)
+    public List<EnvironmentResponse> list(@PathVariable String workspaceIdentifier, @RequestParam(defaultValue = "true") Boolean active) {
+        return query.listCustom(workspaceIdentifier, active).stream().map(EnvironmentResponse::from).toList();
+    }
+
+    @GetMapping("/{identifier}")
+    @AuthorizationRequired(level = AuthorizationLevel.DEV)
+    public EnvironmentResponse find(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
+        return EnvironmentResponse.from(query.findCustom(workspaceIdentifier, identifier));
+    }
+
+    @PutMapping("/{identifier}")
+    @AuthorizationRequired(level = AuthorizationLevel.ADM)
+    @Auditable(resource = "ENVIRONMENT", action = "UPDATE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
+    public EnvironmentResponse update(@PathVariable String workspaceIdentifier, @PathVariable String identifier,
+                                      @RequestBody UpdateEnvironmentRequest request) {
+        return EnvironmentResponse.from(command.updateCustom(workspaceIdentifier, identifier, request.toInput()));
+    }
+
+    @PostMapping("/{identifier}/inactivate")
+    @AuthorizationRequired(level = AuthorizationLevel.ADM)
+    @Auditable(resource = "ENVIRONMENT", action = "INACTIVATE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
+    public ResponseEntity<Void> inactivate(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
+        command.inactivateCustom(workspaceIdentifier, identifier);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{identifier}/restore")
+    @AuthorizationRequired(level = AuthorizationLevel.ADM)
+    @Auditable(resource = "ENVIRONMENT", action = "RESTORE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
+    public EnvironmentResponse restore(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
+        return EnvironmentResponse.from(command.restoreCustom(workspaceIdentifier, identifier));
+    }
+
+    @DeleteMapping("/{identifier}")
+    @AuthorizationRequired(level = AuthorizationLevel.ADM)
+    @Auditable(resource = "ENVIRONMENT", action = "DELETE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
+    public ResponseEntity<Void> delete(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
+        command.deleteCustom(workspaceIdentifier, identifier);
+        return ResponseEntity.noContent().build();
+    }
+}
