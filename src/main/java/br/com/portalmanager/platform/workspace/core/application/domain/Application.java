@@ -30,8 +30,6 @@ public class Application {
     private String authorizerGroup;
     @Column(name = "settings", columnDefinition = "TEXT", nullable = false)
     private String settings;
-    @Column(name = "is_default", nullable = false)
-    private boolean defaultApplication;
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
     private LifecycleTypeCode lifecycle;
@@ -43,23 +41,22 @@ public class Application {
     protected Application() {}
 
     public Application(Long workspaceId, String name, String alias, String acronym, String applicationScope,
-                       String authorizerGroup, String settings, boolean defaultApplication, LocalDateTime now) {
+                       String authorizerGroup, String settings, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.workspaceId = workspaceId;
-        update(name, alias, acronym, applicationScope, authorizerGroup, settings, defaultApplication, now);
+        update(name, alias, acronym, applicationScope, authorizerGroup, settings, now);
         this.lifecycle = LifecycleTypeCode.active();
         this.createdAt = now;
     }
 
     public void update(String name, String alias, String acronym, String applicationScope,
-                       String authorizerGroup, String settings, boolean defaultApplication, LocalDateTime now) {
+                       String authorizerGroup, String settings, LocalDateTime now) {
         this.name = name;
         this.alias = alias;
         this.acronym = acronym;
         this.applicationScope = applicationScope;
         this.authorizerGroup = authorizerGroup;
         this.settings = settings;
-        this.defaultApplication = defaultApplication;
         this.updatedAt = now;
     }
 
@@ -77,7 +74,6 @@ public class Application {
     public String getApplicationScope() { return applicationScope; }
     public String getAuthorizerGroup() { return authorizerGroup; }
     public String getSettings() { return settings; }
-    public boolean isDefaultApplication() { return defaultApplication; }
     public LifecycleTypeCode getLifecycle() { return lifecycle; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

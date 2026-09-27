@@ -41,7 +41,7 @@ public class ApplicationCommandService {
                 repository.existsByWorkspaceIdAndName(workspaceId, input.name());
         validator.validateForCreate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
         Application app = new Application(workspaceId, input.name(), input.alias(), input.acronym(),
-                input.applicationScope(), input.authorizerGroup(), input.settings(), input.isDefault(), LocalDateTime.now());
+                input.applicationScope(), input.authorizerGroup(), input.settings(), LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
         tags.reconcile(saved, workspaceIdentifier, input.tags());
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
@@ -57,7 +57,7 @@ public class ApplicationCommandService {
         validator.validateForUpdate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
         validator.requireVersion(app.getVersion(), input.version());
         app.update(input.name(), input.alias(), input.acronym(), input.applicationScope(),
-                input.authorizerGroup(), input.settings(), input.isDefault(), LocalDateTime.now());
+                input.authorizerGroup(), input.settings(), LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
         tags.reconcile(saved, workspaceIdentifier, input.tags());
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));

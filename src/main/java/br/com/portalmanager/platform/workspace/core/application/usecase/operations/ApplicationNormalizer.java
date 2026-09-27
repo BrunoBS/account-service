@@ -13,14 +13,14 @@ public class ApplicationNormalizer {
         if (value == null) return null;
         return new CreateApplicationInput(trim(value.name()), trim(value.alias()), trim(value.acronym()),
                 code(value.applicationScope()), group(value.authorizerGroup()), settings(value.settings()),
-                value.isDefault(), value.tags());
+                value.tags());
     }
 
     public UpdateApplicationInput normalize(UpdateApplicationInput value) {
         if (value == null) return null;
         return new UpdateApplicationInput(value.version(), trim(value.name()), trim(value.alias()),
                 trim(value.acronym()), code(value.applicationScope()), group(value.authorizerGroup()),
-                settings(value.settings()), value.isDefault(), value.tags());
+                settings(value.settings()), value.tags());
     }
 
     public String normalizeTag(String value) { return TagNormalizer.normalize(value); }

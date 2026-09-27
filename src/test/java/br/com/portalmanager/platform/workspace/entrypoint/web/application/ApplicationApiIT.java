@@ -74,10 +74,10 @@ class ApplicationApiIT {
     }
 
     @Test
-    void readsApplicationRequestWithOptionalDefaultFlag() {
+    void readsApplicationRequestWithoutDefaultFlag() {
         CreateApplicationRequest parsed = json.readValue(json.writeValueAsString(request("Request Mapping")),
                 CreateApplicationRequest.class);
-        assertThat(parsed.toInput().isDefault()).isFalse();
+        assertThat(parsed.toInput().name()).isEqualTo("Request Mapping");
     }
 
     @Test
@@ -128,6 +128,42 @@ class ApplicationApiIT {
         post(path + "/" + app + "/inactivate", null).statusCode(204);
         post(path + "/" + app + "/restore", null).statusCode(200).body("tags", contains("minha-tag"));
         getByTag(path, "Minha Tag").statusCode(200).body("identifier", hasItem(app));
+    }
+
+    @Test
+    void enforcesApplicationAuthorizationLevelsAndResourceVisibility() {
+        String workspace = createWorkspace("MANAGER");
+        String path = "/api/v1/workspaces/" + workspace + "/applications";
+        Map<String, Object> teamA = request("Team A Application");
+        teamA.put("authorizerGroup", "TEAM_A");
+        String appA = post(path, teamA).statusCode(201).extract().path("identifier");
+        Map<String, Object> teamB = request("Team B Application");
+        teamB.put("authorizerGroup", "TEAM_B");
+        String appB = post(path, teamB).statusCode(201).extract().path("identifier");
+
+        authorization.reset();
+        authorization.allow(session -> session.groups("USER")
+                .addAuthorizerGroup("GRP_APPLICATION_DEV_TEAM_A", "DEV", "DEV", "A-TEAM_A"));
+        Integer version = get(path + "/" + appA).statusCode(200).extract().path("version");
+        authorization.verifyCalledWithPolicy("DEV");
+        get(path + "/" + appB).statusCode(403).body("code", equalTo("AUTH-403-004"));
+        get(path).statusCode(200).body("identifier", hasItem(appA)).body("identifier", not(hasItem(appB)));
+        get(path + "/summary").statusCode(200).body("identifier", hasItem(appA)).body("identifier", not(hasItem(appB)));
+
+        Map<String, Object> update = request("Team A Updated");
+        update.put("authorizerGroup", "TEAM_A");
+        update.put("version", version);
+        put(path + "/" + appA, update).statusCode(200);
+        authorization.verifyCalledWithPolicy("DEV");
+        post(path + "/" + appA + "/inactivate", null).statusCode(403);
+        post(path, request("New Application")).statusCode(403);
+
+        authorization.reset();
+        authorization.allow(session -> session.groups("USER")
+                .addAuthorizerGroup("GRP_APPLICATION_ADM_TEAM_A", "ADM", "ADM", "A-TEAM_A"));
+        post(path + "/" + appA + "/inactivate", null).statusCode(204);
+        authorization.verifyCalledWithPolicy("ADM");
+        post(path + "/" + appA + "/restore", null).statusCode(200);
     }
 
     private String createWorkspace(String type) {

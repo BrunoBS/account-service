@@ -4,11 +4,11 @@ import br.com.portalmanager.platform.library.authorization.resource.Authorizable
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
 
 public record ApplicationSummary(String identifier, String name, String alias, String acronym,
-                                 String applicationScope, boolean isDefault, String authorizerGroup)
+                                 String applicationScope, String authorizerGroup)
         implements AuthorizableResource {
     public static ApplicationSummary from(Application application) {
         return new ApplicationSummary(application.getIdentifier(), application.getName(), application.getAlias(),
-                application.getAcronym(), application.getApplicationScope(), application.isDefaultApplication(),
+                application.getAcronym(), application.getApplicationScope(),
                 application.getAuthorizerGroup());
     }
 

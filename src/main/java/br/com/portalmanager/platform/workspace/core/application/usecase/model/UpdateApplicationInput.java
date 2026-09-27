@@ -4,4 +4,4 @@ import java.util.List;
 
 public record UpdateApplicationInput(Long version, String name, String alias, String acronym,
                                      String applicationScope, String authorizerGroup, String settings,
-                                     boolean isDefault, List<String> tags) {}
+                                     List<String> tags) {}

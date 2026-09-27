@@ -9,7 +9,6 @@ CREATE TABLE applications (
     application_scope_code VARCHAR(50) NOT NULL,
     authorizer_group VARCHAR(255) NULL,
     settings TEXT NOT NULL,
-    is_default BOOLEAN NOT NULL DEFAULT FALSE,
     lifecycle_code VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
