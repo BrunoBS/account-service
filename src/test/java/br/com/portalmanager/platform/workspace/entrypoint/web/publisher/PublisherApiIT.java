@@ -44,6 +44,10 @@ class PublisherApiIT {
                 VALUES ('WORKSPACE', 'Workspace', 'Workspace resources', 1, true, '{}'),
                        ('APPLICATION', 'Application', 'Application resources', 2, true, '{}')
                 """);
+        jdbc.update("""
+                INSERT IGNORE INTO type_schema_version_status (code, label, description, sort_order, is_active, settings)
+                VALUES ('PUBLISHED', 'Published', 'Published schema version', 2, true, '{}')
+                """);
         for (String code : new String[] {"WEB_SOCKET", "KAAS", "APPCONFIG"}) {
             jdbc.update("""
                     INSERT IGNORE INTO schema_types
