@@ -1,7 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.schematype.usecase.SchemaTypeService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
@@ -10,6 +9,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVe
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaResolution;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schematype.SchemaTypeQueryService;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaResolutionValidator;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,34 +19,37 @@ public class SchemaResolver {
 
     private final SchemaRepository schemaRepository;
     private final SchemaVersionRepository versionRepository;
-    private final SchemaTypeService schemaTypeService;
+    private final SchemaTypeQueryService schemaTypeQueryService;
     private final WorkspaceReferenceResolver workspaceReferenceResolver;
     private final SchemaResolutionValidator validator = new SchemaResolutionValidator();
 
     public SchemaResolver(
             SchemaRepository schemaRepository,
             SchemaVersionRepository versionRepository,
-            SchemaTypeService schemaTypeService,
+            SchemaTypeQueryService schemaTypeQueryService,
             WorkspaceReferenceResolver workspaceReferenceResolver
     ) {
         this.schemaRepository = schemaRepository;
         this.versionRepository = versionRepository;
-        this.schemaTypeService = schemaTypeService;
+        this.schemaTypeQueryService = schemaTypeQueryService;
         this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
 
     @Transactional(readOnly = true)
     public SchemaResolution resolvePlatform(String schemaTypeCode) {
         String requestedType = validator.normalizeRequired(schemaTypeCode);
+        String canonicalType = schemaTypeQueryService
+                .requireActiveAllowed(requestedType, SchemaScopeTypeCode.platform())
+                .getCode();
 
         var specific = schemaRepository.findByTypeAndScope(
-                requestedType,
+                canonicalType,
                 SchemaScopeTypeCode.platform().value(),
                 null
         );
 
         if (specific.isPresent()) {
-            return resolution(requestedType, specific.get(), false);
+            return resolution(canonicalType, specific.get(), false);
         }
 
         Schema fallback = schemaRepository.findByTypeAndScope(
@@ -56,7 +59,7 @@ public class SchemaResolver {
                 )
                 .orElseThrow(validator::typeNotFound);
 
-        return resolution(requestedType, fallback, true);
+        return resolution(canonicalType, fallback, true);
     }
 
     @Transactional(readOnly = true)
@@ -68,17 +71,20 @@ public class SchemaResolver {
         String workspace = validator.normalizeRequired(workspaceIdentifier);
         Long workspaceId = workspaceReferenceResolver.resolveInternalId(workspace);
         String type = validator.normalizeRequired(schemaTypeCode);
+        String canonicalType = schemaTypeQueryService
+                .requireActiveAllowed(type, SchemaScopeTypeCode.workspace())
+                .getCode();
         String code = validator.normalizeRequired(schemaCode);
 
         Schema schema = schemaRepository.findByTypeScopeAndCode(
-                        type,
+                        canonicalType,
                         SchemaScopeTypeCode.workspace().value(),
                         workspaceId,
                         code
                 )
                 .orElseThrow(validator::schemaNotFound);
 
-        return resolution(type, schema, false);
+        return resolution(canonicalType, schema, false);
     }
 
     private SchemaResolution resolution(
@@ -86,7 +92,9 @@ public class SchemaResolver {
             Schema schema,
             boolean fallback
     ) {
-        validator.requireActive(schema, schemaTypeService.existsActive(schema.getSchemaTypeCode()));
+        String schemaTypeCode = schema.getSchemaType().value();
+        schemaTypeQueryService.requireActiveAllowed(schemaTypeCode, schema.getScope());
+        validator.requireActive(schema);
 
         SchemaVersion version = versionRepository
                 .findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
@@ -97,7 +105,7 @@ public class SchemaResolver {
 
         return new SchemaResolution(
                 requestedType,
-                schema.getSchemaTypeCode(),
+                schemaTypeCode,
                 schema.getIdentifier(),
                 version.getIdentifier(),
                 version.getSchemaVersion(),

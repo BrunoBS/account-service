@@ -15,6 +15,29 @@ public final class SchemaMessageKeys {
     public static final String VERSION_INVALID = "workspace-service.schema.version.invalid";
     public static final String VERSION_IMMUTABLE = "workspace-service.schema.version.immutable";
     public static final String DEFINITION_REQUIRED = "workspace-service.schema.definition.required";
+    public static final String SCOPE_INVALID = "workspace-service.schema.scope.invalid";
+    public static final String UNDEFINED = "workspace-service.schema.undefined";
+    public static final String INVALID_SYNTAX = "workspace-service.schema.invalid.syntax";
+    public static final String VALUE_REQUIRED = "workspace-service.schema.value.required";
+    public static final String JSON_INVALID = "workspace-service.schema.json.invalid.for.schema";
+    public static final String PERSISTED_JSON_INVALID = "workspace-service.schema.persisted.json.invalid";
+    public static final String JSON_SERIALIZATION_INVALID = "workspace-service.schema.json.serialization.invalid";
+    public static final String RESOLUTION_NOT_FOUND = "workspace-service.schema.resolution.not-found";
+    public static final String PUBLISHED_NOT_FOUND = "workspace-service.schema.published.not-found";
+    public static final String INACTIVE = "workspace-service.schema.inactive";
+    public static final String SCHEMA_TYPE_NOT_FOUND = "workspace-service.schema-type.not-found";
+    public static final String SCHEMA_TYPE_DUPLICATE = "workspace-service.schema-type.duplicate";
+    public static final String SCHEMA_TYPE_IN_USE = "workspace-service.schema-type.in-use";
+    public static final String SCHEMA_TYPE_SCOPES_REQUIRED = "workspace-service.schema-type.scopes.required";
+    public static final String SCHEMA_TYPE_SCOPE_NOT_ALLOWED = "workspace-service.schema-type.scope.not-allowed";
+    public static final String SCHEMA_TYPE_SCOPE_IN_USE = "workspace-service.schema-type.scope.in-use";
+    public static final String SCHEMA_TYPE_DELETE_ACTIVE = "workspace-service.schema-type.delete.active";
+    public static final String SCHEMA_TYPE_DEFAULT_SCOPE_INVALID = "workspace-service.schema-type.default.scope.invalid";
+    public static final String SCHEMA_TYPE_DEFAULT_PROTECTED = "workspace-service.schema-type.default.protected";
+    public static final String SCHEMA_TYPE_CODE_INVALID = "workspace-service.schema-type.code.invalid";
+    public static final String SCHEMA_TYPE_NAME_INVALID = "workspace-service.schema-type.name.invalid";
+    public static final String SCHEMA_TYPE_DESCRIPTION_INVALID = "workspace-service.schema-type.description.invalid";
+    public static final String DEFAULT_PROTECTED = "workspace-service.schema.default.protected";
 
     private SchemaMessageKeys() {
     }

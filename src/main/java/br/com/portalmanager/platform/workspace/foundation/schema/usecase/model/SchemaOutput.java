@@ -17,7 +17,7 @@ public record SchemaOutput(
         return new SchemaOutput(
                 schema.getIdentifier(),
                 schema.getVersion(),
-                schema.getSchemaTypeCode(),
+                schema.getSchemaType().value(),
                 schema.getScope().toString(),
                 workspaceIdentifier,
                 schema.getCode(),

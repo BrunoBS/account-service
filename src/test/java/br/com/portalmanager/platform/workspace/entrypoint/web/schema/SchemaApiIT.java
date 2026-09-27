@@ -65,23 +65,26 @@ class SchemaApiIT {
 
     @Test
     void shouldAdministerPlatformAndWorkspaceSchemasWithVersionPublication() {
-        authorized()
+        String schemaTypeIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                         "code", "APPLICATION",
-                        "label", "Application",
+                        "name", "Application",
                         "description", "Application settings schema",
-                        "sortOrder", 10,
-                        "settings", Map.of()
+                        "allowedScopes", java.util.Set.of("PLATFORM", "WORKSPACE")
                 ))
-                .post("/api/v1/schema-type")
+                .post("/api/v1/schema-types")
                 .then()
                 .statusCode(201)
                 .body("code", equalTo("APPLICATION"))
-                .body("label", equalTo("Application"));
+                .body("name", equalTo("Application"))
+                .body("allowedScopes", hasItem("PLATFORM"))
+                .body("allowedScopes", hasItem("WORKSPACE"))
+                .extract()
+                .path("identifier");
 
         authorized()
-                .get("/api/v1/schema-type/APPLICATION")
+                .get("/api/v1/schema-types/" + schemaTypeIdentifier)
                 .then()
                 .statusCode(200)
                 .body("code", equalTo("APPLICATION"));
@@ -89,7 +92,7 @@ class SchemaApiIT {
         String platformSchemaIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                        "schemaTypeCode", "APPLICATION",
+                        "schemaTypeCode", "application",
                         "code", "application",
                         "name", "Application Platform Schema",
                         "description", "Platform schema for application settings",
@@ -222,6 +225,174 @@ class SchemaApiIT {
                 .then()
                 .statusCode(200)
                 .body("identifier", hasItem(platformSchemaIdentifier));
+    }
+
+
+    @Test
+    void shouldEnforceSchemaTypeScopeAndDeletionRules() {
+        String workspaceIdentifier = UUID.randomUUID().toString();
+        seedWorkspace(workspaceIdentifier);
+
+        Map<String, Object> platformOnlyType = authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "code", "PLATFORM_ONLY",
+                        "name", "Platform only",
+                        "description", "Platform-only schema type",
+                        "allowedScopes", java.util.Set.of("PLATFORM")
+                ))
+                .post("/api/v1/schema-types")
+                .then()
+                .statusCode(201)
+                .extract()
+                .as(Map.class);
+
+        String platformOnlyIdentifier = (String) platformOnlyType.get("identifier");
+        Number platformOnlyVersion = (Number) platformOnlyType.get("version");
+
+        authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "schemaTypeCode", "PLATFORM_ONLY",
+                        "code", "workspace-forbidden",
+                        "name", "Workspace forbidden",
+                        "definition", Map.of("type", "object")
+                ))
+                .post("/api/v1/workspaces/" + workspaceIdentifier + "/schemas")
+                .then()
+                .statusCode(400);
+
+        authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "schemaTypeCode", "PLATFORM_ONLY",
+                        "code", "platform-only",
+                        "name", "Platform only schema",
+                        "definition", Map.of("type", "object")
+                ))
+                .post("/api/v1/schemas")
+                .then()
+                .statusCode(201);
+
+        authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "version", platformOnlyVersion.longValue(),
+                        "name", "Platform only",
+                        "description", "Attempt to remove used platform scope",
+                        "allowedScopes", java.util.Set.of("WORKSPACE")
+                ))
+                .put("/api/v1/schema-types/" + platformOnlyIdentifier)
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .delete("/api/v1/schema-types/" + platformOnlyIdentifier)
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .patch("/api/v1/schema-types/" + platformOnlyIdentifier + "/inactivate")
+                .then()
+                .statusCode(200);
+
+        authorized()
+                .delete("/api/v1/schema-types/" + platformOnlyIdentifier)
+                .then()
+                .statusCode(409);
+
+        String unusedTypeIdentifier = authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "code", "UNUSED",
+                        "name", "Unused",
+                        "allowedScopes", java.util.Set.of("PLATFORM")
+                ))
+                .post("/api/v1/schema-types")
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("identifier");
+
+        authorized()
+                .delete("/api/v1/schema-types/" + unusedTypeIdentifier)
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .patch("/api/v1/schema-types/" + unusedTypeIdentifier + "/inactivate")
+                .then()
+                .statusCode(200);
+
+        authorized()
+                .delete("/api/v1/schema-types/" + unusedTypeIdentifier)
+                .then()
+                .statusCode(204);
+    }
+
+    @Test
+    void shouldProtectDefaultSchemaTypeAndDefaultPlatformSchema() {
+        seedDefaultFallback();
+        String defaultTypeIdentifier = jdbc.queryForObject(
+                "select identifier from schema_types where code = 'DEFAULT'",
+                String.class
+        );
+        String defaultSchemaIdentifier = jdbc.queryForObject(
+                "select identifier from schema_definitions " +
+                        "where schema_type_code = 'DEFAULT' and scope_code = 'PLATFORM'",
+                String.class
+        );
+
+        authorized()
+                .patch("/api/v1/schema-types/" + defaultTypeIdentifier + "/inactivate")
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .delete("/api/v1/schema-types/" + defaultTypeIdentifier)
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .patch("/api/v1/schemas/" + defaultSchemaIdentifier + "/inactivate")
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .delete("/api/v1/schemas/" + defaultSchemaIdentifier)
+                .then()
+                .statusCode(409);
+    }
+
+    private void seedDefaultFallback() {
+        jdbc.update("""
+                insert into schema_types
+                    (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
+                values
+                    (0, UUID(), 'DEFAULT', 'Default', 'Platform fallback schema type',
+                     'ACTIVE', current_timestamp, current_timestamp)
+                """);
+
+        Long schemaTypeId = jdbc.queryForObject(
+                "select id from schema_types where code = 'DEFAULT'",
+                Long.class
+        );
+
+        jdbc.update("""
+                insert into schema_type_scopes
+                    (schema_type_id, scope_code)
+                values (?, 'PLATFORM')
+                """, schemaTypeId);
+
+        jdbc.update("""
+                insert into schema_definitions
+                    (version, identifier, schema_type_code, scope_code, workspace_id,
+                     code, name, description, lifecycle_code, created_at, updated_at)
+                values
+                    (0, UUID(), 'DEFAULT', 'PLATFORM', null,
+                     'default', 'Default', 'Permissive platform fallback',
+                     'ACTIVE', current_timestamp, current_timestamp)
+                """);
     }
 
     private void seedWorkspace(String identifier) {

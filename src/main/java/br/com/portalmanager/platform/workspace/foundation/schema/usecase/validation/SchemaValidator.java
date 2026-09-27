@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase.valida
 
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.SpecificationVersion;
@@ -15,15 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class SchemaValidator {
-
-    private static final String PREFIX = "workspace-service.";
-
-    private static final String UNDEFINED = PREFIX + "schema.undefined";
-    private static final String INVALID_SYNTAX = PREFIX + "schema.invalid.syntax";
-    private static final String VALUE_REQUIRED = PREFIX + "schema.value.required";
-    private static final String JSON_INVALID = PREFIX + "schema.json.invalid.for.schema";
-    private static final String PERSISTED_JSON_INVALID = PREFIX + "schema.persisted.json.invalid";
-    private static final String JSON_SERIALIZATION_INVALID = PREFIX + "schema.json.serialization.invalid";
 
     private final ObjectMapper objectMapper;
     private final SchemaRegistry schemaRegistry;
@@ -41,11 +33,11 @@ public class SchemaValidator {
             ValidationResult result
     ) {
         if (schemaDefinition == null || schemaDefinition.isBlank()) {
-            result.addError("schema", UNDEFINED);
+            result.addError("schema", SchemaMessageKeys.UNDEFINED);
             return;
         }
         if (configNode == null || configNode.isNull()) {
-            result.addError(attributeName, VALUE_REQUIRED, Map.of("0", attributeName));
+            result.addError(attributeName, SchemaMessageKeys.VALUE_REQUIRED, Map.of("0", attributeName));
             return;
         }
 
@@ -54,7 +46,7 @@ public class SchemaValidator {
             schema.validate(configNode).forEach(error ->
                     result.addError(
                             attributeName,
-                            JSON_INVALID,
+                            SchemaMessageKeys.JSON_INVALID,
                             Map.of("0", attributeName, "1", error.getMessage())
                     )
             );
@@ -69,13 +61,13 @@ public class SchemaValidator {
 
     private void validateSchemaSyntax(JsonNode schemaNode, String attributeName, ValidationResult result) {
         if (schemaNode == null || schemaNode.isEmpty() || !schemaNode.isObject()) {
-            result.addError(attributeName, INVALID_SYNTAX);
+            result.addError(attributeName, SchemaMessageKeys.INVALID_SYNTAX);
             return;
         }
         try {
             schemaRegistry.getSchema(schemaNode);
         } catch (Exception exception) {
-            result.addError(attributeName, INVALID_SYNTAX);
+            result.addError(attributeName, SchemaMessageKeys.INVALID_SYNTAX);
         }
     }
 
@@ -84,7 +76,7 @@ public class SchemaValidator {
             return node != null ? objectMapper.writeValueAsString(node) : null;
         } catch (JacksonException exception) {
             throw new ValidationException(
-                    new ValidationResult(attributeName, JSON_SERIALIZATION_INVALID)
+                    new ValidationResult(attributeName, SchemaMessageKeys.JSON_SERIALIZATION_INVALID)
             );
         }
     }
@@ -97,7 +89,7 @@ public class SchemaValidator {
             return objectMapper.readTree(json);
         } catch (JacksonException exception) {
             throw new ValidationException(
-                    new ValidationResult(attributeName, PERSISTED_JSON_INVALID)
+                    new ValidationResult(attributeName, SchemaMessageKeys.PERSISTED_JSON_INVALID)
             );
         }
     }
@@ -114,7 +106,7 @@ public class SchemaValidator {
             schemaCache.put(schemaDefinition, schema);
             return schema;
         } catch (Exception exception) {
-            result.addError("schema", INVALID_SYNTAX);
+            result.addError("schema", SchemaMessageKeys.INVALID_SYNTAX);
             return null;
         }
     }

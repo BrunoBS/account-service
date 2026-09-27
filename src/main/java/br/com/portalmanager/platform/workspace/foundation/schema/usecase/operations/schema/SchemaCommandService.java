@@ -2,10 +2,10 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operat
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.schematype.usecase.SchemaTypeService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
@@ -13,6 +13,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.C
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaOutput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaInput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schematype.SchemaTypeQueryService;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaVersionOperationValidator;
@@ -28,18 +29,18 @@ public class SchemaCommandService {
 
     private final SchemaRepository repository;
     private final SchemaVersionRepository versionRepository;
-    private final SchemaTypeService schemaTypeService;
+    private final SchemaTypeQueryService schemaTypeQueryService;
     private final SchemaValidator validator;
     private final SchemaOperationValidator operationValidator = new SchemaOperationValidator();
     private final SchemaVersionOperationValidator versionValidator = new SchemaVersionOperationValidator();
     private final WorkspaceReferenceResolver workspaceReferenceResolver;
 
     public SchemaCommandService(SchemaRepository repository, SchemaVersionRepository versionRepository,
-                                SchemaTypeService schemaTypeService, SchemaValidator validator,
+                                SchemaTypeQueryService schemaTypeQueryService, SchemaValidator validator,
                                 WorkspaceReferenceResolver workspaceReferenceResolver) {
         this.repository = repository;
         this.versionRepository = versionRepository;
-        this.schemaTypeService = schemaTypeService;
+        this.schemaTypeQueryService = schemaTypeQueryService;
         this.validator = validator;
         this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
@@ -47,8 +48,6 @@ public class SchemaCommandService {
     @Transactional
     public SchemaOutput createPlatform(CreateSchemaInput input) {
         operationValidator.validateCreateInput(input);
-        operationValidator.validatePlatformTypeAvailable(repository.findByTypeAndScope(
-                input.schemaTypeCode(), SchemaScopeTypeCode.platform().value(), null).isPresent());
         return create(input, SchemaScopeTypeCode.platform(), null);
     }
 
@@ -102,20 +101,35 @@ public class SchemaCommandService {
     }
 
     private SchemaOutput activate(Schema schema) { schema.activate(LocalDateTime.now()); return output(schema); }
-    private SchemaOutput inactivate(Schema schema) { schema.inactivate(LocalDateTime.now()); return output(schema); }
-    private SchemaOutput quarantine(Schema schema) { schema.quarantine(LocalDateTime.now()); return output(schema); }
+    private SchemaOutput inactivate(Schema schema) {
+        operationValidator.validateDefaultLifecycleChange(schema);
+        schema.inactivate(LocalDateTime.now());
+        return output(schema);
+    }
+    private SchemaOutput quarantine(Schema schema) {
+        operationValidator.validateDefaultLifecycleChange(schema);
+        schema.quarantine(LocalDateTime.now());
+        return output(schema);
+    }
 
     private SchemaOutput create(CreateSchemaInput input, SchemaScopeTypeCode scope, Long workspaceId) {
         operationValidator.validateOwnership(scope, workspaceId);
-        operationValidator.validateTypeActive(schemaTypeService.existsActive(input.schemaTypeCode()));
+        String schemaTypeCode = schemaTypeQueryService
+                .requireActiveAllowed(input.schemaTypeCode(), scope)
+                .getCode();
+
+        if (SchemaScopeTypeCode.platform().equals(scope)) {
+            operationValidator.validatePlatformTypeAvailable(repository.findByTypeAndScope(
+                    schemaTypeCode, scope.value(), null).isPresent());
+        }
         operationValidator.validateCodeAvailable(repository.findByTypeScopeAndCode(
-                input.schemaTypeCode(), scope.value(), workspaceId, input.code()).isPresent());
+                schemaTypeCode, scope.value(), workspaceId, input.code()).isPresent());
 
         validator.requireValidSchemaSyntax(input.definition(), DEFINITION);
 
         LocalDateTime now = LocalDateTime.now();
-        Schema schema = repository.save(new Schema(input.schemaTypeCode(), scope, workspaceId, input.code(),
-                input.name(), input.description(), now));
+        Schema schema = repository.save(new Schema(SchemaTypeCode.of(schemaTypeCode), scope, workspaceId,
+                input.code(), input.name(), input.description(), now));
 
         String definition = validator.toJsonString(input.definition(), DEFINITION);
         versionValidator.validateCreate(schema, 1, definition, SchemaVersionStatusTypeCode.draft());

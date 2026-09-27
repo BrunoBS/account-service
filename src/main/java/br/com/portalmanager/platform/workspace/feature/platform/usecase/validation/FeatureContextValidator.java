@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.feature.platform.usecase.validat
 
 import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateFeatureContextInput;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateFeatureContextInput;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +22,7 @@ public class FeatureContextValidator {
 
     public void validateDelete(FeatureContext context) {
         if (!context.getFeatures().isEmpty()) {
-            PlatformValidation.reject("context", "context.has-features");
+            PlatformValidation.reject("context", PlatformMessageKeys.CONTEXT_HAS_FEATURES);
         }
     }
 }

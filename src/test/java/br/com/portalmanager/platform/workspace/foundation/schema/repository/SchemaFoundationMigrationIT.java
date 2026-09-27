@@ -29,7 +29,7 @@ class SchemaFoundationMigrationIT {
     private Flyway flyway;
 
     @Test
-    void shouldApplySchemaV3VersionStatusCatalog() {
+    void shouldUpgradeSchemaFoundationThroughSchemaTypeDomain() {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
         assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("17");
 
@@ -96,5 +96,99 @@ class SchemaFoundationMigrationIT {
                         "and constraint_name = 'uk_schema_versions_single_draft'",
                 Integer.class
         )).isEqualTo(1);
+
+        jdbc.update("""
+                insert into type_life_cycle
+                    (code, label, description, sort_order, is_active, settings)
+                values
+                    ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}'),
+                    ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}')
+                on duplicate key update code = values(code)
+                """);
+
+        jdbc.update("""
+                insert into type_schema_scopes
+                    (code, label, description, sort_order, is_active, settings)
+                values
+                    ('PLATFORM', 'Platform', 'Platform-owned schema', 1, true, '{}'),
+                    ('WORKSPACE', 'Workspace', 'Workspace-owned schema', 2, true, '{}')
+                on duplicate key update code = values(code)
+                """);
+
+        jdbc.update("""
+                insert into type_schema_types
+                    (code, label, description, sort_order, is_active, settings)
+                values
+                    ('DEFAULT', 'Default', 'Fallback schema type', 1, false, '{}')
+                on duplicate key update
+                    label = values(label),
+                    description = values(description),
+                    is_active = values(is_active)
+                """);
+
+        jdbc.update("""
+                insert into schema_definitions
+                    (version, identifier, schema_type_code, scope_code, workspace_id,
+                     code, name, description, lifecycle_code, created_at, updated_at)
+                values
+                    (0, UUID(), 'DEFAULT', 'PLATFORM', null,
+                     'default', 'Default', 'Fallback schema', 'INACTIVE',
+                     current_timestamp, current_timestamp)
+                """);
+
+        Flyway schemaTypeUpgrade = Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .target("21")
+                .load();
+
+        schemaTypeUpgrade.migrate();
+
+        assertThat(schemaTypeUpgrade.info().current().getVersion().getVersion()).isEqualTo("21");
+
+        assertThat(jdbc.queryForObject(
+                "select count(*) from information_schema.tables " +
+                        "where table_schema = database() and table_name = 'schema_types'",
+                Integer.class
+        )).isEqualTo(1);
+
+        assertThat(jdbc.queryForObject(
+                "select count(*) from information_schema.tables " +
+                        "where table_schema = database() and table_name = 'type_schema_types'",
+                Integer.class
+        )).isZero();
+
+        assertThat(jdbc.queryForObject(
+                "select count(*) from schema_type_scopes sts " +
+                        "join schema_types st on st.id = sts.schema_type_id " +
+                        "where st.code = 'DEFAULT' and sts.scope_code = 'PLATFORM'",
+                Integer.class
+        )).isEqualTo(1);
+
+        assertThat(jdbc.queryForObject(
+                "select lifecycle_code from schema_types where code = 'DEFAULT'",
+                String.class
+        )).isEqualTo("ACTIVE");
+
+        assertThat(jdbc.queryForObject(
+                "select lifecycle_code from schema_definitions " +
+                        "where schema_type_code = 'DEFAULT' and scope_code = 'PLATFORM'",
+                String.class
+        )).isEqualTo("ACTIVE");
+
+        assertThat(jdbc.queryForObject(
+                "select count(*) from information_schema.statistics " +
+                        "where table_schema = database() " +
+                        "and table_name = 'schema_types' " +
+                        "and index_name = 'uk_schema_types_id'",
+                Integer.class
+        )).isZero();
+
+        assertThat(jdbc.queryForObject(
+                "select count(*) from schema_type_scopes sts " +
+                        "join schema_types st on st.id = sts.schema_type_id " +
+                        "where st.code = 'DEFAULT' and sts.scope_code = 'WORKSPACE'",
+                Integer.class
+        )).isZero();
     }
 }
