@@ -26,7 +26,7 @@ public class Application {
     private String acronym;
     @Column(name = "application_scope_code", nullable = false, length = 50)
     private String applicationScope;
-    @Column(name = "authorizer_group", nullable = false, length = 255)
+    @Column(name = "authorizer_group", length = 255)
     private String authorizerGroup;
     @Column(name = "settings", columnDefinition = "TEXT", nullable = false)
     private String settings;
@@ -65,6 +65,7 @@ public class Application {
 
     public void inactivate(LocalDateTime now) { lifecycle = LifecycleTypeCode.inactive(); updatedAt = now; }
     public void restore(LocalDateTime now) { lifecycle = LifecycleTypeCode.active(); updatedAt = now; }
+    public void quarantine(LocalDateTime now) { lifecycle = LifecycleTypeCode.quarantined(); updatedAt = now; }
 
     public Long getId() { return id; }
     public Long getVersion() { return version; }

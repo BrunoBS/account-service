@@ -81,4 +81,12 @@ public class ApplicationCommandService {
         tags.reconcile(saved, workspaceIdentifier, manualTags);
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
+
+    @Transactional
+    public void delete(String workspaceIdentifier, String identifier) {
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        Application app = finder.findInactiveForDeletion(identifier, workspaceId);
+        app.quarantine(LocalDateTime.now());
+        repository.saveAndFlush(app);
+    }
 }

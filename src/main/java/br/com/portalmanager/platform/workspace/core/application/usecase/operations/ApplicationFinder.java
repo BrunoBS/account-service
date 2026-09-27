@@ -28,4 +28,12 @@ public class ApplicationFinder {
             throw new ValidationException(ApplicationMessageKeys.RESTORE_INVALID);
         return app;
     }
+
+    public Application findInactiveForDeletion(String identifier, Long workspaceId) {
+        Application app = repository.findByIdentifierAndWorkspaceId(identifier, workspaceId)
+                .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
+        if (!LifecycleTypeCode.inactive().equals(app.getLifecycle()))
+            throw new ValidationException(ApplicationMessageKeys.DELETE_INVALID);
+        return app;
+    }
 }

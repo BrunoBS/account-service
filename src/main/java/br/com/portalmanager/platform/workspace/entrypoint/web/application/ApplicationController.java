@@ -77,4 +77,12 @@ public class ApplicationController {
     public ApplicationResponse restore(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
         return ApplicationResponse.from(command.restore(workspaceIdentifier, identifier));
     }
+
+    @DeleteMapping("/{identifier}")
+    @AuthorizationRequired(level = AuthorizationLevel.ADM)
+    @Auditable(resource = "APPLICATION", action = "DELETE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
+    public ResponseEntity<Void> delete(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
+        command.delete(workspaceIdentifier, identifier);
+        return ResponseEntity.noContent().build();
+    }
 }

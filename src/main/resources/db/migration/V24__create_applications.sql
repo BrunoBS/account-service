@@ -7,7 +7,7 @@ CREATE TABLE applications (
     alias VARCHAR(100) NOT NULL,
     acronym VARCHAR(20) NOT NULL,
     application_scope_code VARCHAR(50) NOT NULL,
-    authorizer_group VARCHAR(255) NOT NULL DEFAULT '',
+    authorizer_group VARCHAR(255) NULL,
     settings TEXT NOT NULL,
     is_default BOOLEAN NOT NULL DEFAULT FALSE,
     lifecycle_code VARCHAR(50) NOT NULL,

@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.core.application.usecase.operati
 
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
+import br.com.portalmanager.platform.library.tagging.TagNormalizer;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
@@ -22,7 +23,7 @@ public class ApplicationNormalizer {
                 settings(value.settings()), value.isDefault(), value.tags());
     }
 
-    public String normalizeTag(String value) { return trim(value); }
+    public String normalizeTag(String value) { return TagNormalizer.normalize(value); }
     private String trim(String value) { return value == null ? null : value.trim(); }
     private String code(String value) {
         String normalized = trim(value);
@@ -30,7 +31,7 @@ public class ApplicationNormalizer {
     }
     private String group(String value) {
         String normalized = trim(value);
-        if (normalized == null || normalized.isBlank()) return "";
+        if (normalized == null || normalized.isBlank()) return null;
         return normalized.startsWith("A-") ? normalized : "A-" + normalized;
     }
     private String settings(String value) { return value == null || value.isBlank() ? "{}" : value.trim(); }
