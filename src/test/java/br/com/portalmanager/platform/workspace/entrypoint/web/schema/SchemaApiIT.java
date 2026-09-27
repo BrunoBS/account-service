@@ -71,15 +71,14 @@ class SchemaApiIT {
                         "code", "APPLICATION",
                         "name", "Application",
                         "description", "Application settings schema",
-                        "allowedScopes", java.util.Set.of("PLATFORM", "WORKSPACE")
+                        "scope", "PLATFORM"
                 ))
                 .post("/api/v1/schema-types")
                 .then()
                 .statusCode(201)
                 .body("code", equalTo("APPLICATION"))
                 .body("name", equalTo("Application"))
-                .body("allowedScopes", hasItem("PLATFORM"))
-                .body("allowedScopes", hasItem("WORKSPACE"))
+                .body("scope", equalTo("PLATFORM"))
                 .extract()
                 .path("identifier");
 
@@ -197,10 +196,18 @@ class SchemaApiIT {
         String workspaceIdentifier = UUID.randomUUID().toString();
         seedWorkspace(workspaceIdentifier);
 
+        authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of("code", "WORKSPACE_APPLICATION", "name", "Workspace application",
+                        "scope", "WORKSPACE"))
+                .post("/api/v1/schema-types")
+                .then()
+                .statusCode(201);
+
         String workspaceSchemaIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                        "schemaTypeCode", "APPLICATION",
+                        "schemaTypeCode", "WORKSPACE_APPLICATION",
                         "code", "custom-application",
                         "name", "Workspace Application Schema",
                         "description", "Workspace-owned application schema",
@@ -239,7 +246,7 @@ class SchemaApiIT {
                         "code", "PLATFORM_ONLY",
                         "name", "Platform only",
                         "description", "Platform-only schema type",
-                        "allowedScopes", java.util.Set.of("PLATFORM")
+                        "scope", "PLATFORM"
                 ))
                 .post("/api/v1/schema-types")
                 .then()
@@ -280,7 +287,7 @@ class SchemaApiIT {
                         "version", platformOnlyVersion.longValue(),
                         "name", "Platform only",
                         "description", "Attempt to remove used platform scope",
-                        "allowedScopes", java.util.Set.of("WORKSPACE")
+                        "scope", "WORKSPACE"
                 ))
                 .put("/api/v1/schema-types/" + platformOnlyIdentifier)
                 .then()
@@ -306,7 +313,7 @@ class SchemaApiIT {
                 .body(Map.of(
                         "code", "UNUSED",
                         "name", "Unused",
-                        "allowedScopes", java.util.Set.of("PLATFORM")
+                        "scope", "PLATFORM"
                 ))
                 .post("/api/v1/schema-types")
                 .then()
