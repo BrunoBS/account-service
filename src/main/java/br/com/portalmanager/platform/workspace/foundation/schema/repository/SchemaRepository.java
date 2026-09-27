@@ -87,5 +87,15 @@ public interface SchemaRepository extends JpaRepository<Schema, Long> {
 
     @Query("select count(s) > 0 from Schema s where s.schemaType.value = :schemaTypeCode")
     boolean existsBySchemaTypeCode(@Param("schemaTypeCode") String schemaTypeCode);
+
+    @Query("""
+            select count(s) > 0 from Schema s
+             where s.schemaType.value = :schemaTypeCode
+               and s.scope.value = :scopeCode
+            """)
+    boolean existsBySchemaTypeCodeAndScope(
+            @Param("schemaTypeCode") String schemaTypeCode,
+            @Param("scopeCode") String scopeCode
+    );
 }
 
