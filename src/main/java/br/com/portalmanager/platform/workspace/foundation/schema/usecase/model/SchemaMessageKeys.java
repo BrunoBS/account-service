@@ -30,6 +30,8 @@ public final class SchemaMessageKeys {
     public static final String SCHEMA_TYPE_IN_USE = "workspace-service.schema-type.in-use";
     public static final String SCHEMA_TYPE_SCOPES_REQUIRED = "workspace-service.schema-type.scopes.required";
     public static final String SCHEMA_TYPE_SCOPE_NOT_ALLOWED = "workspace-service.schema-type.scope.not-allowed";
+    public static final String SCHEMA_TYPE_SCOPE_IN_USE = "workspace-service.schema-type.scope.in-use";
+    public static final String SCHEMA_TYPE_DELETE_ACTIVE = "workspace-service.schema-type.delete.active";
 
     private SchemaMessageKeys() {
     }
