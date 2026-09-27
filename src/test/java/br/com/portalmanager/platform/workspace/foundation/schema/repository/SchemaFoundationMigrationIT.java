@@ -96,5 +96,41 @@ class SchemaFoundationMigrationIT {
                         "and constraint_name = 'uk_schema_versions_single_draft'",
                 Integer.class
         )).isEqualTo(1);
+
+        Flyway schemaTypeUpgrade = Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .target("21")
+                .load();
+
+        schemaTypeUpgrade.migrate();
+
+        assertThat(schemaTypeUpgrade.info().current().getVersion().getVersion()).isEqualTo("21");
+
+        assertThat(jdbc.queryForObject(
+                "select count(*) from information_schema.tables " +
+                        "where table_schema = database() and table_name = 'schema_types'",
+                Integer.class
+        )).isEqualTo(1);
+
+        assertThat(jdbc.queryForObject(
+                "select count(*) from information_schema.tables " +
+                        "where table_schema = database() and table_name = 'type_schema_types'",
+                Integer.class
+        )).isZero();
+
+        assertThat(jdbc.queryForObject(
+                "select count(*) from schema_type_scopes sts " +
+                        "join schema_types st on st.id = sts.schema_type_id " +
+                        "where st.code = 'DEFAULT' and sts.scope_code = 'PLATFORM'",
+                Integer.class
+        )).isEqualTo(1);
+
+        assertThat(jdbc.queryForObject(
+                "select count(*) from schema_type_scopes sts " +
+                        "join schema_types st on st.id = sts.schema_type_id " +
+                        "where st.code = 'DEFAULT' and sts.scope_code = 'WORKSPACE'",
+                Integer.class
+        )).isZero();
     }
 }
