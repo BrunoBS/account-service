@@ -3,6 +3,7 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase;
 import br.com.portalmanager.platform.library.messaging.exception.ConflictException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.catalog.schematype.domain.SchemaTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
@@ -34,7 +35,7 @@ class SchemaOperationValidatorTest {
 
     @Test
     void rejectsEditingPublishedVersionBeforeChangingDefinition() {
-        Schema schema = new Schema("JSON", SchemaScopeTypeCode.platform(), null,
+        Schema schema = new Schema(SchemaTypeCode.of("JSON"), SchemaScopeTypeCode.platform(), null,
                 "settings", "Settings", null, LocalDateTime.now());
         SchemaVersion version = new SchemaVersion(schema, 1, "v1", "{}",
                 SchemaVersionStatusTypeCode.draft(), LocalDateTime.now());
