@@ -227,6 +227,109 @@ class SchemaApiIT {
                 .body("identifier", hasItem(platformSchemaIdentifier));
     }
 
+
+    @Test
+    void shouldEnforceSchemaTypeScopeAndDeletionRules() {
+        String workspaceIdentifier = UUID.randomUUID().toString();
+        seedWorkspace(workspaceIdentifier);
+
+        Map<String, Object> platformOnlyType = authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "code", "PLATFORM_ONLY",
+                        "name", "Platform only",
+                        "description", "Platform-only schema type",
+                        "allowedScopes", java.util.Set.of("PLATFORM")
+                ))
+                .post("/api/v1/schema-types")
+                .then()
+                .statusCode(201)
+                .extract()
+                .as(Map.class);
+
+        String platformOnlyIdentifier = (String) platformOnlyType.get("identifier");
+        Number platformOnlyVersion = (Number) platformOnlyType.get("version");
+
+        authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "schemaTypeCode", "PLATFORM_ONLY",
+                        "code", "workspace-forbidden",
+                        "name", "Workspace forbidden",
+                        "definition", Map.of("type", "object")
+                ))
+                .post("/api/v1/workspaces/" + workspaceIdentifier + "/schemas")
+                .then()
+                .statusCode(400);
+
+        authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "schemaTypeCode", "PLATFORM_ONLY",
+                        "code", "platform-only",
+                        "name", "Platform only schema",
+                        "definition", Map.of("type", "object")
+                ))
+                .post("/api/v1/schemas")
+                .then()
+                .statusCode(201);
+
+        authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "version", platformOnlyVersion.longValue(),
+                        "name", "Platform only",
+                        "description", "Attempt to remove used platform scope",
+                        "allowedScopes", java.util.Set.of("WORKSPACE")
+                ))
+                .put("/api/v1/schema-types/" + platformOnlyIdentifier)
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .delete("/api/v1/schema-types/" + platformOnlyIdentifier)
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .patch("/api/v1/schema-types/" + platformOnlyIdentifier + "/inactivate")
+                .then()
+                .statusCode(200);
+
+        authorized()
+                .delete("/api/v1/schema-types/" + platformOnlyIdentifier)
+                .then()
+                .statusCode(409);
+
+        String unusedTypeIdentifier = authorized()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "code", "UNUSED",
+                        "name", "Unused",
+                        "allowedScopes", java.util.Set.of("PLATFORM")
+                ))
+                .post("/api/v1/schema-types")
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("identifier");
+
+        authorized()
+                .delete("/api/v1/schema-types/" + unusedTypeIdentifier)
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .patch("/api/v1/schema-types/" + unusedTypeIdentifier + "/inactivate")
+                .then()
+                .statusCode(200);
+
+        authorized()
+                .delete("/api/v1/schema-types/" + unusedTypeIdentifier)
+                .then()
+                .statusCode(204);
+    }
+
     private void seedWorkspace(String identifier) {
         jdbc.update("""
                 insert into type_workspaces (code, label, description, sort_order, is_active, settings)
