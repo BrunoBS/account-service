@@ -4,6 +4,7 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetyp
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaDefaults;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaType;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
@@ -46,75 +47,48 @@ class SchemaResolverTest {
     }
 
     @Test
-    void shouldFallbackToDefaultWhenSpecificSchemaIsMissing() {
-        Schema fallback = activeSchema("DEFAULT", "schema-default", SchemaScopeTypeCode.platform());
-        SchemaVersion version = publishedVersion(fallback, "version-default", 1);
+    void shouldFallbackToBuiltInJsonWhenSpecificSchemaIsMissing() {
         allowPlatformType("APPLICATION", "APPLICATION");
-        allowRequiredType("DEFAULT", SchemaScopeTypeCode.platform(), "DEFAULT");
-
         when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
                 .thenReturn(Optional.empty());
-        when(schemaRepository.findByTypeAndScope("DEFAULT", "PLATFORM", null))
-                .thenReturn(Optional.of(fallback));
-        published(version);
 
-        String definition = resolver.resolvePlatform("APPLICATION");
-
-        assertThat(definition).isEqualTo(version.getDefinition());
+        assertThat(resolver.resolvePlatform("APPLICATION"))
+                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
+        verify(schemaRepository, never()).findByTypeAndScope("DEFAULT", "PLATFORM", null);
     }
 
     @Test
-    void shouldFallbackToDefaultWhenSpecificSchemaIsInactive() {
+    void shouldFallbackToBuiltInJsonWhenSpecificSchemaIsInactive() {
         Schema specific = activeSchema("APPLICATION", "schema-app", SchemaScopeTypeCode.platform());
         when(specific.isActive()).thenReturn(false);
-        Schema fallback = activeSchema("DEFAULT", "schema-default", SchemaScopeTypeCode.platform());
-        SchemaVersion version = publishedVersion(fallback, "version-default", 1);
         allowPlatformType("APPLICATION", "APPLICATION");
-        allowRequiredType("DEFAULT", SchemaScopeTypeCode.platform(), "DEFAULT");
         when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
                 .thenReturn(Optional.of(specific));
-        when(schemaRepository.findByTypeAndScope("DEFAULT", "PLATFORM", null))
-                .thenReturn(Optional.of(fallback));
-        published(version);
 
-        assertThat(resolver.resolvePlatform("APPLICATION")).isEqualTo(version.getDefinition());
+        assertThat(resolver.resolvePlatform("APPLICATION"))
+                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
     }
 
     @Test
-    void shouldFallbackToDefaultWhenSpecificSchemaHasOnlyDraftVersions() {
+    void shouldFallbackToBuiltInJsonWhenSpecificSchemaHasOnlyDraftVersions() {
         Schema specific = activeSchema("APPLICATION", "schema-app", SchemaScopeTypeCode.platform());
-        Schema fallback = activeSchema("DEFAULT", "schema-default", SchemaScopeTypeCode.platform());
         when(specific.getId()).thenReturn(10L);
-        when(fallback.getId()).thenReturn(20L);
-        SchemaVersion version = publishedVersion(fallback, "version-default", 1);
         allowPlatformType("APPLICATION", "APPLICATION");
-        allowRequiredType("DEFAULT", SchemaScopeTypeCode.platform(), "DEFAULT");
         when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
                 .thenReturn(Optional.of(specific));
-        when(schemaRepository.findByTypeAndScope("DEFAULT", "PLATFORM", null))
-                .thenReturn(Optional.of(fallback));
-        when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
-                20L, SchemaVersionStatusTypeCode.published())).thenReturn(Optional.of(version));
 
-        String definition = resolver.resolvePlatform("APPLICATION");
-        assertThat(definition).isEqualTo(version.getDefinition());
+        assertThat(resolver.resolvePlatform("APPLICATION"))
+                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
     }
 
     @Test
-    void shouldFallbackToDefaultWhenSpecificSchemaTypeDoesNotExist() {
-        Schema fallback = activeSchema("DEFAULT", "schema-default", SchemaScopeTypeCode.platform());
-        SchemaVersion version = publishedVersion(fallback, "version-default", 1);
+    void shouldFallbackToBuiltInJsonWhenSpecificSchemaTypeDoesNotExist() {
         when(schemaTypeQueryService.findActiveAllowed("ENVIRONMENT_TYPE", SchemaScopeTypeCode.platform()))
                 .thenReturn(Optional.empty());
-        allowRequiredType("DEFAULT", SchemaScopeTypeCode.platform(), "DEFAULT");
-        when(schemaRepository.findByTypeAndScope("DEFAULT", "PLATFORM", null))
-                .thenReturn(Optional.of(fallback));
-        published(version);
 
-        String definition = resolver.resolvePlatform("ENVIRONMENT_TYPE");
-
-        assertThat(definition).isEqualTo(version.getDefinition());
-        verify(schemaRepository, never()).findByTypeAndScope("ENVIRONMENT_TYPE", "PLATFORM", null);
+        assertThat(resolver.resolvePlatform("ENVIRONMENT_TYPE"))
+                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
+        verify(schemaRepository, never()).findByTypeAndScope("DEFAULT", "PLATFORM", null);
     }
 
     @Test

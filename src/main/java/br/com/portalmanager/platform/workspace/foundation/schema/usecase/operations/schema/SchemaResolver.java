@@ -67,14 +67,7 @@ public class SchemaResolver implements SchemaResolutionPort {
             }
         }
 
-        Schema fallback = schemaRepository.findByTypeAndScope(
-                        SchemaDefaults.DEFAULT_SCHEMA_TYPE_CODE,
-                        SchemaScopeTypeCode.platform().value(),
-                        null
-                )
-                .orElseThrow(validator::typeNotFound);
-
-        return definition(fallback);
+        return SchemaDefaults.DEFAULT_JSON_SCHEMA;
     }
 
     @Override

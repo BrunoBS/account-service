@@ -38,59 +38,6 @@ class CatalogApiIT {
     void authorizeAsOwner() {
         authorizationMock.reset();
         authorizationMock.allow(session -> session.groups("PM5_OWNER"));
-        seedDefaultSchema();
-    }
-
-    private void seedDefaultSchema() {
-        jdbc.update("""
-                insert into type_life_cycle (code, label, description, sort_order, is_active, settings)
-                values ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')
-                on duplicate key update code = values(code)
-                """);
-        jdbc.update("""
-                insert into type_schema_scopes (code, label, description, sort_order, is_active, settings)
-                values ('PLATFORM', 'Platform', 'Platform-owned schema', 1, true, '{}')
-                on duplicate key update code = values(code)
-                """);
-        jdbc.update("""
-                insert into type_schema_version_status
-                    (code, label, description, sort_order, is_active, settings)
-                values ('PUBLISHED', 'Published', 'Published schema version', 2, true, '{}')
-                on duplicate key update code = values(code)
-                """);
-        jdbc.update("""
-                insert into schema_types
-                    (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
-                values (0, UUID(), 'DEFAULT', 'Default', 'Fallback schema type',
-                        'ACTIVE', current_timestamp, current_timestamp)
-                on duplicate key update lifecycle_code = 'ACTIVE'
-                """);
-        Long typeId = jdbc.queryForObject(
-                "select id from schema_types where code = 'DEFAULT'", Long.class);
-        jdbc.update("""
-                insert into schema_type_scopes (schema_type_id, scope_code)
-                values (?, 'PLATFORM')
-                on duplicate key update scope_code = 'PLATFORM'
-                """, typeId);
-        jdbc.update("""
-                insert into schema_definitions
-                    (version, identifier, schema_type_code, scope_code, workspace_id,
-                     code, name, description, lifecycle_code, created_at, updated_at)
-                values (0, UUID(), 'DEFAULT', 'PLATFORM', null, 'default', 'Default',
-                        'Fallback schema', 'ACTIVE', current_timestamp, current_timestamp)
-                on duplicate key update lifecycle_code = 'ACTIVE'
-                """);
-        Long schemaId = jdbc.queryForObject("""
-                select id from schema_definitions
-                where schema_type_code = 'DEFAULT' and scope_code = 'PLATFORM'
-                """, Long.class);
-        jdbc.update("""
-                insert into schema_versions
-                    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
-                values (UUID(), ?, 1, 'v1', '{"type":"object","additionalProperties":true}',
-                        'PUBLISHED', current_timestamp)
-                on duplicate key update status = 'PUBLISHED'
-                """, schemaId);
     }
 
     @Test
@@ -204,6 +151,22 @@ class CatalogApiIT {
     }
 
     private void seedWorkspaceTypeSchema() {
+        jdbc.update("""
+                insert into type_life_cycle (code, label, description, sort_order, is_active, settings)
+                values ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')
+                on duplicate key update code = values(code)
+                """);
+        jdbc.update("""
+                insert into type_schema_scopes (code, label, description, sort_order, is_active, settings)
+                values ('PLATFORM', 'Platform', 'Platform-owned schema', 1, true, '{}')
+                on duplicate key update code = values(code)
+                """);
+        jdbc.update("""
+                insert into type_schema_version_status
+                    (code, label, description, sort_order, is_active, settings)
+                values ('PUBLISHED', 'Published', 'Published schema version', 2, true, '{}')
+                on duplicate key update code = values(code)
+                """);
         jdbc.update("""
                 insert into schema_types
                     (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
