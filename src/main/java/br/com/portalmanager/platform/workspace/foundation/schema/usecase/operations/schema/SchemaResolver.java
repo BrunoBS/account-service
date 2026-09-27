@@ -57,7 +57,15 @@ public class SchemaResolver implements SchemaResolutionPort {
             );
 
             if (specific.isPresent()) {
-                return resolution(requestedType, specific.get(), false);
+                Schema schema = specific.get();
+                if (schema.isActive()) {
+                    var published = versionRepository
+                            .findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
+                                    schema.getId(), SchemaVersionStatusTypeCode.published());
+                    if (published.isPresent()) {
+                        return resolution(requestedType, schema, published.get(), false);
+                    }
+                }
             }
         }
 
@@ -117,6 +125,15 @@ public class SchemaResolver implements SchemaResolutionPort {
                 )
                 .orElseThrow(validator::versionNotFound);
 
+        return resolution(requestedType, schema, version, fallback);
+    }
+
+    private SchemaResolution resolution(
+            String requestedType,
+            Schema schema,
+            SchemaVersion version,
+            boolean fallback
+    ) {
         return new SchemaResolution(
                 requestedType,
                 schemaTypeCode,
