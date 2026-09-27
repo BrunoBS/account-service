@@ -331,19 +331,34 @@ class SchemaApiIT {
     }
 
     @Test
-    void shouldProtectDefaultSchemaType() {
-        String defaultIdentifier = jdbc.queryForObject(
+    void shouldProtectDefaultSchemaTypeAndDefaultPlatformSchema() {
+        String defaultTypeIdentifier = jdbc.queryForObject(
                 "select identifier from schema_types where code = 'DEFAULT'",
+                String.class
+        );
+        String defaultSchemaIdentifier = jdbc.queryForObject(
+                "select identifier from schema_definitions " +
+                        "where schema_type_code = 'DEFAULT' and scope_code = 'PLATFORM'",
                 String.class
         );
 
         authorized()
-                .patch("/api/v1/schema-types/" + defaultIdentifier + "/inactivate")
+                .patch("/api/v1/schema-types/" + defaultTypeIdentifier + "/inactivate")
                 .then()
                 .statusCode(409);
 
         authorized()
-                .delete("/api/v1/schema-types/" + defaultIdentifier)
+                .delete("/api/v1/schema-types/" + defaultTypeIdentifier)
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .patch("/api/v1/schemas/" + defaultSchemaIdentifier + "/inactivate")
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .delete("/api/v1/schemas/" + defaultSchemaIdentifier)
                 .then()
                 .statusCode(409);
     }
