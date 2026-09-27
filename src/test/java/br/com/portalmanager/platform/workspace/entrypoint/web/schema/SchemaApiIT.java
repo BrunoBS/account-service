@@ -92,7 +92,7 @@ class SchemaApiIT {
         String platformSchemaIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
-                        "schemaTypeCode", "APPLICATION",
+                        "schemaTypeCode", "application",
                         "code", "application",
                         "name", "Application Platform Schema",
                         "description", "Platform schema for application settings",
@@ -328,6 +328,24 @@ class SchemaApiIT {
                 .delete("/api/v1/schema-types/" + unusedTypeIdentifier)
                 .then()
                 .statusCode(204);
+    }
+
+    @Test
+    void shouldProtectDefaultSchemaType() {
+        String defaultIdentifier = jdbc.queryForObject(
+                "select identifier from schema_types where code = 'DEFAULT'",
+                String.class
+        );
+
+        authorized()
+                .patch("/api/v1/schema-types/" + defaultIdentifier + "/inactivate")
+                .then()
+                .statusCode(409);
+
+        authorized()
+                .delete("/api/v1/schema-types/" + defaultIdentifier)
+                .then()
+                .statusCode(409);
     }
 
     private void seedWorkspace(String identifier) {
