@@ -32,6 +32,7 @@ public final class SchemaMessageKeys {
     public static final String SCHEMA_TYPE_SCOPE_NOT_ALLOWED = "workspace-service.schema-type.scope.not-allowed";
     public static final String SCHEMA_TYPE_SCOPE_IN_USE = "workspace-service.schema-type.scope.in-use";
     public static final String SCHEMA_TYPE_DELETE_ACTIVE = "workspace-service.schema-type.delete.active";
+    public static final String SCHEMA_TYPE_DEFAULT_SCOPE_INVALID = "workspace-service.schema-type.default.scope.invalid";
 
     private SchemaMessageKeys() {
     }
