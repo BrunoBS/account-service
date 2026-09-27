@@ -8,6 +8,7 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.model.Up
 import br.com.portalmanager.platform.workspace.core.application.usecase.validation.ApplicationValidator;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +49,7 @@ public class ApplicationCommandService {
                 repository.existsByWorkspaceIdAndName(workspaceId, input.name());
         validator.validateForCreate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
         Application app = new Application(workspaceId, input.name(), input.alias(), input.acronym(),
-                input.applicationScope(), input.authorizerGroup(), input.settings(), LocalDateTime.now());
+                ApplicationScopeTypeCode.of(input.applicationScope()), input.authorizerGroup(), input.settings(), LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
         tags.reconcile(saved, workspaceIdentifier, input.tags());
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
@@ -64,7 +65,7 @@ public class ApplicationCommandService {
                 repository.existsByWorkspaceIdAndNameAndIdNot(workspaceId, input.name(), app.getId());
         validator.validateForUpdate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
         validator.requireVersion(app.getVersion(), input.version());
-        app.update(input.name(), input.alias(), input.acronym(), input.applicationScope(),
+        app.update(input.name(), input.alias(), input.acronym(), ApplicationScopeTypeCode.of(input.applicationScope()),
                 input.authorizerGroup(), input.settings(), LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
         tags.reconcile(saved, workspaceIdentifier, input.tags());

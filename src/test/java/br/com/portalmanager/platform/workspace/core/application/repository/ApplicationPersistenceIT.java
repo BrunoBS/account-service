@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.workspace.core.application.domain.Applicati
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,7 +61,7 @@ class ApplicationPersistenceIT {
     }
 
     private Application application(Workspace workspace, String name) {
-        return new Application(workspace.getId(), name, "alias", "APP", "BACKEND", "A-APP", "{}",
+        return new Application(workspace.getId(), name, "alias", "APP", ApplicationScopeTypeCode.of("BACKEND"), "A-APP", "{}",
                 LocalDateTime.now());
     }
 }
