@@ -157,6 +157,12 @@ class SchemaFoundationMigrationIT {
         )).isEqualTo("ACTIVE");
 
         assertThat(jdbc.queryForObject(
+                "select lifecycle_code from schema_definitions " +
+                        "where schema_type_code = 'DEFAULT' and scope_code = 'PLATFORM'",
+                String.class
+        )).isEqualTo("ACTIVE");
+
+        assertThat(jdbc.queryForObject(
                 "select count(*) from information_schema.statistics " +
                         "where table_schema = database() " +
                         "and table_name = 'schema_types' " +
