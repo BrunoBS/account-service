@@ -6,7 +6,6 @@ import br.com.portalmanager.platform.library.messaging.exception.ResourceVersion
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaType;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaTypeRepository;
@@ -91,18 +90,6 @@ public class SchemaTypeCommandService {
         repository.delete(schemaType);
     }
 
-    public SchemaType requireActiveAllowed(String code, SchemaScopeTypeCode scope) {
-        SchemaType schemaType = repository.findByCode(code == null ? null : code.trim().toUpperCase())
-                .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.SCHEMA_TYPE_NOT_FOUND));
-        if (!schemaType.isActive()) {
-            throw invalid("schemaTypeCode", SchemaMessageKeys.TYPE_INACTIVE);
-        }
-        if (!schemaType.allowsScope(scope)) {
-            throw invalid("scope", SchemaMessageKeys.SCHEMA_TYPE_SCOPE_NOT_ALLOWED);
-        }
-        return schemaType;
-    }
-
     private SchemaType required(String identifier) {
         return repository.findByIdentifier(identifier)
                 .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.SCHEMA_TYPE_NOT_FOUND));
@@ -132,11 +119,12 @@ public class SchemaTypeCommandService {
             if (value == null) {
                 throw invalid("allowedScopes", SchemaMessageKeys.SCOPE_INVALID);
             }
-            try {
-                result.add(SchemaScopeTypeCode.of(
-                        SchemaScopeTypeEnum.valueOf(value.trim().toUpperCase())
-                ));
-            } catch (IllegalArgumentException ex) {
+            String normalized = value.trim().toUpperCase();
+            if ("PLATFORM".equals(normalized)) {
+                result.add(SchemaScopeTypeCode.platform());
+            } else if ("WORKSPACE".equals(normalized)) {
+                result.add(SchemaScopeTypeCode.workspace());
+            } else {
                 throw invalid("allowedScopes", SchemaMessageKeys.SCOPE_INVALID);
             }
         }
