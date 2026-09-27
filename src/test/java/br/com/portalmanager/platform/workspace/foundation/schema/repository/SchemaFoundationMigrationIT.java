@@ -101,7 +101,8 @@ class SchemaFoundationMigrationIT {
                 insert into type_life_cycle
                     (code, label, description, sort_order, is_active, settings)
                 values
-                    ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')
+                    ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}'),
+                    ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}')
                 on duplicate key update code = values(code)
                 """);
 
@@ -118,8 +119,21 @@ class SchemaFoundationMigrationIT {
                 insert into type_schema_types
                     (code, label, description, sort_order, is_active, settings)
                 values
-                    ('DEFAULT', 'Default', 'Fallback schema type', 1, true, '{}')
-                on duplicate key update code = values(code)
+                    ('DEFAULT', 'Default', 'Fallback schema type', 1, false, '{}')
+                on duplicate key update
+                    label = values(label),
+                    description = values(description),
+                    is_active = values(is_active)
+                """);
+
+        jdbc.update("""
+                insert into schema_definitions
+                    (version, identifier, schema_type_code, scope_code, workspace_id,
+                     code, name, description, lifecycle_code, created_at, updated_at)
+                values
+                    (0, UUID(), 'DEFAULT', 'PLATFORM', null,
+                     'default', 'Default', 'Fallback schema', 'INACTIVE',
+                     current_timestamp, current_timestamp)
                 """);
 
         Flyway schemaTypeUpgrade = Flyway.configure()
