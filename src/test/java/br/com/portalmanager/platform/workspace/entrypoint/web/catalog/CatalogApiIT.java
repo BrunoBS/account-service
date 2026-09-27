@@ -99,7 +99,6 @@ class CatalogApiIT {
                 new CatalogCase("/api/v1/application-scope-type", "BACKEND"),
                 new CatalogCase("/api/v1/authorization-type", "DEV"),
                 new CatalogCase("/api/v1/environment-type", "DEFAULT"),
-                new CatalogCase("/api/v1/lifecycle-type", "ACTIVE"),
                 new CatalogCase("/api/v1/onboarding-type", "WORKSPACE_REGISTRATION"),
                 new CatalogCase("/api/v1/tag-origin-type", "MANUAL"),
                 new CatalogCase("/api/v1/visibility-type", "PRIVATE"),
@@ -185,6 +184,7 @@ class CatalogApiIT {
 
     @Test
     void shouldRejectUnknownEnumNameAndInvalidSettingsShape() {
+        seedWorkspaceTypeSchema();
         post(
                 "/api/v1/workspace-type",
                 standardBody("UNKNOWN", "Unknown", "Descrição válida de tipo desconhecido", 1)
@@ -203,6 +203,44 @@ class CatalogApiIT {
         post("/api/v1/workspace-type", invalidSettings)
                 .statusCode(400)
                 .body("details.field", hasItem("settings"));
+    }
+
+    private void seedWorkspaceTypeSchema() {
+        jdbc.update("""
+                insert into schema_types
+                    (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
+                values (0, UUID(), 'WORKSPACE_TYPE', 'Workspace type', null,
+                        'ACTIVE', current_timestamp, current_timestamp)
+                on duplicate key update lifecycle_code = 'ACTIVE'
+                """);
+        Long typeId = jdbc.queryForObject(
+                "select id from schema_types where code = 'WORKSPACE_TYPE'", Long.class);
+        jdbc.update("""
+                insert into schema_type_scopes (schema_type_id, scope_code)
+                values (?, 'PLATFORM')
+                on duplicate key update scope_code = 'PLATFORM'
+                """, typeId);
+        jdbc.update("""
+                insert into schema_definitions
+                    (version, identifier, schema_type_code, scope_code, workspace_id,
+                     code, name, description, lifecycle_code, created_at, updated_at)
+                values (0, UUID(), 'WORKSPACE_TYPE', 'PLATFORM', null,
+                        'workspace-type', 'Workspace type settings', null,
+                        'ACTIVE', current_timestamp, current_timestamp)
+                on duplicate key update lifecycle_code = 'ACTIVE'
+                """);
+        Long schemaId = jdbc.queryForObject("""
+                select id from schema_definitions
+                where schema_type_code = 'WORKSPACE_TYPE' and scope_code = 'PLATFORM'
+                """, Long.class);
+        jdbc.update("""
+                insert into schema_versions
+                    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+                values (UUID(), ?, 1, 'v1',
+                        '{"type":"object","additionalProperties":{"type":"string"}}',
+                        'PUBLISHED', current_timestamp)
+                on duplicate key update status = 'PUBLISHED'
+                """, schemaId);
     }
 
     @Test
