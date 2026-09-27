@@ -35,10 +35,11 @@ public class SchemaTypeCommandService {
 
     @Transactional
     public SchemaTypeOutput create(CreateSchemaTypeInput input) {
-        String code = validator.canonicalCode(input == null ? null : input.code());
+        validator.validateForCreate(input, false);
+        String code = validator.canonicalCode(input.code());
         Set<SchemaScopeTypeCode> requestedScopes = validator.validateForCreate(
                 input,
-                code != null && repository.existsByCode(code)
+                repository.existsByCode(code)
         );
         SchemaType schemaType = repository.save(new SchemaType(
                 code,
