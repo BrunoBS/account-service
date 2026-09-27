@@ -4,6 +4,7 @@ import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrat
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.workspace.entrypoint.web.application.request.CreateApplicationRequest;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,6 +30,7 @@ class ApplicationApiIT {
     @LocalServerPort private int port;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private AuthorizationMock authorization;
+    @Autowired private ObjectMapper json;
 
     @BeforeEach
     void prepare() {
@@ -68,6 +71,13 @@ class ApplicationApiIT {
         post(path + "/" + app + "/inactivate", null).statusCode(204);
         delete(path + "/" + app).statusCode(204);
         get(path + "?active=false").statusCode(200).body("identifier", not(hasItem(app)));
+    }
+
+    @Test
+    void readsApplicationRequestWithOptionalDefaultFlag() {
+        CreateApplicationRequest parsed = json.readValue(json.writeValueAsString(request("Request Mapping")),
+                CreateApplicationRequest.class);
+        assertThat(parsed.toInput().isDefault()).isFalse();
     }
 
     @Test

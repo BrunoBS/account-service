@@ -6,8 +6,9 @@ import java.util.List;
 
 public record UpdateApplicationRequest(Long version, String name, String alias, String acronym, String applicationScope,
                                        String authorizerGroup, String settings,
-                                       @JsonProperty("isDefault") boolean defaultApplication, List<String> tags) {
+                                       @JsonProperty("isDefault") Boolean defaultApplication, List<String> tags) {
     public UpdateApplicationInput toInput() {
-        return new UpdateApplicationInput(version, name, alias, acronym, applicationScope, authorizerGroup, settings, defaultApplication, tags);
+        return new UpdateApplicationInput(version, name, alias, acronym, applicationScope, authorizerGroup, settings,
+                Boolean.TRUE.equals(defaultApplication), tags);
     }
 }
