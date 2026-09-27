@@ -136,7 +136,7 @@ public class SchemaResolver implements SchemaResolutionPort {
     ) {
         return new SchemaResolution(
                 requestedType,
-                schemaTypeCode,
+                schema.getSchemaType().value(),
                 schema.getIdentifier(),
                 version.getIdentifier(),
                 version.getSchemaVersion(),
