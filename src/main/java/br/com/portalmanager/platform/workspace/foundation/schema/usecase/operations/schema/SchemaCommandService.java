@@ -48,8 +48,6 @@ public class SchemaCommandService {
     @Transactional
     public SchemaOutput createPlatform(CreateSchemaInput input) {
         operationValidator.validateCreateInput(input);
-        operationValidator.validatePlatformTypeAvailable(repository.findByTypeAndScope(
-                input.schemaTypeCode(), SchemaScopeTypeCode.platform().value(), null).isPresent());
         return create(input, SchemaScopeTypeCode.platform(), null);
     }
 
@@ -108,14 +106,21 @@ public class SchemaCommandService {
 
     private SchemaOutput create(CreateSchemaInput input, SchemaScopeTypeCode scope, Long workspaceId) {
         operationValidator.validateOwnership(scope, workspaceId);
-        schemaTypeQueryService.requireActiveAllowed(input.schemaTypeCode(), scope);
+        String schemaTypeCode = schemaTypeQueryService
+                .requireActiveAllowed(input.schemaTypeCode(), scope)
+                .getCode();
+
+        if (SchemaScopeTypeCode.platform().equals(scope)) {
+            operationValidator.validatePlatformTypeAvailable(repository.findByTypeAndScope(
+                    schemaTypeCode, scope.value(), null).isPresent());
+        }
         operationValidator.validateCodeAvailable(repository.findByTypeScopeAndCode(
-                input.schemaTypeCode(), scope.value(), workspaceId, input.code()).isPresent());
+                schemaTypeCode, scope.value(), workspaceId, input.code()).isPresent());
 
         validator.requireValidSchemaSyntax(input.definition(), DEFINITION);
 
         LocalDateTime now = LocalDateTime.now();
-        Schema schema = repository.save(new Schema(SchemaTypeCode.of(input.schemaTypeCode()), scope, workspaceId,
+        Schema schema = repository.save(new Schema(SchemaTypeCode.of(schemaTypeCode), scope, workspaceId,
                 input.code(), input.name(), input.description(), now));
 
         String definition = validator.toJsonString(input.definition(), DEFINITION);
