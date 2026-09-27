@@ -97,6 +97,31 @@ class SchemaFoundationMigrationIT {
                 Integer.class
         )).isEqualTo(1);
 
+        jdbc.update("""
+                insert into type_life_cycle
+                    (code, label, description, sort_order, is_active, settings)
+                values
+                    ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')
+                on duplicate key update code = values(code)
+                """);
+
+        jdbc.update("""
+                insert into type_schema_scopes
+                    (code, label, description, sort_order, is_active, settings)
+                values
+                    ('PLATFORM', 'Platform', 'Platform-owned schema', 1, true, '{}'),
+                    ('WORKSPACE', 'Workspace', 'Workspace-owned schema', 2, true, '{}')
+                on duplicate key update code = values(code)
+                """);
+
+        jdbc.update("""
+                insert into type_schema_types
+                    (code, label, description, sort_order, is_active, settings)
+                values
+                    ('DEFAULT', 'Default', 'Fallback schema type', 1, true, '{}')
+                on duplicate key update code = values(code)
+                """);
+
         Flyway schemaTypeUpgrade = Flyway.configure()
                 .dataSource(dataSource)
                 .locations("classpath:db/migration")
