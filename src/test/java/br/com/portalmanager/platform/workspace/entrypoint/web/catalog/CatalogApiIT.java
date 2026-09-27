@@ -43,6 +43,22 @@ class CatalogApiIT {
 
     private void seedDefaultSchema() {
         jdbc.update("""
+                insert into type_life_cycle (code, label, description, sort_order, is_active, settings)
+                values ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')
+                on duplicate key update code = values(code)
+                """);
+        jdbc.update("""
+                insert into type_schema_scopes (code, label, description, sort_order, is_active, settings)
+                values ('PLATFORM', 'Platform', 'Platform-owned schema', 1, true, '{}')
+                on duplicate key update code = values(code)
+                """);
+        jdbc.update("""
+                insert into type_schema_version_status
+                    (code, label, description, sort_order, is_active, settings)
+                values ('PUBLISHED', 'Published', 'Published schema version', 2, true, '{}')
+                on duplicate key update code = values(code)
+                """);
+        jdbc.update("""
                 insert into schema_types
                     (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
                 values (0, UUID(), 'DEFAULT', 'Default', 'Fallback schema type',
