@@ -26,6 +26,23 @@ class PublisherApiIT {
 
     @BeforeEach
     void prepare() {
+        jdbc.update("""
+                INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings)
+                VALUES ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}'),
+                       ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}'),
+                       ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')
+                """);
+        jdbc.update("""
+                INSERT IGNORE INTO type_schema_scopes (code, label, description, sort_order, is_active, settings)
+                VALUES ('PLATFORM', 'Platform', 'Schema owned by the platform', 1, true, '{}')
+                """);
+        for (String code : new String[] {"WEB_SOCKET", "KAAS", "APPCONFIG"}) {
+            jdbc.update("""
+                    INSERT IGNORE INTO schema_types
+                      (version, identifier, code, name, description, lifecycle_code, scope_code, created_at, updated_at)
+                    VALUES (0, ?, ?, ?, 'Platform publisher schema type', 'ACTIVE', 'PLATFORM', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                    """, UUID.randomUUID().toString(), "PUBLISHER_" + code, code);
+        }
         authorization.reset();
         authorization.allow(session -> session.groups("PM5_OWNER"));
     }
