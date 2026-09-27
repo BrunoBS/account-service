@@ -4,6 +4,7 @@ import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrat
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +14,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.Map;
 import java.util.UUID;
+import static org.assertj.core.api.Assertions.assertThat;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
@@ -23,6 +25,7 @@ class PublisherApiIT {
     @LocalServerPort private int port;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private AuthorizationMock authorization;
+    @Autowired private SchemaResolutionPort schemas;
 
     @BeforeEach
     void prepare() {
@@ -95,6 +98,37 @@ class PublisherApiIT {
         jdbc.update("UPDATE type_resource_scopes SET is_active = false WHERE code = 'APPLICATION'");
         post(input("WEB_SOCKET", "Web Socket", "APPLICATION")).statusCode(400)
                 .body("details.field", hasItem("scope"));
+    }
+
+    @Test
+    void resolvesDifferentPublishedSchemasForDifferentPublisherCodes() {
+        String webSocketDefinition = "{\"type\":\"object\",\"required\":[\"url\"]}";
+        String kaasDefinition = "{\"type\":\"object\",\"required\":[\"bucket\"]}";
+        registerPublishedSchema("PUBLISHER_WEB_SOCKET", "web-socket", webSocketDefinition);
+        registerPublishedSchema("PUBLISHER_KAAS", "kaas", kaasDefinition);
+
+        post(input("WEB_SOCKET", "Web Socket", "WORKSPACE")).statusCode(201)
+                .body("schemaTypeCode", equalTo("PUBLISHER_WEB_SOCKET"));
+        post(input("KAAS", "Kaas", "WORKSPACE")).statusCode(201)
+                .body("schemaTypeCode", equalTo("PUBLISHER_KAAS"));
+
+        assertThat(schemas.resolvePlatform("PUBLISHER_WEB_SOCKET")).isEqualTo(webSocketDefinition);
+        assertThat(schemas.resolvePlatform("PUBLISHER_KAAS")).isEqualTo(kaasDefinition);
+    }
+
+    private void registerPublishedSchema(String schemaType, String code, String definition) {
+        jdbc.update("""
+                INSERT INTO schema_definitions
+                  (version, identifier, schema_type_code, scope_code, code, name, lifecycle_code, created_at, updated_at)
+                VALUES (0, ?, ?, 'PLATFORM', ?, ?, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                """, UUID.randomUUID().toString(), schemaType, code, code);
+        Long schemaId = jdbc.queryForObject(
+                "SELECT id FROM schema_definitions WHERE schema_type_code = ?", Long.class, schemaType);
+        jdbc.update("""
+                INSERT INTO schema_versions
+                  (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+                VALUES (?, ?, 1, 'v1', ?, 'PUBLISHED', CURRENT_TIMESTAMP)
+                """, UUID.randomUUID().toString(), schemaId, definition);
     }
 
     private Map<String, Object> input(String code, String name, String scope) {
