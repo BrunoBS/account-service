@@ -89,27 +89,6 @@ public class SchemaTypeCommandService {
                 .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.SCHEMA_TYPE_NOT_FOUND));
     }
 
-    private void validateCreate(CreateSchemaTypeInput input) {
-        if (input == null) throw invalid("schemaType", SchemaMessageKeys.REQUEST_INVALID);
-        if (input.code() == null || !CODE.matcher(input.code().trim().toUpperCase()).matches()) {
-            throw invalid("code", SchemaMessageKeys.TYPE_INVALID);
-        }
-        requireName(input.name());
-        scopes(input.allowedScopes());
-    }
-
-    private void validateDefaultScopePolicy(
-            String code,
-            Set<SchemaScopeTypeCode> requestedScopes
-    ) {
-        if (!"DEFAULT".equals(code)) {
-            return;
-        }
-        if (requestedScopes.size() != 1 || !requestedScopes.contains(SchemaScopeTypeCode.platform())) {
-            throw invalid("allowedScopes", SchemaMessageKeys.SCHEMA_TYPE_DEFAULT_SCOPE_INVALID);
-        }
-    }
-
     private void validateRemovedScopesNotInUse(
             SchemaType schemaType,
             Set<SchemaScopeTypeCode> requestedScopes
