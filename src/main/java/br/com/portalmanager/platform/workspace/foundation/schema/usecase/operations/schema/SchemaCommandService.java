@@ -101,8 +101,16 @@ public class SchemaCommandService {
     }
 
     private SchemaOutput activate(Schema schema) { schema.activate(LocalDateTime.now()); return output(schema); }
-    private SchemaOutput inactivate(Schema schema) { schema.inactivate(LocalDateTime.now()); return output(schema); }
-    private SchemaOutput quarantine(Schema schema) { schema.quarantine(LocalDateTime.now()); return output(schema); }
+    private SchemaOutput inactivate(Schema schema) {
+        operationValidator.validateDefaultLifecycleChange(schema);
+        schema.inactivate(LocalDateTime.now());
+        return output(schema);
+    }
+    private SchemaOutput quarantine(Schema schema) {
+        operationValidator.validateDefaultLifecycleChange(schema);
+        schema.quarantine(LocalDateTime.now());
+        return output(schema);
+    }
 
     private SchemaOutput create(CreateSchemaInput input, SchemaScopeTypeCode scope, Long workspaceId) {
         operationValidator.validateOwnership(scope, workspaceId);
