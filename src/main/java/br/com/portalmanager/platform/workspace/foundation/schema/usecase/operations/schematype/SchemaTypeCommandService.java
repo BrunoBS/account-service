@@ -43,11 +43,13 @@ public class SchemaTypeCommandService {
             throw new ConflictException(SchemaMessageKeys.SCHEMA_TYPE_DUPLICATE);
         }
 
+        Set<SchemaScopeTypeCode> requestedScopes = scopes(input.allowedScopes());
+        validateDefaultScopePolicy(code, requestedScopes);
         SchemaType schemaType = repository.save(new SchemaType(
                 code,
                 input.name(),
                 input.description(),
-                scopes(input.allowedScopes()),
+                requestedScopes,
                 LocalDateTime.now()
         ));
         return SchemaTypeOutput.from(schemaType);
@@ -64,6 +66,7 @@ public class SchemaTypeCommandService {
         }
         requireName(input.name());
         Set<SchemaScopeTypeCode> requestedScopes = scopes(input.allowedScopes());
+        validateDefaultScopePolicy(schemaType.getCode(), requestedScopes);
         validateRemovedScopesNotInUse(schemaType, requestedScopes);
         schemaType.update(input.name(), input.description(), requestedScopes, LocalDateTime.now());
         return SchemaTypeOutput.from(schemaType);
@@ -107,6 +110,18 @@ public class SchemaTypeCommandService {
         }
         requireName(input.name());
         scopes(input.allowedScopes());
+    }
+
+    private void validateDefaultScopePolicy(
+            String code,
+            Set<SchemaScopeTypeCode> requestedScopes
+    ) {
+        if (!"DEFAULT".equals(code)) {
+            return;
+        }
+        if (requestedScopes.size() != 1 || !requestedScopes.contains(SchemaScopeTypeCode.platform())) {
+            throw invalid("allowedScopes", SchemaMessageKeys.SCHEMA_TYPE_DEFAULT_SCOPE_INVALID);
+        }
     }
 
     private void validateRemovedScopesNotInUse(
