@@ -1,13 +1,11 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema;
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.workspace.foundation.catalog.integration.FoundationDynamicCatalogReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.schematype.domain.SchemaTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.DynamicCatalogReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
@@ -15,6 +13,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.C
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaOutput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaInput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schematype.SchemaTypeQueryService;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaVersionOperationValidator;
@@ -30,18 +29,18 @@ public class SchemaCommandService {
 
     private final SchemaRepository repository;
     private final SchemaVersionRepository versionRepository;
-    private final DynamicCatalogReferenceResolver catalogReferenceResolver;
+    private final SchemaTypeQueryService schemaTypeQueryService;
     private final SchemaValidator validator;
     private final SchemaOperationValidator operationValidator = new SchemaOperationValidator();
     private final SchemaVersionOperationValidator versionValidator = new SchemaVersionOperationValidator();
     private final WorkspaceReferenceResolver workspaceReferenceResolver;
 
     public SchemaCommandService(SchemaRepository repository, SchemaVersionRepository versionRepository,
-                                DynamicCatalogReferenceResolver catalogReferenceResolver, SchemaValidator validator,
+                                SchemaTypeQueryService schemaTypeQueryService, SchemaValidator validator,
                                 WorkspaceReferenceResolver workspaceReferenceResolver) {
         this.repository = repository;
         this.versionRepository = versionRepository;
-        this.catalogReferenceResolver = catalogReferenceResolver;
+        this.schemaTypeQueryService = schemaTypeQueryService;
         this.validator = validator;
         this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
@@ -109,8 +108,7 @@ public class SchemaCommandService {
 
     private SchemaOutput create(CreateSchemaInput input, SchemaScopeTypeCode scope, Long workspaceId) {
         operationValidator.validateOwnership(scope, workspaceId);
-        operationValidator.validateTypeActive(catalogReferenceResolver.existsActive(
-                FoundationDynamicCatalogReferenceResolver.SCHEMA_TYPE, input.schemaTypeCode()));
+        schemaTypeQueryService.requireActiveAllowed(input.schemaTypeCode(), scope);
         operationValidator.validateCodeAvailable(repository.findByTypeScopeAndCode(
                 input.schemaTypeCode(), scope.value(), workspaceId, input.code()).isPresent());
 
