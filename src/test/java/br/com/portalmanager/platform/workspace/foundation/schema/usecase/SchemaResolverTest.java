@@ -70,6 +70,44 @@ class SchemaResolverTest {
     }
 
     @Test
+    void shouldFallbackToDefaultWhenSpecificSchemaIsInactive() {
+        Schema specific = activeSchema("APPLICATION", "schema-app", SchemaScopeTypeCode.platform());
+        when(specific.isActive()).thenReturn(false);
+        Schema fallback = activeSchema("DEFAULT", "schema-default", SchemaScopeTypeCode.platform());
+        SchemaVersion version = publishedVersion(fallback, "version-default", 1);
+        allowPlatformType("APPLICATION", "APPLICATION");
+        allowRequiredType("DEFAULT", SchemaScopeTypeCode.platform(), "DEFAULT");
+        when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
+                .thenReturn(Optional.of(specific));
+        when(schemaRepository.findByTypeAndScope("DEFAULT", "PLATFORM", null))
+                .thenReturn(Optional.of(fallback));
+        published(version);
+
+        assertThat(resolver.resolvePlatform("APPLICATION").fallback()).isTrue();
+    }
+
+    @Test
+    void shouldFallbackToDefaultWhenSpecificSchemaHasOnlyDraftVersions() {
+        Schema specific = activeSchema("APPLICATION", "schema-app", SchemaScopeTypeCode.platform());
+        Schema fallback = activeSchema("DEFAULT", "schema-default", SchemaScopeTypeCode.platform());
+        when(specific.getId()).thenReturn(10L);
+        when(fallback.getId()).thenReturn(20L);
+        SchemaVersion version = publishedVersion(fallback, "version-default", 1);
+        allowPlatformType("APPLICATION", "APPLICATION");
+        allowRequiredType("DEFAULT", SchemaScopeTypeCode.platform(), "DEFAULT");
+        when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
+                .thenReturn(Optional.of(specific));
+        when(schemaRepository.findByTypeAndScope("DEFAULT", "PLATFORM", null))
+                .thenReturn(Optional.of(fallback));
+        when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
+                20L, SchemaVersionStatusTypeCode.published())).thenReturn(Optional.of(version));
+
+        SchemaResolution resolution = resolver.resolvePlatform("APPLICATION");
+        assertThat(resolution.resolvedSchemaType()).isEqualTo("DEFAULT");
+        assertThat(resolution.fallback()).isTrue();
+    }
+
+    @Test
     void shouldFallbackToDefaultWhenSpecificSchemaTypeDoesNotExist() {
         Schema fallback = activeSchema("DEFAULT", "schema-default", SchemaScopeTypeCode.platform());
         SchemaVersion version = publishedVersion(fallback, "version-default", 1);
