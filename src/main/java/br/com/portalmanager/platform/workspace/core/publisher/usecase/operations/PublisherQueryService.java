@@ -36,7 +36,7 @@ public class PublisherQueryService {
         if (scope == null || scope.isBlank()) return repository.findByLifecycle(lifecycle).stream().map(PublisherOutput::from).toList();
         if (Arrays.stream(ResourceScopeTypeEnum.values()).noneMatch(v -> v.name().equals(scope)) || !scopeService.existsActive(scope))
             throw new ValidationException(PublisherMessageKeys.SCOPE_INVALID);
-        return repository.findByLifecycleAndScope(lifecycle, ResourceScopeTypeEnum.valueOf(scope)).stream()
+        return repository.findByLifecycleAndScope(lifecycle, scope).stream()
                 .map(PublisherOutput::from).toList();
     }
 }

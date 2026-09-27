@@ -1,5 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.application.domain;
 
+import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
 
@@ -24,8 +25,9 @@ public class Application {
     private String alias;
     @Column(nullable = false, length = 20)
     private String acronym;
-    @Column(name = "application_scope_code", nullable = false, length = 50)
-    private String applicationScope;
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "application_scope_code", nullable = false, length = 50))
+    private ApplicationScopeTypeCode applicationScope;
     @Column(name = "authorizer_group", length = 255)
     private String authorizerGroup;
     @Column(name = "settings", columnDefinition = "TEXT", nullable = false)
@@ -40,7 +42,7 @@ public class Application {
 
     protected Application() {}
 
-    public Application(Long workspaceId, String name, String alias, String acronym, String applicationScope,
+    public Application(Long workspaceId, String name, String alias, String acronym, ApplicationScopeTypeCode applicationScope,
                        String authorizerGroup, String settings, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.workspaceId = workspaceId;
@@ -49,7 +51,7 @@ public class Application {
         this.createdAt = now;
     }
 
-    public void update(String name, String alias, String acronym, String applicationScope,
+    public void update(String name, String alias, String acronym, ApplicationScopeTypeCode applicationScope,
                        String authorizerGroup, String settings, LocalDateTime now) {
         this.name = name;
         this.alias = alias;
@@ -71,7 +73,7 @@ public class Application {
     public String getName() { return name; }
     public String getAlias() { return alias; }
     public String getAcronym() { return acronym; }
-    public String getApplicationScope() { return applicationScope; }
+    public ApplicationScopeTypeCode getApplicationScope() { return applicationScope; }
     public String getAuthorizerGroup() { return authorizerGroup; }
     public String getSettings() { return settings; }
     public LifecycleTypeCode getLifecycle() { return lifecycle; }

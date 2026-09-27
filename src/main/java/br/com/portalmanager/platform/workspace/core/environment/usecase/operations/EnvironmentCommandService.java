@@ -8,6 +8,7 @@ import br.com.portalmanager.platform.workspace.core.environment.usecase.model.Up
 import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentValidator;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -49,7 +50,7 @@ public class EnvironmentCommandService {
         Integer lastOrder = workspaceId == null ? repository.maxDefaultSortOrder() : repository.maxCustomSortOrder(workspaceId);
         int sortOrder = input.sortOrder() != null ? input.sortOrder()
                 : workspaceId == null ? (lastOrder == null ? 1 : lastOrder + 1) : (lastOrder == null ? 4 : lastOrder + 1);
-        Environment environment = new Environment(workspaceId, input.name(), input.description(), input.authorizationType(),
+        Environment environment = new Environment(workspaceId, input.name(), input.description(), AuthorizationTypeCode.of(input.authorizationType()),
                 input.authorizerGroup(), input.settings(), sortOrder, LocalDateTime.now());
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
@@ -71,7 +72,7 @@ public class EnvironmentCommandService {
         UpdateEnvironmentInput input = normalizer.normalize(raw);
         validator.validateForUpdate(input, input != null && input.name() != null && existsName(workspaceId, input.name(), environment.getId()));
         validator.requireVersion(environment.getVersion(), input.version());
-        environment.update(input.name(), input.description(), input.authorizationType(), input.authorizerGroup(),
+        environment.update(input.name(), input.description(), AuthorizationTypeCode.of(input.authorizationType()), input.authorizerGroup(),
                 input.settings(), input.sortOrder() == null ? environment.getSortOrder() : input.sortOrder(), LocalDateTime.now());
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
@@ -105,7 +106,7 @@ public class EnvironmentCommandService {
     private EnvironmentOutput restore(Long workspaceId, String workspaceIdentifier, String identifier) {
         Environment environment = finder.findInactive(identifier, workspaceId);
         validator.validateForCreate(new CreateEnvironmentInput(environment.getName(), environment.getDescription(),
-                environment.getAuthorizationType(), environment.getSortOrder(), environment.getAuthorizerGroup(),
+                environment.getAuthorizationType().value(), environment.getSortOrder(), environment.getAuthorizerGroup(),
                 environment.getSettings()), existsName(workspaceId, environment.getName(), environment.getId()));
         environment.restore(LocalDateTime.now());
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);

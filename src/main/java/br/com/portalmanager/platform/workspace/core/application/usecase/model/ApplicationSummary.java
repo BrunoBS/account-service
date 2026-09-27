@@ -8,7 +8,7 @@ public record ApplicationSummary(String identifier, String name, String alias, S
         implements AuthorizableResource {
     public static ApplicationSummary from(Application application) {
         return new ApplicationSummary(application.getIdentifier(), application.getName(), application.getAlias(),
-                application.getAcronym(), application.getApplicationScope(),
+                application.getAcronym(), application.getApplicationScope().value(),
                 application.getAuthorizerGroup());
     }
 

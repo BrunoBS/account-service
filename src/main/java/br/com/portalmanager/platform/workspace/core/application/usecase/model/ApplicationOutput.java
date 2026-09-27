@@ -14,7 +14,7 @@ public record ApplicationOutput(Long version, String identifier, String workspac
     public static ApplicationOutput from(Application application, String workspaceIdentifier, List<String> tags) {
         return new ApplicationOutput(application.getVersion(), application.getIdentifier(),
                 workspaceIdentifier, application.getName(), application.getAlias(),
-                application.getAcronym(), application.getApplicationScope(), application.getAuthorizerGroup(),
+                application.getAcronym(), application.getApplicationScope().value(), application.getAuthorizerGroup(),
                 application.getSettings(), application.getLifecycle().value(),
                 application.getCreatedAt(), application.getUpdatedAt(), tags == null ? List.of() : List.copyOf(tags));
     }

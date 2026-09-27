@@ -8,7 +8,7 @@ public final class ApplicationSystemTags {
 
     public static List<String> resolve(Application application, String workspaceIdentifier) {
         return Arrays.asList(application.getIdentifier(), application.getName(), application.getAlias(),
-                application.getAcronym(), application.getApplicationScope(), application.getAuthorizerGroup(),
+                application.getAcronym(), application.getApplicationScope().value(), application.getAuthorizerGroup(),
                 workspaceIdentifier);
     }
 }

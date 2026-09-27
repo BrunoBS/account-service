@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.library.messaging.validation.ValidationResu
 import br.com.portalmanager.platform.workspace.core.publisher.domain.PublisherMessageKeys;
 import br.com.portalmanager.platform.workspace.core.publisher.domain.PublisherSchemaType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeEnum;
+import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.usecase.ResourceScopeTypeService;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.CreatePublisherInput;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.UpdatePublisherInput;
@@ -26,7 +27,7 @@ public class PublisherValidator {
         this.scopeService = scopeService;
     }
 
-    public ResourceScopeTypeEnum validateCreate(CreatePublisherInput input, boolean duplicate) {
+    public ResourceScopeTypeCode validateCreate(CreatePublisherInput input, boolean duplicate) {
         ValidationResult result = new ValidationResult();
         if (input == null) { result.addError("request", PublisherMessageKeys.CODE_INVALID); reject(result); return null; }
         if (input.code() == null || !CODE.matcher(input.code()).matches())
@@ -38,17 +39,17 @@ public class PublisherValidator {
             result.addError("code", PublisherMessageKeys.SCHEMA_TYPE_REQUIRED);
             reject(result);
         }
-        return ResourceScopeTypeEnum.valueOf(input.scope());
+        return ResourceScopeTypeCode.of(input.scope());
     }
 
-    public ResourceScopeTypeEnum validateUpdate(UpdatePublisherInput input) {
+    public ResourceScopeTypeCode validateUpdate(UpdatePublisherInput input) {
         ValidationResult result = new ValidationResult();
         if (input == null) { result.addError("request", PublisherMessageKeys.NAME_INVALID); reject(result); return null; }
         if (input.version() == null || input.version() < 0)
             result.addError("version", PublisherMessageKeys.VERSION_REQUIRED);
         common(input.name(), input.description(), input.scope(), result);
         reject(result);
-        return ResourceScopeTypeEnum.valueOf(input.scope());
+        return ResourceScopeTypeCode.of(input.scope());
     }
 
     public void requireVersion(Long current, Long requested) {

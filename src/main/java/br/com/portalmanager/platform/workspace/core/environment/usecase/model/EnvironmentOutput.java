@@ -10,7 +10,7 @@ public record EnvironmentOutput(Long version, String identifier, String workspac
                                 LocalDateTime createdAt, LocalDateTime updatedAt) implements AuthorizableResource {
     public static EnvironmentOutput from(Environment e, String workspaceIdentifier) {
         return new EnvironmentOutput(e.getVersion(), e.getIdentifier(), workspaceIdentifier, e.getName(),
-                e.getDescription(), e.getAuthorizationType(), e.getEnvironmentType(), e.getSortOrder(),
+                e.getDescription(), e.getAuthorizationType().value(), e.getEnvironmentType().value(), e.getSortOrder(),
                 e.getAuthorizerGroup(), e.getSettings(), e.getLifecycle().value(),
                 e.getCreatedAt(), e.getUpdatedAt());
     }

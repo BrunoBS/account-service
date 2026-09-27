@@ -9,7 +9,7 @@ public record PublisherOutput(Long version, String identifier, String code, Stri
                               LocalDateTime createdAt, LocalDateTime updatedAt) {
     public static PublisherOutput from(Publisher p) {
         return new PublisherOutput(p.getVersion(), p.getIdentifier(), p.getCode(), p.getName(), p.getDescription(),
-                p.getScope().name(), p.isDeprecated(), PublisherSchemaType.forCode(p.getCode()),
+                p.getScope().value(), p.isDeprecated(), PublisherSchemaType.forCode(p.getCode()),
                 p.getLifecycle().value(), p.getCreatedAt(), p.getUpdatedAt());
     }
 }

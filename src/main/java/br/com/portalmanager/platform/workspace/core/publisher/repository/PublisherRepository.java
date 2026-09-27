@@ -1,7 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.publisher.repository;
 
 import br.com.portalmanager.platform.workspace.core.publisher.domain.Publisher;
-import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,6 +14,6 @@ public interface PublisherRepository extends JpaRepository<Publisher, Long> {
     boolean existsByCode(String code);
     @Query("select p from Publisher p where p.lifecycle.value = :lifecycle order by p.code")
     List<Publisher> findByLifecycle(@Param("lifecycle") String lifecycle);
-    @Query("select p from Publisher p where p.lifecycle.value = :lifecycle and p.scope = :scope order by p.code")
-    List<Publisher> findByLifecycleAndScope(@Param("lifecycle") String lifecycle, @Param("scope") ResourceScopeTypeEnum scope);
+    @Query("select p from Publisher p where p.lifecycle.value = :lifecycle and p.scope.value = :scope order by p.code")
+    List<Publisher> findByLifecycleAndScope(@Param("lifecycle") String lifecycle, @Param("scope") String scope);
 }
