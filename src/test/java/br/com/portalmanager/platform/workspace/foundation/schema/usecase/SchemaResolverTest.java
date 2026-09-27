@@ -139,8 +139,9 @@ class SchemaResolverTest {
     }
 
     private void allowRequiredType(String requestedCode, SchemaScopeTypeCode scope, String canonicalCode) {
+        SchemaType schemaType = schemaType(canonicalCode);
         when(schemaTypeQueryService.requireActiveAllowed(requestedCode, scope))
-                .thenReturn(schemaType(canonicalCode));
+                .thenReturn(schemaType);
     }
 
     private SchemaType schemaType(String canonicalCode) {
