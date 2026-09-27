@@ -33,6 +33,10 @@ public final class SchemaMessageKeys {
     public static final String SCHEMA_TYPE_SCOPE_IN_USE = "workspace-service.schema-type.scope.in-use";
     public static final String SCHEMA_TYPE_DELETE_ACTIVE = "workspace-service.schema-type.delete.active";
     public static final String SCHEMA_TYPE_DEFAULT_SCOPE_INVALID = "workspace-service.schema-type.default.scope.invalid";
+    public static final String SCHEMA_TYPE_DEFAULT_PROTECTED = "workspace-service.schema-type.default.protected";
+    public static final String SCHEMA_TYPE_CODE_INVALID = "workspace-service.schema-type.code.invalid";
+    public static final String SCHEMA_TYPE_NAME_INVALID = "workspace-service.schema-type.name.invalid";
+    public static final String SCHEMA_TYPE_DESCRIPTION_INVALID = "workspace-service.schema-type.description.invalid";
 
     private SchemaMessageKeys() {
     }
