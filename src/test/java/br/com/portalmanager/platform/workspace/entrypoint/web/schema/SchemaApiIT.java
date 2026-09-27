@@ -65,23 +65,26 @@ class SchemaApiIT {
 
     @Test
     void shouldAdministerPlatformAndWorkspaceSchemasWithVersionPublication() {
-        authorized()
+        String schemaTypeIdentifier = authorized()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                         "code", "APPLICATION",
-                        "label", "Application",
+                        "name", "Application",
                         "description", "Application settings schema",
-                        "sortOrder", 10,
-                        "settings", Map.of()
+                        "allowedScopes", java.util.Set.of("PLATFORM", "WORKSPACE")
                 ))
-                .post("/api/v1/schema-type")
+                .post("/api/v1/schema-types")
                 .then()
                 .statusCode(201)
                 .body("code", equalTo("APPLICATION"))
-                .body("label", equalTo("Application"));
+                .body("name", equalTo("Application"))
+                .body("allowedScopes", hasItem("PLATFORM"))
+                .body("allowedScopes", hasItem("WORKSPACE"))
+                .extract()
+                .path("identifier");
 
         authorized()
-                .get("/api/v1/schema-type/APPLICATION")
+                .get("/api/v1/schema-types/" + schemaTypeIdentifier)
                 .then()
                 .statusCode(200)
                 .body("code", equalTo("APPLICATION"));
