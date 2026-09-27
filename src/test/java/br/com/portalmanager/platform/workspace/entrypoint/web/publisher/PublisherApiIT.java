@@ -4,6 +4,7 @@ import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrat
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.workspace.foundation.integration.JsonSchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
@@ -26,6 +27,7 @@ class PublisherApiIT {
     @Autowired private JdbcTemplate jdbc;
     @Autowired private AuthorizationMock authorization;
     @Autowired private SchemaResolutionPort schemas;
+    @Autowired private JsonSchemaValidator json;
 
     @BeforeEach
     void prepare() {
@@ -116,8 +118,10 @@ class PublisherApiIT {
         post(input("KAAS", "Kaas", "WORKSPACE")).statusCode(201)
                 .body("schemaTypeCode", equalTo("PUBLISHER_KAAS"));
 
-        assertThat(schemas.resolvePlatform("PUBLISHER_WEB_SOCKET")).isEqualTo(webSocketDefinition);
-        assertThat(schemas.resolvePlatform("PUBLISHER_KAAS")).isEqualTo(kaasDefinition);
+        assertThat(json.fromString(schemas.resolvePlatform("PUBLISHER_WEB_SOCKET"), "schema"))
+                .isEqualTo(json.fromString(webSocketDefinition, "schema"));
+        assertThat(json.fromString(schemas.resolvePlatform("PUBLISHER_KAAS"), "schema"))
+                .isEqualTo(json.fromString(kaasDefinition, "schema"));
     }
 
     private void registerPublishedSchema(String schemaType, String code, String definition) {
