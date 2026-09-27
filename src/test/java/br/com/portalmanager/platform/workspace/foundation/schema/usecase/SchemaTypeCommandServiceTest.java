@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
@@ -28,23 +27,23 @@ class SchemaTypeCommandServiceTest {
     private final SchemaTypeCommandService service = new SchemaTypeCommandService(repository, schemaRepository, validator);
 
     @Test
-    void rejectsEmptyScopesOnCreate() {
+    void rejectsMissingScopeOnCreate() {
         assertThatThrownBy(() -> service.create(new CreateSchemaTypeInput(
-                "APPLICATION", "Application", null, Set.of()
+                "APPLICATION", "Application", null, null
         ))).isInstanceOf(ValidationException.class);
     }
 
     @Test
     void rejectsInvalidScopeOnCreate() {
         assertThatThrownBy(() -> service.create(new CreateSchemaTypeInput(
-                "APPLICATION", "Application", null, Set.of("TENANT")
+                "APPLICATION", "Application", null, "TENANT"
         ))).isInstanceOf(ValidationException.class);
     }
 
     @Test
-    void rejectsDefaultTypeOutsidePlatformOnly() {
+    void rejectsDefaultTypeOutsidePlatform() {
         assertThatThrownBy(() -> service.create(new CreateSchemaTypeInput(
-                "DEFAULT", "Default", null, Set.of("PLATFORM", "WORKSPACE")
+                "DEFAULT", "Default", null, "WORKSPACE"
         ))).isInstanceOf(ValidationException.class);
     }
 
@@ -54,7 +53,7 @@ class SchemaTypeCommandServiceTest {
                 "APPLICATION",
                 "N".repeat(101),
                 "D".repeat(501),
-                Set.of("PLATFORM")
+                "PLATFORM"
         ))).isInstanceOf(ValidationException.class);
     }
 
@@ -63,7 +62,7 @@ class SchemaTypeCommandServiceTest {
         SchemaType schemaType = schemaType(
                 "default-id",
                 "DEFAULT",
-                Set.of(SchemaScopeTypeCode.platform())
+                SchemaScopeTypeCode.platform()
         );
         when(repository.findByIdentifier("default-id")).thenReturn(Optional.of(schemaType));
 
@@ -76,7 +75,7 @@ class SchemaTypeCommandServiceTest {
         SchemaType schemaType = schemaType(
                 "default-id",
                 "DEFAULT",
-                Set.of(SchemaScopeTypeCode.platform())
+                SchemaScopeTypeCode.platform()
         );
         schemaType.inactivate(LocalDateTime.now());
         when(repository.findByIdentifier("default-id")).thenReturn(Optional.of(schemaType));
@@ -91,16 +90,16 @@ class SchemaTypeCommandServiceTest {
         when(repository.existsByCode("APPLICATION")).thenReturn(true);
 
         assertThatThrownBy(() -> service.create(new CreateSchemaTypeInput(
-                "APPLICATION", "Application", null, Set.of("PLATFORM")
+                "APPLICATION", "Application", null, "PLATFORM"
         ))).isInstanceOf(ConflictException.class);
     }
 
     @Test
-    void rejectsRemovingScopeThatIsAlreadyInUse() throws Exception {
+    void rejectsChangingScopeThatIsAlreadyInUse() throws Exception {
         SchemaType schemaType = schemaType(
                 "type-id",
                 "APPLICATION",
-                Set.of(SchemaScopeTypeCode.platform(), SchemaScopeTypeCode.workspace())
+                SchemaScopeTypeCode.workspace()
         );
         when(repository.findByIdentifier("type-id")).thenReturn(Optional.of(schemaType));
         when(schemaRepository.existsBySchemaTypeCodeAndScope("APPLICATION", "WORKSPACE"))
@@ -112,17 +111,17 @@ class SchemaTypeCommandServiceTest {
                         schemaType.getVersion(),
                         "Application",
                         null,
-                        Set.of("PLATFORM")
+                        "PLATFORM"
                 )
         )).isInstanceOf(ConflictException.class);
     }
 
     @Test
-    void allowsRemovingUnusedScope() throws Exception {
+    void allowsChangingUnusedScope() throws Exception {
         SchemaType schemaType = schemaType(
                 "type-id",
                 "APPLICATION",
-                Set.of(SchemaScopeTypeCode.platform(), SchemaScopeTypeCode.workspace())
+                SchemaScopeTypeCode.workspace()
         );
         when(repository.findByIdentifier("type-id")).thenReturn(Optional.of(schemaType));
         when(schemaRepository.existsBySchemaTypeCodeAndScope("APPLICATION", "WORKSPACE"))
@@ -134,7 +133,7 @@ class SchemaTypeCommandServiceTest {
                         schemaType.getVersion(),
                         "Application",
                         null,
-                        Set.of("PLATFORM")
+                        "PLATFORM"
                 )
         );
 
@@ -147,7 +146,7 @@ class SchemaTypeCommandServiceTest {
         SchemaType schemaType = schemaType(
                 "type-id",
                 "APPLICATION",
-                Set.of(SchemaScopeTypeCode.platform())
+                SchemaScopeTypeCode.platform()
         );
         when(repository.findByIdentifier("type-id")).thenReturn(Optional.of(schemaType));
 
@@ -160,7 +159,7 @@ class SchemaTypeCommandServiceTest {
         SchemaType schemaType = schemaType(
                 "type-id",
                 "APPLICATION",
-                Set.of(SchemaScopeTypeCode.platform())
+                SchemaScopeTypeCode.platform()
         );
         schemaType.inactivate(LocalDateTime.now());
         when(repository.findByIdentifier("type-id")).thenReturn(Optional.of(schemaType));
@@ -175,7 +174,7 @@ class SchemaTypeCommandServiceTest {
         SchemaType schemaType = schemaType(
                 "type-id",
                 "APPLICATION",
-                Set.of(SchemaScopeTypeCode.platform())
+                SchemaScopeTypeCode.platform()
         );
         schemaType.inactivate(LocalDateTime.now());
         when(repository.findByIdentifier("type-id")).thenReturn(Optional.of(schemaType));
@@ -189,13 +188,13 @@ class SchemaTypeCommandServiceTest {
     private SchemaType schemaType(
             String identifier,
             String code,
-            Set<SchemaScopeTypeCode> scopes
+            SchemaScopeTypeCode scope
     ) throws Exception {
         SchemaType schemaType = new SchemaType(
                 code,
                 "Application",
                 null,
-                scopes,
+                scope,
                 LocalDateTime.now()
         );
         Field identifierField = SchemaType.class.getDeclaredField("identifier");

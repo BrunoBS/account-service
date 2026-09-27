@@ -7,14 +7,14 @@ import br.com.portalmanager.platform.workspace.foundation.schema.repository.Sche
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaTypeRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaTypeInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaTypeValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaTypeOutput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaTypeInput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaTypeValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.Objects;
 
 @Service
 public class SchemaTypeCommandService {
@@ -35,17 +35,16 @@ public class SchemaTypeCommandService {
 
     @Transactional
     public SchemaTypeOutput create(CreateSchemaTypeInput input) {
-        validator.validateForCreate(input, false);
-        String code = validator.canonicalCode(input.code());
-        Set<SchemaScopeTypeCode> requestedScopes = validator.validateForCreate(
+        String code = validator.canonicalCode(input == null ? null : input.code());
+        SchemaScopeTypeCode requestedScope = validator.validateForCreate(
                 input,
-                repository.existsByCode(code)
+                code != null && repository.existsByCode(code)
         );
         SchemaType schemaType = repository.save(new SchemaType(
                 code,
                 input.name(),
                 input.description(),
-                requestedScopes,
+                requestedScope,
                 LocalDateTime.now()
         ));
         return SchemaTypeOutput.from(schemaType);
@@ -54,9 +53,9 @@ public class SchemaTypeCommandService {
     @Transactional
     public SchemaTypeOutput update(String identifier, UpdateSchemaTypeInput input) {
         SchemaType schemaType = required(identifier);
-        Set<SchemaScopeTypeCode> requestedScopes = validator.validateForUpdate(schemaType, input);
-        validateRemovedScopesNotInUse(schemaType, requestedScopes);
-        schemaType.update(input.name(), input.description(), requestedScopes, LocalDateTime.now());
+        SchemaScopeTypeCode requestedScope = validator.validateForUpdate(schemaType, input);
+        validateChangedScopeNotInUse(schemaType, requestedScope);
+        schemaType.update(input.name(), input.description(), requestedScope, LocalDateTime.now());
         return SchemaTypeOutput.from(schemaType);
     }
 
@@ -90,21 +89,19 @@ public class SchemaTypeCommandService {
                 .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.SCHEMA_TYPE_NOT_FOUND));
     }
 
-    private void validateRemovedScopesNotInUse(
+    private void validateChangedScopeNotInUse(
             SchemaType schemaType,
-            Set<SchemaScopeTypeCode> requestedScopes
+            SchemaScopeTypeCode requestedScope
     ) {
-        for (SchemaScopeTypeCode currentScope : schemaType.getAllowedScopes()) {
-            if (requestedScopes.contains(currentScope)) {
-                continue;
-            }
-            validator.validateRemovedScope(
-                    schemaRepository.existsBySchemaTypeCodeAndScope(
-                            schemaType.getCode(),
-                            currentScope.value()
-                    )
-            );
+        SchemaScopeTypeCode currentScope = schemaType.getScope();
+        if (Objects.equals(currentScope, requestedScope) || currentScope == null) {
+            return;
         }
+        validator.validateRemovedScope(
+                schemaRepository.existsBySchemaTypeCodeAndScope(
+                        schemaType.getCode(),
+                        currentScope.value()
+                )
+        );
     }
-
 }

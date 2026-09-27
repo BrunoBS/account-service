@@ -2,8 +2,6 @@ package br.com.portalmanager.platform.workspace.entrypoint.web.schema.response;
 
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaTypeOutput;
 
-import java.util.Set;
-
 public record SchemaTypeResponse(
         String identifier,
         Long version,
@@ -11,7 +9,7 @@ public record SchemaTypeResponse(
         String name,
         String description,
         String lifecycle,
-        Set<String> allowedScopes
+        String scope
 ) {
     public static SchemaTypeResponse from(SchemaTypeOutput output) {
         return new SchemaTypeResponse(
@@ -21,7 +19,7 @@ public record SchemaTypeResponse(
                 output.name(),
                 output.description(),
                 output.lifecycle(),
-                output.allowedScopes()
+                output.scope()
         );
     }
 }

@@ -11,6 +11,8 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class AuthorizationTypeService extends EnumCatalogService<AuthorizationType, AuthorizationTypeEnum> {
 
+    private static final String SCHEMA_TYPE_CODE = "AUTHORIZATION_TYPE";
+
     public AuthorizationTypeService(
             AuthorizationTypeRepository repository,
             ObjectMapper objectMapper,
@@ -20,7 +22,7 @@ public class AuthorizationTypeService extends EnumCatalogService<AuthorizationTy
                 objectMapper,
                 AuthorizationType.class,
                 AuthorizationTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(dto.settings(), result)
+                (dto, result) -> settingsValidator.validateSettings(SCHEMA_TYPE_CODE, dto.settings(), result)
         );
     }
 }

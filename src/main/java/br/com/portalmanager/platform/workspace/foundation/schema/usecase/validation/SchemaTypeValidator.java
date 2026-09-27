@@ -11,9 +11,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.S
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaTypeInput;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedHashSet;
 import java.util.Objects;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 @Component
@@ -21,7 +19,7 @@ public class SchemaTypeValidator {
 
     private static final Pattern CODE = Pattern.compile("^[A-Z][A-Z0-9_]{0,49}$");
 
-    public Set<SchemaScopeTypeCode> validateForCreate(
+    public SchemaScopeTypeCode validateForCreate(
             CreateSchemaTypeInput input,
             boolean codeDuplicate
     ) {
@@ -34,16 +32,16 @@ public class SchemaTypeValidator {
         validateName(input.name());
         validateDescription(input.description());
 
-        Set<SchemaScopeTypeCode> scopes = parseScopes(input.allowedScopes());
-        validateDefaultScopePolicy(code, scopes);
+        SchemaScopeTypeCode scope = parseScope(input.scope());
+        validateDefaultScopePolicy(code, scope);
 
         if (codeDuplicate) {
             throw new ConflictException(SchemaMessageKeys.SCHEMA_TYPE_DUPLICATE);
         }
-        return scopes;
+        return scope;
     }
 
-    public Set<SchemaScopeTypeCode> validateForUpdate(
+    public SchemaScopeTypeCode validateForUpdate(
             SchemaType schemaType,
             UpdateSchemaTypeInput input
     ) {
@@ -57,9 +55,9 @@ public class SchemaTypeValidator {
         validateName(input.name());
         validateDescription(input.description());
 
-        Set<SchemaScopeTypeCode> scopes = parseScopes(input.allowedScopes());
-        validateDefaultScopePolicy(schemaType.getCode(), scopes);
-        return scopes;
+        SchemaScopeTypeCode scope = parseScope(input.scope());
+        validateDefaultScopePolicy(schemaType.getCode(), scope);
+        return scope;
     }
 
     public void validateRemovedScope(boolean scopeInUse) {
@@ -120,37 +118,27 @@ public class SchemaTypeValidator {
         }
     }
 
-    private Set<SchemaScopeTypeCode> parseScopes(Set<String> values) {
-        if (values == null || values.isEmpty()) {
-            throw invalid("allowedScopes", SchemaMessageKeys.SCHEMA_TYPE_SCOPES_REQUIRED);
+    private SchemaScopeTypeCode parseScope(String value) {
+        if (value == null || value.isBlank()) {
+            throw invalid("scope", SchemaMessageKeys.SCHEMA_TYPE_SCOPES_REQUIRED);
         }
 
-        Set<SchemaScopeTypeCode> result = new LinkedHashSet<>();
-        for (String value : values) {
-            if (value == null) {
-                throw invalid("allowedScopes", SchemaMessageKeys.SCOPE_INVALID);
-            }
-            String normalized = value.trim().toUpperCase();
-            if ("PLATFORM".equals(normalized)) {
-                result.add(SchemaScopeTypeCode.platform());
-            } else if ("WORKSPACE".equals(normalized)) {
-                result.add(SchemaScopeTypeCode.workspace());
-            } else {
-                throw invalid("allowedScopes", SchemaMessageKeys.SCOPE_INVALID);
-            }
+        String normalized = value.trim().toUpperCase();
+        if ("PLATFORM".equals(normalized)) {
+            return SchemaScopeTypeCode.platform();
         }
-        return result;
+        if ("WORKSPACE".equals(normalized)) {
+            return SchemaScopeTypeCode.workspace();
+        }
+        throw invalid("scope", SchemaMessageKeys.SCOPE_INVALID);
     }
 
     private void validateDefaultScopePolicy(
             String code,
-            Set<SchemaScopeTypeCode> requestedScopes
+            SchemaScopeTypeCode scope
     ) {
-        if (!"DEFAULT".equals(code)) {
-            return;
-        }
-        if (requestedScopes.size() != 1 || !requestedScopes.contains(SchemaScopeTypeCode.platform())) {
-            throw invalid("allowedScopes", SchemaMessageKeys.SCHEMA_TYPE_DEFAULT_SCOPE_INVALID);
+        if ("DEFAULT".equals(code) && !SchemaScopeTypeCode.platform().equals(scope)) {
+            throw invalid("scope", SchemaMessageKeys.SCHEMA_TYPE_DEFAULT_SCOPE_INVALID);
         }
     }
 
