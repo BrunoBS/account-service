@@ -29,7 +29,7 @@ class SchemaFoundationMigrationIT {
     private Flyway flyway;
 
     @Test
-    void shouldApplySchemaV3VersionStatusCatalog() {
+    void shouldUpgradeSchemaFoundationThroughSchemaTypeDomain() {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
         assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("17");
 
@@ -150,6 +150,19 @@ class SchemaFoundationMigrationIT {
                         "where st.code = 'DEFAULT' and sts.scope_code = 'PLATFORM'",
                 Integer.class
         )).isEqualTo(1);
+
+        assertThat(jdbc.queryForObject(
+                "select lifecycle_code from schema_types where code = 'DEFAULT'",
+                String.class
+        )).isEqualTo("ACTIVE");
+
+        assertThat(jdbc.queryForObject(
+                "select count(*) from information_schema.statistics " +
+                        "where table_schema = database() " +
+                        "and table_name = 'schema_types' " +
+                        "and index_name = 'uk_schema_types_id'",
+                Integer.class
+        )).isZero();
 
         assertThat(jdbc.queryForObject(
                 "select count(*) from schema_type_scopes sts " +
