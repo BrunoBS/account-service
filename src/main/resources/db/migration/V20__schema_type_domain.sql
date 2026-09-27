@@ -50,3 +50,6 @@ WHERE ss.code IN ('PLATFORM', 'WORKSPACE');
 ALTER TABLE schema_definitions
     ADD CONSTRAINT fk_schema_definitions_type
         FOREIGN KEY (schema_type_code) REFERENCES schema_types(code);
+
+ALTER TABLE schema_types
+    DROP INDEX uk_schema_types_id;
