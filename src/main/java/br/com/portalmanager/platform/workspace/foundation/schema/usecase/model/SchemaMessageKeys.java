@@ -25,6 +25,11 @@ public final class SchemaMessageKeys {
     public static final String RESOLUTION_NOT_FOUND = "workspace-service.schema.resolution.not-found";
     public static final String PUBLISHED_NOT_FOUND = "workspace-service.schema.published.not-found";
     public static final String INACTIVE = "workspace-service.schema.inactive";
+    public static final String SCHEMA_TYPE_NOT_FOUND = "workspace-service.schema-type.not-found";
+    public static final String SCHEMA_TYPE_DUPLICATE = "workspace-service.schema-type.duplicate";
+    public static final String SCHEMA_TYPE_IN_USE = "workspace-service.schema-type.in-use";
+    public static final String SCHEMA_TYPE_SCOPES_REQUIRED = "workspace-service.schema-type.scopes.required";
+    public static final String SCHEMA_TYPE_SCOPE_NOT_ALLOWED = "workspace-service.schema-type.scope.not-allowed";
 
     private SchemaMessageKeys() {
     }
