@@ -63,7 +63,9 @@ public class SchemaTypeCommandService {
             throw new ResourceVersionConflictException();
         }
         requireName(input.name());
-        schemaType.update(input.name(), input.description(), scopes(input.allowedScopes()), LocalDateTime.now());
+        Set<SchemaScopeTypeCode> requestedScopes = scopes(input.allowedScopes());
+        validateRemovedScopesNotInUse(schemaType, requestedScopes);
+        schemaType.update(input.name(), input.description(), requestedScopes, LocalDateTime.now());
         return SchemaTypeOutput.from(schemaType);
     }
 
@@ -84,6 +86,9 @@ public class SchemaTypeCommandService {
     @Transactional
     public void delete(String identifier) {
         SchemaType schemaType = required(identifier);
+        if (schemaType.isActive()) {
+            throw new ConflictException(SchemaMessageKeys.SCHEMA_TYPE_DELETE_ACTIVE);
+        }
         if (schemaRepository.existsBySchemaTypeCode(schemaType.getCode())) {
             throw new ConflictException(SchemaMessageKeys.SCHEMA_TYPE_IN_USE);
         }
@@ -102,6 +107,23 @@ public class SchemaTypeCommandService {
         }
         requireName(input.name());
         scopes(input.allowedScopes());
+    }
+
+    private void validateRemovedScopesNotInUse(
+            SchemaType schemaType,
+            Set<SchemaScopeTypeCode> requestedScopes
+    ) {
+        for (SchemaScopeTypeCode currentScope : schemaType.getAllowedScopes()) {
+            if (requestedScopes.contains(currentScope)) {
+                continue;
+            }
+            if (schemaRepository.existsBySchemaTypeCodeAndScope(
+                    schemaType.getCode(),
+                    currentScope.value()
+            )) {
+                throw new ConflictException(SchemaMessageKeys.SCHEMA_TYPE_SCOPE_IN_USE);
+            }
+        }
     }
 
     private void requireName(String name) {
