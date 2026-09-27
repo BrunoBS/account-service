@@ -4,7 +4,6 @@ import br.com.portalmanager.platform.library.messaging.exception.NotFoundExcepti
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceFinder;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import org.junit.jupiter.api.Test;
 
@@ -18,10 +17,8 @@ class DefaultWorkspaceReferenceResolverTest {
 
     private final WorkspaceRepository repository = mock(WorkspaceRepository.class);
     private final WorkspaceFinder finder = new WorkspaceFinder(repository);
-    private final WorkspaceQueryService queryService =
-            new WorkspaceQueryService(repository, finder, null, null, null);
     private final DefaultWorkspaceReferenceResolver resolver =
-            new DefaultWorkspaceReferenceResolver(queryService);
+            new DefaultWorkspaceReferenceResolver(finder);
 
     @Test
     void resolvesBothDirectionsForActiveWorkspace() {
