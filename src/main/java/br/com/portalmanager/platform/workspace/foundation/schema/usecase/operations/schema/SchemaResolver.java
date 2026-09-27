@@ -1,9 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema;
 
-import br.com.portalmanager.platform.workspace.foundation.catalog.integration.FoundationDynamicCatalogReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.DynamicCatalogReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaDefaults;
@@ -11,6 +9,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVe
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaResolution;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schematype.SchemaTypeQueryService;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaResolutionValidator;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,19 +19,19 @@ public class SchemaResolver {
 
     private final SchemaRepository schemaRepository;
     private final SchemaVersionRepository versionRepository;
-    private final DynamicCatalogReferenceResolver catalogReferenceResolver;
+    private final SchemaTypeQueryService schemaTypeQueryService;
     private final WorkspaceReferenceResolver workspaceReferenceResolver;
     private final SchemaResolutionValidator validator = new SchemaResolutionValidator();
 
     public SchemaResolver(
             SchemaRepository schemaRepository,
             SchemaVersionRepository versionRepository,
-            DynamicCatalogReferenceResolver catalogReferenceResolver,
+            SchemaTypeQueryService schemaTypeQueryService,
             WorkspaceReferenceResolver workspaceReferenceResolver
     ) {
         this.schemaRepository = schemaRepository;
         this.versionRepository = versionRepository;
-        this.catalogReferenceResolver = catalogReferenceResolver;
+        this.schemaTypeQueryService = schemaTypeQueryService;
         this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
 
@@ -88,8 +87,7 @@ public class SchemaResolver {
             boolean fallback
     ) {
         String schemaTypeCode = schema.getSchemaType().value();
-        validator.requireActive(schema, catalogReferenceResolver.existsActive(
-                FoundationDynamicCatalogReferenceResolver.SCHEMA_TYPE, schemaTypeCode));
+        validator.requireActive(schema, schemaTypeQueryService.requireActive(schemaTypeCode).isActive());
 
         SchemaVersion version = versionRepository
                 .findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
