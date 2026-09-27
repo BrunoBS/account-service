@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.foundation.schema.domain;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.catalog.schematype.domain.SchemaTypeCode;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -22,8 +23,9 @@ public class Schema {
     @Column(nullable = false, unique = true, length = 36, updatable = false)
     private String identifier;
 
-    @Column(name = "schema_type_code", nullable = false, length = 50)
-    private String schemaTypeCode;
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "schema_type_code", nullable = false, length = 50))
+    private SchemaTypeCode schemaType;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "scope_code", nullable = false, length = 50))
@@ -55,7 +57,7 @@ public class Schema {
     }
 
     public Schema(
-            String schemaTypeCode,
+            SchemaTypeCode schemaType,
             SchemaScopeTypeCode scope,
             Long workspaceId,
             String code,
@@ -64,7 +66,7 @@ public class Schema {
             LocalDateTime now
     ) {
         this.identifier = UUID.randomUUID().toString();
-        this.schemaTypeCode = schemaTypeCode.trim();
+        this.schemaType = schemaType;
         this.scope = scope;
         this.workspaceId = workspaceId;
         this.code = code;
@@ -112,8 +114,8 @@ public class Schema {
         return identifier;
     }
 
-    public String getSchemaTypeCode() {
-        return schemaTypeCode;
+    public SchemaTypeCode getSchemaType() {
+        return schemaType;
     }
 
     public SchemaScopeTypeCode getScope() {
