@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @PlatformIntegrationTest
 @WithMySql
-@TestPropertySource(properties = {"spring.flyway.target=26", "spring.jpa.hibernate.ddl-auto=none"})
+@TestPropertySource(properties = {"spring.flyway.target=27", "spring.jpa.hibernate.ddl-auto=none"})
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class SchemaConfigurationMigrationIT {
     @Autowired private DataSource dataSource;
@@ -39,7 +39,7 @@ class SchemaConfigurationMigrationIT {
         Long id = jdbc.queryForObject("SELECT id FROM schema_definitions WHERE schema_type_code = 'WORKSPACE_TYPE'",
                 Long.class);
 
-        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("27")
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("28")
                 .load().migrate();
 
         assertThat(jdbc.queryForObject("""
