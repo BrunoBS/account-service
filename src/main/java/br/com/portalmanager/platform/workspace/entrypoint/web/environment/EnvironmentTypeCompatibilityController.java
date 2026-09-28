@@ -10,6 +10,7 @@ import br.com.portalmanager.platform.workspace.entrypoint.web.environment.respon
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -20,7 +21,7 @@ public class EnvironmentTypeCompatibilityController {
     private final EnvironmentTypeCompatibilityQueryService query;
 
     public EnvironmentTypeCompatibilityController(EnvironmentTypeCompatibilityCommandService command,
-                                                  EnvironmentTypeCompatibilityQueryService query) {
+                                                   EnvironmentTypeCompatibilityQueryService query) {
         this.command = command;
         this.query = query;
     }
@@ -46,4 +47,10 @@ public class EnvironmentTypeCompatibilityController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/{identifier}")
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
+    public ResponseEntity<Void> delete(@PathVariable String identifier) {
+        command.delete(identifier);
+        return ResponseEntity.noContent().build();
+    }
 }
