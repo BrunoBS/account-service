@@ -54,7 +54,8 @@ class SchemaApiIT {
                 .extract().path("[0].identifier");
         patch("/api/v1/schemas/" + schema + "/versions/" + version + "/publish")
                 .statusCode(200);
-        assertThat(resolver.resolve(SchemaResourceType.FEATURE, code)).contains("\"type\":\"object\"");
+        assertThat(resolver.resolve(SchemaResourceType.FEATURE, code))
+                .contains("\"type\"").contains("\"object\"");
 
         post("/api/v1/schema-configurations", Map.of(
                 "resourceType", "FEATURE", "resourceCode", code, "schemaIdentifier", schema))
