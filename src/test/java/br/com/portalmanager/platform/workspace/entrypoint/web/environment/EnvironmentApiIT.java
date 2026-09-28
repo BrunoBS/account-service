@@ -33,6 +33,25 @@ class EnvironmentApiIT {
         for (String code : new String[]{"ACTIVE", "INACTIVE", "QUARANTINED"})
             jdbc.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES (?, ?, ?, 1, true, '{}')",
                     code, code, code);
+        for (String code : new String[]{"DEFAULT", "CUSTOM", "SHARD", "CELL"}) {
+            boolean rootAllowed = code.equals("DEFAULT") || code.equals("CUSTOM");
+            boolean workspaceRequired = !code.equals("DEFAULT");
+            jdbc.update("""
+                    INSERT IGNORE INTO environment_types
+                      (identifier, code, name, description, root_allowed, workspace_required,
+                       lifecycle_code, display_order, created_at, updated_at)
+                    VALUES (UUID(), ?, ?, ?, ?, ?, 'ACTIVE', 1, NOW(6), NOW(6))
+                    """, code, code, code + " environment", rootAllowed, workspaceRequired);
+        }
+        jdbc.update("""
+                INSERT IGNORE INTO environment_type_compatibilities
+                  (identifier, parent_type_id, child_type_id, lifecycle_code, created_at, updated_at)
+                SELECT UUID(), p.id, c.id, 'ACTIVE', NOW(6), NOW(6)
+                FROM environment_types p JOIN environment_types c
+                WHERE (p.code = 'DEFAULT' AND c.code = 'SHARD')
+                   OR (p.code = 'CUSTOM' AND c.code = 'SHARD')
+                   OR (p.code = 'SHARD' AND c.code = 'CELL')
+                """);
         for (String code : new String[]{"DEV", "TST", "ADM"})
             jdbc.update("INSERT IGNORE INTO type_authorizations (code, label, description, sort_order, is_active, settings) VALUES (?, ?, ?, 1, true, '{}')",
                     code, code, code);
