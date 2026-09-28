@@ -9,7 +9,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.repository.Sche
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.version.SchemaVersionCommandService;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaDefinitionValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaVersionOperationValidator;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
@@ -27,7 +27,7 @@ class SchemaVersionCommandServiceTest {
 
     private final SchemaRepository schemaRepository = mock(SchemaRepository.class);
     private final SchemaVersionRepository versionRepository = mock(SchemaVersionRepository.class);
-    private final SchemaValidator validator = new SchemaValidator(new ObjectMapper());
+    private final SchemaDefinitionValidator validator = new SchemaDefinitionValidator(new ObjectMapper());
     private final WorkspaceReferenceResolver workspaceReferenceResolver = mock(WorkspaceReferenceResolver.class);
     private final SchemaVersionCommandService service =
             new SchemaVersionCommandService(schemaRepository, versionRepository, validator,

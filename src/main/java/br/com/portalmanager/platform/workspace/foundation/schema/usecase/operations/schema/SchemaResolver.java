@@ -5,7 +5,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaConfigurationRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaResolutionValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -19,10 +19,10 @@ public class SchemaResolver implements SchemaResolutionPort {
     private static final String DEFAULT_CODE = "DEFAULT";
     private final SchemaConfigurationRepository configurations;
     private final SchemaVersionRepository versions;
-    private final SchemaResolutionValidator validator;
+    private final SchemaOperationValidator validator;
 
     public SchemaResolver(SchemaConfigurationRepository configurations, SchemaVersionRepository versions,
-                          SchemaResolutionValidator validator) {
+                          SchemaOperationValidator validator) {
         this.configurations = configurations;
         this.versions = versions;
         this.validator = validator;
@@ -31,15 +31,16 @@ public class SchemaResolver implements SchemaResolutionPort {
     @Override
     @Transactional(readOnly = true)
     public String resolve(String type, String resourceCode) {
-        if (type == null || type.isBlank()) throw validator.typeNotFound();
+        validator.validateResolutionType(type);
         Optional<String> specific = definition(type, resourceCode);
         if (specific.isPresent()) return specific.get();
+
+        Optional<String> fallback = Optional.empty();
         if (!DEFAULT_CODE.equals(resourceCode)) {
-            Optional<String> fallback = definition(type, DEFAULT_CODE);
-            if (fallback.isPresent()) return fallback.get();
+            fallback = definition(type, DEFAULT_CODE);
         }
-        LOGGER.error("No published default schema configuration: type={}", type);
-        throw validator.defaultNotFound();
+        if (fallback.isEmpty()) LOGGER.error("No published default schema configuration: type={}", type);
+        return validator.requireDefaultDefinition(fallback);
     }
 
     private Optional<String> definition(String type, String code) {

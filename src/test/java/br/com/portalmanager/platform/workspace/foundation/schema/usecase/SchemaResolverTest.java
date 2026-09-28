@@ -5,7 +5,7 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversions
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.*;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.*;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaResolver;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaResolutionValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -17,7 +17,7 @@ import static org.mockito.Mockito.*;
 class SchemaResolverTest {
     private final SchemaConfigurationRepository configurations = mock(SchemaConfigurationRepository.class);
     private final SchemaVersionRepository versions = mock(SchemaVersionRepository.class);
-    private final SchemaResolver resolver = new SchemaResolver(configurations, versions, new SchemaResolutionValidator());
+    private final SchemaResolver resolver = new SchemaResolver(configurations, versions, new SchemaOperationValidator());
 
     @Test
     void missingConfigurationResolvesPublishedDefaultFromSameResourceType() {
@@ -89,6 +89,13 @@ class SchemaResolverTest {
         assertThatThrownBy(() -> resolver.resolve("PUBLISHER", "WEB_SOCKET"))
                 .isInstanceOf(br.com.portalmanager.platform.library.messaging.exception.ValidationException.class);
         verify(configurations).findByResourceTypeAndResourceCode("PUBLISHER", "DEFAULT");
+    }
+
+    @Test
+    void missingResourceTypeIsRejectedBeforeLookingUpConfiguration() {
+        assertThatThrownBy(() -> resolver.resolve(" ", "WEB_SOCKET"))
+                .isInstanceOf(br.com.portalmanager.platform.library.messaging.exception.ValidationException.class);
+        verifyNoInteractions(configurations, versions);
     }
 
     @Test

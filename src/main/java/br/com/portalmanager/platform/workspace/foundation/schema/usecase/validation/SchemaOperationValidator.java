@@ -12,6 +12,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.U
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -56,6 +57,16 @@ public class SchemaOperationValidator {
             throw new ResourceVersionConflictException();
         }
         validateName(input.name());
+    }
+
+    public void validateResolutionType(String type) {
+        if (type == null || type.isBlank()) {
+            throw invalid("schemaType", SchemaMessageKeys.RESOLUTION_NOT_FOUND);
+        }
+    }
+
+    public String requireDefaultDefinition(Optional<String> definition) {
+        return definition.orElseThrow(() -> invalid("schema", SchemaMessageKeys.DEFAULT_NOT_FOUND));
     }
 
     private void validateName(String name) {

@@ -1,4 +1,4 @@
-package br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation;
+package br.com.portalmanager.platform.workspace.foundation.schema.integration;
 
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
@@ -15,13 +15,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class SchemaValidator {
+public class SchemaDefinitionValidator {
 
     private final ObjectMapper objectMapper;
     private final SchemaRegistry schemaRegistry;
     private final Map<String, Schema> schemaCache = new ConcurrentHashMap<>();
 
-    public SchemaValidator(ObjectMapper objectMapper) {
+    public SchemaDefinitionValidator(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         this.schemaRegistry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
     }
