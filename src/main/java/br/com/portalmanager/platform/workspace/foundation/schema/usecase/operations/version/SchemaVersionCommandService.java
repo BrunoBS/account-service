@@ -11,7 +11,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.repository.Sche
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaDefinitionValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaVersionOperationValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,14 +27,14 @@ public class SchemaVersionCommandService {
 
     private final SchemaRepository schemaRepository;
     private final SchemaVersionRepository versionRepository;
-    private final SchemaValidator validator;
+    private final SchemaDefinitionValidator validator;
     private final SchemaVersionOperationValidator operationValidator;
     private final WorkspaceReferenceResolver workspaceReferenceResolver;
 
     public SchemaVersionCommandService(
             SchemaRepository schemaRepository,
             SchemaVersionRepository versionRepository,
-            SchemaValidator validator,
+            SchemaDefinitionValidator validator,
             SchemaVersionOperationValidator operationValidator,
             WorkspaceReferenceResolver workspaceReferenceResolver
     ) {
