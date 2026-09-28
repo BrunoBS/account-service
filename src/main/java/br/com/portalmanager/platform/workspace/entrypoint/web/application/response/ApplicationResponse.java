@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.application.response;
 
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationOutput;
+
 import java.time.LocalDateTime;
 import java.util.List;
 

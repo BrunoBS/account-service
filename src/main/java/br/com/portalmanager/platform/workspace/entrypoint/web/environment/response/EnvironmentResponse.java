@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.environment.response;
 
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentOutput;
+
 import java.time.LocalDateTime;
 
 public record EnvironmentResponse(Long version, String identifier, String workspaceIdentifier, String name,

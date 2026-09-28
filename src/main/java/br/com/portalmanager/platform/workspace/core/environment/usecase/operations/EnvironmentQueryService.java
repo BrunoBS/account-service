@@ -7,6 +7,7 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service

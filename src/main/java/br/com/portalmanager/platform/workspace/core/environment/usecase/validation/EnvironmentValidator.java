@@ -10,6 +10,7 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationt
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
 import org.springframework.stereotype.Component;
+
 import java.util.Arrays;
 import java.util.Objects;
 

@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.publisher.response;
 
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.PublisherOutput;
+
 import java.time.LocalDateTime;
 
 public record PublisherResponse(Long version, String identifier, String code, String name, String description,

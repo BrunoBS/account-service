@@ -7,8 +7,8 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.model.Cr
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.validation.ApplicationValidator;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

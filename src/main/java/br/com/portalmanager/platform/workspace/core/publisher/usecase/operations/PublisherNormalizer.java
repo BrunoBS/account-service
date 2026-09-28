@@ -3,6 +3,7 @@ package br.com.portalmanager.platform.workspace.core.publisher.usecase.operation
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.CreatePublisherInput;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.UpdatePublisherInput;
 import org.springframework.stereotype.Component;
+
 import java.util.Locale;
 
 @Component
