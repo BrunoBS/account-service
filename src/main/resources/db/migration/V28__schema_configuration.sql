@@ -87,13 +87,14 @@ JOIN (
 SET sd.code = CONCAT(LEFT(sd.code, 30), '-', LEFT(MD5(sd.schema_type_code), 8));
 
 ALTER TABLE schema_definitions DROP FOREIGN KEY fk_schema_definitions_type;
+-- MySQL needs an index beginning with scope_code while the scope foreign key exists.
+-- Install its replacement before removing the old composite unique index.
+ALTER TABLE schema_definitions
+    ADD CONSTRAINT uk_schema_definitions_scope_owner_code UNIQUE (scope_code, owner_key, code);
 ALTER TABLE schema_definitions DROP INDEX uk_schema_definitions_scope_owner_type_code;
 ALTER TABLE schema_definitions DROP INDEX uk_schema_definitions_platform_type;
 ALTER TABLE schema_definitions DROP INDEX idx_schema_definitions_type_scope_owner;
 ALTER TABLE schema_definitions DROP COLUMN platform_schema_type_code;
 ALTER TABLE schema_definitions DROP COLUMN schema_type_code;
-ALTER TABLE schema_definitions
-    ADD CONSTRAINT uk_schema_definitions_scope_owner_code UNIQUE (scope_code, owner_key, code);
-
 DROP TABLE schema_type_scopes;
 DROP TABLE schema_types;
