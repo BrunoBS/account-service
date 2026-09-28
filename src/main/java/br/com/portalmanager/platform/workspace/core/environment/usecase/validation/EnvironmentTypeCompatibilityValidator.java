@@ -31,9 +31,16 @@ public class EnvironmentTypeCompatibilityValidator {
         reject(result);
     }
 
+    public void requireInactive(LifecycleTypeCode lifecycle) {
+        ValidationResult result = new ValidationResult();
+        if (!LifecycleTypeCode.inactive().equals(lifecycle))
+            result.addError("identifier", EnvironmentMessageKeys.COMPATIBILITY_DELETE_REQUIRES_INACTIVE);
+        reject(result);
+    }
+
     public void requireUnused(boolean inUse) {
         ValidationResult result = new ValidationResult();
-        if (inUse) result.addError("identifier", EnvironmentMessageKeys.TYPE_IN_USE);
+        if (inUse) result.addError("identifier", EnvironmentMessageKeys.COMPATIBILITY_IN_USE);
         reject(result);
     }
 
