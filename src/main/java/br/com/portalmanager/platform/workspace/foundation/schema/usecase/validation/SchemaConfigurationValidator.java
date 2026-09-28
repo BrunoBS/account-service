@@ -9,7 +9,7 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetyp
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaConfiguration;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaConfigurationInput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaConfigurationMessageKeys;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaConfigurationInput;
 import org.springframework.stereotype.Component;
 
@@ -18,44 +18,44 @@ import java.util.Objects;
 @Component
 public class SchemaConfigurationValidator {
     public void validateCreate(CreateSchemaConfigurationInput input) {
-        if (input == null) throw invalid("request", SchemaConfigurationMessageKeys.REQUEST_INVALID);
+        if (input == null) throw invalid("request", SchemaMessageKeys.CONFIGURATION_REQUEST_INVALID);
         if (input.resourceType() == null || input.resourceType().isBlank() || input.resourceType().length() > 100)
-            throw invalid("resourceType", SchemaConfigurationMessageKeys.RESOURCE_TYPE_INVALID);
+            throw invalid("resourceType", SchemaMessageKeys.CONFIGURATION_RESOURCE_TYPE_INVALID);
         if (input.resourceCode() == null || input.resourceCode().isBlank() || input.resourceCode().length() > 50)
-            throw invalid("resourceCode", SchemaConfigurationMessageKeys.RESOURCE_CODE_INVALID);
+            throw invalid("resourceCode", SchemaMessageKeys.CONFIGURATION_RESOURCE_CODE_INVALID);
     }
 
     public void validateAvailable(boolean alreadyExists) {
-        if (alreadyExists) throw new ConflictException(SchemaConfigurationMessageKeys.DUPLICATE);
+        if (alreadyExists) throw new ConflictException(SchemaMessageKeys.CONFIGURATION_DUPLICATE);
     }
 
     public void validateUpdate(SchemaConfiguration configuration, UpdateSchemaConfigurationInput input) {
         if (input == null || input.version() == null)
-            throw invalid("version", SchemaConfigurationMessageKeys.VERSION_REQUIRED);
+            throw invalid("version", SchemaMessageKeys.CONFIGURATION_VERSION_REQUIRED);
         if (!Objects.equals(configuration.getVersion(), input.version())) throw new ResourceVersionConflictException();
     }
 
     public String requireSchemaIdentifier(String identifier) {
         if (identifier == null || identifier.isBlank())
-            throw invalid("schemaIdentifier", SchemaConfigurationMessageKeys.SCHEMA_REQUIRED);
+            throw invalid("schemaIdentifier", SchemaMessageKeys.CONFIGURATION_SCHEMA_REQUIRED);
         return identifier.trim();
     }
 
     public void validatePlatformSchema(Schema schema) {
         if (!SchemaScopeTypeCode.platform().equals(schema.getScope()))
-            throw invalid("schemaIdentifier", SchemaConfigurationMessageKeys.SCHEMA_PLATFORM_REQUIRED);
+            throw invalid("schemaIdentifier", SchemaMessageKeys.CONFIGURATION_SCHEMA_PLATFORM_REQUIRED);
     }
 
     public void validateDeletion(SchemaConfiguration configuration) {
-        if (configuration.isActive()) throw new ConflictException(SchemaConfigurationMessageKeys.DELETE_ACTIVE);
+        if (configuration.isActive()) throw new ConflictException(SchemaMessageKeys.CONFIGURATION_DELETE_ACTIVE);
     }
 
     public NotFoundException schemaNotFound() {
-        return new NotFoundException(SchemaConfigurationMessageKeys.SCHEMA_NOT_FOUND);
+        return new NotFoundException(SchemaMessageKeys.CONFIGURATION_SCHEMA_NOT_FOUND);
     }
 
     public NotFoundException configurationNotFound() {
-        return new NotFoundException(SchemaConfigurationMessageKeys.NOT_FOUND);
+        return new NotFoundException(SchemaMessageKeys.CONFIGURATION_NOT_FOUND);
     }
 
     private ValidationException invalid(String field, String key) {

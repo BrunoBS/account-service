@@ -24,6 +24,17 @@ public final class SchemaMessageKeys {
     public static final String DEFAULT_NOT_FOUND = "workspace-service.schema.default.not-found";
     public static final String INACTIVE = "workspace-service.schema.inactive";
 
+    public static final String CONFIGURATION_REQUEST_INVALID = "workspace-service.schema-configuration.request.invalid";
+    public static final String CONFIGURATION_RESOURCE_TYPE_INVALID = "workspace-service.schema-configuration.resource-type.invalid";
+    public static final String CONFIGURATION_RESOURCE_CODE_INVALID = "workspace-service.schema-configuration.resource-code.invalid";
+    public static final String CONFIGURATION_DUPLICATE = "workspace-service.schema-configuration.duplicate";
+    public static final String CONFIGURATION_VERSION_REQUIRED = "workspace-service.schema-configuration.version.required";
+    public static final String CONFIGURATION_SCHEMA_REQUIRED = "workspace-service.schema-configuration.schema.required";
+    public static final String CONFIGURATION_SCHEMA_PLATFORM_REQUIRED = "workspace-service.schema-configuration.schema.platform-required";
+    public static final String CONFIGURATION_DELETE_ACTIVE = "workspace-service.schema-configuration.delete.active";
+    public static final String CONFIGURATION_SCHEMA_NOT_FOUND = "workspace-service.schema-configuration.schema.not-found";
+    public static final String CONFIGURATION_NOT_FOUND = "workspace-service.schema-configuration.not-found";
+
     private SchemaMessageKeys() {
     }
 }
