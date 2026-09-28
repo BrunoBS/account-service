@@ -3,7 +3,9 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase.valida
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
+import org.springframework.stereotype.Component;
 
+@Component
 public class SchemaResolutionValidator {
 
     public ValidationException typeNotFound() {

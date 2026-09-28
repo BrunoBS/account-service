@@ -9,6 +9,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaInput;
+import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -16,6 +17,7 @@ import java.util.regex.Pattern;
 /**
  * Decisions about schema requests and state transitions belong to the use case.
  */
+@Component
 public class SchemaOperationValidator {
     private static final Pattern CODE = Pattern.compile("^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$");
 

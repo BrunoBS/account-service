@@ -5,6 +5,7 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversions
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.*;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.*;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaResolver;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaResolutionValidator;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -16,7 +17,7 @@ import static org.mockito.Mockito.*;
 class SchemaResolverTest {
     private final SchemaConfigurationRepository configurations = mock(SchemaConfigurationRepository.class);
     private final SchemaVersionRepository versions = mock(SchemaVersionRepository.class);
-    private final SchemaResolver resolver = new SchemaResolver(configurations, versions);
+    private final SchemaResolver resolver = new SchemaResolver(configurations, versions, new SchemaResolutionValidator());
 
     @Test
     void missingConfigurationResolvesPublishedDefaultFromSameResourceType() {

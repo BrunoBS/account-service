@@ -19,11 +19,13 @@ public class SchemaResolver implements SchemaResolutionPort {
     private static final String DEFAULT_CODE = "DEFAULT";
     private final SchemaConfigurationRepository configurations;
     private final SchemaVersionRepository versions;
-    private final SchemaResolutionValidator validator = new SchemaResolutionValidator();
+    private final SchemaResolutionValidator validator;
 
-    public SchemaResolver(SchemaConfigurationRepository configurations, SchemaVersionRepository versions) {
+    public SchemaResolver(SchemaConfigurationRepository configurations, SchemaVersionRepository versions,
+                          SchemaResolutionValidator validator) {
         this.configurations = configurations;
         this.versions = versions;
+        this.validator = validator;
     }
 
     @Override
