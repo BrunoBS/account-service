@@ -5,7 +5,6 @@ import br.com.portalmanager.platform.workspace.feature.platform.domain.Microserv
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateFeatureInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateFeatureInput;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
@@ -25,7 +24,7 @@ public class FeatureValidator {
     public void validateSettings(String featureCode, String settings) {
         if (settingsValidator == null) return;
         ValidationResult result = new ValidationResult();
-        settingsValidator.validate(SchemaResourceType.FEATURE, featureCode, settings, result);
+        settingsValidator.validate("FEATURE", featureCode, "settings", settings, result);
         if (result.hasErrors()) throw new ValidationException(result);
     }
     public void validateCreate(CreateFeatureInput input, boolean codeDuplicate, boolean nameDuplicate) {

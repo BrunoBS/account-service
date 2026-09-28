@@ -5,7 +5,6 @@ import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +61,7 @@ class PublisherApiIT {
         given().port(port).header("X-Correlation-Id", "publisher-it")
                 .header("Authorization", "Bearer publisher-it")
                 .when().get("/api/v1/publishers/" + identifier).then().statusCode(200);
-        assertThat(schemas.resolve(SchemaResourceType.PUBLISHER, code))
+        assertThat(schemas.resolve("PUBLISHER", code))
                 .isEqualTo(jdbc.queryForObject("""
                         select v.definition from schema_configuration c
                         join schema_versions v on v.schema_id = c.schema_id

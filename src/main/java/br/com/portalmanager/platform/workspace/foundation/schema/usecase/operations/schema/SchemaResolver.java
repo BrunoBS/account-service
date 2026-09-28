@@ -1,15 +1,10 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema;
 
-import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaConfigurationRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.configuration.SchemaConfigurationService;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaResolutionValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,27 +18,21 @@ public class SchemaResolver implements SchemaResolutionPort {
     private static final Logger LOGGER = LoggerFactory.getLogger(SchemaResolver.class);
     private static final String DEFAULT_CODE = "DEFAULT";
     private final SchemaConfigurationRepository configurations;
-    private final SchemaRepository schemas;
     private final SchemaVersionRepository versions;
-    private final WorkspaceReferenceResolver workspaces;
     private final SchemaResolutionValidator validator = new SchemaResolutionValidator();
 
-    public SchemaResolver(SchemaConfigurationRepository configurations, SchemaRepository schemas,
-                          SchemaVersionRepository versions, WorkspaceReferenceResolver workspaces) {
+    public SchemaResolver(SchemaConfigurationRepository configurations, SchemaVersionRepository versions) {
         this.configurations = configurations;
-        this.schemas = schemas;
         this.versions = versions;
-        this.workspaces = workspaces;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public String resolve(SchemaResourceType type, String resourceCode) {
-        if (type == null) throw validator.typeNotFound();
-        String code = SchemaConfigurationService.resourceCode(type, resourceCode);
-        Optional<String> specific = definition(type, code);
+    public String resolve(String type, String resourceCode) {
+        if (type == null || type.isBlank()) throw validator.typeNotFound();
+        Optional<String> specific = definition(type, resourceCode);
         if (specific.isPresent()) return specific.get();
-        if (!DEFAULT_CODE.equals(code)) {
+        if (!DEFAULT_CODE.equals(resourceCode)) {
             Optional<String> fallback = definition(type, DEFAULT_CODE);
             if (fallback.isPresent()) return fallback.get();
         }
@@ -51,7 +40,7 @@ public class SchemaResolver implements SchemaResolutionPort {
         throw validator.defaultNotFound();
     }
 
-    private Optional<String> definition(SchemaResourceType type, String code) {
+    private Optional<String> definition(String type, String code) {
         var binding = configurations.findByResourceTypeAndResourceCode(type, code);
         if (binding.isEmpty()) return Optional.empty();
         var configuration = binding.get();
@@ -74,17 +63,4 @@ public class SchemaResolver implements SchemaResolutionPort {
         return Optional.of(published.get().getDefinition());
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public String resolveWorkspace(String workspaceIdentifier, String schemaCode) {
-        Long workspaceId = workspaces.resolveInternalId(validator.normalizeRequired(workspaceIdentifier));
-        Schema schema = schemas.findByScopeAndCode(
-                        SchemaScopeTypeCode.workspace().value(), workspaceId,
-                        validator.normalizeRequired(schemaCode))
-                .orElseThrow(validator::schemaNotFound);
-        validator.requireActive(schema);
-        return versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
-                        schema.getId(), SchemaVersionStatusTypeCode.published())
-                .orElseThrow(validator::versionNotFound).getDefinition();
-    }
 }

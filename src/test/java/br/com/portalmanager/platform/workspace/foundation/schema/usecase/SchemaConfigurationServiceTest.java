@@ -20,28 +20,20 @@ class SchemaConfigurationServiceTest {
     private final SchemaConfigurationService service = new SchemaConfigurationService(configurations, schemas);
 
     @Test
-    void defaultCodeIsSharedByAllResourceTypes() {
-        assertThat(SchemaConfigurationService.resourceCode(SchemaResourceType.PUBLISHER, "default"))
-                .isEqualTo("DEFAULT");
-        assertThat(SchemaConfigurationService.resourceCode(SchemaResourceType.CATALOG, "default"))
-                .isEqualTo("DEFAULT");
-    }
-
-    @Test
-    void publisherCodeIsCanonicalAndDoesNotRequireAPreexistingBinding() {
+    void publisherCodeIsStoredExactlyAsProvided() {
         Schema schema = mock(Schema.class);
         when(schema.getScope()).thenReturn(SchemaScopeTypeCode.platform());
         when(schema.getIdentifier()).thenReturn("schema");
         when(schemas.findByIdentifier("schema")).thenReturn(Optional.of(schema));
         when(configurations.save(any(SchemaConfiguration.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        assertThat(service.create(new CreateSchemaConfigurationInput("publisher", " web_socket ", "schema"))
-                .resourceCode()).isEqualTo("WEB_SOCKET");
+        assertThat(service.create(new CreateSchemaConfigurationInput("PUBLISHER",
+                "web_socket", "schema")).resourceCode()).isEqualTo("web_socket");
         verify(configurations).save(any(SchemaConfiguration.class));
     }
 
     @Test
     void rejectsDuplicateResourcePair() {
-        when(configurations.existsByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "KAAS"))
+        when(configurations.existsByResourceTypeAndResourceCode("PUBLISHER", "KAAS"))
                 .thenReturn(true);
         assertThatThrownBy(() -> service.create(
                 new CreateSchemaConfigurationInput("PUBLISHER", "KAAS", "schema")))

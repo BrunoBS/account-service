@@ -8,7 +8,6 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.model.Cr
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.usecase.ApplicationScopeTypeService;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -57,7 +56,7 @@ public class ApplicationValidator {
         if (scope == null || !scopeService.existsActive(scope))
             result.addError("applicationScope", ApplicationMessageKeys.SCOPE_INVALID);
         if (settings != null) {
-            settingsValidator.validate(SchemaResourceType.APPLICATION, "application", settings, result);
+        settingsValidator.validate("APPLICATION", "application", "settings", settings, result);
         }
     }
 

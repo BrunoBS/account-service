@@ -2,7 +2,6 @@ package br.com.portalmanager.platform.workspace.foundation.schema.integration;
 
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.foundation.integration.JsonSchemaValidator;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 
@@ -17,11 +16,13 @@ public class SchemaSettingsValidator {
         this.json = json;
     }
 
-    public void validate(SchemaResourceType type, String code, String settings, ValidationResult result) {
-        validate(type, code, json.fromString(settings, "settings"), result);
+    public void validate(String type, String code, String attributeName,
+                         String value, ValidationResult result) {
+        validate(type, code, attributeName, json.fromString(value, attributeName), result);
     }
 
-    public void validate(SchemaResourceType type, String code, JsonNode settings, ValidationResult result) {
-        json.validateJson(resolver.resolve(type, code), settings, "settings", result);
+    public void validate(String type, String code, String attributeName,
+                         JsonNode value, ValidationResult result) {
+        json.validateJson(resolver.resolve(type, code), value, attributeName, result);
     }
 }

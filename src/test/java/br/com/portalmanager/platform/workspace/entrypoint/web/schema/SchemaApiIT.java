@@ -5,7 +5,6 @@ import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,20 +47,20 @@ class SchemaApiIT {
         String binding = post("/api/v1/schema-configurations", Map.of(
                 "resourceType", "FEATURE", "resourceCode", code, "schemaIdentifier", schema))
                 .statusCode(201).body("resourceCode", equalTo(code)).extract().path("identifier");
-        assertThat(resolver.resolve(SchemaResourceType.FEATURE, code)).isEqualTo(defaultDefinition("FEATURE"));
+        assertThat(resolver.resolve("FEATURE", code)).isEqualTo(defaultDefinition("FEATURE"));
 
         String version = get("/api/v1/schemas/" + schema + "/versions").statusCode(200)
                 .extract().path("[0].identifier");
         patch("/api/v1/schemas/" + schema + "/versions/" + version + "/publish")
                 .statusCode(200);
-        assertThat(resolver.resolve(SchemaResourceType.FEATURE, code))
+        assertThat(resolver.resolve("FEATURE", code))
                 .contains("\"type\"").contains("\"object\"");
 
         post("/api/v1/schema-configurations", Map.of(
                 "resourceType", "FEATURE", "resourceCode", code, "schemaIdentifier", schema))
                 .statusCode(409);
         patch("/api/v1/schema-configurations/" + binding + "/inactivate").statusCode(200);
-        assertThat(resolver.resolve(SchemaResourceType.FEATURE, code)).isEqualTo(defaultDefinition("FEATURE"));
+        assertThat(resolver.resolve("FEATURE", code)).isEqualTo(defaultDefinition("FEATURE"));
         delete("/api/v1/schema-configurations/" + binding).statusCode(204);
     }
 
@@ -75,10 +74,30 @@ class SchemaApiIT {
                 "resourceCode", name, "schemaIdentifier", schema)).statusCode(201);
         post("/api/v1/schema-configurations", Map.of("resourceType", "CATALOG",
                 "resourceCode", name, "schemaIdentifier", schema)).statusCode(201);
-        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
+        assertThat(resolver.resolve("PUBLISHER", "WEB_SOCKET"))
                 .isEqualTo(defaultDefinition("PUBLISHER"));
-        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "KAAS"))
+        assertThat(resolver.resolve("PUBLISHER", "KAAS"))
                 .isEqualTo(defaultDefinition("PUBLISHER"));
+    }
+
+    @Test
+    void newResourceTypeCanRegisterItsOwnDefaultWithoutChangingAnEnum() {
+        String code = "contract-" + UUID.randomUUID().toString().substring(0, 8);
+        String schema = post("/api/v1/schemas", Map.of("code", code, "name", "Dynamic Contract",
+                "definition", Map.of("type", "object"))).statusCode(201)
+                .extract().path("identifier");
+        String version = get("/api/v1/schemas/" + schema + "/versions").statusCode(200)
+                .extract().path("[0].identifier");
+        patch("/api/v1/schemas/" + schema + "/versions/" + version + "/publish").statusCode(200);
+
+        post("/api/v1/schema-configurations", Map.of("resourceType", "CUSTOM_DOMAIN",
+                "resourceCode", "DEFAULT", "schemaIdentifier", schema)).statusCode(201);
+        post("/api/v1/schema-configurations", Map.of("resourceType", "CUSTOM_DOMAIN",
+                "resourceCode", "widget", "schemaIdentifier", schema)).statusCode(201);
+        post("/api/v1/schema-configurations", Map.of("resourceType", "CUSTOM_DOMAIN",
+                "resourceCode", "WIDGET", "schemaIdentifier", schema)).statusCode(201);
+        assertThat(resolver.resolve("CUSTOM_DOMAIN", "missing-code"))
+                .contains("\"type\"").contains("\"object\"");
     }
 
     @Test
@@ -106,7 +125,7 @@ class SchemaApiIT {
                 .extract().path("identifier");
         get(path + "/" + schema).statusCode(200).body("code", equalTo(code));
         get("/api/v1/schemas/" + schema).statusCode(404);
-        assertThat(resolver.resolve(SchemaResourceType.WORKSPACE, code))
+        assertThat(resolver.resolve("WORKSPACE", code))
                 .isEqualTo(defaultDefinition("WORKSPACE"));
     }
 

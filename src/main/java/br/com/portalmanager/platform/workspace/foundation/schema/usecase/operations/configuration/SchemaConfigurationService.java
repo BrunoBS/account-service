@@ -8,7 +8,6 @@ import br.com.portalmanager.platform.library.messaging.validation.ValidationResu
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaConfiguration;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaConfigurationRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaConfigurationInput;
@@ -19,14 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 @Service
 public class SchemaConfigurationService {
-    private static final Pattern LOWER_CODE = Pattern.compile("[a-z][a-z0-9]*(?:-[a-z0-9]+)*");
-    private static final Pattern PUBLISHER_CODE = Pattern.compile("[A-Z][A-Z0-9_]*");
     private final SchemaConfigurationRepository repository;
     private final SchemaRepository schemas;
 
@@ -35,37 +30,15 @@ public class SchemaConfigurationService {
         this.schemas = schemas;
     }
 
-    /** Also used by the resolver so administration and consumption agree on canonical codes. */
-    public static SchemaResourceType resourceType(String value) {
-        try {
-            return SchemaResourceType.valueOf(value.trim().toUpperCase(Locale.ROOT));
-        } catch (RuntimeException exception) {
-            throw invalid("resourceType", "workspace-service.schema-configuration.resource-type.invalid");
-        }
-    }
-
-    public static String resourceCode(SchemaResourceType type, String value) {
-        if (value == null) throw invalid("resourceCode", "workspace-service.schema-configuration.resource-code.invalid");
-        String code = value.trim();
-        // Reserved, shared convention for the fallback binding of each resource type.
-        if ("DEFAULT".equalsIgnoreCase(code)) return "DEFAULT";
-        if (type == SchemaResourceType.PUBLISHER) {
-            code = code.toUpperCase(Locale.ROOT);
-        } else {
-            code = code.toLowerCase(Locale.ROOT).replace('_', '-');
-        }
-        if (code.length() > 50 || !(type == SchemaResourceType.PUBLISHER
-                ? PUBLISHER_CODE.matcher(code).matches() : LOWER_CODE.matcher(code).matches())) {
-            throw invalid("resourceCode", "workspace-service.schema-configuration.resource-code.invalid");
-        }
-        return code;
-    }
-
     @Transactional
     public SchemaConfigurationOutput create(CreateSchemaConfigurationInput input) {
         if (input == null) throw invalid("request", "workspace-service.schema-configuration.request.invalid");
-        SchemaResourceType type = resourceType(input.resourceType());
-        String code = resourceCode(type, input.resourceCode());
+        String type = input.resourceType();
+        String code = input.resourceCode();
+        if (type == null || type.isBlank() || type.length() > 100)
+            throw invalid("resourceType", "workspace-service.schema-configuration.resource-type.invalid");
+        if (code == null || code.isBlank() || code.length() > 50)
+            throw invalid("resourceCode", "workspace-service.schema-configuration.resource-code.invalid");
         if (repository.existsByResourceTypeAndResourceCode(type, code))
             throw new ConflictException("workspace-service.schema-configuration.duplicate");
         Schema schema = platformSchema(input.schemaIdentifier());

@@ -15,6 +15,16 @@ também não estiver utilizável, devolve erro controlado
 incompleta são registrados no log. Settings inválidos continuam gerando
 erro de validação. Falhas de infraestrutura propagam como falhas.
 
+O `resourceType` e o `resourceCode` são identificadores textuais informados
+pelo domínio e consultados exatamente como recebidos, sem conversão de letras,
+espaços ou separadores. A comparação no banco distingue maiúsculas de minúsculas.
+Cada domínio conhece sua convenção de tipo; adicionar
+um tipo não exige alterar um enum. Primeiro se consulta o par informado;
+o fallback usa a string literal `DEFAULT` do mesmo tipo. Se um domínio novo
+precisar de fallback, seu vínculo `(resourceType, DEFAULT)` deve ser cadastrado
+no banco. O consumidor define também o nome do campo de JSON para que os
+erros de validação apontem para seu próprio atributo.
+
 | Consumidor atual | resourceType | resourceCode | JSON validado |
 | --- | --- | --- | --- |
 | Application | APPLICATION | application | application.settings |
@@ -26,8 +36,8 @@ erro de validação. Falhas de infraestrutura propagam como falhas.
 O cadastro `core.publisher` não possui settings. Sua criação não depende de
 SchemaConfiguration. O consumidor futuro deve usar o código do **tipo** do Publisher,
 nunca seu identifier. Environment de Application e Microservice ainda não persistem
-settings consumidos pelo mecanismo nesta versão. Schema de Workspace conserva
-resolução explícita por workspace e código, sem fallback de plataforma.
+settings consumidos pelo mecanismo nesta versão. O cadastro de Schema de
+Workspace permanece; não há consumidor de resolução de Schema de Workspace nesta versão.
 
 V28 copia vínculos de schemas de plataforma existentes, vincula o Schema
 DEFAULT histórico a cada um dos sete resourceTypes com código reservado
@@ -41,4 +51,6 @@ legados de um mesmo escopo e owner compartilham código e se distinguem apenas
 pelo antigo SchemaType, V28 acrescenta um sufixo determinístico aos códigos
 colidentes para preservar os registros. Aplicações que consultavam diretamente
 esses códigos precisam atualizar as referências. Migrations anteriores não
-são alteradas para que bases já migradas possam receber V28.
+são alteradas para que bases já migradas possam receber V28. A V29 remove a
+restrição que limitava `resourceType` às sete categorias originais e amplia
+sua capacidade para 100 caracteres, preservando os vínculos existentes.
