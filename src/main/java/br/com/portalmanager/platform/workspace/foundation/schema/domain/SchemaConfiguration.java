@@ -16,9 +16,8 @@ public class SchemaConfiguration {
     private Long version;
     @Column(nullable = false, unique = true, length = 36, updatable = false)
     private String identifier;
-    @Enumerated(EnumType.STRING)
-    @Column(name = "resource_type", nullable = false, length = 30, updatable = false)
-    private SchemaResourceType resourceType;
+    @Column(name = "resource_type", nullable = false, length = 100, updatable = false)
+    private String resourceType;
     @Column(name = "resource_code", nullable = false, length = 50, updatable = false)
     private String resourceCode;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -34,7 +33,7 @@ public class SchemaConfiguration {
 
     protected SchemaConfiguration() {}
 
-    public SchemaConfiguration(SchemaResourceType resourceType, String resourceCode, Schema schema, LocalDateTime now) {
+    public SchemaConfiguration(String resourceType, String resourceCode, Schema schema, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.resourceType = resourceType;
         this.resourceCode = resourceCode;
@@ -51,7 +50,7 @@ public class SchemaConfiguration {
     public Long getId() { return id; }
     public Long getVersion() { return version; }
     public String getIdentifier() { return identifier; }
-    public SchemaResourceType getResourceType() { return resourceType; }
+    public String getResourceType() { return resourceType; }
     public String getResourceCode() { return resourceCode; }
     public Schema getSchema() { return schema; }
     public LifecycleTypeCode getLifecycle() { return lifecycle; }

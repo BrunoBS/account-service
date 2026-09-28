@@ -11,7 +11,7 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class ResourceScopeTypeService extends EnumCatalogService<ResourceScopeType, ResourceScopeTypeEnum> {
 
-    private static final String SCHEMA_TYPE_CODE = "RESOURCE_SCOPE_TYPE";
+    private static final String SCHEMA_RESOURCE_CODE = "resource-scope-type";
 
     public ResourceScopeTypeService(
             ResourceScopeTypeRepository repository,
@@ -22,7 +22,7 @@ public class ResourceScopeTypeService extends EnumCatalogService<ResourceScopeTy
                 objectMapper,
                 ResourceScopeType.class,
                 ResourceScopeTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(SCHEMA_TYPE_CODE, dto.settings(), result)
+                (dto, result) -> settingsValidator.validateSettings(SCHEMA_RESOURCE_CODE, dto.settings(), result)
         );
     }
 }

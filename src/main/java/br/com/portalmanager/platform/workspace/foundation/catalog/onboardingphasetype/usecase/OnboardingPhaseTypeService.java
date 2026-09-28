@@ -11,7 +11,7 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class OnboardingPhaseTypeService extends EnumCatalogService<OnboardingPhaseType, OnboardingPhaseTypeEnum> {
 
-    private static final String SCHEMA_TYPE_CODE = "ONBOARDING_PHASE_TYPE";
+    private static final String SCHEMA_RESOURCE_CODE = "onboarding-phase-type";
 
     public OnboardingPhaseTypeService(
             OnboardingPhaseTypeRepository repository,
@@ -22,7 +22,7 @@ public class OnboardingPhaseTypeService extends EnumCatalogService<OnboardingPha
                 objectMapper,
                 OnboardingPhaseType.class,
                 OnboardingPhaseTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(SCHEMA_TYPE_CODE, dto.settings(), result)
+                (dto, result) -> settingsValidator.validateSettings(SCHEMA_RESOURCE_CODE, dto.settings(), result)
         );
     }
 }

@@ -11,7 +11,7 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class EnvironmentTypeService extends EnumCatalogService<EnvironmentType, EnvironmentTypeEnum> {
 
-    private static final String SCHEMA_TYPE_CODE = "ENVIRONMENT_TYPE";
+    private static final String SCHEMA_RESOURCE_CODE = "environment-type";
 
     public EnvironmentTypeService(
             EnvironmentTypeRepository repository,
@@ -22,7 +22,7 @@ public class EnvironmentTypeService extends EnumCatalogService<EnvironmentType, 
                 objectMapper,
                 EnvironmentType.class,
                 EnvironmentTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(SCHEMA_TYPE_CODE, dto.settings(), result)
+                (dto, result) -> settingsValidator.validateSettings(SCHEMA_RESOURCE_CODE, dto.settings(), result)
         );
     }
 }

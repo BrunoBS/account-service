@@ -7,7 +7,9 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversions
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
+import org.springframework.stereotype.Component;
 
+@Component
 public class SchemaVersionOperationValidator {
     public void validateCreate(Schema schema, Integer number, String definition,
                                SchemaVersionStatusTypeCode status) {

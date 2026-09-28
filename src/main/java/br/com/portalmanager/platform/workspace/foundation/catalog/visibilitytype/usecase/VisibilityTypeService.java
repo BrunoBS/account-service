@@ -11,7 +11,7 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class VisibilityTypeService extends EnumCatalogService<VisibilityType, VisibilityTypeEnum> {
 
-    private static final String SCHEMA_TYPE_CODE = "VISIBILITY_TYPE";
+    private static final String SCHEMA_RESOURCE_CODE = "visibility-type";
 
     public VisibilityTypeService(
             VisibilityTypeRepository repository,
@@ -22,7 +22,7 @@ public class VisibilityTypeService extends EnumCatalogService<VisibilityType, Vi
                 objectMapper,
                 VisibilityType.class,
                 VisibilityTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(SCHEMA_TYPE_CODE, dto.settings(), result)
+                (dto, result) -> settingsValidator.validateSettings(SCHEMA_RESOURCE_CODE, dto.settings(), result)
         );
     }
 }

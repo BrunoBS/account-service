@@ -11,7 +11,7 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class LifecycleTypeService extends EnumCatalogService<LifecycleType, LifecycleTypeEnum> {
 
-    private static final String SCHEMA_TYPE_CODE = "LIFECYCLE_TYPE";
+    private static final String SCHEMA_RESOURCE_CODE = "lifecycle-type";
 
     public LifecycleTypeService(
             LifecycleTypeRepository repository,
@@ -22,7 +22,7 @@ public class LifecycleTypeService extends EnumCatalogService<LifecycleType, Life
                 objectMapper,
                 LifecycleType.class,
                 LifecycleTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(SCHEMA_TYPE_CODE, dto.settings(), result)
+                (dto, result) -> settingsValidator.validateSettings(SCHEMA_RESOURCE_CODE, dto.settings(), result)
         );
     }
 }

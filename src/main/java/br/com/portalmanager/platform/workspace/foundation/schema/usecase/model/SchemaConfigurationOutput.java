@@ -6,7 +6,7 @@ public record SchemaConfigurationOutput(String identifier, Long version, String 
                                         String resourceCode, String schemaIdentifier, String lifecycle) {
     public static SchemaConfigurationOutput from(SchemaConfiguration value) {
         return new SchemaConfigurationOutput(value.getIdentifier(), value.getVersion(),
-                value.getResourceType().name(), value.getResourceCode(),
+                value.getResourceType(), value.getResourceCode(),
                 value.getSchema().getIdentifier(), value.getLifecycle().value());
     }
 }

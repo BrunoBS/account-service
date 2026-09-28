@@ -28,16 +28,19 @@ public class SchemaCommandService {
     private final SchemaRepository repository;
     private final SchemaVersionRepository versionRepository;
     private final SchemaValidator validator;
-    private final SchemaOperationValidator operationValidator = new SchemaOperationValidator();
-    private final SchemaVersionOperationValidator versionValidator = new SchemaVersionOperationValidator();
+    private final SchemaOperationValidator operationValidator;
+    private final SchemaVersionOperationValidator versionValidator;
     private final WorkspaceReferenceResolver workspaceReferenceResolver;
 
     public SchemaCommandService(SchemaRepository repository, SchemaVersionRepository versionRepository,
-                                SchemaValidator validator,
+                                SchemaValidator validator, SchemaOperationValidator operationValidator,
+                                SchemaVersionOperationValidator versionValidator,
                                 WorkspaceReferenceResolver workspaceReferenceResolver) {
         this.repository = repository;
         this.versionRepository = versionRepository;
         this.validator = validator;
+        this.operationValidator = operationValidator;
+        this.versionValidator = versionValidator;
         this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
 

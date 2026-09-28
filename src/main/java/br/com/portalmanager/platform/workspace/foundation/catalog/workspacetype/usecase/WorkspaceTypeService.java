@@ -11,7 +11,7 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class WorkspaceTypeService extends EnumCatalogService<WorkspaceType, WorkspaceTypeEnum> {
 
-    private static final String SCHEMA_TYPE_CODE = "WORKSPACE_TYPE";
+    private static final String SCHEMA_RESOURCE_CODE = "workspace-type";
 
     public WorkspaceTypeService(
             WorkspaceTypeRepository repository,
@@ -22,7 +22,7 @@ public class WorkspaceTypeService extends EnumCatalogService<WorkspaceType, Work
                 objectMapper,
                 WorkspaceType.class,
                 WorkspaceTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(SCHEMA_TYPE_CODE, dto.settings(), result)
+                (dto, result) -> settingsValidator.validateSettings(SCHEMA_RESOURCE_CODE, dto.settings(), result)
         );
     }
 }

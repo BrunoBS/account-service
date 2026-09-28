@@ -2,30 +2,14 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase.valida
 
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
+import org.springframework.stereotype.Component;
 
+@Component
 public class SchemaResolutionValidator {
-
-    public String normalizeRequired(String value) {
-        if (value == null || value.isBlank()) throw error("schema", SchemaMessageKeys.RESOLUTION_NOT_FOUND);
-        return value.trim();
-    }
-
-    public void requireActive(Schema schema) {
-        if (!schema.isActive()) throw error("schema", SchemaMessageKeys.INACTIVE);
-    }
-
-    public ValidationException schemaNotFound() {
-        return error("schema", SchemaMessageKeys.RESOLUTION_NOT_FOUND);
-    }
 
     public ValidationException typeNotFound() {
         return error("schemaType", SchemaMessageKeys.RESOLUTION_NOT_FOUND);
-    }
-
-    public ValidationException versionNotFound() {
-        return error("schemaVersion", SchemaMessageKeys.PUBLISHED_NOT_FOUND);
     }
 
     public ValidationException defaultNotFound() {

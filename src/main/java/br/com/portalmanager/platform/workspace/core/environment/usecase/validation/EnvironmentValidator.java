@@ -8,7 +8,6 @@ import br.com.portalmanager.platform.workspace.core.environment.usecase.model.Cr
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.UpdateEnvironmentInput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -61,7 +60,7 @@ public class EnvironmentValidator {
             result.addError("authorizationType", EnvironmentMessageKeys.AUTHORIZATION_INVALID);
         if (sort != null && sort < 1) result.addError("sortOrder", EnvironmentMessageKeys.SORT_INVALID);
         if (settings != null)
-            settingsValidator.validate(SchemaResourceType.ENVIRONMENT, "workspace", settings, result);
+        settingsValidator.validate("ENVIRONMENT", "workspace", "settings", settings, result);
     }
 
     private void reject(ValidationResult result) {

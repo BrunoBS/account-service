@@ -2,10 +2,10 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.*;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.*;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaResolver;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaResolutionValidator;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -16,54 +16,69 @@ import static org.mockito.Mockito.*;
 
 class SchemaResolverTest {
     private final SchemaConfigurationRepository configurations = mock(SchemaConfigurationRepository.class);
-    private final SchemaRepository schemas = mock(SchemaRepository.class);
     private final SchemaVersionRepository versions = mock(SchemaVersionRepository.class);
-    private final WorkspaceReferenceResolver workspaces = mock(WorkspaceReferenceResolver.class);
-    private final SchemaResolver resolver = new SchemaResolver(configurations, schemas, versions, workspaces);
+    private final SchemaResolver resolver = new SchemaResolver(configurations, versions, new SchemaResolutionValidator());
 
     @Test
     void missingConfigurationResolvesPublishedDefaultFromSameResourceType() {
-        bindDefault(SchemaResourceType.CATALOG);
-        assertThat(resolver.resolve(SchemaResourceType.CATALOG, "lifecycle-type"))
+        bindDefault("CATALOG");
+        assertThat(resolver.resolve("CATALOG", "lifecycle-type"))
                 .isEqualTo("{\"type\":\"object\"}");
-        verify(configurations).findByResourceTypeAndResourceCode(SchemaResourceType.CATALOG, "DEFAULT");
+        verify(configurations).findByResourceTypeAndResourceCode("CATALOG", "DEFAULT");
     }
 
     @Test
     void publishedDefinitionWinsOverNewerDraft() {
         Schema schema = schema("catalog", SchemaScopeTypeCode.platform());
-        SchemaConfiguration binding = new SchemaConfiguration(SchemaResourceType.CATALOG,
+        SchemaConfiguration binding = new SchemaConfiguration("CATALOG",
                 "lifecycle-type", schema, LocalDateTime.now());
-        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.CATALOG, "lifecycle-type"))
+        when(configurations.findByResourceTypeAndResourceCode("CATALOG", "lifecycle-type"))
                 .thenReturn(Optional.of(binding));
         SchemaVersion published = new SchemaVersion(schema, 2, "v2", "{\"type\":\"object\"}",
                 SchemaVersionStatusTypeCode.published(), LocalDateTime.now());
         when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
                 schema.getId(), SchemaVersionStatusTypeCode.published())).thenReturn(Optional.of(published));
-        assertThat(resolver.resolve(SchemaResourceType.CATALOG, "LIFECYCLE_TYPE"))
+        assertThat(resolver.resolve("CATALOG", "lifecycle-type"))
                 .isEqualTo(published.getDefinition());
     }
 
     @Test
+    void differentCaseDoesNotMatchTheSpecificResourceCode() {
+        bindDefault("CATALOG");
+        assertThat(resolver.resolve("CATALOG", "LIFECYCLE_TYPE"))
+                .isEqualTo("{\"type\":\"object\"}");
+        verify(configurations).findByResourceTypeAndResourceCode("CATALOG", "LIFECYCLE_TYPE");
+        verify(configurations, never()).findByResourceTypeAndResourceCode("CATALOG", "lifecycle-type");
+    }
+
+    @Test
+    void lowercaseDefaultIsQueriedLiterallyBeforeTheFallback() {
+        bindDefault("CATALOG");
+        resolver.resolve("CATALOG", "default");
+        verify(configurations).findByResourceTypeAndResourceCode("CATALOG", "default");
+        verify(configurations).findByResourceTypeAndResourceCode("CATALOG", "DEFAULT");
+    }
+
+    @Test
     void noPublicationFallsBackWithoutRejectingConsumer() {
-        bindDefault(SchemaResourceType.PUBLISHER);
+        bindDefault("PUBLISHER");
         Schema schema = schema("publisher", SchemaScopeTypeCode.platform());
-        var binding = new SchemaConfiguration(SchemaResourceType.PUBLISHER, "WEB_SOCKET", schema, LocalDateTime.now());
-        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
+        var binding = new SchemaConfiguration("PUBLISHER", "WEB_SOCKET", schema, LocalDateTime.now());
+        when(configurations.findByResourceTypeAndResourceCode("PUBLISHER", "WEB_SOCKET"))
                 .thenReturn(Optional.of(binding));
-        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
+        assertThat(resolver.resolve("PUBLISHER", "WEB_SOCKET"))
                 .isEqualTo("{\"type\":\"object\"}");
     }
 
     @Test
     void inactiveConfigurationFallsBack() {
-        bindDefault(SchemaResourceType.PUBLISHER);
+        bindDefault("PUBLISHER");
         Schema schema = schema("publisher", SchemaScopeTypeCode.platform());
-        var binding = new SchemaConfiguration(SchemaResourceType.PUBLISHER, "KAAS", schema, LocalDateTime.now());
+        var binding = new SchemaConfiguration("PUBLISHER", "KAAS", schema, LocalDateTime.now());
         binding.inactivate(LocalDateTime.now());
-        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "KAAS"))
+        when(configurations.findByResourceTypeAndResourceCode("PUBLISHER", "KAAS"))
                 .thenReturn(Optional.of(binding));
-        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "KAAS"))
+        assertThat(resolver.resolve("PUBLISHER", "KAAS"))
                 .isEqualTo("{\"type\":\"object\"}");
         verify(versions, never()).findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
                 9L, SchemaVersionStatusTypeCode.published());
@@ -71,9 +86,9 @@ class SchemaResolverTest {
 
     @Test
     void missingDefaultReturnsControlledError() {
-        assertThatThrownBy(() -> resolver.resolve(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
+        assertThatThrownBy(() -> resolver.resolve("PUBLISHER", "WEB_SOCKET"))
                 .isInstanceOf(br.com.portalmanager.platform.library.messaging.exception.ValidationException.class);
-        verify(configurations).findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "DEFAULT");
+        verify(configurations).findByResourceTypeAndResourceCode("PUBLISHER", "DEFAULT");
     }
 
     @Test
@@ -82,10 +97,10 @@ class SchemaResolverTest {
         when(fallback.isActive()).thenReturn(true);
         when(fallback.getId()).thenReturn(11L);
         when(fallback.getIdentifier()).thenReturn("default-schema");
-        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.FEATURE, "DEFAULT"))
-                .thenReturn(Optional.of(new SchemaConfiguration(SchemaResourceType.FEATURE,
+        when(configurations.findByResourceTypeAndResourceCode("FEATURE", "DEFAULT"))
+                .thenReturn(Optional.of(new SchemaConfiguration("FEATURE",
                         "DEFAULT", fallback, LocalDateTime.now())));
-        assertThatThrownBy(() -> resolver.resolve(SchemaResourceType.FEATURE, "unknown"))
+        assertThatThrownBy(() -> resolver.resolve("FEATURE", "unknown"))
                 .isInstanceOf(br.com.portalmanager.platform.library.messaging.exception.ValidationException.class);
     }
 
@@ -97,11 +112,11 @@ class SchemaResolverTest {
         when(catalogDefault.isActive()).thenReturn(true);
         when(publisherDefault.getId()).thenReturn(20L);
         when(catalogDefault.getId()).thenReturn(21L);
-        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "DEFAULT"))
-                .thenReturn(Optional.of(new SchemaConfiguration(SchemaResourceType.PUBLISHER,
+        when(configurations.findByResourceTypeAndResourceCode("PUBLISHER", "DEFAULT"))
+                .thenReturn(Optional.of(new SchemaConfiguration("PUBLISHER",
                         "DEFAULT", publisherDefault, LocalDateTime.now())));
-        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.CATALOG, "DEFAULT"))
-                .thenReturn(Optional.of(new SchemaConfiguration(SchemaResourceType.CATALOG,
+        when(configurations.findByResourceTypeAndResourceCode("CATALOG", "DEFAULT"))
+                .thenReturn(Optional.of(new SchemaConfiguration("CATALOG",
                         "DEFAULT", catalogDefault, LocalDateTime.now())));
         when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(20L, SchemaVersionStatusTypeCode.published()))
                 .thenReturn(Optional.of(new SchemaVersion(publisherDefault, 1, "v1", "{\"required\":[\"url\"]}",
@@ -109,9 +124,9 @@ class SchemaResolverTest {
         when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(21L, SchemaVersionStatusTypeCode.published()))
                 .thenReturn(Optional.of(new SchemaVersion(catalogDefault, 1, "v1", "{\"required\":[\"name\"]}",
                         SchemaVersionStatusTypeCode.published(), LocalDateTime.now())));
-        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "MISSING"))
+        assertThat(resolver.resolve("PUBLISHER", "MISSING"))
                 .isEqualTo("{\"required\":[\"url\"]}");
-        assertThat(resolver.resolve(SchemaResourceType.CATALOG, "missing"))
+        assertThat(resolver.resolve("CATALOG", "missing"))
                 .isEqualTo("{\"required\":[\"name\"]}");
     }
 
@@ -121,11 +136,11 @@ class SchemaResolverTest {
         Schema kaas = mock(Schema.class);
         when(kaas.isActive()).thenReturn(true);
         when(kaas.getId()).thenReturn(10L);
-        var webBinding = new SchemaConfiguration(SchemaResourceType.PUBLISHER, "WEB_SOCKET", web, LocalDateTime.now());
-        var kaasBinding = new SchemaConfiguration(SchemaResourceType.PUBLISHER, "KAAS", kaas, LocalDateTime.now());
-        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
+        var webBinding = new SchemaConfiguration("PUBLISHER", "WEB_SOCKET", web, LocalDateTime.now());
+        var kaasBinding = new SchemaConfiguration("PUBLISHER", "KAAS", kaas, LocalDateTime.now());
+        when(configurations.findByResourceTypeAndResourceCode("PUBLISHER", "WEB_SOCKET"))
                 .thenReturn(Optional.of(webBinding));
-        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "KAAS"))
+        when(configurations.findByResourceTypeAndResourceCode("PUBLISHER", "KAAS"))
                 .thenReturn(Optional.of(kaasBinding));
         var webVersion = new SchemaVersion(web, 1, "v1", "{\"required\":[\"url\"]}",
                 SchemaVersionStatusTypeCode.published(), LocalDateTime.now());
@@ -136,16 +151,8 @@ class SchemaResolverTest {
         when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(10L, SchemaVersionStatusTypeCode.published()))
                 .thenReturn(Optional.of(kaasVersion));
 
-        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "WEB_SOCKET")).isEqualTo(webVersion.getDefinition());
-        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "KAAS")).isEqualTo(kaasVersion.getDefinition());
-    }
-
-    @Test
-    void workspaceStillRequiresItsOwnPublishedSchemaWithoutDefaultFallback() {
-        when(workspaces.resolveInternalId("workspace-id")).thenReturn(7L);
-        assertThatThrownBy(() -> resolver.resolveWorkspace("workspace-id", "settings"))
-                .isInstanceOf(br.com.portalmanager.platform.library.messaging.exception.ValidationException.class);
-        verify(schemas).findByScopeAndCode("WORKSPACE", 7L, "settings");
+        assertThat(resolver.resolve("PUBLISHER", "WEB_SOCKET")).isEqualTo(webVersion.getDefinition());
+        assertThat(resolver.resolve("PUBLISHER", "KAAS")).isEqualTo(kaasVersion.getDefinition());
     }
 
     private Schema schema(String code, SchemaScopeTypeCode scope) {
@@ -157,7 +164,7 @@ class SchemaResolverTest {
         return schema;
     }
 
-    private void bindDefault(SchemaResourceType type) {
+    private void bindDefault(String type) {
         Schema fallback = mock(Schema.class);
         when(fallback.isActive()).thenReturn(true);
         when(fallback.getId()).thenReturn(11L);

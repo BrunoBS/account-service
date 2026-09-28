@@ -11,7 +11,7 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class SchemaVersionStatusTypeService extends EnumCatalogService<SchemaVersionStatusType, SchemaVersionStatusTypeEnum> {
 
-    private static final String SCHEMA_TYPE_CODE = "SCHEMA_VERSION_STATUS_TYPE";
+    private static final String SCHEMA_RESOURCE_CODE = "schema-version-status-type";
 
     public SchemaVersionStatusTypeService(
             SchemaVersionStatusTypeRepository repository,
@@ -22,7 +22,7 @@ public class SchemaVersionStatusTypeService extends EnumCatalogService<SchemaVer
                 objectMapper,
                 SchemaVersionStatusType.class,
                 SchemaVersionStatusTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(SCHEMA_TYPE_CODE, dto.settings(), result)
+                (dto, result) -> settingsValidator.validateSettings(SCHEMA_RESOURCE_CODE, dto.settings(), result)
         );
     }
 }
