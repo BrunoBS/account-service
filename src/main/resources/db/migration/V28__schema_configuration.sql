@@ -96,5 +96,4 @@ ALTER TABLE schema_definitions DROP INDEX uk_schema_definitions_platform_type;
 ALTER TABLE schema_definitions DROP INDEX idx_schema_definitions_type_scope_owner;
 ALTER TABLE schema_definitions DROP COLUMN platform_schema_type_code;
 ALTER TABLE schema_definitions DROP COLUMN schema_type_code;
-DROP TABLE schema_type_scopes;
 DROP TABLE schema_types;
