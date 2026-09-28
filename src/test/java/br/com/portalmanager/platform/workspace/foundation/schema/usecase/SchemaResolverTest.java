@@ -22,10 +22,11 @@ class SchemaResolverTest {
     private final SchemaResolver resolver = new SchemaResolver(configurations, schemas, versions, workspaces);
 
     @Test
-    void missingConfigurationReturnsJsonSchemaConstantWithoutDatabaseDefaultLookup() {
+    void missingConfigurationResolvesPublishedDefaultFromSameResourceType() {
+        bindDefault(SchemaResourceType.CATALOG);
         assertThat(resolver.resolve(SchemaResourceType.CATALOG, "lifecycle-type"))
-                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
-        verifyNoInteractions(schemas, versions);
+                .isEqualTo("{\"type\":\"object\"}");
+        verify(configurations).findByResourceTypeAndResourceCode(SchemaResourceType.CATALOG, "DEFAULT");
     }
 
     @Test
@@ -45,24 +46,47 @@ class SchemaResolverTest {
 
     @Test
     void noPublicationFallsBackWithoutRejectingConsumer() {
+        bindDefault(SchemaResourceType.PUBLISHER);
         Schema schema = schema("publisher", SchemaScopeTypeCode.platform());
         var binding = new SchemaConfiguration(SchemaResourceType.PUBLISHER, "WEB_SOCKET", schema, LocalDateTime.now());
         when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
                 .thenReturn(Optional.of(binding));
         assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
-                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
+                .isEqualTo("{\"type\":\"object\"}");
     }
 
     @Test
     void inactiveConfigurationFallsBack() {
+        bindDefault(SchemaResourceType.PUBLISHER);
         Schema schema = schema("publisher", SchemaScopeTypeCode.platform());
         var binding = new SchemaConfiguration(SchemaResourceType.PUBLISHER, "KAAS", schema, LocalDateTime.now());
         binding.inactivate(LocalDateTime.now());
         when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "KAAS"))
                 .thenReturn(Optional.of(binding));
         assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "KAAS"))
-                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
-        verifyNoInteractions(versions);
+                .isEqualTo("{\"type\":\"object\"}");
+        verify(versions, never()).findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
+                9L, SchemaVersionStatusTypeCode.published());
+    }
+
+    @Test
+    void missingDefaultReturnsControlledError() {
+        assertThatThrownBy(() -> resolver.resolve(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
+                .isInstanceOf(br.com.portalmanager.platform.library.messaging.exception.ValidationException.class);
+        verify(configurations).findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "DEFAULT");
+    }
+
+    @Test
+    void unPublishedDefaultReturnsControlledError() {
+        Schema fallback = mock(Schema.class);
+        when(fallback.isActive()).thenReturn(true);
+        when(fallback.getId()).thenReturn(11L);
+        when(fallback.getIdentifier()).thenReturn("default-schema");
+        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.FEATURE, "DEFAULT"))
+                .thenReturn(Optional.of(new SchemaConfiguration(SchemaResourceType.FEATURE,
+                        "DEFAULT", fallback, LocalDateTime.now())));
+        assertThatThrownBy(() -> resolver.resolve(SchemaResourceType.FEATURE, "unknown"))
+                .isInstanceOf(br.com.portalmanager.platform.library.messaging.exception.ValidationException.class);
     }
 
     @Test
@@ -105,5 +129,16 @@ class SchemaResolverTest {
         when(schema.getIdentifier()).thenReturn(code);
         when(schema.getScope()).thenReturn(scope);
         return schema;
+    }
+
+    private void bindDefault(SchemaResourceType type) {
+        Schema fallback = mock(Schema.class);
+        when(fallback.isActive()).thenReturn(true);
+        when(fallback.getId()).thenReturn(11L);
+        when(configurations.findByResourceTypeAndResourceCode(type, "DEFAULT"))
+                .thenReturn(Optional.of(new SchemaConfiguration(type, "DEFAULT", fallback, LocalDateTime.now())));
+        when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(11L, SchemaVersionStatusTypeCode.published()))
+                .thenReturn(Optional.of(new SchemaVersion(fallback, 1, "v1", "{\"type\":\"object\"}",
+                        SchemaVersionStatusTypeCode.published(), LocalDateTime.now())));
     }
 }

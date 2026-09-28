@@ -28,6 +28,10 @@ public class SchemaResolutionValidator {
         return error("schemaVersion", SchemaMessageKeys.PUBLISHED_NOT_FOUND);
     }
 
+    public ValidationException defaultNotFound() {
+        return error("schema", SchemaMessageKeys.DEFAULT_NOT_FOUND);
+    }
+
     private ValidationException error(String field, String key) {
         return new ValidationException(new ValidationResult(field, key));
     }

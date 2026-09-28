@@ -47,6 +47,15 @@ class SchemaConfigurationMigrationIT {
                 WHERE resource_type = 'CATALOG' AND resource_code = 'workspace-type'
                 """, Long.class)).isEqualTo(id);
         assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM schema_configuration WHERE resource_code = 'DEFAULT'
+                """, Integer.class)).isEqualTo(7);
+        assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM schema_versions v
+                JOIN schema_configuration c ON c.schema_id = v.schema_id
+                WHERE c.resource_type = 'PUBLISHER' AND c.resource_code = 'DEFAULT'
+                  AND v.status = 'PUBLISHED'
+                """, Integer.class)).isPositive();
+        assertThat(jdbc.queryForObject("""
                 SELECT COUNT(*) FROM information_schema.tables
                 WHERE table_schema = DATABASE() AND table_name = 'schema_types'
                 """, Integer.class)).isZero();

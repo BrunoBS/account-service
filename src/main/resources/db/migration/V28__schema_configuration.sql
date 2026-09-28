@@ -54,6 +54,25 @@ WHERE sd.scope_code = 'PLATFORM'
        OR LEFT(sd.schema_type_code, 8) = 'FEATURE_'
        OR RIGHT(sd.schema_type_code, 5) = '_TYPE');
 
+-- The existing, published DEFAULT schema from V17 becomes the initial database
+-- fallback for each resource category. Administrators can replace each binding
+-- independently without deploying code.
+INSERT INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), resource_types.resource_type, 'DEFAULT', sd.id, sd.lifecycle_code,
+       CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions sd
+CROSS JOIN (
+    SELECT 'WORKSPACE' AS resource_type UNION ALL
+    SELECT 'APPLICATION' UNION ALL
+    SELECT 'ENVIRONMENT' UNION ALL
+    SELECT 'PUBLISHER' UNION ALL
+    SELECT 'FEATURE' UNION ALL
+    SELECT 'MICROSERVICE' UNION ALL
+    SELECT 'CATALOG'
+) resource_types
+WHERE sd.scope_code = 'PLATFORM' AND sd.schema_type_code = 'DEFAULT';
+
 -- The old unique key included schema_type_code; preserve colliding schema rows
 -- by giving only the conflicting codes a deterministic, valid suffix.
 UPDATE schema_definitions sd
@@ -66,11 +85,6 @@ JOIN (
             AND collisions.owner_key = sd.owner_key
             AND collisions.code = sd.code
 SET sd.code = CONCAT(LEFT(sd.code, 30), '-', LEFT(MD5(sd.schema_type_code), 8));
-
-DELETE sv FROM schema_versions sv
-JOIN schema_definitions sd ON sd.id = sv.schema_id
-WHERE sd.scope_code = 'PLATFORM' AND sd.schema_type_code = 'DEFAULT';
-DELETE FROM schema_definitions WHERE scope_code = 'PLATFORM' AND schema_type_code = 'DEFAULT';
 
 ALTER TABLE schema_definitions DROP FOREIGN KEY fk_schema_definitions_type;
 ALTER TABLE schema_definitions DROP INDEX uk_schema_definitions_scope_owner_type_code;

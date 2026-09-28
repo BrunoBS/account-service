@@ -5,7 +5,6 @@ import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthoriz
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaDefaults;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +61,13 @@ class PublisherApiIT {
                 .header("Authorization", "Bearer publisher-it")
                 .when().get("/api/v1/publishers/" + identifier).then().statusCode(200);
         assertThat(schemas.resolve(SchemaResourceType.PUBLISHER, code))
-                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
+                .isEqualTo(jdbc.queryForObject("""
+                        select v.definition from schema_configuration c
+                        join schema_versions v on v.schema_id = c.schema_id
+                        where c.resource_type = 'PUBLISHER' and c.resource_code = 'DEFAULT'
+                          and v.status = 'PUBLISHED'
+                        order by v.schema_version desc limit 1
+                        """, String.class));
     }
 
     @Test

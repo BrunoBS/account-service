@@ -4,7 +4,6 @@ import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrat
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaDefaults;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import io.restassured.http.ContentType;
@@ -47,7 +46,7 @@ class SchemaApiIT {
         String binding = post("/api/v1/schema-configurations", Map.of(
                 "resourceType", "FEATURE", "resourceCode", code, "schemaIdentifier", schema))
                 .statusCode(201).body("resourceCode", equalTo(code)).extract().path("identifier");
-        assertThat(resolver.resolve(SchemaResourceType.FEATURE, code)).isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
+        assertThat(resolver.resolve(SchemaResourceType.FEATURE, code)).isEqualTo(defaultDefinition("FEATURE"));
 
         String version = get("/api/v1/schemas/" + schema + "/versions").statusCode(200)
                 .extract().path("[0].identifier");
@@ -59,7 +58,7 @@ class SchemaApiIT {
                 "resourceType", "FEATURE", "resourceCode", code, "schemaIdentifier", schema))
                 .statusCode(409);
         patch("/api/v1/schema-configurations/" + binding + "/inactivate").statusCode(200);
-        assertThat(resolver.resolve(SchemaResourceType.FEATURE, code)).isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
+        assertThat(resolver.resolve(SchemaResourceType.FEATURE, code)).isEqualTo(defaultDefinition("FEATURE"));
         delete("/api/v1/schema-configurations/" + binding).statusCode(204);
     }
 
@@ -74,9 +73,9 @@ class SchemaApiIT {
         post("/api/v1/schema-configurations", Map.of("resourceType", "CATALOG",
                 "resourceCode", name, "schemaIdentifier", schema)).statusCode(201);
         assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
-                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
+                .isEqualTo(defaultDefinition("PUBLISHER"));
         assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "KAAS"))
-                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
+                .isEqualTo(defaultDefinition("PUBLISHER"));
     }
 
     @Test
@@ -105,7 +104,16 @@ class SchemaApiIT {
         get(path + "/" + schema).statusCode(200).body("code", equalTo(code));
         get("/api/v1/schemas/" + schema).statusCode(404);
         assertThat(resolver.resolve(SchemaResourceType.WORKSPACE, code))
-                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
+                .isEqualTo(defaultDefinition("WORKSPACE"));
+    }
+
+    private String defaultDefinition(String resourceType) {
+        return jdbc.queryForObject("""
+                select v.definition from schema_configuration c
+                join schema_versions v on v.schema_id = c.schema_id
+                where c.resource_type = ? and c.resource_code = 'DEFAULT' and v.status = 'PUBLISHED'
+                order by v.schema_version desc limit 1
+                """, String.class, resourceType);
     }
 
     private io.restassured.specification.RequestSpecification request() {

@@ -47,6 +47,8 @@ public class SchemaConfigurationService {
     public static String resourceCode(SchemaResourceType type, String value) {
         if (value == null) throw invalid("resourceCode", "workspace-service.schema-configuration.resource-code.invalid");
         String code = value.trim();
+        // Reserved, shared convention for the fallback binding of each resource type.
+        if ("DEFAULT".equalsIgnoreCase(code)) return "DEFAULT";
         if (type == SchemaResourceType.PUBLISHER) {
             code = code.toUpperCase(Locale.ROOT);
         } else {

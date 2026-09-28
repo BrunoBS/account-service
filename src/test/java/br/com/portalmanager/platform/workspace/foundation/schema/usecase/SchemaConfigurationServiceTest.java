@@ -20,6 +20,14 @@ class SchemaConfigurationServiceTest {
     private final SchemaConfigurationService service = new SchemaConfigurationService(configurations, schemas);
 
     @Test
+    void defaultCodeIsSharedByAllResourceTypes() {
+        assertThat(SchemaConfigurationService.resourceCode(SchemaResourceType.PUBLISHER, "default"))
+                .isEqualTo("DEFAULT");
+        assertThat(SchemaConfigurationService.resourceCode(SchemaResourceType.CATALOG, "default"))
+                .isEqualTo("DEFAULT");
+    }
+
+    @Test
     void publisherCodeIsCanonicalAndDoesNotRequireAPreexistingBinding() {
         Schema schema = mock(Schema.class);
         when(schema.getScope()).thenReturn(SchemaScopeTypeCode.platform());

@@ -5,11 +5,15 @@ vincula a definição ao par único `(resourceType, resourceCode)` pelo endpoint
 `/api/v1/schema-configurations` (OWNER). Um vínculo ativo e um Schema ativo com
 versão publicada fornecem diretamente `SchemaVersion.definition`.
 
-Sem vínculo, com vínculo inativo, Schema inativo ou sem versão publicada,
-o resolver fornece `SchemaDefaults.DEFAULT_JSON_SCHEMA` diretamente. Os
-casos de configuração administrativa incompleta são registrados no log para
-correção, sem impedir a operação do usuário. Settings inválidos continuam
-gerando erro de validação. Falhas de infraestrutura propagam como falhas.
+Sem vínculo específico, com vínculo inativo, Schema inativo ou sem versão
+publicada, o resolver tenta o vínculo do **mesmo resourceType** com
+`resourceCode = DEFAULT`. Esse código reservado não representa um recurso
+real: é a convenção para o fallback administrável. O resolver devolve a
+definição da última versão publicada do Schema associado; se o default
+também não estiver utilizável, devolve erro controlado
+`schema.default.not-found`. Os casos de configuração administrativa
+incompleta são registrados no log. Settings inválidos continuam gerando
+erro de validação. Falhas de infraestrutura propagam como falhas.
 
 | Consumidor atual | resourceType | resourceCode | JSON validado |
 | --- | --- | --- | --- |
@@ -25,8 +29,10 @@ nunca seu identifier. Environment de Application e Microservice ainda não persi
 settings consumidos pelo mecanismo nesta versão. Schema de Workspace conserva
 resolução explícita por workspace e código, sem fallback de plataforma.
 
-V28 copia vínculos de schemas de plataforma existentes, retira o registro
-DEFAULT persistido e remove as tabelas antigas de SchemaType. Quando schemas
+V28 copia vínculos de schemas de plataforma existentes, vincula o Schema
+DEFAULT histórico a cada um dos sete resourceTypes com código reservado
+`DEFAULT` e remove as tabelas antigas de SchemaType. Administradores
+podem substituir cada default por um Schema diferente via CRUD. Quando schemas
 possuem tipo legado fora das categorias reconhecidas, as definições permanecem
 no banco sem binding automático; o administrador deve vinculá-las após avaliar
 o recurso correto. Tipos antigos cadastrados sem Schema não geram binding.

@@ -21,6 +21,7 @@ public final class SchemaMessageKeys {
     public static final String JSON_SERIALIZATION_INVALID = "workspace-service.schema.json.serialization.invalid";
     public static final String RESOLUTION_NOT_FOUND = "workspace-service.schema.resolution.not-found";
     public static final String PUBLISHED_NOT_FOUND = "workspace-service.schema.published.not-found";
+    public static final String DEFAULT_NOT_FOUND = "workspace-service.schema.default.not-found";
     public static final String INACTIVE = "workspace-service.schema.inactive";
 
     private SchemaMessageKeys() {
