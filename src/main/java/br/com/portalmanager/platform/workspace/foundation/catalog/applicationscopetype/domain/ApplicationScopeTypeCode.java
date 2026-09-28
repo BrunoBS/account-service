@@ -10,4 +10,6 @@ public class ApplicationScopeTypeCode extends AbstractCatalogCode {
     private ApplicationScopeTypeCode(String value) { super(value); }
 
     public static ApplicationScopeTypeCode of(String value) { return new ApplicationScopeTypeCode(value); }
+
+    public static ApplicationScopeTypeCode of(ApplicationScopeTypeEnum value) { return of(value.name()); }
 }
