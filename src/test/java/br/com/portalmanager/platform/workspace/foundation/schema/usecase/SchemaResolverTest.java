@@ -90,6 +90,32 @@ class SchemaResolverTest {
     }
 
     @Test
+    void defaultsAreIndependentBetweenResourceTypes() {
+        Schema publisherDefault = mock(Schema.class);
+        Schema catalogDefault = mock(Schema.class);
+        when(publisherDefault.isActive()).thenReturn(true);
+        when(catalogDefault.isActive()).thenReturn(true);
+        when(publisherDefault.getId()).thenReturn(20L);
+        when(catalogDefault.getId()).thenReturn(21L);
+        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "DEFAULT"))
+                .thenReturn(Optional.of(new SchemaConfiguration(SchemaResourceType.PUBLISHER,
+                        "DEFAULT", publisherDefault, LocalDateTime.now())));
+        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.CATALOG, "DEFAULT"))
+                .thenReturn(Optional.of(new SchemaConfiguration(SchemaResourceType.CATALOG,
+                        "DEFAULT", catalogDefault, LocalDateTime.now())));
+        when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(20L, SchemaVersionStatusTypeCode.published()))
+                .thenReturn(Optional.of(new SchemaVersion(publisherDefault, 1, "v1", "{\"required\":[\"url\"]}",
+                        SchemaVersionStatusTypeCode.published(), LocalDateTime.now())));
+        when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(21L, SchemaVersionStatusTypeCode.published()))
+                .thenReturn(Optional.of(new SchemaVersion(catalogDefault, 1, "v1", "{\"required\":[\"name\"]}",
+                        SchemaVersionStatusTypeCode.published(), LocalDateTime.now())));
+        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "MISSING"))
+                .isEqualTo("{\"required\":[\"url\"]}");
+        assertThat(resolver.resolve(SchemaResourceType.CATALOG, "missing"))
+                .isEqualTo("{\"required\":[\"name\"]}");
+    }
+
+    @Test
     void eachPublisherTypeUsesItsOwnPublishedJsonSchema() {
         Schema web = schema("web-schema", SchemaScopeTypeCode.platform());
         Schema kaas = mock(Schema.class);
