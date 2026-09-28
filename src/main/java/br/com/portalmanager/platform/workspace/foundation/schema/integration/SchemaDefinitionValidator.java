@@ -12,14 +12,12 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class SchemaDefinitionValidator {
 
     private final ObjectMapper objectMapper;
     private final SchemaRegistry schemaRegistry;
-    private final Map<String, Schema> schemaCache = new ConcurrentHashMap<>();
 
     public SchemaDefinitionValidator(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -95,16 +93,9 @@ public class SchemaDefinitionValidator {
     }
 
     private Schema parseSchema(String schemaDefinition, ValidationResult result) {
-        Schema cached = schemaCache.get(schemaDefinition);
-        if (cached != null) {
-            return cached;
-        }
-
         try {
             JsonNode schemaNode = objectMapper.readTree(schemaDefinition);
-            Schema schema = schemaRegistry.getSchema(schemaNode);
-            schemaCache.put(schemaDefinition, schema);
-            return schema;
+            return schemaRegistry.getSchema(schemaNode);
         } catch (Exception exception) {
             result.addError("schema", SchemaMessageKeys.INVALID_SYNTAX);
             return null;
