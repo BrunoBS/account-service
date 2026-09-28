@@ -9,12 +9,16 @@ public class LifecycleTypeCode extends AbstractCatalogCode {
     protected LifecycleTypeCode() {
     }
 
-    private LifecycleTypeCode(LifecycleTypeEnum value) {
+    private LifecycleTypeCode(String value) {
         super(value);
     }
 
-    public static LifecycleTypeCode of(LifecycleTypeEnum value) {
+    public static LifecycleTypeCode of(String value) {
         return new LifecycleTypeCode(value);
+    }
+
+    public static LifecycleTypeCode of(LifecycleTypeEnum value) {
+        return of(value.name());
     }
 
     public static LifecycleTypeCode active() {
