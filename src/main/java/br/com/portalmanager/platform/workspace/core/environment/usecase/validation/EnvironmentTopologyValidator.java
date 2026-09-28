@@ -5,6 +5,7 @@ import br.com.portalmanager.platform.workspace.core.environment.domain.Environme
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentType;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeCompatibilityRepository;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import org.springframework.stereotype.Component;
 import java.util.Objects;
 
@@ -26,7 +27,7 @@ public class EnvironmentTopologyValidator {
         if (parent.getWorkspaceId() != null && !Objects.equals(parent.getWorkspaceId(), workspaceId))
             throw new ValidationException(EnvironmentMessageKeys.PARENT_INVALID);
         if (!compatibilities.existsByParentTypeIdAndChildTypeIdAndLifecycle(
-                parent.getEnvironmentType().getId(), type.getId(), "ACTIVE"))
+                parent.getEnvironmentType().getId(), type.getId(), LifecycleTypeCode.active()))
             throw new ValidationException(EnvironmentMessageKeys.COMPATIBILITY_INVALID);
     }
 }

@@ -6,6 +6,6 @@ public record EnvironmentCompatibilityOutput(String identifier, String parentTyp
                                              String lifecycle) {
     public static EnvironmentCompatibilityOutput from(EnvironmentTypeCompatibility value) {
         return new EnvironmentCompatibilityOutput(value.getIdentifier(), value.getParentType().getCode(),
-                value.getChildType().getCode(), value.getLifecycle());
+                value.getChildType().getCode(), value.getLifecycle().value());
     }
 }

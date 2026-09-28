@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.environment.repository;
 
 import br.com.portalmanager.platform.workspace.core.environment.domain.Environment;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,30 +35,30 @@ public interface EnvironmentRepository extends JpaRepository<Environment, Long> 
                           @Param("parentId") Long parentId, @Param("excludedId") Long excludedId);
 
     @Query("""
-            select e from Environment e where e.workspaceId = :workspaceId and e.lifecycle.value = :lifecycle
+            select e from Environment e where e.workspaceId = :workspaceId and e.lifecycle = :lifecycle
               order by e.sortOrder, e.id
             """)
     List<Environment> findByWorkspaceAndLifecycle(@Param("workspaceId") Long workspaceId,
-                                                   @Param("lifecycle") String lifecycle);
+                                                   @Param("lifecycle") LifecycleTypeCode lifecycle);
 
     @Query("""
-            select e from Environment e where e.workspaceId is null and e.lifecycle.value = :lifecycle
+            select e from Environment e where e.workspaceId is null and e.lifecycle = :lifecycle
               order by e.sortOrder, e.id
             """)
-    List<Environment> findDefaultsByLifecycle(@Param("lifecycle") String lifecycle);
+    List<Environment> findDefaultsByLifecycle(@Param("lifecycle") LifecycleTypeCode lifecycle);
 
     @Query("""
             select e from Environment e where e.workspaceId = :workspaceId and e.parent is null
-              and e.lifecycle.value = :lifecycle order by e.sortOrder, e.id
+              and e.lifecycle = :lifecycle order by e.sortOrder, e.id
             """)
-    List<Environment> findWorkspaceRoots(@Param("workspaceId") Long workspaceId, @Param("lifecycle") String lifecycle);
+    List<Environment> findWorkspaceRoots(@Param("workspaceId") Long workspaceId, @Param("lifecycle") LifecycleTypeCode lifecycle);
 
     @Query("""
             select e from Environment e where e.parent.id = :parentId and e.workspaceId = :workspaceId
-              and e.lifecycle.value = :lifecycle order by e.sortOrder, e.id
+              and e.lifecycle = :lifecycle order by e.sortOrder, e.id
             """)
     List<Environment> findChildren(@Param("parentId") Long parentId, @Param("workspaceId") Long workspaceId,
-                                   @Param("lifecycle") String lifecycle);
+                                   @Param("lifecycle") LifecycleTypeCode lifecycle);
 
     @Query("""
             select max(e.sortOrder) from Environment e

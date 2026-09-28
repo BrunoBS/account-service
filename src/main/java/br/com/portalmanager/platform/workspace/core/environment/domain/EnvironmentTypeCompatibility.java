@@ -1,5 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.environment.domain;
 
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -17,8 +18,9 @@ public class EnvironmentTypeCompatibility {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "child_type_id", nullable = false)
     private EnvironmentType childType;
-    @Column(name = "lifecycle_code", nullable = false, length = 50)
-    private String lifecycle;
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
+    private LifecycleTypeCode lifecycle;
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     @Column(name = "updated_at", nullable = false)
@@ -29,13 +31,13 @@ public class EnvironmentTypeCompatibility {
         identifier = UUID.randomUUID().toString();
         this.parentType = parentType;
         this.childType = childType;
-        lifecycle = "ACTIVE";
+        lifecycle = LifecycleTypeCode.active();
         createdAt = updatedAt = now;
     }
-    public void activate(LocalDateTime now) { lifecycle = "ACTIVE"; updatedAt = now; }
-    public void inactivate(LocalDateTime now) { lifecycle = "INACTIVE"; updatedAt = now; }
+    public void activate(LocalDateTime now) { lifecycle = LifecycleTypeCode.active(); updatedAt = now; }
+    public void inactivate(LocalDateTime now) { lifecycle = LifecycleTypeCode.inactive(); updatedAt = now; }
     public String getIdentifier() { return identifier; }
     public EnvironmentType getParentType() { return parentType; }
     public EnvironmentType getChildType() { return childType; }
-    public String getLifecycle() { return lifecycle; }
+    public LifecycleTypeCode getLifecycle() { return lifecycle; }
 }

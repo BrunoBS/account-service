@@ -7,6 +7,6 @@ public record EnvironmentTypeOutput(Long version, String identifier, String code
     public static EnvironmentTypeOutput from(EnvironmentType type) {
         return new EnvironmentTypeOutput(type.getVersion(), type.getIdentifier(), type.getCode(), type.getName(),
                 type.getDescription(), type.isRootAllowed(), type.isWorkspaceRequired(), type.getDisplayOrder(),
-                type.getLifecycle());
+                type.getLifecycle().value());
     }
 }
