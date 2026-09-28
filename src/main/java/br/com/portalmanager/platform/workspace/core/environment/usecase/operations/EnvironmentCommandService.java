@@ -164,11 +164,11 @@ public class EnvironmentCommandService {
     private Environment resolveParent(String identifier, Long workspaceId) {
         if (identifier == null) return null;
         Environment parent = repository.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.PARENT_INVALID));
+                .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND));
         if ((workspaceId == null && parent.getWorkspaceId() != null)
                 || (parent.getWorkspaceId() != null && !parent.getWorkspaceId().equals(workspaceId))
                 || !finder.accessible(parent))
-            throw new NotFoundException(EnvironmentMessageKeys.PARENT_INVALID);
+            throw new NotFoundException(EnvironmentMessageKeys.NOT_FOUND);
         return parent;
     }
 
