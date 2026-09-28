@@ -5,7 +5,6 @@ import br.com.portalmanager.platform.library.messaging.exception.ValidationExcep
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
