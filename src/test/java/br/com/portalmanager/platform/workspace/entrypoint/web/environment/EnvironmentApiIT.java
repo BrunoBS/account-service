@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.environment;
 
 import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
@@ -26,6 +27,7 @@ class EnvironmentApiIT {
 
     @BeforeEach
     void prepare() {
+        SchemaDefaultFixture.seed(jdbc);
         for (String code : new String[]{"ACTIVE", "INACTIVE", "QUARANTINED"})
             jdbc.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES (?, ?, ?, 1, true, '{}')",
                     code, code, code);

@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.publisher;
 
 import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
@@ -31,6 +32,7 @@ class PublisherApiIT {
 
     @BeforeEach
     void prepare() {
+        SchemaDefaultFixture.seed(jdbc);
         jdbc.update("""
                 INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings)
                 VALUES ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}'),

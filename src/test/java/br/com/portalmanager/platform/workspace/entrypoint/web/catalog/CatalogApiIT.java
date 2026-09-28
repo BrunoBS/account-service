@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.catalog;
 
 import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
@@ -36,6 +37,7 @@ class CatalogApiIT {
 
     @BeforeEach
     void authorizeAsOwner() {
+        SchemaDefaultFixture.seed(jdbc);
         authorizationMock.reset();
         authorizationMock.allow(session -> session.groups("PM5_OWNER"));
     }
