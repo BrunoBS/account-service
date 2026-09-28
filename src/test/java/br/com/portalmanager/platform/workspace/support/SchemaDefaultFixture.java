@@ -10,7 +10,8 @@ public final class SchemaDefaultFixture {
         jdbc.update("""
                 INSERT IGNORE INTO type_life_cycle
                     (code, label, description, sort_order, is_active, settings)
-                VALUES ('ACTIVE', 'Active', 'Active lifecycle', 1, true, '{}')
+                VALUES ('ACTIVE', 'Active', 'Active lifecycle', 1, true, '{}'),
+                       ('INACTIVE', 'Inactive', 'Inactive lifecycle', 2, true, '{}')
                 """);
         jdbc.update("""
                 INSERT IGNORE INTO type_schema_scopes
