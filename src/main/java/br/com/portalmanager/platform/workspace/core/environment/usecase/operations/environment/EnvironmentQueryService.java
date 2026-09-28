@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.workspace.core.environment.domain.Environme
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentOutput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTreeOutput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import org.springframework.stereotype.Service;
@@ -102,8 +103,6 @@ public class EnvironmentQueryService {
         return new EnvironmentTreeOutput(EnvironmentOutput.from(environment,
                 environment.getWorkspaceId() == null ? null : workspaceIdentifier), children);
     }
-
-    public record EnvironmentTreeOutput(EnvironmentOutput environment, List<EnvironmentTreeOutput> children) {}
 
     private LifecycleTypeCode lifecycle(Boolean active) {
         return Boolean.FALSE.equals(active) ? LifecycleTypeCode.inactive() : LifecycleTypeCode.active();

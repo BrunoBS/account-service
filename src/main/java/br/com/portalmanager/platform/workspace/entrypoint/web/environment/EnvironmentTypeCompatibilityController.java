@@ -3,9 +3,10 @@ package br.com.portalmanager.platform.workspace.entrypoint.web.environment;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationAccessPolicy;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentCompatibilityOutput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.compatibility.EnvironmentTypeCompatibilityCommandService;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.compatibility.EnvironmentTypeCompatibilityQueryService;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.CreateEnvironmentTypeCompatibilityRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentTypeCompatibilityResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,15 +26,17 @@ public class EnvironmentTypeCompatibilityController {
     }
 
     @GetMapping
-    public List<EnvironmentCompatibilityOutput> list() { return query.list(); }
+    public List<EnvironmentTypeCompatibilityResponse> list() {
+        return query.list().stream().map(EnvironmentTypeCompatibilityResponse::from).toList();
+    }
 
     @PostMapping
     @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public ResponseEntity<EnvironmentCompatibilityOutput> allow(@RequestBody CompatibilityRequest request) {
+    public ResponseEntity<EnvironmentTypeCompatibilityResponse> allow(@RequestBody CreateEnvironmentTypeCompatibilityRequest request) {
         String parent = request == null ? null : request.parentTypeCode();
         String child = request == null ? null : request.childTypeCode();
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(command.allow(parent, child));
+                .body(EnvironmentTypeCompatibilityResponse.from(command.allow(parent, child)));
     }
 
     @PostMapping("/{identifier}/inactivate")
@@ -43,5 +46,4 @@ public class EnvironmentTypeCompatibilityController {
         return ResponseEntity.noContent().build();
     }
 
-    public record CompatibilityRequest(String parentTypeCode, String childTypeCode) {}
 }

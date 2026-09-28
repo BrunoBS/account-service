@@ -132,10 +132,12 @@ class EnvironmentApiIT {
                 .extract().path("identifier");
         post(base, type).statusCode(400).body("details.field", hasItem("code"));
         get(base + "/" + identifier).statusCode(200).body("code", equalTo(code));
+        get(base).statusCode(200).body("code", hasItem(code));
         String workspace = workspace();
         post("/api/v1/workspaces/" + workspace + "/environments", withType("Root region", code)).statusCode(400);
         post(base + "/compatibilities", Map.of("parentTypeCode", "SHARD", "childTypeCode", code))
-                .statusCode(201);
+                .statusCode(201).body("childTypeCode", equalTo(code));
+        get(base + "/compatibilities").statusCode(200).body("childTypeCode", hasItem(code));
         post(base + "/compatibilities", Map.of("parentTypeCode", code, "childTypeCode", "SHARD"))
                 .statusCode(400).body("details.field", hasItem("childTypeCode"));
     }

@@ -10,6 +10,7 @@ import br.com.portalmanager.platform.workspace.core.environment.usecase.operatio
 import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.CreateEnvironmentRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.UpdateEnvironmentRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentResponse;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentTreeResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -59,8 +60,8 @@ public class WorkspaceEnvironmentController {
 
     @GetMapping("/tree")
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
-    public List<EnvironmentQueryService.EnvironmentTreeOutput> tree(@PathVariable String workspaceIdentifier) {
-        return query.tree(workspaceIdentifier);
+    public List<EnvironmentTreeResponse> tree(@PathVariable String workspaceIdentifier) {
+        return query.tree(workspaceIdentifier).stream().map(EnvironmentTreeResponse::from).toList();
     }
 
     @PutMapping("/{identifier}")

@@ -5,10 +5,10 @@ import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaConfigurationInput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaConfigurationOutput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaConfigurationInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.configuration.SchemaConfigurationService;
+import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.CreateSchemaConfigurationRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.UpdateSchemaConfigurationRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.schema.response.SchemaConfigurationResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,30 +25,38 @@ public class SchemaConfigurationController {
     @PostMapping
     @Auditable(resource = "SCHEMA_CONFIGURATION", action = "INSERT",
             resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier"))
-    public ResponseEntity<SchemaConfigurationOutput> create(@RequestBody CreateSchemaConfigurationInput request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
+    public ResponseEntity<SchemaConfigurationResponse> create(@RequestBody CreateSchemaConfigurationRequest request) {
+        var input = request == null ? null : request.toInput();
+        return ResponseEntity.status(HttpStatus.CREATED).body(SchemaConfigurationResponse.from(service.create(input)));
     }
 
     @GetMapping
-    public List<SchemaConfigurationOutput> findAll() { return service.findAll(); }
+    public List<SchemaConfigurationResponse> findAll() {
+        return service.findAll().stream().map(SchemaConfigurationResponse::from).toList();
+    }
 
     @GetMapping("/{identifier}")
-    public SchemaConfigurationOutput find(@PathVariable String identifier) {
-        return service.findByIdentifier(identifier);
+    public SchemaConfigurationResponse find(@PathVariable String identifier) {
+        return SchemaConfigurationResponse.from(service.findByIdentifier(identifier));
     }
 
     @PutMapping("/{identifier}")
     @Auditable(resource = "SCHEMA_CONFIGURATION", action = "UPDATE",
             resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
-    public SchemaConfigurationOutput update(@PathVariable String identifier, @RequestBody UpdateSchemaConfigurationInput request) {
-        return service.update(identifier, request);
+    public SchemaConfigurationResponse update(@PathVariable String identifier, @RequestBody UpdateSchemaConfigurationRequest request) {
+        var input = request == null ? null : request.toInput();
+        return SchemaConfigurationResponse.from(service.update(identifier, input));
     }
 
     @PatchMapping("/{identifier}/activate")
-    public SchemaConfigurationOutput activate(@PathVariable String identifier) { return service.activate(identifier); }
+    public SchemaConfigurationResponse activate(@PathVariable String identifier) {
+        return SchemaConfigurationResponse.from(service.activate(identifier));
+    }
 
     @PatchMapping("/{identifier}/inactivate")
-    public SchemaConfigurationOutput inactivate(@PathVariable String identifier) { return service.inactivate(identifier); }
+    public SchemaConfigurationResponse inactivate(@PathVariable String identifier) {
+        return SchemaConfigurationResponse.from(service.inactivate(identifier));
+    }
 
     @DeleteMapping("/{identifier}")
     @Auditable(resource = "SCHEMA_CONFIGURATION", action = "DELETE",

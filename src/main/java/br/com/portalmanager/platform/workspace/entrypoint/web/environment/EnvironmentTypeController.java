@@ -3,10 +3,11 @@ package br.com.portalmanager.platform.workspace.entrypoint.web.environment;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationAccessPolicy;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTypeInput;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTypeOutput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environmenttype.EnvironmentTypeCommandService;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environmenttype.EnvironmentTypeQueryService;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.CreateEnvironmentTypeRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.UpdateEnvironmentTypeRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentTypeResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,17 +26,23 @@ public class EnvironmentTypeController {
 
     @PostMapping
     @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public ResponseEntity<EnvironmentTypeOutput> create(@RequestBody EnvironmentTypeInput input) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(command.create(input));
+    public ResponseEntity<EnvironmentTypeResponse> create(@RequestBody CreateEnvironmentTypeRequest request) {
+        var input = request == null ? null : request.toInput();
+        return ResponseEntity.status(HttpStatus.CREATED).body(EnvironmentTypeResponse.from(command.create(input)));
     }
     @GetMapping
-    public List<EnvironmentTypeOutput> list() { return query.list(); }
+    public List<EnvironmentTypeResponse> list() {
+        return query.list().stream().map(EnvironmentTypeResponse::from).toList();
+    }
     @GetMapping("/{identifier}")
-    public EnvironmentTypeOutput find(@PathVariable String identifier) { return query.findOutput(identifier); }
+    public EnvironmentTypeResponse find(@PathVariable String identifier) {
+        return EnvironmentTypeResponse.from(query.findOutput(identifier));
+    }
     @PutMapping("/{identifier}")
     @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public EnvironmentTypeOutput update(@PathVariable String identifier, @RequestBody EnvironmentTypeInput input) {
-        return command.update(identifier, input);
+    public EnvironmentTypeResponse update(@PathVariable String identifier, @RequestBody UpdateEnvironmentTypeRequest request) {
+        var input = request == null ? null : request.toInput();
+        return EnvironmentTypeResponse.from(command.update(identifier, input));
     }
     @PostMapping("/{identifier}/inactivate")
     @AuthorizationRequired(level = AuthorizationLevel.OWNER)
@@ -45,7 +52,9 @@ public class EnvironmentTypeController {
     }
     @PostMapping("/{identifier}/restore")
     @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public EnvironmentTypeOutput restore(@PathVariable String identifier) { return command.restore(identifier); }
+    public EnvironmentTypeResponse restore(@PathVariable String identifier) {
+        return EnvironmentTypeResponse.from(command.restore(identifier));
+    }
     @DeleteMapping("/{identifier}")
     @AuthorizationRequired(level = AuthorizationLevel.OWNER)
     public ResponseEntity<Void> delete(@PathVariable String identifier) {
