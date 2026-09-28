@@ -7,8 +7,8 @@ import br.com.portalmanager.platform.workspace.core.environment.domain.Environme
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.CreateEnvironmentInput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.UpdateEnvironmentInput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeEnum;
-import br.com.portalmanager.platform.workspace.foundation.integration.JsonSchemaValidator;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -16,12 +16,10 @@ import java.util.Objects;
 
 @Component
 public class EnvironmentValidator {
-    private final JsonSchemaValidator jsonValidator;
-    private final SchemaResolutionPort schemas;
+    private final SchemaSettingsValidator settingsValidator;
 
-    public EnvironmentValidator(JsonSchemaValidator jsonValidator, SchemaResolutionPort schemas) {
-        this.jsonValidator = jsonValidator;
-        this.schemas = schemas;
+    public EnvironmentValidator(SchemaSettingsValidator settingsValidator) {
+        this.settingsValidator = settingsValidator;
     }
 
     public void validateForCreate(CreateEnvironmentInput input, boolean duplicate) {
@@ -63,8 +61,7 @@ public class EnvironmentValidator {
             result.addError("authorizationType", EnvironmentMessageKeys.AUTHORIZATION_INVALID);
         if (sort != null && sort < 1) result.addError("sortOrder", EnvironmentMessageKeys.SORT_INVALID);
         if (settings != null)
-            jsonValidator.validateJson(schemas.resolvePlatform("ENVIRONMENT"),
-                    jsonValidator.fromString(settings, "settings"), "settings", result);
+            settingsValidator.validate(SchemaResourceType.ENVIRONMENT, "workspace", settings, result);
     }
 
     private void reject(ValidationResult result) {

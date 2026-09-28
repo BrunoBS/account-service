@@ -5,7 +5,6 @@ import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.S
 public record SchemaResponse(
         String identifier,
         Long version,
-        String schemaTypeCode,
         String scope,
         String workspaceIdentifier,
         String code,
@@ -17,7 +16,6 @@ public record SchemaResponse(
         return new SchemaResponse(
                 output.identifier(),
                 output.version(),
-                output.schemaTypeCode(),
                 output.scope(),
                 output.workspaceIdentifier(),
                 output.code(),

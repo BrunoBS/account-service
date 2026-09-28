@@ -7,8 +7,8 @@ import br.com.portalmanager.platform.workspace.core.application.domain.Applicati
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.usecase.ApplicationScopeTypeService;
-import br.com.portalmanager.platform.workspace.foundation.integration.JsonSchemaValidator;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -16,14 +16,12 @@ import java.util.Objects;
 @Component
 public class ApplicationValidator {
     private final ApplicationScopeTypeService scopeService;
-    private final JsonSchemaValidator jsonValidator;
-    private final SchemaResolutionPort schemaResolver;
+    private final SchemaSettingsValidator settingsValidator;
 
     public ApplicationValidator(ApplicationScopeTypeService scopeService,
-                                JsonSchemaValidator jsonValidator, SchemaResolutionPort schemaResolver) {
+                                SchemaSettingsValidator settingsValidator) {
         this.scopeService = scopeService;
-        this.jsonValidator = jsonValidator;
-        this.schemaResolver = schemaResolver;
+        this.settingsValidator = settingsValidator;
     }
 
     public void validateForCreate(String workspaceType, CreateApplicationInput input, boolean duplicate) {
@@ -59,8 +57,7 @@ public class ApplicationValidator {
         if (scope == null || !scopeService.existsActive(scope))
             result.addError("applicationScope", ApplicationMessageKeys.SCOPE_INVALID);
         if (settings != null) {
-            jsonValidator.validateJson(schemaResolver.resolvePlatform("APPLICATION"),
-                    jsonValidator.fromString(settings, "settings"), "settings", result);
+            settingsValidator.validate(SchemaResourceType.APPLICATION, "application", settings, result);
         }
     }
 

@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.catalog;
 
 import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
@@ -36,6 +37,7 @@ class CatalogApiIT {
 
     @BeforeEach
     void authorizeAsOwner() {
+        SchemaDefaultFixture.seed(jdbc);
         authorizationMock.reset();
         authorizationMock.allow(session -> session.groups("PM5_OWNER"));
     }
@@ -168,24 +170,17 @@ class CatalogApiIT {
                 on duplicate key update code = values(code)
                 """);
         jdbc.update("""
-                insert into schema_types
-                    (version, identifier, code, name, description, lifecycle_code, scope_code, created_at, updated_at)
-                values (0, UUID(), 'WORKSPACE_TYPE', 'Workspace type', null,
-                        'ACTIVE', 'PLATFORM', current_timestamp, current_timestamp)
-                on duplicate key update lifecycle_code = 'ACTIVE'
-                """);
-        jdbc.update("""
                 insert into schema_definitions
-                    (version, identifier, schema_type_code, scope_code, workspace_id,
+                    (version, identifier, scope_code, workspace_id,
                      code, name, description, lifecycle_code, created_at, updated_at)
-                values (0, UUID(), 'WORKSPACE_TYPE', 'PLATFORM', null,
+                values (0, UUID(), 'PLATFORM', null,
                         'workspace-type', 'Workspace type settings', null,
                         'ACTIVE', current_timestamp, current_timestamp)
                 on duplicate key update lifecycle_code = 'ACTIVE'
                 """);
         Long schemaId = jdbc.queryForObject("""
                 select id from schema_definitions
-                where schema_type_code = 'WORKSPACE_TYPE' and scope_code = 'PLATFORM'
+                where code = 'workspace-type' and scope_code = 'PLATFORM'
                 """, Long.class);
         jdbc.update("""
                 insert into schema_versions
@@ -194,6 +189,12 @@ class CatalogApiIT {
                         '{"type":"object","additionalProperties":{"type":"string"}}',
                         'PUBLISHED', current_timestamp)
                 on duplicate key update status = 'PUBLISHED'
+                """, schemaId);
+        jdbc.update("""
+                insert into schema_configuration
+                    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+                values (0, UUID(), 'CATALOG', 'workspace-type', ?, 'ACTIVE', current_timestamp, current_timestamp)
+                on duplicate key update schema_id = values(schema_id), lifecycle_code = 'ACTIVE'
                 """, schemaId);
     }
 

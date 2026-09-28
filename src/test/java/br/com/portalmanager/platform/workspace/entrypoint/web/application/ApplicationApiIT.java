@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.application;
 
 import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
@@ -34,6 +35,7 @@ class ApplicationApiIT {
 
     @BeforeEach
     void prepare() {
+        SchemaDefaultFixture.seed(jdbc);
         jdbc.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('MANAGER', 'Manager', 'Management workspace', 2, true, '{}')");
         jdbc.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')");
         jdbc.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('ACTIVE', 'Active', 'Active lifecycle', 1, true, '{}')");

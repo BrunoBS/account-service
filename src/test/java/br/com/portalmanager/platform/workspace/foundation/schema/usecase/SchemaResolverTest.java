@@ -4,176 +4,167 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetyp
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.*;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.*;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaResolver;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schematype.SchemaTypeQueryService;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.nullable;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class SchemaResolverTest {
-
-    private final SchemaRepository schemaRepository = mock(SchemaRepository.class);
-    private final SchemaVersionRepository versionRepository = mock(SchemaVersionRepository.class);
-    private final SchemaTypeQueryService schemaTypeQueryService = mock(SchemaTypeQueryService.class);
-    private final WorkspaceReferenceResolver workspaceReferenceResolver = mock(WorkspaceReferenceResolver.class);
-    private final SchemaResolver resolver =
-            new SchemaResolver(schemaRepository, versionRepository, schemaTypeQueryService, workspaceReferenceResolver);
+    private final SchemaConfigurationRepository configurations = mock(SchemaConfigurationRepository.class);
+    private final SchemaRepository schemas = mock(SchemaRepository.class);
+    private final SchemaVersionRepository versions = mock(SchemaVersionRepository.class);
+    private final WorkspaceReferenceResolver workspaces = mock(WorkspaceReferenceResolver.class);
+    private final SchemaResolver resolver = new SchemaResolver(configurations, schemas, versions, workspaces);
 
     @Test
-    void shouldResolveLatestPublishedPlatformSchema() {
-        Schema schema = activeSchema("APPLICATION", "schema-app", SchemaScopeTypeCode.platform());
-        SchemaVersion version = publishedVersion(schema, "version-app", 3);
-        allowPlatformType("APPLICATION", "APPLICATION");
-        allowRequiredType("APPLICATION", SchemaScopeTypeCode.platform(), "APPLICATION");
-
-        when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
-                .thenReturn(Optional.of(schema));
-        published(version);
-
-        String definition = resolver.resolvePlatform("APPLICATION");
-
-        assertThat(definition).isEqualTo(version.getDefinition());
+    void missingConfigurationResolvesPublishedDefaultFromSameResourceType() {
+        bindDefault(SchemaResourceType.CATALOG);
+        assertThat(resolver.resolve(SchemaResourceType.CATALOG, "lifecycle-type"))
+                .isEqualTo("{\"type\":\"object\"}");
+        verify(configurations).findByResourceTypeAndResourceCode(SchemaResourceType.CATALOG, "DEFAULT");
     }
 
     @Test
-    void shouldFallbackToBuiltInJsonWhenSpecificSchemaIsMissing() {
-        allowPlatformType("APPLICATION", "APPLICATION");
-        when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
-                .thenReturn(Optional.empty());
-
-        assertThat(resolver.resolvePlatform("APPLICATION"))
-                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
-        verify(schemaRepository, never()).findByTypeAndScope("DEFAULT", "PLATFORM", null);
+    void publishedDefinitionWinsOverNewerDraft() {
+        Schema schema = schema("catalog", SchemaScopeTypeCode.platform());
+        SchemaConfiguration binding = new SchemaConfiguration(SchemaResourceType.CATALOG,
+                "lifecycle-type", schema, LocalDateTime.now());
+        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.CATALOG, "lifecycle-type"))
+                .thenReturn(Optional.of(binding));
+        SchemaVersion published = new SchemaVersion(schema, 2, "v2", "{\"type\":\"object\"}",
+                SchemaVersionStatusTypeCode.published(), LocalDateTime.now());
+        when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
+                schema.getId(), SchemaVersionStatusTypeCode.published())).thenReturn(Optional.of(published));
+        assertThat(resolver.resolve(SchemaResourceType.CATALOG, "LIFECYCLE_TYPE"))
+                .isEqualTo(published.getDefinition());
     }
 
     @Test
-    void shouldFallbackToBuiltInJsonWhenSpecificSchemaIsInactive() {
-        Schema specific = activeSchema("APPLICATION", "schema-app", SchemaScopeTypeCode.platform());
-        when(specific.isActive()).thenReturn(false);
-        allowPlatformType("APPLICATION", "APPLICATION");
-        when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
-                .thenReturn(Optional.of(specific));
-
-        assertThat(resolver.resolvePlatform("APPLICATION"))
-                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
+    void noPublicationFallsBackWithoutRejectingConsumer() {
+        bindDefault(SchemaResourceType.PUBLISHER);
+        Schema schema = schema("publisher", SchemaScopeTypeCode.platform());
+        var binding = new SchemaConfiguration(SchemaResourceType.PUBLISHER, "WEB_SOCKET", schema, LocalDateTime.now());
+        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
+                .thenReturn(Optional.of(binding));
+        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
+                .isEqualTo("{\"type\":\"object\"}");
     }
 
     @Test
-    void shouldFallbackToBuiltInJsonWhenSpecificSchemaHasOnlyDraftVersions() {
-        Schema specific = activeSchema("APPLICATION", "schema-app", SchemaScopeTypeCode.platform());
-        when(specific.getId()).thenReturn(10L);
-        allowPlatformType("APPLICATION", "APPLICATION");
-        when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
-                .thenReturn(Optional.of(specific));
-
-        assertThat(resolver.resolvePlatform("APPLICATION"))
-                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
+    void inactiveConfigurationFallsBack() {
+        bindDefault(SchemaResourceType.PUBLISHER);
+        Schema schema = schema("publisher", SchemaScopeTypeCode.platform());
+        var binding = new SchemaConfiguration(SchemaResourceType.PUBLISHER, "KAAS", schema, LocalDateTime.now());
+        binding.inactivate(LocalDateTime.now());
+        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "KAAS"))
+                .thenReturn(Optional.of(binding));
+        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "KAAS"))
+                .isEqualTo("{\"type\":\"object\"}");
+        verify(versions, never()).findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
+                9L, SchemaVersionStatusTypeCode.published());
     }
 
     @Test
-    void shouldFallbackToBuiltInJsonWhenSpecificSchemaTypeDoesNotExist() {
-        when(schemaTypeQueryService.findActiveAllowed("ENVIRONMENT_TYPE", SchemaScopeTypeCode.platform()))
-                .thenReturn(Optional.empty());
-
-        assertThat(resolver.resolvePlatform("ENVIRONMENT_TYPE"))
-                .isEqualTo(SchemaDefaults.DEFAULT_JSON_SCHEMA);
-        verify(schemaRepository, never()).findByTypeAndScope("DEFAULT", "PLATFORM", null);
+    void missingDefaultReturnsControlledError() {
+        assertThatThrownBy(() -> resolver.resolve(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
+                .isInstanceOf(br.com.portalmanager.platform.library.messaging.exception.ValidationException.class);
+        verify(configurations).findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "DEFAULT");
     }
 
     @Test
-    void shouldResolveWorkspaceWithoutDefaultFallback() {
-        Schema schema = activeSchema("APPLICATION", "schema-workspace", SchemaScopeTypeCode.workspace());
-        SchemaVersion version = publishedVersion(schema, "version-workspace", 2);
-        allowRequiredType("APPLICATION", SchemaScopeTypeCode.workspace(), "APPLICATION");
-
-        when(workspaceReferenceResolver.resolveInternalId("workspace-identifier"))
-                .thenReturn(7L);
-        when(schemaRepository.findByTypeScopeAndCode(
-                "APPLICATION",
-                "WORKSPACE",
-                7L,
-                "custom-application"
-        )).thenReturn(Optional.of(schema));
-        published(version);
-
-        String definition = resolver.resolveWorkspace(
-                "workspace-identifier",
-                "APPLICATION",
-                "custom-application"
-        );
-
-        assertThat(definition).isEqualTo(version.getDefinition());
-        verify(workspaceReferenceResolver).resolveInternalId("workspace-identifier");
+    void unPublishedDefaultReturnsControlledError() {
+        Schema fallback = mock(Schema.class);
+        when(fallback.isActive()).thenReturn(true);
+        when(fallback.getId()).thenReturn(11L);
+        when(fallback.getIdentifier()).thenReturn("default-schema");
+        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.FEATURE, "DEFAULT"))
+                .thenReturn(Optional.of(new SchemaConfiguration(SchemaResourceType.FEATURE,
+                        "DEFAULT", fallback, LocalDateTime.now())));
+        assertThatThrownBy(() -> resolver.resolve(SchemaResourceType.FEATURE, "unknown"))
+                .isInstanceOf(br.com.portalmanager.platform.library.messaging.exception.ValidationException.class);
     }
 
     @Test
-    void shouldNormalizeRequestedPlatformTypeBeforeResolution() {
-        Schema schema = activeSchema("APPLICATION", "schema-app", SchemaScopeTypeCode.platform());
-        SchemaVersion version = publishedVersion(schema, "version-app", 1);
-        allowPlatformType("APPLICATION", "APPLICATION");
-        allowRequiredType("APPLICATION", SchemaScopeTypeCode.platform(), "APPLICATION");
-
-        when(schemaRepository.findByTypeAndScope("APPLICATION", "PLATFORM", null))
-                .thenReturn(Optional.of(schema));
-        published(version);
-
-        String definition = resolver.resolvePlatform("application");
-
-        assertThat(definition).isEqualTo(version.getDefinition());
+    void defaultsAreIndependentBetweenResourceTypes() {
+        Schema publisherDefault = mock(Schema.class);
+        Schema catalogDefault = mock(Schema.class);
+        when(publisherDefault.isActive()).thenReturn(true);
+        when(catalogDefault.isActive()).thenReturn(true);
+        when(publisherDefault.getId()).thenReturn(20L);
+        when(catalogDefault.getId()).thenReturn(21L);
+        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "DEFAULT"))
+                .thenReturn(Optional.of(new SchemaConfiguration(SchemaResourceType.PUBLISHER,
+                        "DEFAULT", publisherDefault, LocalDateTime.now())));
+        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.CATALOG, "DEFAULT"))
+                .thenReturn(Optional.of(new SchemaConfiguration(SchemaResourceType.CATALOG,
+                        "DEFAULT", catalogDefault, LocalDateTime.now())));
+        when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(20L, SchemaVersionStatusTypeCode.published()))
+                .thenReturn(Optional.of(new SchemaVersion(publisherDefault, 1, "v1", "{\"required\":[\"url\"]}",
+                        SchemaVersionStatusTypeCode.published(), LocalDateTime.now())));
+        when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(21L, SchemaVersionStatusTypeCode.published()))
+                .thenReturn(Optional.of(new SchemaVersion(catalogDefault, 1, "v1", "{\"required\":[\"name\"]}",
+                        SchemaVersionStatusTypeCode.published(), LocalDateTime.now())));
+        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "MISSING"))
+                .isEqualTo("{\"required\":[\"url\"]}");
+        assertThat(resolver.resolve(SchemaResourceType.CATALOG, "missing"))
+                .isEqualTo("{\"required\":[\"name\"]}");
     }
 
-    private void allowPlatformType(String requestedCode, String canonicalCode) {
-        SchemaType schemaType = schemaType(canonicalCode);
-        when(schemaTypeQueryService.findActiveAllowed(requestedCode, SchemaScopeTypeCode.platform()))
-                .thenReturn(Optional.of(schemaType));
+    @Test
+    void eachPublisherTypeUsesItsOwnPublishedJsonSchema() {
+        Schema web = schema("web-schema", SchemaScopeTypeCode.platform());
+        Schema kaas = mock(Schema.class);
+        when(kaas.isActive()).thenReturn(true);
+        when(kaas.getId()).thenReturn(10L);
+        var webBinding = new SchemaConfiguration(SchemaResourceType.PUBLISHER, "WEB_SOCKET", web, LocalDateTime.now());
+        var kaasBinding = new SchemaConfiguration(SchemaResourceType.PUBLISHER, "KAAS", kaas, LocalDateTime.now());
+        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "WEB_SOCKET"))
+                .thenReturn(Optional.of(webBinding));
+        when(configurations.findByResourceTypeAndResourceCode(SchemaResourceType.PUBLISHER, "KAAS"))
+                .thenReturn(Optional.of(kaasBinding));
+        var webVersion = new SchemaVersion(web, 1, "v1", "{\"required\":[\"url\"]}",
+                SchemaVersionStatusTypeCode.published(), LocalDateTime.now());
+        var kaasVersion = new SchemaVersion(kaas, 1, "v1", "{\"required\":[\"bucket\"]}",
+                SchemaVersionStatusTypeCode.published(), LocalDateTime.now());
+        when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(9L, SchemaVersionStatusTypeCode.published()))
+                .thenReturn(Optional.of(webVersion));
+        when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(10L, SchemaVersionStatusTypeCode.published()))
+                .thenReturn(Optional.of(kaasVersion));
+
+        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "WEB_SOCKET")).isEqualTo(webVersion.getDefinition());
+        assertThat(resolver.resolve(SchemaResourceType.PUBLISHER, "KAAS")).isEqualTo(kaasVersion.getDefinition());
     }
 
-    private void allowRequiredType(String requestedCode, SchemaScopeTypeCode scope, String canonicalCode) {
-        SchemaType schemaType = schemaType(canonicalCode);
-        when(schemaTypeQueryService.requireActiveAllowed(requestedCode, scope))
-                .thenReturn(schemaType);
+    @Test
+    void workspaceStillRequiresItsOwnPublishedSchemaWithoutDefaultFallback() {
+        when(workspaces.resolveInternalId("workspace-id")).thenReturn(7L);
+        assertThatThrownBy(() -> resolver.resolveWorkspace("workspace-id", "settings"))
+                .isInstanceOf(br.com.portalmanager.platform.library.messaging.exception.ValidationException.class);
+        verify(schemas).findByScopeAndCode("WORKSPACE", 7L, "settings");
     }
 
-    private SchemaType schemaType(String canonicalCode) {
-        SchemaType schemaType = mock(SchemaType.class);
-        when(schemaType.getCode()).thenReturn(canonicalCode);
-        when(schemaType.isActive()).thenReturn(true);
-        return schemaType;
-    }
-
-    private Schema activeSchema(
-            String typeCode,
-            String identifier,
-            SchemaScopeTypeCode scope
-    ) {
+    private Schema schema(String code, SchemaScopeTypeCode scope) {
         Schema schema = mock(Schema.class);
-        when(schema.getSchemaType()).thenReturn(SchemaTypeCode.of(typeCode));
-        when(schema.getScope()).thenReturn(scope);
+        when(schema.getId()).thenReturn(9L);
         when(schema.isActive()).thenReturn(true);
-        when(schema.getIdentifier()).thenReturn(identifier);
+        when(schema.getIdentifier()).thenReturn(code);
+        when(schema.getScope()).thenReturn(scope);
         return schema;
     }
 
-    private SchemaVersion publishedVersion(Schema schema, String identifier, int number) {
-        SchemaVersion version = mock(SchemaVersion.class);
-        when(version.getSchema()).thenReturn(schema);
-        when(version.getIdentifier()).thenReturn(identifier);
-        when(version.getSchemaVersion()).thenReturn(number);
-        when(version.getDefinition()).thenReturn("{\"type\":\"object\",\"title\":\"" + identifier + "\"}");
-        return version;
-    }
-
-    private void published(SchemaVersion version) {
-        when(versionRepository.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
-                nullable(Long.class),
-                eq(SchemaVersionStatusTypeCode.published())
-        )).thenReturn(Optional.of(version));
+    private void bindDefault(SchemaResourceType type) {
+        Schema fallback = mock(Schema.class);
+        when(fallback.isActive()).thenReturn(true);
+        when(fallback.getId()).thenReturn(11L);
+        when(configurations.findByResourceTypeAndResourceCode(type, "DEFAULT"))
+                .thenReturn(Optional.of(new SchemaConfiguration(type, "DEFAULT", fallback, LocalDateTime.now())));
+        when(versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(11L, SchemaVersionStatusTypeCode.published()))
+                .thenReturn(Optional.of(new SchemaVersion(fallback, 1, "v1", "{\"type\":\"object\"}",
+                        SchemaVersionStatusTypeCode.published(), LocalDateTime.now())));
     }
 }

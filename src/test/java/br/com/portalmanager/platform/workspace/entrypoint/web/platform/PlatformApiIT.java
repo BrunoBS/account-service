@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.platform;
 
 import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
@@ -15,6 +16,7 @@ import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 
 @PlatformIntegrationTest
@@ -33,6 +35,7 @@ class PlatformApiIT {
 
     @BeforeEach
     void setUp() {
+        SchemaDefaultFixture.seed(jdbc);
         authorizationMock.reset();
         authorizationMock.allow(session -> session.groups("PM5_OWNER"));
 
@@ -132,6 +135,20 @@ class PlatformApiIT {
                 .delete("/api/v1/platform/contexts/" + contextIdentifier)
                 .then()
                 .statusCode(204);
+    }
+
+    @Test
+    void rejectsMalformedFeatureSettingsBeforePersistence() {
+        String microserviceIdentifier = authorized().contentType(ContentType.JSON)
+                .body(Map.of("code", "settings-service", "name", "Settings Service",
+                        "description", "Schema validation test"))
+                .post("/api/v1/platform/microservices").then().statusCode(201)
+                .extract().path("identifier");
+        authorized().contentType(ContentType.JSON)
+                .body(Map.of("code", "invalid-settings-feature", "name", "Invalid Settings",
+                        "microserviceIdentifier", microserviceIdentifier, "settings", "not-json"))
+                .post("/api/v1/platform/features").then().statusCode(400)
+                .body("details.field", hasItem("settings"));
     }
 
     private io.restassured.specification.RequestSpecification authorized() {

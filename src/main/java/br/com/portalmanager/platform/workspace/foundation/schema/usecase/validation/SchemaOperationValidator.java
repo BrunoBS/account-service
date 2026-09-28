@@ -21,9 +21,6 @@ public class SchemaOperationValidator {
 
     public void validateCreateInput(CreateSchemaInput input) {
         if (input == null) throw invalid("schema", SchemaMessageKeys.REQUEST_INVALID);
-        if (input.schemaTypeCode() == null || input.schemaTypeCode().isBlank()) {
-            throw invalid("schemaTypeCode", SchemaMessageKeys.TYPE_INVALID);
-        }
         if (input.code() == null || !CODE.matcher(input.code()).matches()) {
             throw invalid("code", SchemaMessageKeys.CODE_INVALID);
         }
@@ -46,20 +43,8 @@ public class SchemaOperationValidator {
         }
     }
 
-    public void validatePlatformTypeAvailable(boolean alreadyExists) {
-        if (alreadyExists) throw new ConflictException(SchemaMessageKeys.TYPE_DUPLICATE);
-    }
-
     public void validateCodeAvailable(boolean alreadyExists) {
         if (alreadyExists) throw new ConflictException(SchemaMessageKeys.CODE_DUPLICATE);
-    }
-
-    public void validateDefaultLifecycleChange(Schema schema) {
-        if (schema != null
-                && SchemaScopeTypeCode.platform().equals(schema.getScope())
-                && "DEFAULT".equals(schema.getSchemaType().value())) {
-            throw new ConflictException(SchemaMessageKeys.DEFAULT_PROTECTED);
-        }
     }
 
     public void validateUpdate(Schema schema, UpdateSchemaInput input) {

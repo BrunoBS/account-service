@@ -7,11 +7,10 @@ import br.com.portalmanager.platform.workspace.core.environment.usecase.model.En
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.UpdateEnvironmentInput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentValidator;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
-import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 
 @Service
@@ -24,7 +23,9 @@ public class EnvironmentCommandService {
     private final EnvironmentNormalizer normalizer;
     private final EnvironmentValidator validator;
 
-    public EnvironmentCommandService(EnvironmentRepository repository, EnvironmentFinder finder, EnvironmentQueryService visibility, WorkspaceQueryService workspaceVisibility, WorkspaceReferenceResolver workspaces, EnvironmentNormalizer normalizer, EnvironmentValidator validator) {
+    public EnvironmentCommandService(EnvironmentRepository repository, EnvironmentFinder finder, EnvironmentQueryService visibility,
+                                     WorkspaceQueryService workspaceVisibility, WorkspaceReferenceResolver workspaces,
+                                     EnvironmentNormalizer normalizer, EnvironmentValidator validator) {
         this.repository = repository;
         this.finder = finder;
         this.visibility = visibility;
@@ -41,16 +42,17 @@ public class EnvironmentCommandService {
     }
 
     @Transactional
-    public EnvironmentOutput createDefault(CreateEnvironmentInput input) {
-        return create(null, null, input);
-    }
+    public EnvironmentOutput createDefault(CreateEnvironmentInput input) { return create(null, null, input); }
 
     private EnvironmentOutput create(Long workspaceId, String workspaceIdentifier, CreateEnvironmentInput raw) {
         CreateEnvironmentInput input = normalizer.normalize(raw);
-        validator.validateForCreate(input, input != null && input.name() != null && existsName(workspaceId, input.name(), null));
-        Integer lastOrder = workspaceId == null ? repository.maxDefaultSortOrder() : repository.maxCustomSortOrder(workspaceId);
-        int sortOrder = input.sortOrder() != null ? input.sortOrder() : workspaceId == null ? (lastOrder == null ? 1 : lastOrder + 1) : (lastOrder == null ? 4 : lastOrder + 1);
-        Environment environment = new Environment(workspaceId, input.name(), input.description(), AuthorizationTypeCode.of(input.authorizationType()), input.authorizerGroup(), input.settings(), sortOrder, LocalDateTime.now());
+        boolean duplicateName = input != null && existsName(workspaceId, input.name(), null);
+        validator.validateForCreate(input, duplicateName);
+
+        int sortOrder = sortOrderForCreate(workspaceId, input.sortOrder());
+        AuthorizationTypeCode authorizationType = AuthorizationTypeCode.of(input.authorizationType());
+        Environment environment = new Environment(workspaceId, input.name(), input.description(),
+                authorizationType, input.authorizerGroup(), input.settings(), sortOrder, LocalDateTime.now());
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
 
@@ -69,9 +71,14 @@ public class EnvironmentCommandService {
     private EnvironmentOutput update(Long workspaceId, String workspaceIdentifier, String identifier, UpdateEnvironmentInput raw) {
         Environment environment = finder.findActive(identifier, workspaceId);
         UpdateEnvironmentInput input = normalizer.normalize(raw);
-        validator.validateForUpdate(input, input != null && input.name() != null && existsName(workspaceId, input.name(), environment.getId()));
+        boolean duplicateName = input != null && existsName(workspaceId, input.name(), environment.getId());
+        validator.validateForUpdate(input, duplicateName);
         validator.requireVersion(environment.getVersion(), input.version());
-        environment.update(input.name(), input.description(), AuthorizationTypeCode.of(input.authorizationType()), input.authorizerGroup(), input.settings(), input.sortOrder() == null ? environment.getSortOrder() : input.sortOrder(), LocalDateTime.now());
+
+        int sortOrder = input.sortOrder() == null ? environment.getSortOrder() : input.sortOrder();
+        AuthorizationTypeCode authorizationType = AuthorizationTypeCode.of(input.authorizationType());
+        environment.update(input.name(), input.description(), authorizationType,
+                input.authorizerGroup(), input.settings(), sortOrder, LocalDateTime.now());
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
 
@@ -82,11 +89,7 @@ public class EnvironmentCommandService {
     }
 
     @Transactional
-    public void inactivateDefault(String identifier) {
-        visibility.findDefault(identifier);
-        inactivate(null, identifier);
-    }
-
+    public void inactivateDefault(String identifier) { visibility.findDefault(identifier); inactivate(null, identifier); }
     private void inactivate(Long workspaceId, String identifier) {
         Environment environment = finder.findActive(identifier, workspaceId);
         environment.inactivate(LocalDateTime.now());
@@ -107,7 +110,11 @@ public class EnvironmentCommandService {
 
     private EnvironmentOutput restore(Long workspaceId, String workspaceIdentifier, String identifier) {
         Environment environment = finder.findInactive(identifier, workspaceId);
-        validator.validateForCreate(new CreateEnvironmentInput(environment.getName(), environment.getDescription(), environment.getAuthorizationType().value(), environment.getSortOrder(), environment.getAuthorizerGroup(), environment.getSettings()), existsName(workspaceId, environment.getName(), environment.getId()));
+        CreateEnvironmentInput input = new CreateEnvironmentInput(environment.getName(), environment.getDescription(),
+                environment.getAuthorizationType().value(), environment.getSortOrder(), environment.getAuthorizerGroup(),
+                environment.getSettings());
+        boolean duplicateName = existsName(workspaceId, environment.getName(), environment.getId());
+        validator.validateForCreate(input, duplicateName);
         environment.restore(LocalDateTime.now());
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
@@ -119,20 +126,33 @@ public class EnvironmentCommandService {
     }
 
     @Transactional
-    public void deleteDefault(String identifier) {
-        visibility.findDefaultForDeletion(identifier);
-        delete(null, identifier);
-    }
-
+    public void deleteDefault(String identifier) { visibility.findDefaultForDeletion(identifier); delete(null, identifier); }
     private void delete(Long workspaceId, String identifier) {
         Environment environment = finder.findInactiveForDeletion(identifier, workspaceId);
         environment.quarantine(LocalDateTime.now());
         repository.saveAndFlush(environment);
     }
 
+    private int sortOrderForCreate(Long workspaceId, Integer requestedOrder) {
+        if (requestedOrder != null) return requestedOrder;
+
+        Integer lastOrder = workspaceId == null
+                ? repository.maxDefaultSortOrder()
+                : repository.maxCustomSortOrder(workspaceId);
+        if (lastOrder != null) return lastOrder + 1;
+
+        return workspaceId == null ? 1 : 4;
+    }
+
     private boolean existsName(Long workspaceId, String name, Long excludedId) {
-        if (workspaceId == null)
-            return excludedId == null ? repository.existsByNameAndWorkspaceIdIsNull(name) : repository.existsByNameAndWorkspaceIdIsNullAndIdNot(name, excludedId);
-        return excludedId == null ? repository.existsByNameAndWorkspaceId(name, workspaceId) : repository.existsByNameAndWorkspaceIdAndIdNot(name, workspaceId, excludedId);
+        if (name == null) return false;
+
+        if (workspaceId == null) {
+            if (excludedId == null) return repository.existsByNameAndWorkspaceIdIsNull(name);
+            return repository.existsByNameAndWorkspaceIdIsNullAndIdNot(name, excludedId);
+        }
+
+        if (excludedId == null) return repository.existsByNameAndWorkspaceId(name, workspaceId);
+        return repository.existsByNameAndWorkspaceIdAndIdNot(name, workspaceId, excludedId);
     }
 }

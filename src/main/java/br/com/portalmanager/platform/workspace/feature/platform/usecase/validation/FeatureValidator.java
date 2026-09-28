@@ -5,10 +5,29 @@ import br.com.portalmanager.platform.workspace.feature.platform.domain.Microserv
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateFeatureInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateFeatureInput;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaResourceType;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FeatureValidator {
+    private final SchemaSettingsValidator settingsValidator;
+
+    /** Used by isolated command tests; production always injects the shared validator. */
+    public FeatureValidator() { this.settingsValidator = null; }
+
+    @Autowired
+    public FeatureValidator(SchemaSettingsValidator settingsValidator) { this.settingsValidator = settingsValidator; }
+
+    public void validateSettings(String featureCode, String settings) {
+        if (settingsValidator == null) return;
+        ValidationResult result = new ValidationResult();
+        settingsValidator.validate(SchemaResourceType.FEATURE, featureCode, settings, result);
+        if (result.hasErrors()) throw new ValidationException(result);
+    }
     public void validateCreate(CreateFeatureInput input, boolean codeDuplicate, boolean nameDuplicate) {
         PlatformValidation.requireInput(input);
         PlatformValidation.validate(input.code(), true, input.name(), input.description(), codeDuplicate,
