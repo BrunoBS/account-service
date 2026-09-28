@@ -7,6 +7,7 @@ import br.com.portalmanager.platform.workspace.core.environment.usecase.operatio
 import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.compatibility.EnvironmentTypeCompatibilityQueryService;
 import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.CreateEnvironmentTypeCompatibilityRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentTypeCompatibilityResponse;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +28,11 @@ public class EnvironmentTypeCompatibilityController {
     }
 
     @GetMapping
-    public List<EnvironmentTypeCompatibilityResponse> list() {
-        return query.list().stream().map(EnvironmentTypeCompatibilityResponse::from).toList();
+    public List<EnvironmentTypeCompatibilityResponse> list(
+            @RequestParam(required = false) LifecycleTypeCode lifecycle) {
+        return query.list(lifecycle).stream()
+                .map(EnvironmentTypeCompatibilityResponse::from)
+                .toList();
     }
 
     @PostMapping
