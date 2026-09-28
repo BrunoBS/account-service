@@ -30,12 +30,6 @@ public class SchemaVersionOperationValidator {
         }
     }
 
-    public void validateDraftDeletion(SchemaVersion version) {
-        if (!version.isDraft()) {
-            throw new ConflictException(SchemaMessageKeys.VERSION_IMMUTABLE);
-        }
-    }
-
     private void validateDefinition(String definition) {
         if (definition == null || definition.isBlank()) {
             throw invalid("definition", SchemaMessageKeys.DEFINITION_REQUIRED);

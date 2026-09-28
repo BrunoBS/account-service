@@ -118,7 +118,7 @@ public class SchemaVersionCommandService {
         versionRepository.findAllForUpdate(schema.getId());
         SchemaVersion version = versionRepository.findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
                 .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.VERSION_NOT_FOUND));
-        operationValidator.validateDraftDeletion(version);
+        operationValidator.validateDraft(version);
         versionRepository.delete(version);
     }
 
