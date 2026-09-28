@@ -50,6 +50,12 @@ class SchemaConfigurationMigrationIT {
                 ON DUPLICATE KEY UPDATE code = VALUES(code)
                 """);
         jdbc.update("""
+                INSERT INTO type_schema_version_status
+                    (code, label, description, sort_order, is_active, settings)
+                VALUES ('PUBLISHED', 'Published', 'Published schema version', 2, true, '{}')
+                ON DUPLICATE KEY UPDATE code = VALUES(code)
+                """);
+        jdbc.update("""
                 INSERT INTO schema_versions
                     (identifier, schema_id, schema_version, version_name, definition, status, created_at)
                 SELECT UUID(), id, 1, 'Default', '{}', 'PUBLISHED', CURRENT_TIMESTAMP
