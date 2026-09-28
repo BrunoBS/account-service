@@ -31,5 +31,7 @@ public final class EnvironmentMessageKeys {
     public static final String COMPATIBILITY_CHILD_INVALID = "environment.compatibility.child-invalid";
     public static final String COMPATIBILITY_CYCLE_INVALID = "environment.compatibility.cycle-invalid";
     public static final String COMPATIBILITY_NOT_FOUND = "environment.compatibility.not-found";
+    public static final String COMPATIBILITY_DELETE_REQUIRES_INACTIVE = "environment.compatibility.delete-requires-inactive";
+    public static final String COMPATIBILITY_IN_USE = "environment.compatibility.in-use";
     private EnvironmentMessageKeys() {}
 }
