@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.core.publisher.usecase.model;
 
 import br.com.portalmanager.platform.workspace.core.publisher.domain.Publisher;
 import br.com.portalmanager.platform.workspace.core.publisher.domain.PublisherSchemaType;
+
 import java.time.LocalDateTime;
 
 public record PublisherOutput(Long version, String identifier, String code, String name, String description,

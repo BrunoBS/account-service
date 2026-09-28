@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.core.environment.usecase.model;
 
 import br.com.portalmanager.platform.library.authorization.resource.AuthorizableResource;
 import br.com.portalmanager.platform.workspace.core.environment.domain.Environment;
+
 import java.time.LocalDateTime;
 
 public record EnvironmentOutput(Long version, String identifier, String workspaceIdentifier, String name,

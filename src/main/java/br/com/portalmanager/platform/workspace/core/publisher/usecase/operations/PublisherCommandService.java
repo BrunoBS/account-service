@@ -1,14 +1,15 @@
 package br.com.portalmanager.platform.workspace.core.publisher.usecase.operations;
 
 import br.com.portalmanager.platform.workspace.core.publisher.domain.Publisher;
-import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeCode;
 import br.com.portalmanager.platform.workspace.core.publisher.repository.PublisherRepository;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.CreatePublisherInput;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.PublisherOutput;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.UpdatePublisherInput;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.validation.PublisherValidator;
+import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 
 @Service

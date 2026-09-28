@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.application.usecase.operations;
 
+import br.com.portalmanager.platform.library.tagging.TagNormalizer;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
-import br.com.portalmanager.platform.library.tagging.TagNormalizer;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;

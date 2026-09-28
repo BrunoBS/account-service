@@ -5,8 +5,8 @@ import br.com.portalmanager.platform.workspace.core.application.domain.Applicati
 import br.com.portalmanager.platform.workspace.core.application.repository.ApplicationRepository;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationOutput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationSummary;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -5,14 +5,15 @@ import br.com.portalmanager.platform.library.messaging.exception.ValidationExcep
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.core.publisher.domain.PublisherMessageKeys;
 import br.com.portalmanager.platform.workspace.core.publisher.domain.PublisherSchemaType;
-import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeEnum;
-import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.usecase.ResourceScopeTypeService;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.CreatePublisherInput;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.UpdatePublisherInput;
+import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeEnum;
+import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.usecase.ResourceScopeTypeService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schematype.SchemaTypeQueryService;
 import org.springframework.stereotype.Component;
+
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.regex.Pattern;
