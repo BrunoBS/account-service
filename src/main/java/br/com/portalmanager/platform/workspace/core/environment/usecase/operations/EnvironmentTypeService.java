@@ -12,6 +12,7 @@ import br.com.portalmanager.platform.workspace.core.environment.repository.Envir
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentCompatibilityOutput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTypeInput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTypeOutput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentTypeValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -23,12 +24,14 @@ public class EnvironmentTypeService {
     private final EnvironmentTypeRepository types;
     private final EnvironmentTypeCompatibilityRepository compatibilities;
     private final EnvironmentRepository environments;
+    private final EnvironmentTypeValidator validator;
 
     public EnvironmentTypeService(EnvironmentTypeRepository types, EnvironmentTypeCompatibilityRepository compatibilities,
-                                  EnvironmentRepository environments) {
+                                  EnvironmentRepository environments, EnvironmentTypeValidator validator) {
         this.types = types;
         this.compatibilities = compatibilities;
         this.environments = environments;
+        this.validator = validator;
     }
 
     @Transactional(readOnly = true)
@@ -39,7 +42,7 @@ public class EnvironmentTypeService {
 
     @Transactional
     public EnvironmentTypeOutput create(EnvironmentTypeInput input) {
-        validate(input, true);
+        validator.validate(input, true);
         String code = input.code().trim();
         if (types.existsByCode(code)) throw new ValidationException(EnvironmentMessageKeys.TYPE_DUPLICATE);
         EnvironmentType type = new EnvironmentType(code, input.name().trim(), input.description().trim(),
@@ -50,7 +53,7 @@ public class EnvironmentTypeService {
     @Transactional
     public EnvironmentTypeOutput update(String identifier, EnvironmentTypeInput input) {
         EnvironmentType type = find(identifier);
-        validate(input, false);
+        validator.validate(input, false);
         if (!Objects.equals(type.getVersion(), input.version())) throw new ResourceVersionConflictException();
         if (!Objects.equals(type.getCode(), input.code().trim()))
             throw new ValidationException(EnvironmentMessageKeys.TYPE_CODE_IMMUTABLE);
@@ -136,13 +139,4 @@ public class EnvironmentTypeService {
                 .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.TYPE_NOT_FOUND));
     }
 
-    private void validate(EnvironmentTypeInput input, boolean creating) {
-        if (input == null || input.code() == null || input.code().isBlank() || input.code().length() > 50
-                || input.name() == null || input.name().isBlank() || input.name().length() > 100
-                || input.description() == null || input.description().isBlank() || input.description().length() > 250
-                || input.rootAllowed() == null || input.workspaceRequired() == null
-                || input.displayOrder() == null || input.displayOrder() < 0
-                || (!creating && input.version() == null))
-            throw new ValidationException(EnvironmentMessageKeys.TYPE_INVALID);
-    }
 }
