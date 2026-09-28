@@ -10,6 +10,7 @@ import br.com.portalmanager.platform.workspace.core.environment.usecase.validati
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,7 +22,8 @@ public class EnvironmentTypeCompatibilityCommandService {
     private final EnvironmentTypeCompatibilityValidator validator;
 
     public EnvironmentTypeCompatibilityCommandService(EnvironmentTypeCompatibilityRepository compatibilities,
-                                                      EnvironmentRepository environments, EnvironmentTypeCompatibilityValidator validator) {
+                                                       EnvironmentRepository environments,
+                                                       EnvironmentTypeCompatibilityValidator validator) {
         this.compatibilities = compatibilities;
         this.environments = environments;
         this.validator = validator;
@@ -54,9 +56,22 @@ public class EnvironmentTypeCompatibilityCommandService {
 
     @Transactional
     public void disallow(String identifier) {
-        EnvironmentTypeCompatibility edge = compatibilities.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.COMPATIBILITY_NOT_FOUND));
-        validator.requireUnused(environments.existsByTypePair(edge.getParentType().getId(), edge.getChildType().getId()));
+        EnvironmentTypeCompatibility edge = find(identifier);
         edge.inactivate(LocalDateTime.now());
+    }
+
+    @Transactional
+    public void delete(String identifier) {
+        EnvironmentTypeCompatibility edge = find(identifier);
+        validator.requireInactive(edge.getLifecycle());
+        validator.requireUnused(environments.existsByTypePair(
+                edge.getParentType().getId(), edge.getChildType().getId()));
+        compatibilities.delete(edge);
+        compatibilities.flush();
+    }
+
+    private EnvironmentTypeCompatibility find(String identifier) {
+        return compatibilities.findByIdentifier(identifier)
+                .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.COMPATIBILITY_NOT_FOUND));
     }
 }
