@@ -38,6 +38,8 @@ SchemaConfiguration. O consumidor futuro deve usar o código do **tipo** do Publ
 nunca seu identifier. Environment de Application e Microservice ainda não persistem
 settings consumidos pelo mecanismo nesta versão. O cadastro de Schema de
 Workspace permanece; não há consumidor de resolução de Schema de Workspace nesta versão.
+Cada serviço de catálogo informa diretamente seu código de binding, por exemplo
+`workspace-type`; não há conversão do antigo `WORKSPACE_TYPE` dentro do resolver.
 
 V28 copia vínculos de schemas de plataforma existentes, vincula o Schema
 DEFAULT histórico a cada um dos sete resourceTypes com código reservado
