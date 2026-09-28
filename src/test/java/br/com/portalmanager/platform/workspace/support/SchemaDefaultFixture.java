@@ -15,7 +15,8 @@ public final class SchemaDefaultFixture {
         jdbc.update("""
                 INSERT IGNORE INTO type_schema_scopes
                     (code, label, description, sort_order, is_active, settings)
-                VALUES ('PLATFORM', 'Platform', 'Platform scope', 1, true, '{}')
+                VALUES ('PLATFORM', 'Platform', 'Platform scope', 1, true, '{}'),
+                       ('WORKSPACE', 'Workspace', 'Workspace scope', 2, true, '{}')
                 """);
         jdbc.update("""
                 INSERT IGNORE INTO type_schema_version_status
