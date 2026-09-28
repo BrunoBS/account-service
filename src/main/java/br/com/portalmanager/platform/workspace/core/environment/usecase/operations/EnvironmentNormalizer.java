@@ -11,13 +11,15 @@ public class EnvironmentNormalizer {
     public CreateEnvironmentInput normalize(CreateEnvironmentInput input) {
         if (input == null) return null;
         return new CreateEnvironmentInput(trim(input.name()), trim(input.description()), authorization(input.authorizationType()),
-                input.sortOrder(), group(input.authorizerGroup()), settings(input.settings()));
+                input.sortOrder(), group(input.authorizerGroup()), settings(input.settings()),
+                trim(input.environmentTypeCode()), trim(input.parentIdentifier()));
     }
 
     public UpdateEnvironmentInput normalize(UpdateEnvironmentInput input) {
         if (input == null) return null;
         return new UpdateEnvironmentInput(input.version(), trim(input.name()), trim(input.description()),
-                authorization(input.authorizationType()), input.sortOrder(), group(input.authorizerGroup()), settings(input.settings()));
+                authorization(input.authorizationType()), input.sortOrder(), group(input.authorizerGroup()),
+                settings(input.settings()), trim(input.environmentTypeCode()));
     }
 
     private String trim(String value) { return value == null ? null : value.trim(); }

@@ -33,9 +33,6 @@ class EnvironmentApiIT {
         for (String code : new String[]{"ACTIVE", "INACTIVE", "QUARANTINED"})
             jdbc.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES (?, ?, ?, 1, true, '{}')",
                     code, code, code);
-        for (String code : new String[]{"DEFAULT", "CUSTOM"})
-            jdbc.update("INSERT IGNORE INTO type_environments (code, label, description, sort_order, is_active, settings) VALUES (?, ?, ?, 1, true, '{}')",
-                    code, code, code);
         for (String code : new String[]{"DEV", "TST", "ADM"})
             jdbc.update("INSERT IGNORE INTO type_authorizations (code, label, description, sort_order, is_active, settings) VALUES (?, ?, ?, 1, true, '{}')",
                     code, code, code);
@@ -71,6 +68,52 @@ class EnvironmentApiIT {
         post(defaults + "/" + global + "/restore", null).statusCode(200);
     }
 
+    @Test
+    void createsWorkspaceHierarchyAndKeepsChildrenIsolated() {
+        String a = workspace();
+        String b = workspace();
+        String global = post("/api/v1/environment-defaults", input("Global " + UUID.randomUUID()))
+                .statusCode(201).extract().path("identifier");
+        String baseA = "/api/v1/workspaces/" + a + "/environments";
+        String baseB = "/api/v1/workspaces/" + b + "/environments";
+        String shardA = post(baseA, child("SHARD A", "SHARD", global))
+                .statusCode(201).body("environmentType", equalTo("SHARD"))
+                .body("parentIdentifier", equalTo(global)).extract().path("identifier");
+        String shardB = post(baseB, child("SHARD B", "SHARD", global))
+                .statusCode(201).extract().path("identifier");
+        String cellA = post(baseA, child("CELL A", "CELL", shardA))
+                .statusCode(201).extract().path("identifier");
+
+        get(baseA + "/" + global + "/children").statusCode(200).body("identifier", hasItem(shardA))
+                .body("identifier", not(hasItem(shardB)));
+        get(baseB + "/" + shardA).statusCode(404);
+        post(baseB, child("Cross workspace", "CELL", shardA)).statusCode(404);
+        post(baseA, child("Direct cell", "CELL", global)).statusCode(400);
+        post(baseA, withType("Root shard", "SHARD")).statusCode(400);
+        post("/api/v1/environment-defaults", withType("Global custom", "CUSTOM")).statusCode(400);
+        get(baseA + "/tree").statusCode(200).body("environment.identifier", hasItem(global));
+
+        post("/api/v1/environment-defaults/" + global + "/inactivate", null).statusCode(204);
+        get(baseA + "/" + shardA).statusCode(404);
+        get(baseA + "/" + cellA).statusCode(404);
+        get(baseA + "/" + global + "/children").statusCode(404);
+    }
+
+    @Test
+    void managesTypesWithWorkspaceRequirementAsData() {
+        String base = "/api/v1/environment-types";
+        String code = "REGION" + UUID.randomUUID().toString().substring(0, 8);
+        Map<String, Object> type = Map.of("code", code, "name", "Region", "description", "Regional environment",
+                "rootAllowed", false, "workspaceRequired", true, "displayOrder", 5);
+        String identifier = post(base, type).statusCode(201).body("workspaceRequired", equalTo(true))
+                .extract().path("identifier");
+        get(base + "/" + identifier).statusCode(200).body("code", equalTo(code));
+        String workspace = workspace();
+        post("/api/v1/workspaces/" + workspace + "/environments", withType("Root region", code)).statusCode(400);
+        post(base + "/compatibilities", Map.of("parentTypeCode", "SHARD", "childTypeCode", code))
+                .statusCode(201);
+    }
+
     private String workspace() {
         return post("/api/v1/workspaces", Map.of(
                 "workspaceType", "MANAGER", "name", "Environment Workspace " + UUID.randomUUID(),
@@ -82,6 +125,18 @@ class EnvironmentApiIT {
 
     private Map<String, Object> input(String name) {
         return Map.of("name", name, "description", "Environment description", "authorizationType", "DEV", "settings", "{}");
+    }
+
+    private Map<String, Object> withType(String name, String code) {
+        var result = new java.util.HashMap<String, Object>(input(name));
+        result.put("environmentTypeCode", code);
+        return result;
+    }
+
+    private Map<String, Object> child(String name, String code, String parent) {
+        var result = new java.util.HashMap<String, Object>(withType(name, code));
+        result.put("parentIdentifier", parent);
+        return result;
     }
 
     private ValidatableResponse get(String path) {

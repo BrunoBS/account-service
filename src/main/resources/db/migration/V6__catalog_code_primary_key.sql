@@ -38,18 +38,6 @@ COLUMN id,
 ALTER TABLE type_authorizations
     ADD CONSTRAINT pk_type_authorizations PRIMARY KEY (code);
 
-ALTER TABLE type_environments
-    MODIFY COLUMN id BIGINT NOT NULL;
-ALTER TABLE type_environments
-DROP
-PRIMARY KEY;
-ALTER TABLE type_environments
-DROP
-COLUMN id,
-    RENAME COLUMN name TO code;
-ALTER TABLE type_environments
-    ADD CONSTRAINT pk_type_environments PRIMARY KEY (code);
-
 ALTER TABLE type_feature_scopes
     MODIFY COLUMN id BIGINT NOT NULL;
 ALTER TABLE type_feature_scopes

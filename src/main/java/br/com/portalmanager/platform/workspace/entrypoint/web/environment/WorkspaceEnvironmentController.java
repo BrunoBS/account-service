@@ -45,6 +45,24 @@ public class WorkspaceEnvironmentController {
         return EnvironmentResponse.from(query.findCustom(workspaceIdentifier, identifier));
     }
 
+    @GetMapping("/roots")
+    @AuthorizationRequired(level = AuthorizationLevel.DEV)
+    public List<EnvironmentResponse> roots(@PathVariable String workspaceIdentifier) {
+        return query.roots(workspaceIdentifier).stream().map(EnvironmentResponse::from).toList();
+    }
+
+    @GetMapping("/{identifier}/children")
+    @AuthorizationRequired(level = AuthorizationLevel.DEV)
+    public List<EnvironmentResponse> children(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
+        return query.children(workspaceIdentifier, identifier).stream().map(EnvironmentResponse::from).toList();
+    }
+
+    @GetMapping("/tree")
+    @AuthorizationRequired(level = AuthorizationLevel.DEV)
+    public List<EnvironmentQueryService.EnvironmentTreeOutput> tree(@PathVariable String workspaceIdentifier) {
+        return query.tree(workspaceIdentifier);
+    }
+
     @PutMapping("/{identifier}")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(resource = "ENVIRONMENT", action = "UPDATE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
