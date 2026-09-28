@@ -11,7 +11,6 @@ import br.com.portalmanager.platform.workspace.core.environment.usecase.validati
 import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentTopologyValidator;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environmenttype.EnvironmentTypeQueryService;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeCode;
@@ -96,9 +95,9 @@ public class EnvironmentCommandService {
         EnvironmentType type = input.environmentTypeCode() == null
                 ? environment.getEnvironmentType() : types.active(input.environmentTypeCode());
         topology.validate(type, workspaceId, environment.getParent());
-        if (!type.getId().equals(environment.getEnvironmentType().getId())
-                && repository.existsByParentId(environment.getId()))
-            throw new ValidationException(EnvironmentMessageKeys.TYPE_IN_USE);
+        boolean changingTypeWithChildren = !type.getId().equals(environment.getEnvironmentType().getId())
+                && repository.existsByParentId(environment.getId());
+        topology.requireTypeChangeWithoutChildren(changingTypeWithChildren);
         int sortOrder = input.sortOrder() == null ? environment.getSortOrder() : input.sortOrder();
         AuthorizationTypeCode authorizationType = AuthorizationTypeCode.of(input.authorizationType());
         environment.update(input.name(), input.description(), authorizationType,
@@ -141,8 +140,7 @@ public class EnvironmentCommandService {
                 environment.getParent() == null ? null : environment.getParent().getIdentifier());
         boolean duplicateName = existsName(workspaceId, parentId(environment), environment.getName(), environment.getId());
         validator.validateForCreate(input, duplicateName);
-        if (environment.getParent() != null && !finder.accessible(environment.getParent()))
-            throw new ValidationException(EnvironmentMessageKeys.PARENT_INVALID);
+        topology.requireParentAccessible(environment.getParent() == null || finder.accessible(environment.getParent()));
         topology.validate(types.active(environment.getEnvironmentType().getCode()), workspaceId, environment.getParent());
         environment.restore(LocalDateTime.now());
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);

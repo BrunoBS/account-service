@@ -121,16 +121,23 @@ class EnvironmentApiIT {
     @Test
     void managesTypesWithWorkspaceRequirementAsData() {
         String base = "/api/v1/environment-types";
+        post(base, Map.of()).statusCode(400)
+                .body("details.field", hasItems("code", "name", "description", "rootAllowed", "workspaceRequired", "displayOrder"));
+        post(base + "/compatibilities", Map.of()).statusCode(400)
+                .body("details.field", hasItems("parentTypeCode", "childTypeCode"));
         String code = "REGION" + UUID.randomUUID().toString().substring(0, 8);
         Map<String, Object> type = Map.of("code", code, "name", "Region", "description", "Regional environment",
                 "rootAllowed", false, "workspaceRequired", true, "displayOrder", 5);
         String identifier = post(base, type).statusCode(201).body("workspaceRequired", equalTo(true))
                 .extract().path("identifier");
+        post(base, type).statusCode(400).body("details.field", hasItem("code"));
         get(base + "/" + identifier).statusCode(200).body("code", equalTo(code));
         String workspace = workspace();
         post("/api/v1/workspaces/" + workspace + "/environments", withType("Root region", code)).statusCode(400);
         post(base + "/compatibilities", Map.of("parentTypeCode", "SHARD", "childTypeCode", code))
                 .statusCode(201);
+        post(base + "/compatibilities", Map.of("parentTypeCode", code, "childTypeCode", "SHARD"))
+                .statusCode(400).body("details.field", hasItem("childTypeCode"));
     }
 
     private String workspace() {

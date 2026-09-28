@@ -1,8 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environmenttype;
 
 import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentType;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeCompatibilityRepository;
@@ -37,9 +35,9 @@ public class EnvironmentTypeCommandService {
 
     @Transactional
     public EnvironmentTypeOutput create(EnvironmentTypeInput input) {
-        validator.validate(input, true);
+        boolean duplicateCode = input != null && input.code() != null && types.existsByCode(input.code().trim());
+        validator.validateForCreate(input, duplicateCode);
         String code = input.code().trim();
-        if (types.existsByCode(code)) throw new ValidationException(EnvironmentMessageKeys.TYPE_DUPLICATE);
         EnvironmentType type = new EnvironmentType(code, input.name().trim(), input.description().trim(),
                 input.rootAllowed(), input.workspaceRequired(), input.displayOrder(), LocalDateTime.now());
         return EnvironmentTypeOutput.from(types.saveAndFlush(type));
@@ -48,14 +46,14 @@ public class EnvironmentTypeCommandService {
     @Transactional
     public EnvironmentTypeOutput update(String identifier, EnvironmentTypeInput input) {
         EnvironmentType type = query.find(identifier);
-        validator.validate(input, false);
+        validator.validateForUpdate(input);
         if (!Objects.equals(type.getVersion(), input.version())) throw new ResourceVersionConflictException();
-        if (!Objects.equals(type.getCode(), input.code().trim()))
-            throw new ValidationException(EnvironmentMessageKeys.TYPE_CODE_IMMUTABLE);
-        if (type.isWorkspaceRequired() != input.workspaceRequired() && environments.existsByEnvironmentTypeId(type.getId()))
-            throw new ValidationException(EnvironmentMessageKeys.TYPE_IN_USE);
-        if (type.isRootAllowed() && !input.rootAllowed() && environments.existsByEnvironmentTypeIdAndParentIsNull(type.getId()))
-            throw new ValidationException(EnvironmentMessageKeys.TYPE_IN_USE);
+        boolean codeChanged = !Objects.equals(type.getCode(), input.code().trim());
+        boolean scopeInUse = type.isWorkspaceRequired() != input.workspaceRequired()
+                && environments.existsByEnvironmentTypeId(type.getId());
+        boolean rootInUse = type.isRootAllowed() && !input.rootAllowed()
+                && environments.existsByEnvironmentTypeIdAndParentIsNull(type.getId());
+        validator.validateUpdateConflicts(codeChanged, scopeInUse, rootInUse);
         type.update(input.name().trim(), input.description().trim(), input.rootAllowed(), input.workspaceRequired(),
                 input.displayOrder(), LocalDateTime.now());
         return EnvironmentTypeOutput.from(types.saveAndFlush(type));
@@ -64,8 +62,7 @@ public class EnvironmentTypeCommandService {
     @Transactional
     public void inactivate(String identifier) {
         EnvironmentType type = query.find(identifier);
-        if (environments.existsByEnvironmentTypeId(type.getId()))
-            throw new ValidationException(EnvironmentMessageKeys.TYPE_IN_USE);
+        validator.validateForInactivate(environments.existsByEnvironmentTypeId(type.getId()));
         type.inactivate(LocalDateTime.now());
     }
 
@@ -79,10 +76,10 @@ public class EnvironmentTypeCommandService {
     @Transactional
     public void delete(String identifier) {
         EnvironmentType type = query.find(identifier);
-        if (!LifecycleTypeCode.inactive().equals(type.getLifecycle())
-                || environments.existsByEnvironmentTypeId(type.getId())
-                || compatibilities.existsByParentTypeIdOrChildTypeId(type.getId(), type.getId()))
-            throw new ValidationException(EnvironmentMessageKeys.TYPE_IN_USE);
+        boolean inactive = LifecycleTypeCode.inactive().equals(type.getLifecycle());
+        boolean inUse = environments.existsByEnvironmentTypeId(type.getId())
+                || compatibilities.existsByParentTypeIdOrChildTypeId(type.getId(), type.getId());
+        validator.validateForDelete(inactive, inUse);
         types.delete(type);
     }
 }
