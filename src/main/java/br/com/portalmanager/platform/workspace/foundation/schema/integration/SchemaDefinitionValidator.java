@@ -3,10 +3,10 @@ package br.com.portalmanager.platform.workspace.foundation.schema.integration;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
+import com.networknt.schema.Error;
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.SpecificationVersion;
-import com.networknt.schema.ValidationMessage;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
@@ -104,7 +104,7 @@ public class SchemaDefinitionValidator {
         }
     }
 
-    private String resolveField(String attributeName, ValidationMessage error) {
+    private String resolveField(String attributeName, Error error) {
         String instanceLocation = error.getInstanceLocation() != null
                 ? error.getInstanceLocation().toString()
                 : "";
