@@ -6,10 +6,7 @@ import jakarta.persistence.Embeddable;
 @Embeddable
 public class ApplicationScopeTypeCode extends AbstractCatalogCode {
     protected ApplicationScopeTypeCode() {}
-
     private ApplicationScopeTypeCode(String value) { super(value); }
-
-    public static ApplicationScopeTypeCode of(String value) { return new ApplicationScopeTypeCode(value); }
-
-    public static ApplicationScopeTypeCode of(ApplicationScopeTypeEnum value) { return of(value.name()); }
+    public static ApplicationScopeTypeCode of(String value) { return of(requireEnumValue(value, ApplicationScopeTypeEnum.class)); }
+    public static ApplicationScopeTypeCode of(ApplicationScopeTypeEnum value) { return new ApplicationScopeTypeCode(value == null ? null : value.name()); }
 }
