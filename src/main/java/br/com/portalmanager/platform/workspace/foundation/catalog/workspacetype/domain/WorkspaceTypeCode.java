@@ -5,26 +5,10 @@ import jakarta.persistence.Embeddable;
 
 @Embeddable
 public class WorkspaceTypeCode extends AbstractCatalogCode {
-
-    protected WorkspaceTypeCode() {
-    }
-
-    private WorkspaceTypeCode(String value) {
-        super(value);
-    }
-
-    private WorkspaceTypeCode(WorkspaceTypeEnum value) {
-        super(value);
-    }
-
-    public static WorkspaceTypeCode of(String value) {
-        return new WorkspaceTypeCode(value);
-    }
-
-    public static WorkspaceTypeCode of(WorkspaceTypeEnum value) {
-        return new WorkspaceTypeCode(value);
-    }
-
+    protected WorkspaceTypeCode() {}
+    private WorkspaceTypeCode(String value) { super(value); }
+    public static WorkspaceTypeCode of(String value) { return of(requireEnumValue(value, WorkspaceTypeEnum.class)); }
+    public static WorkspaceTypeCode of(WorkspaceTypeEnum value) { return new WorkspaceTypeCode(value == null ? null : value.name()); }
     public static boolean isValidFormat(String value) {
         return AbstractCatalogCode.isValidFormat(value)
                 && value.equals(value.toUpperCase(java.util.Locale.ROOT));
