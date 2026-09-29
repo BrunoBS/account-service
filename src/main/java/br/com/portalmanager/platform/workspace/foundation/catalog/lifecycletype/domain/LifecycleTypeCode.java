@@ -14,22 +14,14 @@ public class LifecycleTypeCode extends AbstractCatalogCode {
     }
 
     public static LifecycleTypeCode of(String value) {
-        return new LifecycleTypeCode(value);
+        return of(requireEnumValue(value, LifecycleTypeEnum.class));
     }
 
     public static LifecycleTypeCode of(LifecycleTypeEnum value) {
-        return of(value.name());
+        return new LifecycleTypeCode(value == null ? null : value.name());
     }
 
-    public static LifecycleTypeCode active() {
-        return of(LifecycleTypeEnum.ACTIVE);
-    }
-
-    public static LifecycleTypeCode inactive() {
-        return of(LifecycleTypeEnum.INACTIVE);
-    }
-
-    public static LifecycleTypeCode quarantined() {
-        return of(LifecycleTypeEnum.QUARANTINED);
-    }
+    public static LifecycleTypeCode active() { return of(LifecycleTypeEnum.ACTIVE); }
+    public static LifecycleTypeCode inactive() { return of(LifecycleTypeEnum.INACTIVE); }
+    public static LifecycleTypeCode quarantined() { return of(LifecycleTypeEnum.QUARANTINED); }
 }
