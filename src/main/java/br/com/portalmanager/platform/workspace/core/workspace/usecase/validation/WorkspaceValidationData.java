@@ -9,6 +9,7 @@ public record WorkspaceValidationData(
         String description,
         String requester,
         String acronym,
+        String settings,
         String emailGroup,
         List<ApproverData> approvers
 ) {
