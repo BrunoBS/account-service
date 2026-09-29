@@ -14,7 +14,7 @@ CREATE TABLE platform_services
     CONSTRAINT uk_platform_services_code UNIQUE (code),
     CONSTRAINT fk_platform_services_lifecycle
         FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle (code)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+);
 
 CREATE TABLE platform_features
 (
@@ -36,7 +36,7 @@ CREATE TABLE platform_features
         FOREIGN KEY (service_id) REFERENCES platform_services (id),
     CONSTRAINT fk_platform_features_lifecycle
         FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle (code)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+);
 
 CREATE TABLE platform_feature_scopes
 (
@@ -48,7 +48,7 @@ CREATE TABLE platform_feature_scopes
             ON DELETE CASCADE,
     CONSTRAINT fk_platform_feature_scopes_scope
         FOREIGN KEY (feature_scope_code) REFERENCES type_feature_scopes (code)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+);
 
 -- ServiceType becomes the Platform Service entity while preserving every legacy service code.
 INSERT INTO platform_services
@@ -97,19 +97,19 @@ SELECT UUID(),
        CURRENT_TIMESTAMP
 FROM type_features f
          LEFT JOIN platform_services fallback_service
-                   ON fallback_service.code COLLATE utf8mb4_unicode_ci = 'workspace-service' COLLATE utf8mb4_unicode_ci
+                   ON BINARY fallback_service.code = BINARY 'workspace-service'
          LEFT JOIN platform_services owner_service
                    ON JSON_VALID(f.settings)
-                       AND owner_service.code COLLATE utf8mb4_unicode_ci = JSON_UNQUOTE(JSON_EXTRACT(f.settings, '$.service')) COLLATE utf8mb4_unicode_ci;
+                       AND BINARY owner_service.code = BINARY JSON_UNQUOTE(JSON_EXTRACT(f.settings, '$.service'));
 
 -- Promote both historical single-scope and array-scope representations to the explicit N:N relation.
 INSERT
 IGNORE INTO platform_feature_scopes (feature_id, feature_scope_code)
 SELECT pf.id, fs.code
 FROM type_features legacy
-         JOIN platform_features pf ON pf.code COLLATE utf8mb4_unicode_ci = legacy.code COLLATE utf8mb4_unicode_ci
+         JOIN platform_features pf ON pf.code = legacy.code
          JOIN type_feature_scopes fs
-              ON fs.code COLLATE utf8mb4_unicode_ci = JSON_UNQUOTE(JSON_EXTRACT(legacy.settings, '$.scopes')) COLLATE utf8mb4_unicode_ci
+              ON BINARY fs.code = BINARY JSON_UNQUOTE(JSON_EXTRACT(legacy.settings, '$.scopes'))
 WHERE JSON_VALID(legacy.settings)
   AND JSON_TYPE(JSON_EXTRACT(legacy.settings, '$.scopes')) = 'STRING';
 
@@ -117,7 +117,7 @@ INSERT
 IGNORE INTO platform_feature_scopes (feature_id, feature_scope_code)
 SELECT pf.id, fs.code
 FROM type_features legacy
-         JOIN platform_features pf ON pf.code COLLATE utf8mb4_unicode_ci = legacy.code COLLATE utf8mb4_unicode_ci
+         JOIN platform_features pf ON pf.code = legacy.code
          JOIN JSON_TABLE(
         CASE
             WHEN JSON_VALID(legacy.settings)
@@ -125,9 +125,9 @@ FROM type_features legacy
                 THEN JSON_EXTRACT(legacy.settings, '$.scopes')
             ELSE JSON_ARRAY()
             END,
-        '$[*]' COLUMNS(scope_code VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci PATH '$')
+        '$[*]' COLUMNS(scope_code VARCHAR(50) PATH '$')
               ) legacy_scope
-         JOIN type_feature_scopes fs ON fs.code COLLATE utf8mb4_unicode_ci = legacy_scope.scope_code COLLATE utf8mb4_unicode_ci;
+         JOIN type_feature_scopes fs ON BINARY fs.code = BINARY legacy_scope.scope_code;
 
 -- Message Management now validates and references the Platform Service entity.
 ALTER TABLE messages
@@ -149,7 +149,7 @@ SELECT CONCAT(m.service_code, '.', m.message_key) AS message_key,
        mt.suggestion                              AS solution
 FROM messages m
          JOIN platform_services s
-              ON s.code COLLATE utf8mb4_unicode_ci = m.service_code COLLATE utf8mb4_unicode_ci
+              ON s.code = m.service_code
          JOIN message_translations mt
               ON mt.message_id = m.id
 WHERE s.lifecycle_code = 'ACTIVE'
