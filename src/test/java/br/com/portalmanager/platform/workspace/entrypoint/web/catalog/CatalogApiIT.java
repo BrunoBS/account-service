@@ -148,7 +148,7 @@ class CatalogApiIT {
 
         post("/api/v1/workspace-type", invalidSettings)
                 .statusCode(400)
-                .body("details.field", hasItem("settings"));
+                .body("details.field", hasItem("settings.nested"));
     }
 
     private void seedWorkspaceTypeSchema() {
