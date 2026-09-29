@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.application.request;
 
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import java.util.List;
 
