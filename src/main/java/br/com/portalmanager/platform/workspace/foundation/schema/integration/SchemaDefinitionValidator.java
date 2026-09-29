@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.S
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.SpecificationVersion;
+import com.networknt.schema.ValidationMessage;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
@@ -41,13 +42,14 @@ public class SchemaDefinitionValidator {
 
         Schema schema = parseSchema(schemaDefinition, result);
         if (schema != null) {
-            schema.validate(configNode).forEach(error ->
-                    result.addError(
-                            attributeName,
-                            SchemaMessageKeys.JSON_INVALID,
-                            Map.of("0", attributeName, "1", error.getMessage())
-                    )
-            );
+            schema.validate(configNode).forEach(error -> {
+                String field = resolveField(attributeName, error);
+                result.addError(
+                        field,
+                        SchemaMessageKeys.JSON_INVALID,
+                        Map.of("0", field, "1", error.getMessage())
+                );
+            });
         }
     }
 
@@ -100,5 +102,51 @@ public class SchemaDefinitionValidator {
             result.addError("schema", SchemaMessageKeys.INVALID_SYNTAX);
             return null;
         }
+    }
+
+    private String resolveField(String attributeName, ValidationMessage error) {
+        String instanceLocation = error.getInstanceLocation() != null
+                ? error.getInstanceLocation().toString()
+                : "";
+
+        String field = appendJsonPointer(attributeName, instanceLocation);
+        String property = error.getProperty();
+
+        if (property != null && !property.isBlank() && !fieldEndsWithProperty(field, property)) {
+            field = appendProperty(field, property);
+        }
+
+        return field;
+    }
+
+    private String appendJsonPointer(String attributeName, String instanceLocation) {
+        if (instanceLocation == null || instanceLocation.isBlank() || "/".equals(instanceLocation)) {
+            return attributeName;
+        }
+
+        StringBuilder field = new StringBuilder(attributeName);
+        for (String token : instanceLocation.split("/")) {
+            if (token.isBlank()) continue;
+
+            String decodedToken = token.replace("~1", "/").replace("~0", "~");
+            if (decodedToken.chars().allMatch(Character::isDigit)) {
+                field.append('[').append(decodedToken).append(']');
+            } else {
+                field.append('.').append(decodedToken);
+            }
+        }
+        return field.toString();
+    }
+
+    private boolean fieldEndsWithProperty(String field, String property) {
+        return field.equals(property)
+                || field.endsWith("." + property)
+                || field.endsWith("[" + property + "]");
+    }
+
+    private String appendProperty(String field, String property) {
+        return property.chars().allMatch(Character::isDigit)
+                ? field + "[" + property + "]"
+                : field + "." + property;
     }
 }
