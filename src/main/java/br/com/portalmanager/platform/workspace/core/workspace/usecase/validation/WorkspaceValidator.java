@@ -9,6 +9,7 @@ import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceMe
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.usecase.WorkspaceTypeService;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -20,9 +21,12 @@ public class WorkspaceValidator {
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private final WorkspaceTypeService workspaceTypeService;
+    private final SchemaSettingsValidator settingsValidator;
 
-    public WorkspaceValidator(WorkspaceTypeService workspaceTypeService) {
+    public WorkspaceValidator(WorkspaceTypeService workspaceTypeService,
+                              SchemaSettingsValidator settingsValidator) {
         this.workspaceTypeService = workspaceTypeService;
+        this.settingsValidator = settingsValidator;
     }
 
     public static void requireActive(Workspace workspace) {
@@ -101,6 +105,7 @@ public class WorkspaceValidator {
         validateDescription(data.description(), result);
         validateRequester(data.requester(), result);
         validateAcronym(data.acronym(), result);
+        validateSettings(data.settings(), result);
         validateEmailGroup(data.emailGroup(), result);
         validateApprovers(data.approvers(), result);
     }
@@ -145,6 +150,12 @@ public class WorkspaceValidator {
 
         if (acronym.length() > 5) {
             result.addError("acronym", WorkspaceMessageKeys.ACRONYM_SIZE);
+        }
+    }
+
+    private void validateSettings(String settings, ValidationResult result) {
+        if (settings != null) {
+            settingsValidator.validate("WORKSPACE", "workspace", "settings", settings, result);
         }
     }
 
