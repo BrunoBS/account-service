@@ -54,7 +54,7 @@ class ApplicationApiIT {
                 .statusCode(201)
                 .body("applicationScope", equalTo("BACKEND"))
                 .body("authorizerGroup", nullValue())
-                .body("settings", equalTo("{}"))
+                .body("settings", anyOf(equalTo("{}"), anEmptyMap()))
                 .body("lifecycle", equalTo("ACTIVE"))
                 .extract().path("identifier");
 
@@ -109,9 +109,9 @@ class ApplicationApiIT {
         String app = created.path("identifier");
         Integer version = created.path("version");
 
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM tags WHERE owner_type='APPLICATION' AND owner_id=? AND origin_type='MANUAL'", Integer.class, app))
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM application_tag t JOIN applications a ON a.id=t.application_id WHERE a.identifier=? AND t.origin_type='MANUAL'", Integer.class, app))
                 .isEqualTo(2);
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM tags WHERE owner_type='APPLICATION' AND owner_id=? AND origin_type='SYSTEM'", Integer.class, app))
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM application_tag t JOIN applications a ON a.id=t.application_id WHERE a.identifier=? AND t.origin_type='SYSTEM'", Integer.class, app))
                 .isGreaterThan(0);
         getByTag(path, "Minha Tag").statusCode(200).body("identifier", hasItem(app));
         getByTag(path, "A-TEAM_A").statusCode(200).body("identifier", hasItem(app));
