@@ -1,9 +1,10 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
-import br.com.portalmanager.platform.library.tagging.TagManager;
-import br.com.portalmanager.platform.library.tagging.model.TagOwnerType;
+import br.com.portalmanager.platform.library.tagging.TagNormalizer;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceSystemTags;
+import br.com.portalmanager.platform.workspace.core.workspace.infra.WorkspaceTagStore;
+import br.com.portalmanager.platform.workspace.shared.tagging.ResourceTagManager;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -13,36 +14,32 @@ import java.util.Map;
 @Component
 public class WorkspaceTagManager {
 
-    private static final TagOwnerType WORKSPACE_OWNER = () -> "WORKSPACE";
+    private final WorkspaceTagStore store;
+    private final ResourceTagManager tagManager;
 
-    private final TagManager tagManager;
-
-    public WorkspaceTagManager(TagManager tagManager) {
-        this.tagManager = tagManager;
+    public WorkspaceTagManager(WorkspaceTagStore store) {
+        this.store = store;
+        this.tagManager = new ResourceTagManager(store);
     }
 
     public void reconcile(Workspace workspace, List<String> manualTags) {
-        tagManager.reconcile(
-                WORKSPACE_OWNER,
-                workspace.getIdentifier(),
-                manualTags,
-                WorkspaceSystemTags.resolve(workspace)
-        );
+        tagManager.reconcile(workspace.getId(), manualTags, WorkspaceSystemTags.resolve(workspace));
     }
 
     public List<String> findManual(Workspace workspace) {
-        return tagManager.findManual(WORKSPACE_OWNER, workspace.getIdentifier());
+        return store.findManual(workspace.getId());
     }
 
     public Map<String, List<String>> findManualByIdentifiers(Collection<String> identifiers) {
-        return tagManager.findManualByOwners(WORKSPACE_OWNER, identifiers);
+        return store.findManualByIdentifiers(identifiers);
     }
 
-    public List<String> findIdentifiersByTag(String normalizedTag) {
-        return tagManager.findOwnerIdsByTag(WORKSPACE_OWNER, normalizedTag);
+    public List<String> findIdentifiersByTag(String tag) {
+        String normalized = TagNormalizer.normalize(tag);
+        return normalized == null ? List.of() : store.findIdentifiersByTag(normalized);
     }
 
     public void deleteAll(Workspace workspace) {
-        tagManager.deleteAll(WORKSPACE_OWNER, workspace.getIdentifier());
+        store.deleteAll(workspace.getId());
     }
 }
