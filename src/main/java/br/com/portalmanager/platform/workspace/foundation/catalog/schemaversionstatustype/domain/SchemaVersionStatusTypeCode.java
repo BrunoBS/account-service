@@ -5,31 +5,10 @@ import jakarta.persistence.Embeddable;
 
 @Embeddable
 public class SchemaVersionStatusTypeCode extends AbstractCatalogCode {
-
-    protected SchemaVersionStatusTypeCode() {
-    }
-
-    private SchemaVersionStatusTypeCode(String value) {
-        super(value);
-    }
-
-    private SchemaVersionStatusTypeCode(SchemaVersionStatusTypeEnum value) {
-        super(value);
-    }
-
-    public static SchemaVersionStatusTypeCode of(String value) {
-        return new SchemaVersionStatusTypeCode(value);
-    }
-
-    public static SchemaVersionStatusTypeCode of(SchemaVersionStatusTypeEnum value) {
-        return new SchemaVersionStatusTypeCode(value);
-    }
-
-    public static SchemaVersionStatusTypeCode draft() {
-        return of(SchemaVersionStatusTypeEnum.DRAFT);
-    }
-
-    public static SchemaVersionStatusTypeCode published() {
-        return of(SchemaVersionStatusTypeEnum.PUBLISHED);
-    }
+    protected SchemaVersionStatusTypeCode() {}
+    private SchemaVersionStatusTypeCode(String value) { super(value); }
+    public static SchemaVersionStatusTypeCode of(String value) { return of(requireEnumValue(value, SchemaVersionStatusTypeEnum.class)); }
+    public static SchemaVersionStatusTypeCode of(SchemaVersionStatusTypeEnum value) { return new SchemaVersionStatusTypeCode(value == null ? null : value.name()); }
+    public static SchemaVersionStatusTypeCode draft() { return of(SchemaVersionStatusTypeEnum.DRAFT); }
+    public static SchemaVersionStatusTypeCode published() { return of(SchemaVersionStatusTypeEnum.PUBLISHED); }
 }
