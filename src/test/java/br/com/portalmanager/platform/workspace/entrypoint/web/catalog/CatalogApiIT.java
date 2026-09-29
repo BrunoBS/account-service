@@ -47,7 +47,6 @@ class CatalogApiIT {
         List<CatalogCase> catalogs = List.of(
                 new CatalogCase("/api/v1/application-scope-type", "BACKEND"),
                 new CatalogCase("/api/v1/authorization-type", "DEV"),
-                new CatalogCase("/api/v1/environment-type", "DEFAULT"),
                 new CatalogCase("/api/v1/onboarding-type", "WORKSPACE_REGISTRATION"),
                 new CatalogCase("/api/v1/tag-origin-type", "MANUAL"),
                 new CatalogCase("/api/v1/visibility-type", "PRIVATE"),

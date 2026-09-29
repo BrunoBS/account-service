@@ -1,4 +1,4 @@
-package br.com.portalmanager.platform.workspace.core.environment.usecase.operations;
+package br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environment;
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
@@ -17,9 +17,16 @@ public class EnvironmentFinder {
 
     public Environment findActive(String identifier, Long workspaceId) {
         Environment e = find(identifier, workspaceId);
-        if (!LifecycleTypeCode.active().equals(e.getLifecycle()))
+        if (!accessible(e))
             throw new NotFoundException(EnvironmentMessageKeys.NOT_FOUND);
         return e;
+    }
+
+    public boolean accessible(Environment environment) {
+        for (Environment current = environment; current != null; current = current.getParent()) {
+            if (!LifecycleTypeCode.active().equals(current.getLifecycle())) return false;
+        }
+        return true;
     }
 
     public Environment findInactive(String identifier, Long workspaceId) {

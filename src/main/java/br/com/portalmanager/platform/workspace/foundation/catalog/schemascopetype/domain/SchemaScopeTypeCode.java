@@ -9,12 +9,16 @@ public class SchemaScopeTypeCode extends AbstractCatalogCode {
     protected SchemaScopeTypeCode() {
     }
 
-    private SchemaScopeTypeCode(SchemaScopeTypeEnum value) {
+    private SchemaScopeTypeCode(String value) {
         super(value);
     }
 
-    public static SchemaScopeTypeCode of(SchemaScopeTypeEnum value) {
+    public static SchemaScopeTypeCode of(String value) {
         return new SchemaScopeTypeCode(value);
+    }
+
+    public static SchemaScopeTypeCode of(SchemaScopeTypeEnum value) {
+        return of(value.name());
     }
 
     public static SchemaScopeTypeCode platform() {

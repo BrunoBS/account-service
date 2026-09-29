@@ -46,18 +46,6 @@ CREATE TABLE type_authorizations
     CONSTRAINT pk_type_authorizations PRIMARY KEY (id)
 );
 
-CREATE TABLE type_environments
-(
-    id          BIGINT       NOT NULL AUTO_INCREMENT,
-    name        VARCHAR(50)  NOT NULL,
-    label       VARCHAR(100) NOT NULL,
-    description TEXT,
-    sort_order  INT          NOT NULL,
-    is_active   BOOLEAN      NOT NULL,
-    settings    TEXT         NOT NULL,
-    CONSTRAINT pk_type_environments PRIMARY KEY (id)
-);
-
 CREATE TABLE type_feature_scopes
 (
     id          BIGINT       NOT NULL AUTO_INCREMENT,

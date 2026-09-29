@@ -13,7 +13,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -250,6 +257,33 @@ class GoldenArchitectureTest {
                 .that().areAnnotatedWith(RestController.class)
                 .should().resideInAPackage(ENTRYPOINT)
                 .check(classes);
+    }
+
+    @Test
+    void restEndpointsMustNotExposeUseCaseModels() {
+        var invalidSignatures = classes.stream()
+                .filter(javaClass -> javaClass.isAnnotatedWith(RestController.class))
+                .map(JavaClass::reflect)
+                .flatMap(controller -> Arrays.stream(controller.getDeclaredMethods()))
+                .filter(this::isEndpoint)
+                .filter(method -> method.getGenericReturnType().getTypeName().contains(".usecase.model.")
+                        || Arrays.stream(method.getGenericParameterTypes())
+                        .anyMatch(type -> type.getTypeName().contains(".usecase.model.")))
+                .map(Method::toGenericString)
+                .toList();
+
+        assertThat(invalidSignatures)
+                .as("HTTP endpoints must use request/response contracts instead of use case Input/Output")
+                .isEmpty();
+    }
+
+    private boolean isEndpoint(Method method) {
+        return method.isAnnotationPresent(RequestMapping.class)
+                || method.isAnnotationPresent(GetMapping.class)
+                || method.isAnnotationPresent(PostMapping.class)
+                || method.isAnnotationPresent(PutMapping.class)
+                || method.isAnnotationPresent(PatchMapping.class)
+                || method.isAnnotationPresent(DeleteMapping.class);
     }
 
     @Test

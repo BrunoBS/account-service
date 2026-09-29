@@ -5,11 +5,12 @@ import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.EnvironmentCommandService;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.EnvironmentQueryService;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environment.EnvironmentCommandService;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environment.EnvironmentQueryService;
 import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.CreateEnvironmentRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.UpdateEnvironmentRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentResponse;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentTreeResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,6 +44,24 @@ public class WorkspaceEnvironmentController {
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
     public EnvironmentResponse find(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
         return EnvironmentResponse.from(query.findCustom(workspaceIdentifier, identifier));
+    }
+
+    @GetMapping("/roots")
+    @AuthorizationRequired(level = AuthorizationLevel.DEV)
+    public List<EnvironmentResponse> roots(@PathVariable String workspaceIdentifier) {
+        return query.roots(workspaceIdentifier).stream().map(EnvironmentResponse::from).toList();
+    }
+
+    @GetMapping("/{identifier}/children")
+    @AuthorizationRequired(level = AuthorizationLevel.DEV)
+    public List<EnvironmentResponse> children(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
+        return query.children(workspaceIdentifier, identifier).stream().map(EnvironmentResponse::from).toList();
+    }
+
+    @GetMapping("/tree")
+    @AuthorizationRequired(level = AuthorizationLevel.DEV)
+    public List<EnvironmentTreeResponse> tree(@PathVariable String workspaceIdentifier) {
+        return query.tree(workspaceIdentifier).stream().map(EnvironmentTreeResponse::from).toList();
     }
 
     @PutMapping("/{identifier}")

@@ -10,4 +10,6 @@ public class AuthorizationTypeCode extends AbstractCatalogCode {
     private AuthorizationTypeCode(String value) { super(value); }
 
     public static AuthorizationTypeCode of(String value) { return new AuthorizationTypeCode(value); }
+
+    public static AuthorizationTypeCode of(AuthorizationTypeEnum value) { return of(value.name()); }
 }

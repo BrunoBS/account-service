@@ -5,12 +5,12 @@ import br.com.portalmanager.platform.workspace.core.environment.usecase.model.En
 import java.time.LocalDateTime;
 
 public record EnvironmentResponse(Long version, String identifier, String workspaceIdentifier, String name,
-                                  String description, String authorizationType, String environmentType,
+                                  String description, String authorizationType, String environmentType, String parentIdentifier,
                                   Integer sortOrder, String authorizerGroup, String settings, String lifecycle,
                                   LocalDateTime createdAt, LocalDateTime updatedAt) {
     public static EnvironmentResponse from(EnvironmentOutput output) {
         return new EnvironmentResponse(output.version(), output.identifier(), output.workspaceIdentifier(),
-                output.name(), output.description(), output.authorizationType(), output.environmentType(),
+                output.name(), output.description(), output.authorizationType(), output.environmentType(), output.parentIdentifier(),
                 output.sortOrder(), output.authorizerGroup(), output.settings(), output.lifecycle(),
                 output.createdAt(), output.updatedAt());
     }

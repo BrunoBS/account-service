@@ -1,7 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.environment.domain;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.environmenttype.domain.EnvironmentTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
 
@@ -34,9 +33,13 @@ public class Environment {
     @AttributeOverride(name = "value", column = @Column(name = "authorization_type_code", nullable = false, length = 50))
     private AuthorizationTypeCode authorizationType;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "environment_type_code", nullable = false, length = 50, updatable = false))
-    private EnvironmentTypeCode environmentType;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "environment_type_id", nullable = false)
+    private EnvironmentType environmentType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_environment_id")
+    private Environment parent;
 
     @Column(name = "authorizer_group", length = 255)
     private String authorizerGroup;
@@ -60,11 +63,13 @@ public class Environment {
     protected Environment() {
     }
 
-    public Environment(Long workspaceId, String name, String description, AuthorizationTypeCode authorizationType,
+    public Environment(Long workspaceId, EnvironmentType environmentType, Environment parent,
+                       String name, String description, AuthorizationTypeCode authorizationType,
                        String authorizerGroup, String settings, Integer sortOrder, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.workspaceId = workspaceId;
-        this.environmentType = EnvironmentTypeCode.fromWorkspaceId(workspaceId);
+        this.environmentType = environmentType;
+        this.parent = parent;
         update(name, description, authorizationType, authorizerGroup, settings, sortOrder, now);
         this.lifecycle = LifecycleTypeCode.active();
         this.createdAt = now;
@@ -124,8 +129,14 @@ public class Environment {
         return authorizationType;
     }
 
-    public EnvironmentTypeCode getEnvironmentType() {
+    public EnvironmentType getEnvironmentType() {
         return environmentType;
+    }
+
+    public Environment getParent() { return parent; }
+    public void changeType(EnvironmentType type, LocalDateTime now) {
+        environmentType = type;
+        updatedAt = now;
     }
 
     public String getAuthorizerGroup() {

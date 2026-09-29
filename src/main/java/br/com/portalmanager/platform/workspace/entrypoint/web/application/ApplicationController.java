@@ -5,12 +5,12 @@ import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationSummary;
 import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationCommandService;
 import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.request.CreateApplicationRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.request.UpdateApplicationRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.response.ApplicationResponse;
+import br.com.portalmanager.platform.workspace.entrypoint.web.application.response.ApplicationSummaryResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,8 +52,8 @@ public class ApplicationController {
 
     @GetMapping("/summary")
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
-    public List<ApplicationSummary> summary(@PathVariable String workspaceIdentifier) {
-        return query.summary(workspaceIdentifier);
+    public List<ApplicationSummaryResponse> summary(@PathVariable String workspaceIdentifier) {
+        return query.summary(workspaceIdentifier).stream().map(ApplicationSummaryResponse::from).toList();
     }
 
     @PutMapping("/{identifier}")

@@ -10,4 +10,6 @@ public class ResourceScopeTypeCode extends AbstractCatalogCode {
     private ResourceScopeTypeCode(String value) { super(value); }
 
     public static ResourceScopeTypeCode of(String value) { return new ResourceScopeTypeCode(value); }
+
+    public static ResourceScopeTypeCode of(ResourceScopeTypeEnum value) { return of(value.name()); }
 }
