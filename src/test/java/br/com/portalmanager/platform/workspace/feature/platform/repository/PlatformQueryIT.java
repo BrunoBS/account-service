@@ -31,10 +31,10 @@ class PlatformQueryIT {
                 """);
         jdbc.update("""
                 insert into platform_microservices
-                    (version, identifier, code, name, description, lifecycle_code, created_at, updated_at)
+                    (version, identifier, code, name, description, settings, lifecycle_code, created_at, updated_at)
                 values
                     (0, '11111111-1111-1111-1111-111111111111', 'audit-service',
-                     'Audit Service', 'Audit owner', 'ACTIVE', now(), now())
+                     'Audit Service', 'Audit owner', '{}', 'ACTIVE', now(), now())
                 """);
         jdbc.update("""
                 insert into platform_features

@@ -56,12 +56,14 @@ class PlatformApiIT {
                 .body(Map.of(
                         "code", "portal-manager",
                         "name", "Portal Manager",
-                        "description", "Portal owner"
+                        "description", "Portal owner",
+                        "settings", Map.of()
                 ))
                 .post("/api/v1/platform/microservices")
                 .then()
                 .statusCode(201)
                 .body("name", equalTo("Portal Manager"))
+                .body("settings", equalTo(Map.of()))
                 .extract()
                 .path("identifier");
 
@@ -86,12 +88,13 @@ class PlatformApiIT {
                         "name", "Application",
                         "description", "Application feature",
                         "microserviceIdentifier", microserviceIdentifier,
-                        "settings", "{}"
+                        "settings", Map.of()
                 ))
                 .post("/api/v1/platform/features")
                 .then()
                 .statusCode(201)
                 .body("microserviceCode", equalTo("portal-manager"))
+                .body("settings", equalTo(Map.of()))
                 .extract()
                 .path("identifier");
 
@@ -141,7 +144,7 @@ class PlatformApiIT {
     void rejectsMalformedFeatureSettingsBeforePersistence() {
         String microserviceIdentifier = authorized().contentType(ContentType.JSON)
                 .body(Map.of("code", "settings-service", "name", "Settings Service",
-                        "description", "Schema validation test"))
+                        "description", "Schema validation test", "settings", Map.of()))
                 .post("/api/v1/platform/microservices").then().statusCode(201)
                 .extract().path("identifier");
         authorized().contentType(ContentType.JSON)

@@ -9,6 +9,7 @@ public final class PublisherMessageKeys {
     public static final String NAME_INVALID = "publisher.name.invalid";
     public static final String DESCRIPTION_INVALID = "publisher.description.invalid";
     public static final String SCOPE_INVALID = "publisher.scope.invalid";
+    public static final String SETTINGS_INVALID = "platform.settings.required";
     public static final String VERSION_REQUIRED = "publisher.version.required";
     private PublisherMessageKeys() {}
 }

@@ -11,12 +11,12 @@ public class PublisherNormalizer {
     public CreatePublisherInput normalize(CreatePublisherInput input) {
         if (input == null) return null;
         return new CreatePublisherInput(code(input.code()), trim(input.name()), trim(input.description()),
-                code(input.scope()), input.deprecated());
+                code(input.scope()), input.deprecated(), input.settings());
     }
     public UpdatePublisherInput normalize(UpdatePublisherInput input) {
         if (input == null) return null;
         return new UpdatePublisherInput(input.version(), trim(input.name()), trim(input.description()),
-                code(input.scope()), input.deprecated());
+                code(input.scope()), input.deprecated(), input.settings());
     }
     public String normalizeScope(String scope) { return code(scope); }
     private String code(String value) { return value == null ? null : value.trim().toUpperCase(Locale.ROOT); }

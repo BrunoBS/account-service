@@ -32,7 +32,9 @@ public class MicroserviceCommandService {
     public MicroserviceOutput create(CreateMicroserviceInput input) {
         validator.validateCreate(input, input != null && repository.existsByCode(input.code()),
                 input != null && repository.existsByName(input.name()));
-        return MicroserviceOutput.from(repository.save(new Microservice(input.code(), input.name(), input.description(), now())));
+        validator.validateSettings(input.code(), input.settings());
+        return MicroserviceOutput.from(repository.save(new Microservice(
+                input.code(), input.name(), input.description(), input.settings(), now())));
     }
 
     @Transactional
@@ -40,37 +42,14 @@ public class MicroserviceCommandService {
         Microservice microservice = required(identifier);
         validator.validateUpdate(input, input != null && !microservice.getName().equals(input.name())
                 && repository.existsByName(input.name()));
-        microservice.update(input.name(), input.description(), now());
+        validator.validateSettings(microservice.getCode(), input.settings());
+        microservice.update(input.name(), input.description(), input.settings(), now());
         return MicroserviceOutput.from(microservice);
     }
 
-    @Transactional
-    public MicroserviceOutput activate(String identifier) {
-        Microservice microservice = required(identifier);
-        microservice.activate(now());
-        return MicroserviceOutput.from(microservice);
-    }
-
-    @Transactional
-    public MicroserviceOutput inactivate(String identifier) {
-        Microservice microservice = required(identifier);
-        microservice.inactivate(now());
-        return MicroserviceOutput.from(microservice);
-    }
-
-    @Transactional
-    public MicroserviceOutput delete(String identifier) {
-        Microservice microservice = required(identifier);
-        validator.validateDelete(microservice);
-        microservice.quarantine(now());
-        return MicroserviceOutput.from(microservice);
-    }
-
-    private Microservice required(String identifier) {
-        return repository.findByIdentifier(identifier).orElseThrow(() -> new NotFoundException(PlatformMessageKeys.MICROSERVICE_NOT_FOUND));
-    }
-
-    private LocalDateTime now() {
-        return LocalDateTime.now();
-    }
+    @Transactional public MicroserviceOutput activate(String identifier) { Microservice m = required(identifier); m.activate(now()); return MicroserviceOutput.from(m); }
+    @Transactional public MicroserviceOutput inactivate(String identifier) { Microservice m = required(identifier); m.inactivate(now()); return MicroserviceOutput.from(m); }
+    @Transactional public MicroserviceOutput delete(String identifier) { Microservice m = required(identifier); validator.validateDelete(m); m.quarantine(now()); return MicroserviceOutput.from(m); }
+    private Microservice required(String identifier) { return repository.findByIdentifier(identifier).orElseThrow(() -> new NotFoundException(PlatformMessageKeys.MICROSERVICE_NOT_FOUND)); }
+    private LocalDateTime now() { return LocalDateTime.now(); }
 }
