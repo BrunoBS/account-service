@@ -5,27 +5,10 @@ import jakarta.persistence.Embeddable;
 
 @Embeddable
 public class SchemaScopeTypeCode extends AbstractCatalogCode {
-
-    protected SchemaScopeTypeCode() {
-    }
-
-    private SchemaScopeTypeCode(String value) {
-        super(value);
-    }
-
-    public static SchemaScopeTypeCode of(String value) {
-        return new SchemaScopeTypeCode(value);
-    }
-
-    public static SchemaScopeTypeCode of(SchemaScopeTypeEnum value) {
-        return of(value.name());
-    }
-
-    public static SchemaScopeTypeCode platform() {
-        return of(SchemaScopeTypeEnum.PLATFORM);
-    }
-
-    public static SchemaScopeTypeCode workspace() {
-        return of(SchemaScopeTypeEnum.WORKSPACE);
-    }
+    protected SchemaScopeTypeCode() {}
+    private SchemaScopeTypeCode(String value) { super(value); }
+    public static SchemaScopeTypeCode of(String value) { return of(requireEnumValue(value, SchemaScopeTypeEnum.class)); }
+    public static SchemaScopeTypeCode of(SchemaScopeTypeEnum value) { return new SchemaScopeTypeCode(value == null ? null : value.name()); }
+    public static SchemaScopeTypeCode platform() { return of(SchemaScopeTypeEnum.PLATFORM); }
+    public static SchemaScopeTypeCode workspace() { return of(SchemaScopeTypeEnum.WORKSPACE); }
 }
