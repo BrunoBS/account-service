@@ -156,7 +156,7 @@ class ApplicationApiIT {
 
     @Test
     void enforcesApplicationAuthorizationLevelsAndResourceVisibility() {
-        String workspace = createWorkspace("MANAGER");
+        String workspace = createWorkspace("MANAGER", "PARENT_A");
         String path = "/api/v1/workspaces/" + workspace + "/applications";
         Map<String, Object> teamA = request("Team A Application");
         teamA.put("authorizerGroup", "TEAM_A");
@@ -168,6 +168,7 @@ class ApplicationApiIT {
 
         authorization.reset();
         authorization.allow(session -> session.groups("USER")
+                .addAuthorizerGroup("GRP_WORKSPACE_DEV_PARENT_A", "DEV", "DEV", "PARENT_A")
                 .addAuthorizerGroup("GRP_APPLICATION_DEV_TEAM_A", "DEV", "DEV", "A-TEAM_A"));
         Integer version = get(path + "/" + appA).statusCode(200).extract().path("version");
         authorization.verifyCalledWithPolicy("DEV");
@@ -206,7 +207,7 @@ class ApplicationApiIT {
         authorization.reset();
         authorization.allow(session -> session.groups("USER")
                 .addAuthorizerGroup("GRP_WORKSPACE_ADM_OTHER", "ADM", "ADM", "OTHER"));
-        post(path, request("Outside Workspace")).statusCode(403).body("code", equalTo("AUTH-403-004"));
+        post(path, request("Outside Workspace")).statusCode(404).body("code", equalTo("WORKSPACE-0001"));
         authorization.verifyCalledWithPolicy("ADM");
 
         authorization.reset();
