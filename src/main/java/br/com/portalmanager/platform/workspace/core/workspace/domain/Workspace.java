@@ -1,5 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.workspace.domain;
 
+import br.com.portalmanager.platform.library.authorization.annotation.AuthorizerGroup;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import jakarta.persistence.*;
@@ -37,6 +38,7 @@ public class Workspace {
     private String acronym;
     @Column(name = "settings", columnDefinition = "TEXT")
     private String settings;
+    @AuthorizerGroup
     @Column(name = "authorizer_group", length = 255)
     private String authorizerGroup;
     @Column(name = "email_group", nullable = false, length = 320)

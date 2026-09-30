@@ -104,8 +104,8 @@ class WorkspaceAuthorizationIT {
                 .body("identifier", containsInAnyOrder(teamA));
 
         get("/api/v1/workspaces/" + teamB)
-                .statusCode(403)
-                .body("code", equalTo("AUTH-403-004"));
+                .statusCode(404)
+                .body("code", equalTo("WORKSPACE-0001"));
 
         allowOwner();
         get("/api/v1/workspaces/" + teamB)
