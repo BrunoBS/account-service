@@ -54,6 +54,10 @@
         </dependency>
         <dependency>
             <groupId>br.com.portalmanager.platform.library</groupId>
+            <artifactId>platform-schema-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>br.com.portalmanager.platform.library</groupId>
             <artifactId>platform-tagging</artifactId>
         </dependency>
         <dependency>

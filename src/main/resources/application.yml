@@ -44,6 +44,12 @@ platform:
       view-name: vw_platform_messages
     cache:
       enabled: false
+  schema-validation:
+    enabled: true
+    fallback-code: DEFAULT
+    datasource:
+      enabled: true
+      view-name: vw_platform_resource_schemas
   audit:
     enabled: ${AUDIT_ENABLED:false}
     service-url: ${AUDIT_SERVICE_URL:}
