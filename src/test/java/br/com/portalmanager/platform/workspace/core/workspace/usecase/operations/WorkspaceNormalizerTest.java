@@ -22,7 +22,7 @@ class WorkspaceNormalizerTest {
                 "  requester  ",
                 " ABC ",
                 "   ",
-                "{\\\"feature\\\":true}",
+                "{}",
                 " group@portalmanager.com ",
                 List.of(new ApproverInput(
                         " F1234 ",
