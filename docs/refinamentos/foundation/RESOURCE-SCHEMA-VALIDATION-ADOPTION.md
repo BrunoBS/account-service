@@ -161,11 +161,9 @@ e não caminhos artificiais como:
 .tags
 ```
 
-## Próxima evolução: annotation declarativa
+## Annotation declarativa implementada
 
-O padrão atual ainda chama o validator explicitamente no controller.
-
-Objetivo da próxima evolução:
+O padrão HTTP usa annotation declarativa no controller:
 
 ```java
 @ValidateResourceSchema(
@@ -180,15 +178,16 @@ public ResponseEntity<ApplicationResponse> create(
 }
 ```
 
-A infraestrutura web deverá:
+A infraestrutura web:
 
-1. detectar a annotation;
-2. obter o body bruto antes da desserialização final;
-3. resolver `resourceType/resourceCode`;
-4. validar pelo `ResourceSchemaValidator`;
-5. somente então permitir a execução do controller.
+1. detecta a annotation;
+2. obtém o body bruto em `RequestBodyAdvice.beforeBodyRead`;
+3. resolve `resourceType/resourceCode`;
+4. valida pelo `ResourceSchemaValidator`;
+5. repõe os mesmos bytes para a desserialização normal do Request DTO;
+6. somente então permite a execução do controller.
 
-A annotation deve apenas declarar metadados. A regra de resolução e validação continua concentrada no Foundation/Schema.
+A annotation declara apenas metadados. A resolução e a validação continuam concentradas no Foundation/Schema; o adapter HTTP fica no entrypoint.
 
 ## Critérios para considerar um recurso migrado
 
