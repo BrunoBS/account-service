@@ -63,12 +63,13 @@ public class ApplicationCommandService {
     public ApplicationOutput update(String workspaceIdentifier, String identifier, UpdateApplicationInput raw) {
         visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findActive(identifier, workspaceId);
+        Application app = finder.findByIdentifier(identifier, workspaceId);
+        ApplicationValidator.requireActive(app);
         UpdateApplicationInput input = normalizer.normalize(raw);
         boolean duplicate = input != null && input.name() != null &&
                 repository.existsByWorkspaceIdAndNameAndIdNot(workspaceId, input.name(), app.getId());
         validator.validateForUpdate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
-        validator.requireVersion(app.getVersion(), input.version());
+        ApplicationValidator.requireVersion(app.getVersion(), input.version());
         app.update(input.name(), input.alias(), input.acronym(), ApplicationScopeTypeCode.of(input.applicationScope()),
                 input.authorizerGroup(), input.settings(), LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
@@ -89,7 +90,8 @@ public class ApplicationCommandService {
     public ApplicationOutput restore(String workspaceIdentifier, String identifier) {
         visibility.findInactiveByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findInactive(identifier, workspaceId);
+        Application app = finder.findByIdentifier(identifier, workspaceId);
+        ApplicationValidator.requireRestorable(app);
         List<String> manualTags = tags.findManual(app);
         app.restore(LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
@@ -101,7 +103,8 @@ public class ApplicationCommandService {
     public void delete(String workspaceIdentifier, String identifier) {
         visibility.findInactiveForDeletion(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findInactiveForDeletion(identifier, workspaceId);
+        Application app = finder.findByIdentifier(identifier, workspaceId);
+        ApplicationValidator.requireDeletable(app);
         app.quarantine(LocalDateTime.now());
         repository.saveAndFlush(app);
     }
