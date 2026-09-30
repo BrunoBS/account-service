@@ -31,7 +31,7 @@ public class ApplicationQueryService {
         this.normalizer = normalizer;
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Application.class)
     @Transactional(readOnly = true)
     public ApplicationOutput findByIdentifier(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -39,7 +39,7 @@ public class ApplicationQueryService {
         return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Application.class)
     @Transactional(readOnly = true)
     public ApplicationOutput findInactiveByIdentifier(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -47,7 +47,7 @@ public class ApplicationQueryService {
         return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Application.class)
     @Transactional(readOnly = true)
     public ApplicationOutput findInactiveForDeletion(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -55,7 +55,7 @@ public class ApplicationQueryService {
         return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Application.class)
     @Transactional(readOnly = true)
     public List<ApplicationOutput> findAll(String workspaceIdentifier, Boolean active, String tagName) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -73,7 +73,7 @@ public class ApplicationQueryService {
                 manual.getOrDefault(app.getIdentifier(), List.of()))).toList();
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Application.class)
     @Transactional(readOnly = true)
     public List<ApplicationSummary> summary(String workspaceIdentifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
