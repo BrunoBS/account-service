@@ -11,7 +11,7 @@ import br.com.portalmanager.platform.workspace.entrypoint.web.application.reques
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.request.UpdateApplicationRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.response.ApplicationResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.response.ApplicationSummaryResponse;
-import br.com.portalmanager.platform.workspace.foundation.schema.web.annotation.ValidateResourceSchema;
+import br.com.portalmanager.platform.workspace.entrypoint.web.support.schema.ValidateResourceSchema;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
