@@ -25,7 +25,7 @@ public class WorkspaceNormalizer {
                 trim(input.description()),
                 trim(input.requester()),
                 trim(input.acronym()),
-                trimOptional(input.authorizerGroup()),
+                normalizeAuthorizerGroup(input.authorizerGroup()),
                 input.settings(),
                 trim(input.emailGroup()),
                 normalizeApprovers(input.approvers()),
@@ -45,7 +45,7 @@ public class WorkspaceNormalizer {
                 trim(input.description()),
                 trim(input.requester()),
                 trim(input.acronym()),
-                trimOptional(input.authorizerGroup()),
+                normalizeAuthorizerGroup(input.authorizerGroup()),
                 input.settings(),
                 trim(input.emailGroup()),
                 normalizeApprovers(input.approvers()),
@@ -122,6 +122,11 @@ public class WorkspaceNormalizer {
     }
 
     private String normalizeType(String value) {
+        String normalized = trimOptional(value);
+        return normalized == null ? null : normalized.toUpperCase(Locale.ROOT);
+    }
+
+    private String normalizeAuthorizerGroup(String value) {
         String normalized = trimOptional(value);
         return normalized == null ? null : normalized.toUpperCase(Locale.ROOT);
     }

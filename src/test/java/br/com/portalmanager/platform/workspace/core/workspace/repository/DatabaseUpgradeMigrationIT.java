@@ -42,7 +42,7 @@ class DatabaseUpgradeMigrationIT {
                             created_at, updated_at
                         ) values (
                             100, 3, ?, 'ADMIN', 'Legacy Workspace', 'Descrição persistida antes da V3',
-                            'legacy-requester', 'LEG', '{"legacy":true}', 'TEAM_LEGACY',
+                            'legacy-requester', 'LEG', '{"legacy":true}', ' team_legacy ',
                             'legacy@portalmanager.com', true, 'INACTIVE', now(6), now(6)
                         )
                         """,
@@ -94,6 +94,13 @@ class DatabaseUpgradeMigrationIT {
         )).isEqualTo("INACTIVE");
 
         assertThat(jdbc.queryForObject(
+                "select authorizer_group from workspaces where id = 100",
+                String.class
+        )).isEqualTo("TEAM_LEGACY");
+
+        assertThat(indexCount(jdbc, "workspaces", "idx_workspaces_authorizer_group")).isEqualTo(1);
+
+        assertThat(jdbc.queryForObject(
                 "select workspace_id from workspace_approvers where id = 'approver-before-v3'",
                 Long.class
         )).isEqualTo(100L);
@@ -126,6 +133,21 @@ class DatabaseUpgradeMigrationIT {
                         """,
                 Integer.class,
                 tableName
+        );
+    }
+
+    private Integer indexCount(JdbcTemplate jdbc, String tableName, String indexName) {
+        return jdbc.queryForObject(
+                """
+                        select count(*)
+                          from information_schema.statistics
+                         where table_schema = database()
+                           and table_name = ?
+                           and index_name = ?
+                        """,
+                Integer.class,
+                tableName,
+                indexName
         );
     }
 }

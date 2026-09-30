@@ -34,6 +34,7 @@ class DatabaseMigrationIT {
         assertThat(tableCount("workspaces")).isEqualTo(1);
         assertThat(tableCount("workspace_approvers")).isEqualTo(1);
         assertThat(tableCount("tags")).isEqualTo(1);
+        assertThat(indexCount("workspaces", "idx_workspaces_authorizer_group")).isEqualTo(1);
     }
 
     private Integer tableCount(String tableName) {
@@ -46,6 +47,21 @@ class DatabaseMigrationIT {
                         """,
                 Integer.class,
                 tableName
+        );
+    }
+
+    private Integer indexCount(String tableName, String indexName) {
+        return jdbcTemplate.queryForObject(
+                """
+                        select count(*)
+                          from information_schema.statistics
+                         where table_schema = database()
+                           and table_name = ?
+                           and index_name = ?
+                        """,
+                Integer.class,
+                tableName,
+                indexName
         );
     }
 }

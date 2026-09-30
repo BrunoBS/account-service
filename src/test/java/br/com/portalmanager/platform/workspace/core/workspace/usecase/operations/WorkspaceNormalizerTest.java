@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.core.workspace.usecase.operation
 
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -21,7 +22,7 @@ class WorkspaceNormalizerTest {
                 "  requester  ",
                 " ABC ",
                 "   ",
-                "{\"feature\":true}",
+                "{"feature":true}",
                 " group@portalmanager.com ",
                 List.of(new ApproverInput(
                         " F1234 ",
@@ -41,6 +42,43 @@ class WorkspaceNormalizerTest {
                 new ApproverInput("F1234", "approver@portalmanager.com")
         );
         assertThat(normalized.tags()).containsExactly(" Manual Tag ");
+    }
+
+    @Test
+    void shouldNormalizeAuthorizerGroupToUppercaseOnCreate() {
+        var normalized = normalizer.normalize(new CreateWorkspaceInput(
+                "MANAGER",
+                "Workspace",
+                "Descrição",
+                "requester",
+                "ABC",
+                "  bbs-app  ",
+                "{}",
+                "group@portalmanager.com",
+                List.of(),
+                List.of()
+        ));
+
+        assertThat(normalized.authorizerGroup()).isEqualTo("BBS-APP");
+    }
+
+    @Test
+    void shouldNormalizeAuthorizerGroupToUppercaseOnUpdate() {
+        var normalized = normalizer.normalize(new UpdateWorkspaceInput(
+                1L,
+                "MANAGER",
+                "Workspace",
+                "Descrição",
+                "requester",
+                "ABC",
+                "  catalog-team  ",
+                "{}",
+                "group@portalmanager.com",
+                List.of(),
+                List.of()
+        ));
+
+        assertThat(normalized.authorizerGroup()).isEqualTo("CATALOG-TEAM");
     }
 
     @Test
