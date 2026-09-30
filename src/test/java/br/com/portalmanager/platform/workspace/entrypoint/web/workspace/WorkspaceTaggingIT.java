@@ -4,6 +4,7 @@ import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrat
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,7 @@ class WorkspaceTaggingIT {
 
     @BeforeEach
     void authorizeAsOwner() {
+        SchemaDefaultFixture.seed(jdbcTemplate);
         seedWorkspaceTypes();
         seedLifecycleTypes();
         authorizationMock.reset();
@@ -131,7 +133,7 @@ class WorkspaceTaggingIT {
         request.put("requester", "requester");
         request.put("acronym", acronym);
         request.put("authorizerGroup", authorizerGroup);
-        request.put("settings", "{\"feature\":true}");
+        request.put("settings", Map.of("feature", true));
         request.put("emailGroup", "workspace@portalmanager.com");
         request.put("approvers", List.of(Map.of(
                 "functional", "F1000",
