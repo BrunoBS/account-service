@@ -1,6 +1,5 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.model;
 
-import br.com.portalmanager.platform.library.authorization.resource.AuthorizableResource;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 
 import java.time.LocalDateTime;
@@ -24,7 +23,7 @@ public record WorkspaceOutput(
         LocalDateTime updatedAt,
         List<ApproverOutput> approvers,
         List<String> tags
-) implements AuthorizableResource {
+) {
 
     public static WorkspaceOutput from(Workspace workspace, List<String> manualTags) {
         List<ApproverOutput> approvers = workspace.getApprovers().stream()
@@ -51,10 +50,5 @@ public record WorkspaceOutput(
                 approvers,
                 manualTags == null ? List.of() : List.copyOf(manualTags)
         );
-    }
-
-    @Override
-    public String getAuthorizerGroup() {
-        return authorizerGroup;
     }
 }

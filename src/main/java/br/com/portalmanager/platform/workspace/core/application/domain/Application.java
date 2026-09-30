@@ -1,5 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.application.domain;
 
+import br.com.portalmanager.platform.library.authorization.annotation.AuthorizerGroup;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
@@ -28,6 +29,7 @@ public class Application {
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "application_scope_code", nullable = false, length = 50))
     private ApplicationScopeTypeCode applicationScope;
+    @AuthorizerGroup
     @Column(name = "authorizer_group", length = 255)
     private String authorizerGroup;
     @Column(name = "settings", columnDefinition = "TEXT", nullable = false)

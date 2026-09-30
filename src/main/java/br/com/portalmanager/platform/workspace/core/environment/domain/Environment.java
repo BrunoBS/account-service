@@ -1,5 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.environment.domain;
 
+import br.com.portalmanager.platform.library.authorization.annotation.AuthorizerGroup;
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
@@ -41,6 +42,7 @@ public class Environment {
     @JoinColumn(name = "parent_environment_id")
     private Environment parent;
 
+    @AuthorizerGroup
     @Column(name = "authorizer_group", length = 255)
     private String authorizerGroup;
 
