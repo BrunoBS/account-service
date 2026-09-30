@@ -1,5 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.application.usecase.operations;
 
+import br.com.portalmanager.platform.library.authorization.annotation.ResourceVisibility;
 import br.com.portalmanager.platform.library.tagging.TagManager;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationSystemTags;
@@ -26,21 +27,19 @@ public class ApplicationCommandService {
     private final ApplicationNormalizer normalizer;
     private final ApplicationValidator validator;
     private final TagManager<ApplicationTag, Application, Long, String> tags;
-    private final ApplicationQueryService visibility;
     private final WorkspaceQueryService workspaceVisibility;
 
     public ApplicationCommandService(ApplicationRepository repository, ApplicationFinder finder,
                                      WorkspaceReferenceResolver workspaces, ApplicationNormalizer normalizer,
                                      ApplicationValidator validator,
                                      TagManager<ApplicationTag, Application, Long, String> tags,
-                                     ApplicationQueryService visibility, WorkspaceQueryService workspaceVisibility) {
+                                     WorkspaceQueryService workspaceVisibility) {
         this.repository = repository;
         this.finder = finder;
         this.workspaces = workspaces;
         this.normalizer = normalizer;
         this.validator = validator;
         this.tags = tags;
-        this.visibility = visibility;
         this.workspaceVisibility = workspaceVisibility;
     }
 
@@ -59,9 +58,9 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
+    @ResourceVisibility(Application.class)
     @Transactional
     public ApplicationOutput update(String workspaceIdentifier, String identifier, UpdateApplicationInput raw) {
-        visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findByIdentifier(identifier, workspaceId);
         ApplicationValidator.requireActive(app);
@@ -77,9 +76,9 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
+    @ResourceVisibility(Application.class)
     @Transactional
     public void inactivate(String workspaceIdentifier, String identifier) {
-        visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findByIdentifier(identifier, workspaceId);
         ApplicationValidator.requireActive(app);
@@ -87,9 +86,9 @@ public class ApplicationCommandService {
         repository.saveAndFlush(app);
     }
 
+    @ResourceVisibility(Application.class)
     @Transactional
     public ApplicationOutput restore(String workspaceIdentifier, String identifier) {
-        visibility.findInactiveByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findByIdentifier(identifier, workspaceId);
         ApplicationValidator.requireRestorable(app);
@@ -100,9 +99,9 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
+    @ResourceVisibility(Application.class)
     @Transactional
     public void delete(String workspaceIdentifier, String identifier) {
-        visibility.findInactiveForDeletion(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findByIdentifier(identifier, workspaceId);
         ApplicationValidator.requireDeletable(app);
