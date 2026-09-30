@@ -17,11 +17,19 @@ Essa distinção se perde quando o payload é convertido primeiro para um DTO Ja
 ```text
 HTTP JSON bruto
     ↓
+@ValidateResourceSchema
+    ↓
+platform-schema-validation
+    ↓
+ResourceSchemaRequestBodyAdvice
+    ↓
 ResourceSchemaValidator
     ↓
-SchemaResolutionPort
+ResourceSchemaResolver
     ↓
-schema_configuration
+ResourceSchemaRepository
+    ↓
+vw_platform_resource_schemas
     ↓
 Schema ativo + última versão PUBLISHED
     ↓
@@ -118,30 +126,29 @@ status       = PUBLISHED
 
 A migration `V34__application_resource_schema.sql` publica o contrato estrutural da Application e cria seu vínculo em `schema_configuration`.
 
-O controller valida o `JsonNode` recebido antes de convertê-lo para `CreateApplicationRequest` ou `UpdateApplicationRequest`.
+O controller continua recebendo `CreateApplicationRequest` ou `UpdateApplicationRequest` normalmente. A validação ocorre antes da desserialização por meio de `@ValidateResourceSchema` e do `ResourceSchemaRequestBodyAdvice` fornecidos pelo módulo `platform-schema-validation`.
 
 Depois da validação estrutural, o fluxo segue normalmente para Request → Input → normalização → regras contextuais.
 
 ## Implementação compartilhada
 
-O ponto comum é:
+A implementação transversal pertence ao módulo `platform-schema-validation` da `platform-libraries`. O serviço consumidor declara apenas o binding no endpoint:
 
 ```java
-resourceSchemaValidator.validate(
-    resourceType,
-    resourceCode,
-    payload
-);
+@ValidateResourceSchema(type = "APPLICATION", code = "application")
 ```
 
-O `ResourceSchemaValidator`:
+O módulo compartilhado:
 
-1. resolve o schema publicado para o par `resourceType/resourceCode`;
-2. valida o `JsonNode` original;
-3. acumula os erros em `ValidationResult`;
-4. lança `ValidationException` quando houver falha.
+1. intercepta o body bruto antes da desserialização;
+2. resolve o schema publicado para o par `resourceType/resourceCode`;
+3. consulta o contrato de leitura `vw_platform_resource_schemas` via JDBC;
+4. aplica fallback para o código `DEFAULT` quando configurado;
+5. valida o JSON original;
+6. lança `ValidationException` quando houver falha;
+7. devolve os mesmos bytes ao fluxo normal do Spring MVC.
 
-Ele não conhece Application, Workspace, Environment ou qualquer outro domínio.
+A implementação compartilhada não conhece Application, Workspace, Environment ou qualquer outro domínio. O serviço mantém somente a configuração, a annotation no controller e a view pública que materializa o contrato de leitura.
 
 ## Decisões removidas pela evolução
 
@@ -189,6 +196,6 @@ Cada recurso que adotar esse padrão deve possuir cobertura para:
 
 A validação HTTP é declarada no método do controller com `@ValidateResourceSchema`.
 
-O `ResourceSchemaRequestBodyAdvice`, localizado no entrypoint web, lê o body bruto antes da desserialização, valida o `JsonNode` pelo `ResourceSchemaValidator` e devolve os mesmos bytes ao `HttpMessageConverter`. Assim o controller continua recebendo seu Request DTO normal e a distinção entre campo ausente e `null` explícito é preservada.
+O `ResourceSchemaRequestBodyAdvice`, fornecido pelo módulo `platform-schema-validation`, lê o body bruto antes da desserialização, valida o `JsonNode` pelo `ResourceSchemaValidator` e devolve os mesmos bytes ao `HttpMessageConverter`. Assim o controller continua recebendo seu Request DTO normal e a distinção entre campo ausente e `null` explícito é preservada.
 
 O conceito não fica preso ao REST. Um consumer de evento, batch ou mensageria pode usar o mesmo `ResourceSchemaValidator` desde que forneça um `JsonNode` representando o payload recebido.
