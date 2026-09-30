@@ -81,7 +81,8 @@ public class ApplicationCommandService {
     public void inactivate(String workspaceIdentifier, String identifier) {
         visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findActive(identifier, workspaceId);
+        Application app = finder.findByIdentifier(identifier, workspaceId);
+        ApplicationValidator.requireActive(app);
         app.inactivate(LocalDateTime.now());
         repository.saveAndFlush(app);
     }
