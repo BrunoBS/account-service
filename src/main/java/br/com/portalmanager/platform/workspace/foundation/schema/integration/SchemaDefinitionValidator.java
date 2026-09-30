@@ -124,7 +124,7 @@ public class SchemaDefinitionValidator {
             return attributeName;
         }
 
-        StringBuilder field = new StringBuilder(attributeName);
+        StringBuilder field = new StringBuilder(attributeName == null ? "" : attributeName);
         for (String token : instanceLocation.split("/")) {
             if (token.isBlank()) continue;
 
@@ -132,7 +132,10 @@ public class SchemaDefinitionValidator {
             if (decodedToken.chars().allMatch(Character::isDigit)) {
                 field.append('[').append(decodedToken).append(']');
             } else {
-                field.append('.').append(decodedToken);
+                if (!field.isEmpty()) {
+                    field.append('.');
+                }
+                field.append(decodedToken);
             }
         }
         return field.toString();
