@@ -101,7 +101,7 @@ class ApplicationApiIT {
         String path = "/api/v1/workspaces/" + workspace + "/applications";
         Map<String, Object> create = request("Application Original");
         create.put("authorizerGroup", "TEAM_A");
-        create.put("tags", List.of("  Minha   Tag  ", "minha\tTag", "OUTRA TAG"));
+        create.put("tags", List.of("minha-tag", "outra-tag"));
         var created = post(path, create).statusCode(201)
                 .body("tags", containsInAnyOrder("minha-tag", "outra-tag"))
                 .body("authorizerGroup", equalTo("A-TEAM_A"))
@@ -120,7 +120,7 @@ class ApplicationApiIT {
         Map<String, Object> update = request("Application Updated");
         update.put("version", version);
         update.put("authorizerGroup", "TEAM_B");
-        update.put("tags", List.of("Minha Tag"));
+        update.put("tags", List.of("minha-tag"));
         put(path + "/" + app, update).statusCode(200).body("tags", contains("minha-tag"));
         getByTag(path, "Application Original").statusCode(200).body("identifier", not(hasItem(app)));
         getByTag(path, "A-TEAM_A").statusCode(200).body("identifier", not(hasItem(app)));
@@ -133,8 +133,30 @@ class ApplicationApiIT {
     }
 
     @Test
-    void enforcesApplicationAuthorizationLevelsAndResourceVisibility() {
+    void rejectsInvalidApplicationResourceStructure() {
         String workspace = createWorkspace("MANAGER");
+        String path = "/api/v1/workspaces/" + workspace + "/applications";
+
+        Map<String, Object> duplicateTags = request("Duplicate Tags");
+        duplicateTags.put("tags", List.of("managed", "managed"));
+        post(path, duplicateTags).statusCode(400);
+
+        Map<String, Object> invalidTag = request("Invalid Tag");
+        invalidTag.put("tags", List.of("Managed"));
+        post(path, invalidTag).statusCode(400);
+
+        Map<String, Object> invalidSettings = request("Invalid Settings");
+        invalidSettings.put("settings", "not-json-object");
+        post(path, invalidSettings).statusCode(400);
+
+        Map<String, Object> missingRequired = request("Missing Alias");
+        missingRequired.remove("alias");
+        post(path, missingRequired).statusCode(400);
+    }
+
+    @Test
+    void enforcesApplicationAuthorizationLevelsAndResourceVisibility() {
+        String workspace = createWorkspace("MANAGER", "PARENT_A");
         String path = "/api/v1/workspaces/" + workspace + "/applications";
         Map<String, Object> teamA = request("Team A Application");
         teamA.put("authorizerGroup", "TEAM_A");
@@ -146,10 +168,11 @@ class ApplicationApiIT {
 
         authorization.reset();
         authorization.allow(session -> session.groups("USER")
+                .addAuthorizerGroup("GRP_WORKSPACE_DEV_PARENT_A", "DEV", "DEV", "PARENT_A")
                 .addAuthorizerGroup("GRP_APPLICATION_DEV_TEAM_A", "DEV", "DEV", "A-TEAM_A"));
         Integer version = get(path + "/" + appA).statusCode(200).extract().path("version");
         authorization.verifyCalledWithPolicy("DEV");
-        get(path + "/" + appB).statusCode(403).body("code", equalTo("AUTH-403-004"));
+        get(path + "/" + appB).statusCode(404).body("code", equalTo("APPLICATION-0001"));
         get(path).statusCode(200).body("identifier", hasItem(appA)).body("identifier", not(hasItem(appB)));
         get(path + "/summary").statusCode(200).body("identifier", hasItem(appA)).body("identifier", not(hasItem(appB)));
 
@@ -161,7 +184,7 @@ class ApplicationApiIT {
         Map<String, Object> otherUpdate = request("Team B Changed Without Access");
         otherUpdate.put("authorizerGroup", "TEAM_B");
         otherUpdate.put("version", versionB);
-        put(path + "/" + appB, otherUpdate).statusCode(403).body("code", equalTo("AUTH-403-004"));
+        put(path + "/" + appB, otherUpdate).statusCode(404).body("code", equalTo("APPLICATION-0001"));
 
         authorization.forbidden();
         post(path + "/" + appA + "/inactivate", null).statusCode(403);
@@ -170,6 +193,7 @@ class ApplicationApiIT {
 
         authorization.reset();
         authorization.allow(session -> session.groups("USER")
+                .addAuthorizerGroup("GRP_WORKSPACE_ADM_PARENT_A", "ADM", "ADM", "PARENT_A")
                 .addAuthorizerGroup("GRP_APPLICATION_ADM_TEAM_A", "ADM", "ADM", "A-TEAM_A"));
         post(path + "/" + appA + "/inactivate", null).statusCode(204);
         authorization.verifyCalledWithPolicy("ADM");
@@ -184,7 +208,7 @@ class ApplicationApiIT {
         authorization.reset();
         authorization.allow(session -> session.groups("USER")
                 .addAuthorizerGroup("GRP_WORKSPACE_ADM_OTHER", "ADM", "ADM", "OTHER"));
-        post(path, request("Outside Workspace")).statusCode(403).body("code", equalTo("AUTH-403-004"));
+        post(path, request("Outside Workspace")).statusCode(404).body("code", equalTo("WORKSPACE-0001"));
         authorization.verifyCalledWithPolicy("ADM");
 
         authorization.reset();
