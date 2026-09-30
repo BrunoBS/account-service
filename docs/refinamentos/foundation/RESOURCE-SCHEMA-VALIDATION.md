@@ -185,10 +185,10 @@ Cada recurso que adotar esse padrão deve possuir cobertura para:
 - regra contextual que continua em Java;
 - resolução do schema específico e fallback quando aplicável.
 
-## Limite atual e evolução
+## Adapter HTTP declarativo
 
-A primeira adoção é HTTP-oriented porque o payload bruto vem do controller.
+A validação HTTP é declarada no método do controller com `@ValidateResourceSchema`.
 
-O conceito, porém, não deve ficar preso ao REST. Um consumer de evento, batch ou mensageria pode usar o mesmo `ResourceSchemaValidator` desde que forneça um `JsonNode` representando o payload recebido.
+O `ResourceSchemaRequestBodyAdvice`, localizado no entrypoint web, lê o body bruto antes da desserialização, valida o `JsonNode` pelo `ResourceSchemaValidator` e devolve os mesmos bytes ao `HttpMessageConverter`. Assim o controller continua recebendo seu Request DTO normal e a distinção entre campo ausente e `null` explícito é preservada.
 
-A evolução desejada para reduzir repetição nos controllers é uma annotation declarativa que associe o endpoint a `resourceType/resourceCode` e execute a validação automaticamente na borda web.
+O conceito não fica preso ao REST. Um consumer de evento, batch ou mensageria pode usar o mesmo `ResourceSchemaValidator` desde que forneça um `JsonNode` representando o payload recebido.
