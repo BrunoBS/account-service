@@ -11,29 +11,45 @@ import br.com.portalmanager.platform.workspace.entrypoint.web.application.reques
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.request.UpdateApplicationRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.response.ApplicationResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.response.ApplicationSummaryResponse;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.ResourceSchemaValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/workspaces/{workspaceIdentifier}/applications")
 public class ApplicationController {
+    private static final String RESOURCE_TYPE = "APPLICATION";
+    private static final String RESOURCE_CODE = "application";
+
     private final ApplicationCommandService command;
     private final ApplicationQueryService query;
+    private final ResourceSchemaValidator resourceSchemaValidator;
+    private final ObjectMapper objectMapper;
 
-    public ApplicationController(ApplicationCommandService command, ApplicationQueryService query) {
+    public ApplicationController(ApplicationCommandService command,
+                                 ApplicationQueryService query,
+                                 ResourceSchemaValidator resourceSchemaValidator,
+                                 ObjectMapper objectMapper) {
         this.command = command;
         this.query = query;
+        this.resourceSchemaValidator = resourceSchemaValidator;
+        this.objectMapper = objectMapper;
     }
 
     @PostMapping
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(resource = "APPLICATION", action = "INSERT", resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier"))
     public ResponseEntity<ApplicationResponse> create(@PathVariable String workspaceIdentifier,
-                                                       @RequestBody CreateApplicationRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApplicationResponse.from(command.create(workspaceIdentifier, request.toInput())));
+                                                       @RequestBody JsonNode payload) {
+        resourceSchemaValidator.validate(RESOURCE_TYPE, RESOURCE_CODE, payload);
+        CreateApplicationRequest request = objectMapper.treeToValue(payload, CreateApplicationRequest.class);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApplicationResponse.from(command.create(workspaceIdentifier, request.toInput())));
     }
 
     @GetMapping("/{identifier}")
@@ -59,8 +75,11 @@ public class ApplicationController {
     @PutMapping("/{identifier}")
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
     @Auditable(resource = "APPLICATION", action = "UPDATE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
-    public ApplicationResponse update(@PathVariable String workspaceIdentifier, @PathVariable String identifier,
-                                      @RequestBody UpdateApplicationRequest request) {
+    public ApplicationResponse update(@PathVariable String workspaceIdentifier,
+                                      @PathVariable String identifier,
+                                      @RequestBody JsonNode payload) {
+        resourceSchemaValidator.validate(RESOURCE_TYPE, RESOURCE_CODE, payload);
+        UpdateApplicationRequest request = objectMapper.treeToValue(payload, UpdateApplicationRequest.class);
         return ApplicationResponse.from(command.update(workspaceIdentifier, identifier, request.toInput()));
     }
 
