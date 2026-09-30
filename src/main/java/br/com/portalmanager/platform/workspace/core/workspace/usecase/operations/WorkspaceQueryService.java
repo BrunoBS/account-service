@@ -40,14 +40,14 @@ public class WorkspaceQueryService {
         return finder.findActive(id).getIdentifier();
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Workspace.class)
     @Transactional(readOnly = true)
     public WorkspaceOutput findByIdentifier(String identifier) {
         Workspace workspace = finder.findActive(identifier);
         return WorkspaceOutput.from(workspace, tagManager.findManual(workspace));
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Workspace.class)
     @Transactional(readOnly = true)
     public List<WorkspaceOutput> findAll(FindAllWorkspacesInput input) {
         String lifecycleCode = input != null && Boolean.FALSE.equals(input.active())
