@@ -35,18 +35,23 @@ public class WorkspaceQueryService {
 
     @Transactional(readOnly = true)
     public Long findInternalIdByIdentifier(String identifier) {
-        return finder.findActive(identifier).getId();
+        Workspace workspace = finder.findByIdentifier(identifier);
+        WorkspaceValidator.requireActive(workspace);
+        return workspace.getId();
     }
 
     @Transactional(readOnly = true)
     public String findIdentifierByInternalId(Long id) {
-        return finder.findActive(id).getIdentifier();
+        Workspace workspace = finder.findById(id);
+        WorkspaceValidator.requireActive(workspace);
+        return workspace.getIdentifier();
     }
 
     @ResourceVisibility(Workspace.class)
     @Transactional(readOnly = true)
     public WorkspaceOutput findByIdentifier(String identifier) {
-        Workspace workspace = finder.findActive(identifier);
+        Workspace workspace = finder.findByIdentifier(identifier);
+        WorkspaceValidator.requireActive(workspace);
         return WorkspaceOutput.from(workspace, tags.findManual(workspace));
     }
 
