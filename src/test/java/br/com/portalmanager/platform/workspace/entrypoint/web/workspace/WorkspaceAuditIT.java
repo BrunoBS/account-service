@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrat
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,7 @@ class WorkspaceAuditIT {
 
     @BeforeEach
     void setUp() {
+        SchemaDefaultFixture.seed(jdbcTemplate);
         jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')");
         jdbcTemplate.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')");
         jdbcTemplate.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}')");
@@ -118,7 +120,7 @@ class WorkspaceAuditIT {
         request.put("requester", "requester");
         request.put("acronym", "AUD");
         request.put("authorizerGroup", "AUDIT_TEAM");
-        request.put("settings", "{\"feature\":true}");
+        request.put("settings", Map.of("feature", true));
         request.put("emailGroup", "workspace@portalmanager.com");
         request.put("approvers", List.of(Map.of(
                 "functional", "F1000",
