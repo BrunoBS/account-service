@@ -155,6 +155,34 @@ class ApplicationApiIT {
     }
 
     @Test
+    void distinguishesAbsentOptionalFieldsFromExplicitNull() {
+        String workspace = createWorkspace("MANAGER");
+        String path = "/api/v1/workspaces/" + workspace + "/applications";
+
+        Map<String, Object> absentOptional = request("Optional Fields Absent");
+        absentOptional.remove("tags");
+        post(path, absentOptional).statusCode(201);
+
+        Map<String, Object> nullAuthorizerGroup = request("Null Authorizer Group");
+        nullAuthorizerGroup.put("authorizerGroup", null);
+        post(path, nullAuthorizerGroup)
+                .statusCode(400)
+                .body("details.field", hasItem("authorizerGroup"));
+
+        Map<String, Object> nullSettings = request("Null Settings");
+        nullSettings.put("settings", null);
+        post(path, nullSettings)
+                .statusCode(400)
+                .body("details.field", hasItem("settings"));
+
+        Map<String, Object> nullTags = request("Null Tags");
+        nullTags.put("tags", null);
+        post(path, nullTags)
+                .statusCode(400)
+                .body("details.field", hasItem("tags"));
+    }
+
+    @Test
     void enforcesApplicationAuthorizationLevelsAndResourceVisibility() {
         String workspace = createWorkspace("MANAGER", "PARENT_A");
         String path = "/api/v1/workspaces/" + workspace + "/applications";
@@ -240,7 +268,7 @@ class ApplicationApiIT {
         value.put("name", name);
         value.put("alias", "portal");
         value.put("acronym", "APP");
-        value.put("applicationScope", " backend ");
+        value.put("applicationScope", "BACKEND");
         value.put("tags", List.of("managed"));
         return value;
     }
