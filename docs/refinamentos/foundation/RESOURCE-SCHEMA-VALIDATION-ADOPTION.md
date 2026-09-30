@@ -42,46 +42,40 @@ Associar:
 
 O vínculo deve estar ativo e o Schema deve possuir versão PUBLISHED.
 
-### 4. Validar o payload bruto no entrypoint
+### 4. Declarar a validação no endpoint
 
-Padrão atual:
+O serviço consumidor não manipula `JsonNode` nem chama o validator diretamente no controller. O binding é declarado pela annotation fornecida por `platform-schema-validation`:
 
 ```java
+@ValidateResourceSchema(
+    type = "APPLICATION",
+    code = "application"
+)
 @PostMapping
-public ResponseEntity<?> create(
-        @RequestBody JsonNode payload
+public ResponseEntity<ApplicationResponse> create(
+        @RequestBody CreateApplicationRequest request
 ) {
-    resourceSchemaValidator.validate(
-        "APPLICATION",
-        "application",
-        payload
-    );
-
-    CreateApplicationRequest request =
-            objectMapper.treeToValue(
-                    payload,
-                    CreateApplicationRequest.class
-            );
-
     ...
 }
 ```
 
-A validação precisa ocorrer antes da conversão para Request/Input.
+O `ResourceSchemaRequestBodyAdvice` intercepta o body bruto antes da desserialização, valida o JSON original e repõe os mesmos bytes para o `HttpMessageConverter`.
 
-### 5. Converter para Request somente após o schema
+### 5. Manter o Request DTO como contrato Java
 
-Depois da validação estrutural:
+Depois da validação estrutural, o fluxo permanece:
 
 ```text
-JsonNode
+HTTP JSON bruto
+  ↓
+platform-schema-validation
   ↓
 Request
   ↓
 Input
 ```
 
-O Request continua sendo o contrato Java do entrypoint e o Input continua sendo o contrato do Use Case.
+O serviço não deve criar adapter HTTP local, validator estrutural local ou reconstruir o payload a partir do DTO.
 
 ### 6. Normalizar no ponto já definido pelo domínio
 
@@ -187,7 +181,7 @@ A infraestrutura web:
 5. repõe os mesmos bytes para a desserialização normal do Request DTO;
 6. somente então permite a execução do controller.
 
-A annotation declara apenas metadados. A resolução e a validação continuam concentradas no Foundation/Schema; o adapter HTTP fica no entrypoint.
+A annotation declara apenas metadados. A resolução, o adapter HTTP e a validação estrutural ficam no módulo compartilhado `platform-schema-validation`. O serviço consumidor fornece a configuração de datasource/view e a view `vw_platform_resource_schemas`; o domínio continua responsável pelas regras contextuais.
 
 ## Critérios para considerar um recurso migrado
 
@@ -196,7 +190,7 @@ Um recurso está aderente quando:
 - possui binding documentado;
 - possui Schema ativo e versão PUBLISHED;
 - possui SchemaConfiguration;
-- valida o JSON bruto antes de Request/Input;
+- declara `@ValidateResourceSchema` no endpoint e valida o JSON bruto antes de Request/Input;
 - não reconstrói payload estrutural via reflection;
 - distingue ausente de `null`;
 - não duplica regra estrutural no Validator Java;
