@@ -1,6 +1,9 @@
 package br.com.portalmanager.platform.workspace.core.application.usecase.operations;
 
+import br.com.portalmanager.platform.library.tagging.TagManager;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
+import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationSystemTags;
+import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationTag;
 import br.com.portalmanager.platform.workspace.core.application.repository.ApplicationRepository;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationOutput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
@@ -22,13 +25,14 @@ public class ApplicationCommandService {
     private final WorkspaceReferenceResolver workspaces;
     private final ApplicationNormalizer normalizer;
     private final ApplicationValidator validator;
-    private final ApplicationTagManager tags;
+    private final TagManager<ApplicationTag, Application, Long, String> tags;
     private final ApplicationQueryService visibility;
     private final WorkspaceQueryService workspaceVisibility;
 
     public ApplicationCommandService(ApplicationRepository repository, ApplicationFinder finder,
                                      WorkspaceReferenceResolver workspaces, ApplicationNormalizer normalizer,
-                                     ApplicationValidator validator, ApplicationTagManager tags,
+                                     ApplicationValidator validator,
+                                     TagManager<ApplicationTag, Application, Long, String> tags,
                                      ApplicationQueryService visibility, WorkspaceQueryService workspaceVisibility) {
         this.repository = repository;
         this.finder = finder;
@@ -51,7 +55,7 @@ public class ApplicationCommandService {
         Application app = new Application(workspaceId, input.name(), input.alias(), input.acronym(),
                 ApplicationScopeTypeCode.of(input.applicationScope()), input.authorizerGroup(), input.settings(), LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
-        tags.reconcile(saved, workspaceIdentifier, input.tags());
+        tags.reconcile(saved, input.tags(), ApplicationSystemTags.resolve(saved, workspaceIdentifier));
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
@@ -68,7 +72,7 @@ public class ApplicationCommandService {
         app.update(input.name(), input.alias(), input.acronym(), ApplicationScopeTypeCode.of(input.applicationScope()),
                 input.authorizerGroup(), input.settings(), LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
-        tags.reconcile(saved, workspaceIdentifier, input.tags());
+        tags.reconcile(saved, input.tags(), ApplicationSystemTags.resolve(saved, workspaceIdentifier));
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
@@ -89,7 +93,7 @@ public class ApplicationCommandService {
         List<String> manualTags = tags.findManual(app);
         app.restore(LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
-        tags.reconcile(saved, workspaceIdentifier, manualTags);
+        tags.reconcile(saved, manualTags, ApplicationSystemTags.resolve(saved, workspaceIdentifier));
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 

@@ -1,7 +1,9 @@
 package br.com.portalmanager.platform.workspace.core.application.usecase.operations;
 
 import br.com.portalmanager.platform.library.authorization.annotation.ResourceVisibility;
+import br.com.portalmanager.platform.library.tagging.TagManager;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
+import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationTag;
 import br.com.portalmanager.platform.workspace.core.application.repository.ApplicationRepository;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationOutput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationSummary;
@@ -18,11 +20,12 @@ public class ApplicationQueryService {
     private final ApplicationRepository repository;
     private final ApplicationFinder finder;
     private final WorkspaceReferenceResolver workspaces;
-    private final ApplicationTagManager tags;
+    private final TagManager<ApplicationTag, Application, Long, String> tags;
     private final ApplicationNormalizer normalizer;
 
     public ApplicationQueryService(ApplicationRepository repository, ApplicationFinder finder,
-                                   WorkspaceReferenceResolver workspaces, ApplicationTagManager tags,
+                                   WorkspaceReferenceResolver workspaces,
+                                   TagManager<ApplicationTag, Application, Long, String> tags,
                                    ApplicationNormalizer normalizer) {
         this.repository = repository;
         this.finder = finder;
@@ -64,11 +67,11 @@ public class ApplicationQueryService {
         List<Application> applications;
         if (tag == null || tag.isBlank()) applications = repository.findByWorkspaceAndLifecycle(workspaceId, lifecycle);
         else {
-            List<String> identifiers = tags.findIdentifiersByTag(tag);
+            List<String> identifiers = tags.findOwnerKeysByTag(tag);
             if (identifiers.isEmpty()) return List.of();
             applications = repository.findByWorkspaceLifecycleAndIdentifiers(workspaceId, lifecycle, identifiers);
         }
-        Map<String, List<String>> manual = tags.findManualByIds(applications.stream().map(Application::getIdentifier).toList());
+        Map<String, List<String>> manual = tags.findManualByOwnerKeys(applications.stream().map(Application::getIdentifier).toList());
         return applications.stream().map(app -> ApplicationOutput.from(app, workspaceIdentifier,
                 manual.getOrDefault(app.getIdentifier(), List.of()))).toList();
     }

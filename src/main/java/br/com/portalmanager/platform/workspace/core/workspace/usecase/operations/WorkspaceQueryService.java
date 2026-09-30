@@ -1,7 +1,9 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
 import br.com.portalmanager.platform.library.authorization.annotation.ResourceVisibility;
+import br.com.portalmanager.platform.library.tagging.TagManager;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
+import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceTag;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOutput;
@@ -19,15 +21,16 @@ public class WorkspaceQueryService {
     private final WorkspaceFinder finder;
     private final WorkspaceNormalizer normalizer;
     private final WorkspaceValidator validator;
-    private final WorkspaceTagManager tagManager;
+    private final TagManager<WorkspaceTag, Workspace, Long, String> tags;
 
     public WorkspaceQueryService(WorkspaceRepository repository, WorkspaceFinder finder, WorkspaceNormalizer normalizer,
-                                 WorkspaceValidator validator, WorkspaceTagManager tagManager) {
+                                 WorkspaceValidator validator,
+                                 TagManager<WorkspaceTag, Workspace, Long, String> tags) {
         this.repository = repository;
         this.finder = finder;
         this.normalizer = normalizer;
         this.validator = validator;
-        this.tagManager = tagManager;
+        this.tags = tags;
     }
 
     @Transactional(readOnly = true)
@@ -44,7 +47,7 @@ public class WorkspaceQueryService {
     @Transactional(readOnly = true)
     public WorkspaceOutput findByIdentifier(String identifier) {
         Workspace workspace = finder.findActive(identifier);
-        return WorkspaceOutput.from(workspace, tagManager.findManual(workspace));
+        return WorkspaceOutput.from(workspace, tags.findManual(workspace));
     }
 
     @ResourceVisibility(Workspace.class)
@@ -58,11 +61,11 @@ public class WorkspaceQueryService {
         List<Workspace> workspaces;
         if (normalizedTag == null) workspaces = repository.findFiltered(lifecycleCode, normalizedType);
         else {
-            List<String> identifiers = tagManager.findIdentifiersByTag(normalizedTag);
+            List<String> identifiers = tags.findOwnerKeysByTag(normalizedTag);
             if (identifiers.isEmpty()) return List.of();
             workspaces = repository.findFilteredByIdentifiers(lifecycleCode, normalizedType, identifiers);
         }
-        Map<String, List<String>> manualTags = tagManager.findManualByIdentifiers(workspaces.stream().map(Workspace::getIdentifier).toList());
+        Map<String, List<String>> manualTags = tags.findManualByOwnerKeys(workspaces.stream().map(Workspace::getIdentifier).toList());
         return workspaces.stream().map(w -> WorkspaceOutput.from(w, manualTags.getOrDefault(w.getIdentifier(), List.of()))).toList();
     }
 }

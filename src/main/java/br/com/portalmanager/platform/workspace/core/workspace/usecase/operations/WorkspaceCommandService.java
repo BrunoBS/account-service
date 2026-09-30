@@ -1,6 +1,9 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
+import br.com.portalmanager.platform.library.tagging.TagManager;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
+import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceSystemTags;
+import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceTag;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
@@ -19,15 +22,16 @@ public class WorkspaceCommandService {
     private final WorkspaceFinder finder;
     private final WorkspaceNormalizer normalizer;
     private final WorkspaceValidator validator;
-    private final WorkspaceTagManager tagManager;
+    private final TagManager<WorkspaceTag, Workspace, Long, String> tags;
 
     public WorkspaceCommandService(WorkspaceRepository repository, WorkspaceFinder finder, WorkspaceNormalizer normalizer,
-                                   WorkspaceValidator validator, WorkspaceTagManager tagManager) {
+                                   WorkspaceValidator validator,
+                                   TagManager<WorkspaceTag, Workspace, Long, String> tags) {
         this.repository = repository;
         this.finder = finder;
         this.normalizer = normalizer;
         this.validator = validator;
-        this.tagManager = tagManager;
+        this.tags = tags;
     }
 
     @Transactional
@@ -40,8 +44,8 @@ public class WorkspaceCommandService {
                 input.requester(), input.acronym(), input.settings(), input.authorizerGroup(), input.emailGroup(), now);
         input.approvers().forEach(a -> workspace.addApprover(a.functional(), a.email()));
         Workspace saved = repository.saveAndFlush(workspace);
-        tagManager.reconcile(saved, input.tags());
-        return WorkspaceOutput.from(saved, tagManager.findManual(saved));
+        tags.reconcile(saved, input.tags(), WorkspaceSystemTags.resolve(saved));
+        return WorkspaceOutput.from(saved, tags.findManual(saved));
     }
 
     @Transactional
@@ -57,8 +61,8 @@ public class WorkspaceCommandService {
         repository.deleteApproversByWorkspaceId(workspace.getId());
         input.approvers().forEach(a -> workspace.addApprover(a.functional(), a.email()));
         Workspace saved = repository.saveAndFlush(workspace);
-        tagManager.reconcile(saved, input.tags());
-        return WorkspaceOutput.from(saved, tagManager.findManual(saved));
+        tags.reconcile(saved, input.tags(), WorkspaceSystemTags.resolve(saved));
+        return WorkspaceOutput.from(saved, tags.findManual(saved));
     }
 
     @Transactional
@@ -71,11 +75,11 @@ public class WorkspaceCommandService {
     @Transactional
     public WorkspaceOutput restore(String identifier) {
         Workspace workspace = finder.findInactiveForRestore(identifier);
-        List<String> manualTags = tagManager.findManual(workspace);
+        List<String> manualTags = tags.findManual(workspace);
         workspace.restore(LocalDateTime.now());
         Workspace saved = repository.saveAndFlush(workspace);
-        tagManager.reconcile(saved, manualTags);
-        return WorkspaceOutput.from(saved, tagManager.findManual(saved));
+        tags.reconcile(saved, manualTags, WorkspaceSystemTags.resolve(saved));
+        return WorkspaceOutput.from(saved, tags.findManual(saved));
     }
 
     @Transactional

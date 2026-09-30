@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.tagging.domain;
 
 import br.com.portalmanager.platform.library.tagging.model.TagOriginType;
+import br.com.portalmanager.platform.library.tagging.model.TagRecord;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,7 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 
 @MappedSuperclass
-public abstract class AbstractTagEntity {
+public abstract class AbstractTagEntity implements TagRecord {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +32,7 @@ public abstract class AbstractTagEntity {
         this.originType = originType;
     }
 
+    @Override
     public void changeOrigin(TagOriginType originType) {
         this.originType = originType;
     }
@@ -39,10 +41,12 @@ public abstract class AbstractTagEntity {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public TagOriginType getOriginType() {
         return originType;
     }
