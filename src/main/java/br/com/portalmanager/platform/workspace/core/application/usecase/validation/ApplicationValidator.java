@@ -7,23 +7,17 @@ import br.com.portalmanager.platform.workspace.core.application.domain.Applicati
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.usecase.ApplicationScopeTypeService;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.ResourceSchemaValidator;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
 @Component
 public class ApplicationValidator {
-    private static final String RESOURCE_TYPE = "APPLICATION";
-    private static final String RESOURCE_CODE = "application";
 
     private final ApplicationScopeTypeService scopeService;
-    private final ResourceSchemaValidator resourceSchemaValidator;
 
-    public ApplicationValidator(ApplicationScopeTypeService scopeService,
-                                ResourceSchemaValidator resourceSchemaValidator) {
+    public ApplicationValidator(ApplicationScopeTypeService scopeService) {
         this.scopeService = scopeService;
-        this.resourceSchemaValidator = resourceSchemaValidator;
     }
 
     public void validateForCreate(String workspaceType, CreateApplicationInput input, boolean duplicate) {
@@ -33,9 +27,6 @@ public class ApplicationValidator {
             reject(result);
             return;
         }
-
-        resourceSchemaValidator.validate(RESOURCE_TYPE, RESOURCE_CODE, ApplicationValidationData.from(input), result);
-        reject(result);
 
         business(workspaceType, input.applicationScope(), duplicate, result);
         reject(result);
@@ -48,9 +39,6 @@ public class ApplicationValidator {
             reject(result);
             return;
         }
-
-        resourceSchemaValidator.validate(RESOURCE_TYPE, RESOURCE_CODE, ApplicationValidationData.from(input), result);
-        reject(result);
 
         if (input.version() == null) {
             result.addError("version", ApplicationMessageKeys.VERSION_REQUIRED);
