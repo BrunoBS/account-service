@@ -172,7 +172,7 @@ class ApplicationApiIT {
                 .addAuthorizerGroup("GRP_APPLICATION_DEV_TEAM_A", "DEV", "DEV", "A-TEAM_A"));
         Integer version = get(path + "/" + appA).statusCode(200).extract().path("version");
         authorization.verifyCalledWithPolicy("DEV");
-        get(path + "/" + appB).statusCode(403).body("code", equalTo("AUTH-403-004"));
+        get(path + "/" + appB).statusCode(404).body("code", equalTo("APPLICATION-0001"));
         get(path).statusCode(200).body("identifier", hasItem(appA)).body("identifier", not(hasItem(appB)));
         get(path + "/summary").statusCode(200).body("identifier", hasItem(appA)).body("identifier", not(hasItem(appB)));
 
@@ -184,7 +184,7 @@ class ApplicationApiIT {
         Map<String, Object> otherUpdate = request("Team B Changed Without Access");
         otherUpdate.put("authorizerGroup", "TEAM_B");
         otherUpdate.put("version", versionB);
-        put(path + "/" + appB, otherUpdate).statusCode(403).body("code", equalTo("AUTH-403-004"));
+        put(path + "/" + appB, otherUpdate).statusCode(404).body("code", equalTo("APPLICATION-0001"));
 
         authorization.forbidden();
         post(path + "/" + appA + "/inactivate", null).statusCode(403);
@@ -193,6 +193,7 @@ class ApplicationApiIT {
 
         authorization.reset();
         authorization.allow(session -> session.groups("USER")
+                .addAuthorizerGroup("GRP_WORKSPACE_ADM_PARENT_A", "ADM", "ADM", "PARENT_A")
                 .addAuthorizerGroup("GRP_APPLICATION_ADM_TEAM_A", "ADM", "ADM", "A-TEAM_A"));
         post(path + "/" + appA + "/inactivate", null).statusCode(204);
         authorization.verifyCalledWithPolicy("ADM");
