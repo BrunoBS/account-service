@@ -25,25 +25,25 @@ public class EnvironmentQueryService {
         this.workspaces = workspaces;
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
     public EnvironmentOutput findCustom(String workspaceIdentifier, String identifier) {
         return EnvironmentOutput.from(finder.findActive(identifier, workspaces.resolveInternalId(workspaceIdentifier)), workspaceIdentifier);
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
     public EnvironmentOutput findCustomInactive(String workspaceIdentifier, String identifier) {
         return EnvironmentOutput.from(finder.findInactive(identifier, workspaces.resolveInternalId(workspaceIdentifier)), workspaceIdentifier);
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
     public EnvironmentOutput findCustomForDeletion(String workspaceIdentifier, String identifier) {
         return EnvironmentOutput.from(finder.findInactiveForDeletion(identifier, workspaces.resolveInternalId(workspaceIdentifier)), workspaceIdentifier);
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
     public List<EnvironmentOutput> listCustom(String workspaceIdentifier, Boolean active) {
         Long id = workspaces.resolveInternalId(workspaceIdentifier);
@@ -63,7 +63,7 @@ public class EnvironmentQueryService {
         return repository.findDefaultsByLifecycle(lifecycle(active)).stream().map(e -> EnvironmentOutput.from(e, null)).toList();
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
     public List<EnvironmentOutput> roots(String workspaceIdentifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -73,7 +73,7 @@ public class EnvironmentQueryService {
                 .map(e -> EnvironmentOutput.from(e, e.getWorkspaceId() == null ? null : workspaceIdentifier)).toList();
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
     public List<EnvironmentOutput> children(String workspaceIdentifier, String parentIdentifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -86,7 +86,7 @@ public class EnvironmentQueryService {
                 .map(e -> EnvironmentOutput.from(e, workspaceIdentifier)).toList();
     }
 
-    @ResourceVisibility
+    @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
     public List<EnvironmentTreeOutput> tree(String workspaceIdentifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
