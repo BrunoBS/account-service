@@ -44,7 +44,6 @@ public class ApplicationQueryService {
         return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
     }
 
-    @ResourceVisibility(Application.class)
     @Transactional(readOnly = true)
     public ApplicationOutput findInactiveByIdentifier(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -53,7 +52,6 @@ public class ApplicationQueryService {
         return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
     }
 
-    @ResourceVisibility(Application.class)
     @Transactional(readOnly = true)
     public ApplicationOutput findInactiveForDeletion(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -80,7 +78,6 @@ public class ApplicationQueryService {
                 manual.getOrDefault(app.getIdentifier(), List.of()))).toList();
     }
 
-    @ResourceVisibility(Application.class)
     @Transactional(readOnly = true)
     public List<ApplicationSummary> summary(String workspaceIdentifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
