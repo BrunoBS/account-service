@@ -54,7 +54,7 @@ class ApplicationApiIT {
                 .statusCode(201)
                 .body("applicationScope", equalTo("BACKEND"))
                 .body("authorizerGroup", nullValue())
-                .body("settings", anyOf(equalTo("{}"), anEmptyMap()))
+                .body("settings", anEmptyMap())
                 .body("lifecycle", equalTo("ACTIVE"))
                 .extract().path("identifier");
 
@@ -205,7 +205,7 @@ class ApplicationApiIT {
         request.put("description", "Workspace de teste para aplicação");
         request.put("requester", "requester");
         request.put("acronym", "APP");
-        request.put("settings", "{}");
+        request.put("settings", Map.of());
         request.put("emailGroup", "workspace@portalmanager.com");
         request.put("approvers", List.of(Map.of("functional", "F1234", "email", "approver@portalmanager.com")));
         return post("/api/v1/workspaces", request).statusCode(201).extract().path("identifier");

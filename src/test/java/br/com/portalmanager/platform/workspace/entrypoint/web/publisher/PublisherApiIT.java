@@ -48,19 +48,21 @@ class PublisherApiIT {
     }
 
     @Test
-    void createsPublisherWithoutSchemaBindingOrSettings() {
+    void createsPublisherWithJsonSettingsAndDefaultSchemaResolution() {
         String code = "P_" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         String identifier = given().port(port).header("X-Correlation-Id", "publisher-it")
                 .header("Authorization", "Bearer publisher-it")
                 .contentType(ContentType.JSON)
                 .body(Map.of("code", code, "name", "Test Publisher",
-                        "description", "Publisher for integration", "scope", "WORKSPACE"))
+                        "description", "Publisher for integration", "scope", "WORKSPACE", "settings", Map.of()))
                 .when().post("/api/v1/publishers").then()
                 .statusCode(201).body("code", equalTo(code)).body("lifecycle", equalTo("ACTIVE"))
+                .body("settings", anEmptyMap())
                 .extract().path("identifier");
         given().port(port).header("X-Correlation-Id", "publisher-it")
                 .header("Authorization", "Bearer publisher-it")
-                .when().get("/api/v1/publishers/" + identifier).then().statusCode(200);
+                .when().get("/api/v1/publishers/" + identifier).then().statusCode(200)
+                .body("settings", anEmptyMap());
         assertThat(schemas.resolve("PUBLISHER", code))
                 .isEqualTo(jdbc.queryForObject("""
                         select v.definition from schema_configuration c
@@ -77,7 +79,7 @@ class PublisherApiIT {
         given().port(port).header("X-Correlation-Id", "publisher-it")
                 .header("Authorization", "Bearer publisher-it").contentType(ContentType.JSON)
                 .body(Map.of("code", code, "name", "Test Publisher",
-                        "description", "Publisher for integration", "scope", "INVALID"))
+                        "description", "Publisher for integration", "scope", "INVALID", "settings", Map.of()))
                 .when().post("/api/v1/publishers").then().statusCode(400)
                 .body("details.field", hasItem("scope"));
     }

@@ -72,6 +72,7 @@ public class WorkspaceNormalizer {
                 input.description(),
                 input.requester(),
                 input.acronym(),
+                input.settings(),
                 input.emailGroup(),
                 toApproverData(input.approvers())
         );
@@ -88,6 +89,7 @@ public class WorkspaceNormalizer {
                 input.description(),
                 input.requester(),
                 input.acronym(),
+                input.settings(),
                 input.emailGroup(),
                 toApproverData(input.approvers())
         );

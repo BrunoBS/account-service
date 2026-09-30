@@ -4,6 +4,7 @@ import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrat
 import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,7 @@ class WorkspaceApiIT {
 
     @BeforeEach
     void authorizeAsOwner() {
+        SchemaDefaultFixture.seed(jdbcTemplate);
         seedWorkspaceTypes();
         seedLifecycleTypes();
         authorizationMock.reset();
@@ -265,6 +267,17 @@ class WorkspaceApiIT {
     }
 
     @Test
+    void shouldRejectWorkspaceSettingsThatAreNotAJsonObject() {
+        Map<String, Object> request = validCreate("Workspace Invalid Settings", "ADMIN");
+        request.put("settings", "not-an-object");
+
+        post(request)
+                .statusCode(400)
+                .body("code", equalTo("GLOBAL-0001"))
+                .body("details.field", hasItem("settings"));
+    }
+
+    @Test
     void shouldInactivateHideAndRestoreWorkspace() {
         String identifier = create("Workspace Lifecycle", "ADMIN");
 
@@ -344,7 +357,7 @@ class WorkspaceApiIT {
         request.put("requester", "requester");
         request.put("acronym", "WSP");
         request.put("authorizerGroup", null);
-        request.put("settings", "{\"feature\":true}");
+        request.put("settings", Map.of("feature", true));
         request.put("emailGroup", "workspace@portalmanager.com");
         request.put("approvers", List.of(Map.of(
                 "functional", "F1000",

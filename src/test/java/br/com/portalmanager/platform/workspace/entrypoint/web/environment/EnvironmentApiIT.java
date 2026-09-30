@@ -146,13 +146,13 @@ class EnvironmentApiIT {
         return post("/api/v1/workspaces", Map.of(
                 "workspaceType", "MANAGER", "name", "Environment Workspace " + UUID.randomUUID(),
                 "description", "Workspace for environments", "requester", "requester",
-                "acronym", "ENV", "settings", "{}", "emailGroup", "workspace@portalmanager.com",
+                "acronym", "ENV", "settings", Map.of(), "emailGroup", "workspace@portalmanager.com",
                 "approvers", java.util.List.of(Map.of("functional", "F1234", "email", "approver@portalmanager.com"))))
                 .statusCode(201).extract().path("identifier");
     }
 
     private Map<String, Object> input(String name) {
-        return Map.of("name", name, "description", "Environment description", "authorizationType", "DEV", "settings", "{}");
+        return Map.of("name", name, "description", "Environment description", "authorizationType", "DEV", "settings", Map.of());
     }
 
     private Map<String, Object> withType(String name, String code) {
