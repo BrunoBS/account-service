@@ -50,7 +50,8 @@ public class WorkspaceCommandService {
 
     @Transactional
     public WorkspaceOutput update(String identifier, UpdateWorkspaceInput rawInput) {
-        Workspace workspace = finder.findActive(identifier);
+        Workspace workspace = finder.findByIdentifier(identifier);
+        WorkspaceValidator.requireActive(workspace);
         UpdateWorkspaceInput input = normalizer.normalize(rawInput);
         boolean nameDuplicate = input != null && input.name() != null && repository.existsByNameAndIdNot(input.name(), workspace.getId());
         validator.validateForUpdate(normalizer.toValidationData(input), nameDuplicate);
@@ -74,7 +75,8 @@ public class WorkspaceCommandService {
 
     @Transactional
     public WorkspaceOutput restore(String identifier) {
-        Workspace workspace = finder.findInactiveForRestore(identifier);
+        Workspace workspace = finder.findByIdentifier(identifier);
+        WorkspaceValidator.requireRestorable(workspace);
         List<String> manualTags = tags.findManual(workspace);
         workspace.restore(LocalDateTime.now());
         Workspace saved = repository.saveAndFlush(workspace);
@@ -84,7 +86,8 @@ public class WorkspaceCommandService {
 
     @Transactional
     public void delete(String identifier) {
-        Workspace workspace = finder.findInactiveForDeletion(identifier);
+        Workspace workspace = finder.findByIdentifier(identifier);
+        WorkspaceValidator.requireDeletable(workspace);
         workspace.quarantine(LocalDateTime.now());
         repository.saveAndFlush(workspace);
     }
