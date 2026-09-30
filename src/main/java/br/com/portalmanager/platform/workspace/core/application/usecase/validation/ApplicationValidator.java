@@ -1,12 +1,15 @@
 package br.com.portalmanager.platform.workspace.core.application.usecase.validation;
 
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.workspace.core.application.domain.Application;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationMessageKeys;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.usecase.ApplicationScopeTypeService;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -47,7 +50,25 @@ public class ApplicationValidator {
         reject(result);
     }
 
-    public void requireVersion(Long current, Long requested) {
+    public static void requireActive(Application application) {
+        if (!LifecycleTypeCode.active().equals(application.getLifecycle())) {
+            throw new NotFoundException(ApplicationMessageKeys.NOT_FOUND);
+        }
+    }
+
+    public static void requireRestorable(Application application) {
+        if (!LifecycleTypeCode.inactive().equals(application.getLifecycle())) {
+            throw new ValidationException(ApplicationMessageKeys.RESTORE_INVALID);
+        }
+    }
+
+    public static void requireDeletable(Application application) {
+        if (!LifecycleTypeCode.inactive().equals(application.getLifecycle())) {
+            throw new ValidationException(ApplicationMessageKeys.DELETE_INVALID);
+        }
+    }
+
+    public static void requireVersion(Long current, Long requested) {
         if (!Objects.equals(current, requested)) throw new ResourceVersionConflictException();
     }
 
