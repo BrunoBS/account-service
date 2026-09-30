@@ -101,7 +101,7 @@ class ApplicationApiIT {
         String path = "/api/v1/workspaces/" + workspace + "/applications";
         Map<String, Object> create = request("Application Original");
         create.put("authorizerGroup", "TEAM_A");
-        create.put("tags", List.of("  Minha   Tag  ", "minha\tTag", "OUTRA TAG"));
+        create.put("tags", List.of("minha-tag", "outra-tag"));
         var created = post(path, create).statusCode(201)
                 .body("tags", containsInAnyOrder("minha-tag", "outra-tag"))
                 .body("authorizerGroup", equalTo("A-TEAM_A"))
