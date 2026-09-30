@@ -101,7 +101,7 @@ class ApplicationApiIT {
         String path = "/api/v1/workspaces/" + workspace + "/applications";
         Map<String, Object> create = request("Application Original");
         create.put("authorizerGroup", "TEAM_A");
-        create.put("tags", List.of("  Minha   Tag  ", "minha\tTag", "OUTRA TAG"));
+        create.put("tags", List.of("minha-tag", "outra-tag"));
         var created = post(path, create).statusCode(201)
                 .body("tags", containsInAnyOrder("minha-tag", "outra-tag"))
                 .body("authorizerGroup", equalTo("A-TEAM_A"))
@@ -120,7 +120,7 @@ class ApplicationApiIT {
         Map<String, Object> update = request("Application Updated");
         update.put("version", version);
         update.put("authorizerGroup", "TEAM_B");
-        update.put("tags", List.of("Minha Tag"));
+        update.put("tags", List.of("minha-tag"));
         put(path + "/" + app, update).statusCode(200).body("tags", contains("minha-tag"));
         getByTag(path, "Application Original").statusCode(200).body("identifier", not(hasItem(app)));
         getByTag(path, "A-TEAM_A").statusCode(200).body("identifier", not(hasItem(app)));
@@ -130,6 +130,28 @@ class ApplicationApiIT {
         post(path + "/" + app + "/inactivate", null).statusCode(204);
         post(path + "/" + app + "/restore", null).statusCode(200).body("tags", contains("minha-tag"));
         getByTag(path, "Minha Tag").statusCode(200).body("identifier", hasItem(app));
+    }
+
+    @Test
+    void rejectsInvalidApplicationResourceStructure() {
+        String workspace = createWorkspace("MANAGER");
+        String path = "/api/v1/workspaces/" + workspace + "/applications";
+
+        Map<String, Object> duplicateTags = request("Duplicate Tags");
+        duplicateTags.put("tags", List.of("managed", "managed"));
+        post(path, duplicateTags).statusCode(400);
+
+        Map<String, Object> invalidTag = request("Invalid Tag");
+        invalidTag.put("tags", List.of("Managed"));
+        post(path, invalidTag).statusCode(400);
+
+        Map<String, Object> invalidSettings = request("Invalid Settings");
+        invalidSettings.put("settings", "not-json-object");
+        post(path, invalidSettings).statusCode(400);
+
+        Map<String, Object> missingRequired = request("Missing Alias");
+        missingRequired.remove("alias");
+        post(path, missingRequired).statusCode(400);
     }
 
     @Test
