@@ -5,6 +5,7 @@ import tools.jackson.databind.JsonNode;
 import java.util.List;
 
 public record CreateWorkspaceInput(
+        Long version,
         String workspaceType,
         String name,
         String description,
