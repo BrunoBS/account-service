@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.validation;
 
+import tools.jackson.databind.JsonNode;
+
 import java.util.List;
 
 public record WorkspaceValidationData(
@@ -9,7 +11,7 @@ public record WorkspaceValidationData(
         String description,
         String requester,
         String acronym,
-        String settings,
+        JsonNode settings,
         String emailGroup,
         List<ApproverData> approvers
 ) {
