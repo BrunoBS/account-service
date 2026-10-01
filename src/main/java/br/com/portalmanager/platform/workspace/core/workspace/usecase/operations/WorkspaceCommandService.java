@@ -72,7 +72,8 @@ public class WorkspaceCommandService {
 
     @Transactional
     public void inactivate(String identifier) {
-        Workspace workspace = finder.findActive(identifier);
+        Workspace workspace = finder.findByIdentifier(identifier);
+        WorkspaceValidator.requireActive(workspace);
         workspace.inactivate(LocalDateTime.now());
         repository.saveAndFlush(workspace);
     }
