@@ -11,6 +11,7 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.CreateWorkspaceRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.UpdateWorkspaceRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.response.WorkspaceResponse;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,11 +54,11 @@ public class WorkspaceController {
     @GetMapping
     @AuthorizationRequired(level = AuthorizationLevel.OPEN)
     public List<WorkspaceResponse> findAll(
-            @RequestParam(defaultValue = "true") Boolean active,
+            @RequestParam(required = false) String lifecycle,
             @RequestParam(required = false) String typeName,
             @RequestParam(required = false) String tagName
     ) {
-        return queryService.findAll(new FindAllWorkspacesInput(active, typeName, tagName)).stream()
+        return queryService.findAll(new FindAllWorkspacesInput(LifecycleTypeCode.of(lifecycle), typeName, tagName)).stream()
                 .map(WorkspaceResponse::from)
                 .toList();
     }
