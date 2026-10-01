@@ -44,7 +44,7 @@ public class WorkspaceCommandService {
         validator.validateForCreate(normalizer.toValidationData(input), nameDuplicate);
         LocalDateTime now = LocalDateTime.now();
         Workspace workspace = new Workspace(WorkspaceTypeCode.of(input.workspaceType()), input.name(), input.description(),
-                input.requester(), input.acronym(), input.settings() == null ? null : input.settings().toString(), input.authorizerGroup(), input.emailGroup(), now);
+                input.requester(), input.acronym(), input.settings(), input.authorizerGroup(), input.emailGroup(), now);
         input.approvers().forEach(a -> workspace.addApprover(a.functional(), a.email()));
         Workspace saved = repository.saveAndFlush(workspace);
         tags.reconcile(saved, input.tags(), WorkspaceSystemTags.resolve(saved));
@@ -61,7 +61,7 @@ public class WorkspaceCommandService {
         validator.validateForUpdate(normalizer.toValidationData(input), nameDuplicate);
         WorkspaceValidator.requireVersion(workspace.getVersion(), input.version());
         workspace.update(WorkspaceTypeCode.of(input.workspaceType()), input.name(), input.description(), input.requester(),
-                input.acronym(), input.settings() == null ? null : input.settings().toString(), input.authorizerGroup(), input.emailGroup(), LocalDateTime.now());
+                input.acronym(), input.settings(), input.authorizerGroup(), input.emailGroup(), LocalDateTime.now());
         workspace.clearApprovers();
         repository.deleteApproversByWorkspaceId(workspace.getId());
         input.approvers().forEach(a -> workspace.addApprover(a.functional(), a.email()));
