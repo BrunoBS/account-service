@@ -36,14 +36,14 @@ public class WorkspaceQueryService {
     @Transactional(readOnly = true)
     public Long findInternalIdByIdentifier(String identifier) {
         Workspace workspace = finder.findByIdentifier(identifier);
-        WorkspaceValidator.requireActive(workspace);
+        validator.requireActive(workspace);
         return workspace.getId();
     }
 
     @Transactional(readOnly = true)
     public String findIdentifierByInternalId(Long id) {
         Workspace workspace = finder.findById(id);
-        WorkspaceValidator.requireActive(workspace);
+        validator.requireActive(workspace);
         return workspace.getIdentifier();
     }
 
@@ -51,25 +51,33 @@ public class WorkspaceQueryService {
     @Transactional(readOnly = true)
     public WorkspaceOutput findByIdentifier(String identifier) {
         Workspace workspace = finder.findByIdentifier(identifier);
-        WorkspaceValidator.requireActive(workspace);
+        validator.requireActive(workspace);
         return WorkspaceOutput.from(workspace, tags.findManual(workspace));
     }
 
     @ResourceVisibility(Workspace.class)
     @Transactional(readOnly = true)
     public List<WorkspaceOutput> findAll(FindAllWorkspacesInput input) {
-        String lifecycleCode = input != null && Boolean.FALSE.equals(input.active())
-                ? LifecycleTypeCode.inactive().value() : LifecycleTypeCode.active().value();
-        String normalizedType = normalizer.normalizeTypeFilter(input == null ? null : input.typeName());
-        String normalizedTag = normalizer.normalizeTagFilter(input == null ? null : input.tagName());
-        validator.validateTypeFilter(normalizedType);
+        boolean active = input == null || !Boolean.FALSE.equals(input.active());
+        String lifecycleCode = active
+                ? LifecycleTypeCode.active().value()
+                : LifecycleTypeCode.inactive().value();
+
+        String typeFilter = normalizer.normalizeTypeFilter(input == null ? null : input.typeName());
+        String tagFilter = normalizer.normalizeTagFilter(input == null ? null : input.tagName());
+        validator.validateTypeFilter(typeFilter);
+
         List<Workspace> workspaces;
-        if (normalizedTag == null) workspaces = repository.findFiltered(lifecycleCode, normalizedType);
-        else {
-            List<String> identifiers = tags.findOwnerKeysByTag(normalizedTag);
-            if (identifiers.isEmpty()) return List.of();
-            workspaces = repository.findFilteredByIdentifiers(lifecycleCode, normalizedType, identifiers);
+        if (tagFilter == null) {
+            workspaces = repository.findFiltered(lifecycleCode, typeFilter);
+        } else {
+            List<String> identifiers = tags.findOwnerKeysByTag(tagFilter);
+            if (identifiers.isEmpty()) {
+                return List.of();
+            }
+            workspaces = repository.findFilteredByIdentifiers(lifecycleCode, typeFilter, identifiers);
         }
+
         List<String> workspaceIdentifiers = workspaces.stream()
                 .map(Workspace::getIdentifier)
                 .toList();
