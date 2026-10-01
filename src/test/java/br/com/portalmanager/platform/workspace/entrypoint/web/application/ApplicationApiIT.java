@@ -269,6 +269,7 @@ class ApplicationApiIT {
         request.put("emailGroup", "workspace@portalmanager.com");
         request.put("approvers", List.of(Map.of("functional", "F1234", "email", "approver@portalmanager.com")));
         request.put("tags", List.of());
+        request.put("tags", List.of());
         return post("/api/v1/workspaces", request).statusCode(201).extract().path("identifier");
     }
 
