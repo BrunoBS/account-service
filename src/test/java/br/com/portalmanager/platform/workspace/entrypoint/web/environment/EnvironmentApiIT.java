@@ -144,7 +144,7 @@ class EnvironmentApiIT {
 
     private String workspace() {
         return post("/api/v1/workspaces", Map.of(
-                "workspaceType", "MANAGER", "name", "Environment Workspace " + UUID.randomUUID(),
+                "version", 0, "workspaceType", "MANAGER", "name", "Environment Workspace " + UUID.randomUUID(),
                 "description", "Workspace for environments", "requester", "requester",
                 "acronym", "ENV", "settings", Map.of(), "emailGroup", "workspace@portalmanager.com",
                 "approvers", java.util.List.of(Map.of("functional", "F1234", "email", "approver@portalmanager.com"))))
