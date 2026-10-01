@@ -36,7 +36,7 @@ public class Workspace {
     private String requester;
     @Column(name = "acronym", nullable = false, length = 5)
     private String acronym;
-    @Column(name = "settings", columnDefinition = "TEXT")
+    @Column(name = "settings", columnDefinition = "json")
     private String settings;
     @AuthorizerGroup
     @Column(name = "authorizer_group", length = 255)
