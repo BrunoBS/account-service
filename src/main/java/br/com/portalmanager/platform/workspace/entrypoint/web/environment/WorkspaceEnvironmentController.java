@@ -52,7 +52,7 @@ public class WorkspaceEnvironmentController {
         return query.roots(workspaceIdentifier).stream().map(EnvironmentResponse::from).toList();
     }
 
-    @GetMapping("/{identifier}/children")
+    @GetMapping("/{environmentIdentifier}/children")
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
     public List<EnvironmentResponse> children(@PathVariable String workspaceIdentifier, @PathVariable String environmentIdentifier) {
         return query.children(workspaceIdentifier, environmentIdentifier).stream().map(EnvironmentResponse::from).toList();
