@@ -6,6 +6,7 @@ import tools.jackson.databind.JsonNode;
 import java.util.List;
 
 public record CreateWorkspaceRequest(
+        Long version,
         String workspaceType,
         String name,
         String description,
@@ -19,6 +20,7 @@ public record CreateWorkspaceRequest(
 ) {
     public CreateWorkspaceInput toInput() {
         return new CreateWorkspaceInput(
+                version,
                 workspaceType,
                 name,
                 description,
