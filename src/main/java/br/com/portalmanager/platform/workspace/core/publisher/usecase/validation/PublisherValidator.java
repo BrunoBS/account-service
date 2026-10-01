@@ -12,6 +12,7 @@ import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.Upda
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -28,9 +29,9 @@ public class PublisherValidator {
         this.scopeService = scopeService; this.settingsValidator = settingsValidator;
     }
 
-    public void validateSettings(String code, String settings) {
+    public void validateSettings(String code, JsonNode settings) {
         ValidationResult result = new ValidationResult();
-        if (settings == null || settings.isBlank()) result.addError("settings", PublisherMessageKeys.SETTINGS_INVALID);
+        if (settings == null || settings.isNull()) result.addError("settings", PublisherMessageKeys.SETTINGS_INVALID);
         if (!result.hasErrors() && settingsValidator != null) settingsValidator.validate("PUBLISHER", code, "settings", settings, result);
         reject(result);
     }
