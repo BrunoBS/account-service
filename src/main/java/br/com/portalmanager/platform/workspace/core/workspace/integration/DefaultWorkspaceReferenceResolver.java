@@ -16,18 +16,22 @@ public class DefaultWorkspaceReferenceResolver implements WorkspaceReferenceReso
 
     @Override
     public Long resolveInternalId(String workspaceIdentifier) {
-        Workspace workspace = workspaceFinder.findActive(workspaceIdentifier);
+        Workspace workspace = workspaceFinder.findByIdentifier(workspaceIdentifier);
+        br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator.requireActive(workspace);
         return workspace.getId();
     }
 
     @Override
     public String resolveIdentifier(Long workspaceId) {
-        Workspace workspace = workspaceFinder.findActive(workspaceId);
+        Workspace workspace = workspaceFinder.findById(workspaceId);
+        br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator.requireActive(workspace);
         return workspace.getIdentifier();
     }
 
     @Override
     public String resolveWorkspaceType(String workspaceIdentifier) {
-        return workspaceFinder.findActive(workspaceIdentifier).getWorkspaceType().value();
+        Workspace workspace = workspaceFinder.findByIdentifier(workspaceIdentifier);
+        br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator.requireActive(workspace);
+        return workspace.getWorkspaceType().value();
     }
 }
