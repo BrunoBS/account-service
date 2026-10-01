@@ -107,7 +107,7 @@ class WorkspaceApiIT {
                 .header("correlationId", "workspace-api-it")
                 .header("Authorization", "Bearer workspace-api-it")
                 .accept(ContentType.JSON)
-                .queryParam("active", true)
+                .queryParam("lifecycle", "ACTIVE")
                 .queryParam("typeName", " admin ")
                 .when()
                 .get("/api/v1/workspaces")
@@ -117,7 +117,7 @@ class WorkspaceApiIT {
                 .body("identifier", not(hasItem(managerIdentifier)))
                 .body("workspaceType", containsInAnyOrder("ADMIN"));
 
-        get("/api/v1/workspaces?active=false")
+        get("/api/v1/workspaces?lifecycle=INACTIVE")
                 .statusCode(200)
                 .body("identifier", containsInAnyOrder(managerIdentifier))
                 .body("lifecycle", containsInAnyOrder("INACTIVE"));
