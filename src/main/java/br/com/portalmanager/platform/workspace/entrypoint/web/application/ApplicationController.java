@@ -35,7 +35,7 @@ public class ApplicationController {
     public ResponseEntity<ApplicationResponse> create(@PathVariable String workspaceIdentifier,
                                                        @RequestBody CreateApplicationRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApplicationResponse.from(command.create(workspaceIdentifier, request.toInput())));
+                .body(ApplicationResponse.from(command.create(workspaceIdentifier, request.toInput(), request.schemaPayload())));
     }
 
     @GetMapping("/{identifier}")
@@ -64,7 +64,7 @@ public class ApplicationController {
     public ApplicationResponse update(@PathVariable String workspaceIdentifier,
                                       @PathVariable String identifier,
                                       @RequestBody UpdateApplicationRequest request) {
-        return ApplicationResponse.from(command.update(workspaceIdentifier, identifier, request.toInput()));
+        return ApplicationResponse.from(command.update(workspaceIdentifier, identifier, request.toInput(), request.schemaPayload()));
     }
 
     @PostMapping("/{identifier}/inactivate")
