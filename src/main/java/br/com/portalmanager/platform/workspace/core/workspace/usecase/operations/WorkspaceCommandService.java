@@ -60,12 +60,16 @@ public class WorkspaceCommandService {
         WorkspaceValidator.requireVersion(workspace.getVersion(), input.version());
         workspace.update(WorkspaceTypeCode.of(input.workspaceType()), input.name(), input.description(), input.requester(),
                 input.acronym(), input.settings(), input.authorizerGroup(), input.emailGroup(), LocalDateTime.now());
-        workspace.clearApprovers();
-        repository.deleteApproversByWorkspaceId(workspace.getId());
-        input.approvers().forEach(a -> workspace.addApprover(a.functional(), a.email()));
+        replaceApprovers(workspace, input.approvers());
         Workspace saved = repository.saveAndFlush(workspace);
         tags.reconcile(saved, input.tags(), WorkspaceSystemTags.resolve(saved));
         return WorkspaceOutput.from(saved, tags.findManual(saved));
+    }
+
+    private void replaceApprovers(Workspace workspace, List<br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput> approvers) {
+        workspace.clearApprovers();
+        repository.deleteApproversByWorkspaceId(workspace.getId());
+        approvers.forEach(approver -> workspace.addApprover(approver.functional(), approver.email()));
     }
 
     @Transactional
