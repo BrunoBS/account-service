@@ -50,6 +50,9 @@ public class WorkspaceValidator {
 
     public void validateForCreate(WorkspaceValidationData data, boolean nameDuplicate) {
         ValidationResult result = new ValidationResult();
+        if (data == null || !Long.valueOf(0L).equals(data.version())) {
+            result.addError("version", WorkspaceMessageKeys.VERSION_REQUIRED);
+        }
         validateSemanticRules(data, nameDuplicate, result);
         rejectIfInvalid(result);
     }
@@ -61,7 +64,6 @@ public class WorkspaceValidator {
             rejectIfInvalid(result);
             return;
         }
-        validateVersion(data.version(), result);
         validateSemanticRules(data, nameDuplicate, result);
         rejectIfInvalid(result);
     }
@@ -89,11 +91,6 @@ public class WorkspaceValidator {
         validateApproverUniqueness(data.approvers(), result);
     }
 
-    private void validateVersion(Long version, ValidationResult result) {
-        if (version == null || version < 0) {
-            result.addError("version", WorkspaceMessageKeys.VERSION_REQUIRED);
-        }
-    }
 
     private void validateApproverUniqueness(List<ApproverData> approvers, ValidationResult result) {
         if (approvers == null) return;
