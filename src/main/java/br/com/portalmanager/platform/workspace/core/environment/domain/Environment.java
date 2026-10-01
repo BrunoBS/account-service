@@ -4,6 +4,9 @@ import br.com.portalmanager.platform.library.authorization.annotation.Authorizer
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import tools.jackson.databind.JsonNode;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -46,8 +49,9 @@ public class Environment {
     @Column(name = "authorizer_group", length = 255)
     private String authorizerGroup;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "json")
-    private String settings;
+    private JsonNode settings;
 
     @Column(name = "sort_order", nullable = false)
     private Integer sortOrder;
@@ -67,7 +71,7 @@ public class Environment {
 
     public Environment(Long workspaceId, EnvironmentType environmentType, Environment parent,
                        String name, String description, AuthorizationTypeCode authorizationType,
-                       String authorizerGroup, String settings, Integer sortOrder, LocalDateTime now) {
+                       String authorizerGroup, JsonNode settings, Integer sortOrder, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.workspaceId = workspaceId;
         this.environmentType = environmentType;
@@ -78,7 +82,7 @@ public class Environment {
     }
 
     public void update(String name, String description, AuthorizationTypeCode authorizationType, String authorizerGroup,
-                       String settings, Integer sortOrder, LocalDateTime now) {
+                       JsonNode settings, Integer sortOrder, LocalDateTime now) {
         this.name = name;
         this.description = description;
         this.authorizationType = authorizationType;
@@ -145,7 +149,7 @@ public class Environment {
         return authorizerGroup;
     }
 
-    public String getSettings() {
+    public JsonNode getSettings() {
         return settings;
     }
 
