@@ -19,7 +19,7 @@ SELECT UUID(), sd.id, 1, 'Workspace Resource v1',
             "description":{"type":"string","minLength":10,"maxLength":500,"pattern":"^[^ ].*[^ ]$|^[^ ]$"},
             "requester":{"type":"string","minLength":5,"maxLength":255,"pattern":"^[^ ].*[^ ]$|^[^ ]$"},
             "acronym":{"type":"string","minLength":1,"maxLength":5,"pattern":"^[A-Z0-9]+$"},
-            "authorizerGroup":{"type":["string","null"],"minLength":1,"maxLength":255,"pattern":"^[^ ].*[^ ]$|^[^ ]$"},
+            "authorizerGroup":{"type":["string","null"],"minLength":1,"maxLength":255,"pattern":"^(?!.*[a-z])[^ ].*[^ ]$|^[^a-z ]$"},
             "settings":{"type":["object","null"],"additionalProperties":true},
             "emailGroup":{"type":"string","minLength":3,"maxLength":320,"pattern":"^[^ @]+@[^ @]+[.][^ @]+$"},
             "approvers":{
@@ -36,7 +36,7 @@ SELECT UUID(), sd.id, 1, 'Workspace Resource v1',
               }
             },
             "tags":{
-              "type":"array",
+              "type":["array","null"],
               "uniqueItems":true,
               "items":{"type":"string","minLength":1,"maxLength":150,"pattern":"^[a-z0-9]+(-[a-z0-9]+)*$"}
             }
