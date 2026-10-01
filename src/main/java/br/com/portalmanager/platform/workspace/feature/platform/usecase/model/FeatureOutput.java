@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.model;
 
+import tools.jackson.databind.JsonNode;
+
 import br.com.portalmanager.platform.workspace.feature.platform.domain.Feature;
 
 import java.time.LocalDateTime;
@@ -13,7 +15,7 @@ public record FeatureOutput(
         String microserviceIdentifier,
         String microserviceCode,
         String lifecycle,
-        String settings,
+        JsonNode settings,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
