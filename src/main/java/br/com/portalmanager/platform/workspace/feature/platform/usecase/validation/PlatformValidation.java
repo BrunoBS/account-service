@@ -4,6 +4,8 @@ import br.com.portalmanager.platform.library.messaging.exception.ValidationExcep
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 
+import tools.jackson.databind.JsonNode;
+
 import java.util.regex.Pattern;
 
 final class PlatformValidation {
@@ -14,7 +16,7 @@ final class PlatformValidation {
 
     static void validate(String code, boolean requireCode, String name, String description, boolean codeDuplicate,
                          boolean nameDuplicate, String microserviceIdentifier, boolean requireMicroservice,
-                         String settings, boolean requireSettings) {
+                         JsonNode settings, boolean requireSettings) {
         ValidationResult result = new ValidationResult();
         if ((requireCode && code == null) || (code != null &&
                 (code.length() > 50 || !CODE.matcher(code).matches()))) {
@@ -33,7 +35,7 @@ final class PlatformValidation {
         if (requireMicroservice && (microserviceIdentifier == null || microserviceIdentifier.isBlank())) {
             result.addError("microserviceIdentifier", PlatformMessageKeys.MICROSERVICE_REQUIRED);
         }
-        if (requireSettings && (settings == null || settings.isBlank())) {
+        if (requireSettings && (settings == null || settings.isNull())) {
             result.addError("settings", PlatformMessageKeys.SETTINGS_REQUIRED);
         }
         if (result.hasErrors()) throw new ValidationException(result);
