@@ -38,8 +38,7 @@ public class WorkspaceCommandService {
 
     @Transactional
     @ValidateResourceSchema(type = "WORKSPACE", code = "workspace")
-    public WorkspaceOutput create(@SchemaPayload CreateWorkspaceInput rawInput) {
-        CreateWorkspaceInput input = normalizer.normalize(rawInput);
+    public WorkspaceOutput create(@SchemaPayload CreateWorkspaceInput input) {
         boolean nameDuplicate = input != null && input.name() != null && repository.existsByName(input.name());
         validator.validateForCreate(normalizer.toValidationData(input), nameDuplicate);
         LocalDateTime now = LocalDateTime.now();
@@ -53,10 +52,9 @@ public class WorkspaceCommandService {
 
     @Transactional
     @ValidateResourceSchema(type = "WORKSPACE", code = "workspace")
-    public WorkspaceOutput update(String identifier, @SchemaPayload UpdateWorkspaceInput rawInput) {
+    public WorkspaceOutput update(String identifier, @SchemaPayload UpdateWorkspaceInput input) {
         Workspace workspace = finder.findByIdentifier(identifier);
         WorkspaceValidator.requireActive(workspace);
-        UpdateWorkspaceInput input = normalizer.normalize(rawInput);
         boolean nameDuplicate = input != null && input.name() != null && repository.existsByNameAndIdNot(input.name(), workspace.getId());
         validator.validateForUpdate(normalizer.toValidationData(input), nameDuplicate);
         WorkspaceValidator.requireVersion(workspace.getVersion(), input.version());
