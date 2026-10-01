@@ -31,7 +31,7 @@ public class ApplicationController {
 
     @PostMapping
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(resource = "APPLICATION", action = "INSERT", resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "applicationIdentifier"))
+    @Auditable(resource = "APPLICATION", action = "INSERT", resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier"))
     public ResponseEntity<ApplicationResponse> create(@PathVariable String workspaceIdentifier,
                                                        @RequestBody CreateApplicationRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
