@@ -73,14 +73,14 @@ public final class SchemaDefaultFixture {
                           "properties":{
                             "version":{"type":"integer","minimum":0},
                             "workspaceType":{"type":"string","minLength":1,"maxLength":50,"pattern":"^[A-Z][A-Z0-9_-]*$"},
-                            "name":{"type":"string","minLength":3,"maxLength":100,"pattern":"^\\\\S(?:.*\\\\S)?$"},
-                            "description":{"type":"string","minLength":10,"maxLength":500,"pattern":"^\\\\S(?:.*\\\\S)?$"},
-                            "requester":{"type":"string","minLength":5,"maxLength":255,"pattern":"^\\\\S(?:.*\\\\S)?$"},
+                            "name":{"type":"string","minLength":3,"maxLength":100,"pattern":"^[^[:space:]](?:.*[^[:space:]])?$"},
+                            "description":{"type":"string","minLength":10,"maxLength":500,"pattern":"^[^[:space:]](?:.*[^[:space:]])?$"},
+                            "requester":{"type":"string","minLength":5,"maxLength":255,"pattern":"^[^[:space:]](?:.*[^[:space:]])?$"},
                             "acronym":{"type":"string","minLength":1,"maxLength":5,"pattern":"^[A-Z0-9]+$"},
-                            "authorizerGroup":{"type":"string","minLength":1,"maxLength":255,"pattern":"^\\\\S(?:.*\\\\S)?$"},
+                            "authorizerGroup":{"type":"string","minLength":1,"maxLength":255,"pattern":"^[^[:space:]](?:.*[^[:space:]])?$"},
                             "settings":{"type":"object","additionalProperties":true},
-                            "emailGroup":{"type":"string","minLength":3,"maxLength":320,"pattern":"^[^\\\\s@]+@[^\\\\s@]+\\\\.[^\\\\s@]+$"},
-                            "approvers":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["functional","email"],"properties":{"functional":{"type":"string","minLength":1,"maxLength":255,"pattern":"^\\\\S(?:.*\\\\S)?$"},"email":{"type":"string","minLength":3,"maxLength":320,"pattern":"^[^\\\\s@]+@[^\\\\s@]+\\\\.[^\\\\s@]+$"}}}},
+                            "emailGroup":{"type":"string","minLength":3,"maxLength":320,"pattern":"^[^ @]+@[^ @]+[.][^ @]+$"},
+                            "approvers":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["functional","email"],"properties":{"functional":{"type":"string","minLength":1,"maxLength":255,"pattern":"^[^[:space:]](?:.*[^[:space:]])?$"},"email":{"type":"string","minLength":3,"maxLength":320,"pattern":"^[^ @]+@[^ @]+[.][^ @]+$"}}}},
                             "tags":{"type":"array","uniqueItems":true,"items":{"type":"string","minLength":1,"maxLength":150,"pattern":"^[a-z0-9]+(-[a-z0-9]+)*$"}}
                           }
                         }',
