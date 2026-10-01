@@ -120,6 +120,7 @@ class WorkspaceAuthorizationIT {
 
     private Map<String, Object> validCreate(String name, String authorizerGroup) {
         Map<String, Object> request = new LinkedHashMap<>();
+        request.put("version", 0);
         request.put("workspaceType", "ADMIN");
         request.put("name", name);
         request.put("description", "Descrição válida para " + name);
@@ -161,7 +162,7 @@ class WorkspaceAuthorizationIT {
     private io.restassured.specification.RequestSpecification authorized() {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "authorization-it")
+                .header("correlationId", "authorization-it")
                 .header("Authorization", "Bearer authorization-it")
                 .accept(ContentType.JSON);
     }

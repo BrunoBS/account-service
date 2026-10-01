@@ -157,7 +157,7 @@ class PlatformApiIT {
     private io.restassured.specification.RequestSpecification authorized() {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "platform-api-it")
+                .header("correlationId", "platform-api-it")
                 .header("Authorization", "Bearer platform-api-it")
                 .accept(ContentType.JSON);
     }

@@ -2,7 +2,6 @@ package br.com.portalmanager.platform.workspace.entrypoint.web.workspace.respons
 
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOutput;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,7 +24,6 @@ public record WorkspaceResponse(
         List<ApproverResponse> approvers,
         List<String> tags
 ) {
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
 
     public static WorkspaceResponse from(WorkspaceOutput output) {
         return new WorkspaceResponse(
@@ -37,7 +35,7 @@ public record WorkspaceResponse(
                 output.requester(),
                 output.acronym(),
                 output.authorizerGroup(),
-                toJsonNode(output.settings()),
+                output.settings(),
                 output.emailGroup(),
                 output.onboarding(),
                 output.lifecycle(),
@@ -48,10 +46,4 @@ public record WorkspaceResponse(
         );
     }
 
-    private static JsonNode toJsonNode(String settings) {
-        if (settings == null || settings.isBlank()) {
-            return null;
-        }
-        return JSON_MAPPER.readTree(settings);
-    }
 }

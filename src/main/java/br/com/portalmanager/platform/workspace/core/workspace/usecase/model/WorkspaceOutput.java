@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.model;
 
+import tools.jackson.databind.JsonNode;
+
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 
 import java.time.LocalDateTime;
@@ -15,7 +17,7 @@ public record WorkspaceOutput(
         String requester,
         String acronym,
         String authorizerGroup,
-        String settings,
+        JsonNode settings,
         String emailGroup,
         boolean onboarding,
         String lifecycle,

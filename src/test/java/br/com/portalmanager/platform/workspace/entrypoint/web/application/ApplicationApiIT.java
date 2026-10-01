@@ -212,7 +212,13 @@ class ApplicationApiIT {
         Map<String, Object> otherUpdate = request("Team B Changed Without Access");
         otherUpdate.put("authorizerGroup", "TEAM_B");
         otherUpdate.put("version", versionB);
-        put(path + "/" + appB, otherUpdate).statusCode(404).body("code", equalTo("APPLICATION-0001"));
+        authorization.reset();
+        authorization.allowResource(resource -> resource.application(appA),
+                session -> session.groups("USER")
+                        .addAuthorizerGroup("GRP_WORKSPACE_DEV_PARENT_A", "DEV", "DEV", "PARENT_A")
+                        .addAuthorizerGroup("GRP_APPLICATION_DEV_TEAM_A", "DEV", "DEV", "A-TEAM_A"));
+        authorization.forbiddenResource(resource -> resource.application(appB));
+        put(path + "/" + appB, otherUpdate).statusCode(403);
 
         authorization.forbidden();
         post(path + "/" + appA + "/inactivate", null).statusCode(403);
@@ -251,6 +257,7 @@ class ApplicationApiIT {
 
     private String createWorkspace(String type, String authorizerGroup) {
         Map<String, Object> request = new LinkedHashMap<>();
+        request.put("version", 0);
         request.put("workspaceType", type);
         if (authorizerGroup != null) request.put("authorizerGroup", authorizerGroup);
         request.put("name", "Workspace " + UUID.randomUUID());
@@ -258,8 +265,11 @@ class ApplicationApiIT {
         request.put("requester", "requester");
         request.put("acronym", "APP");
         request.put("settings", Map.of());
+        request.put("tags", List.of());
         request.put("emailGroup", "workspace@portalmanager.com");
         request.put("approvers", List.of(Map.of("functional", "F1234", "email", "approver@portalmanager.com")));
+        request.put("tags", List.of());
+        request.put("tags", List.of());
         return post("/api/v1/workspaces", request).statusCode(201).extract().path("identifier");
     }
 
@@ -274,32 +284,32 @@ class ApplicationApiIT {
     }
 
     private ValidatableResponse get(String path) {
-        return given().port(port).header("X-Correlation-Id", "application-api-it")
+        return given().port(port).header("correlationId", "application-api-it")
                 .header("Authorization", "Bearer application-api-it").accept(ContentType.JSON)
                 .when().get(path).then();
     }
 
     private ValidatableResponse getByTag(String path, String tag) {
-        return given().port(port).header("X-Correlation-Id", "application-api-it")
+        return given().port(port).header("correlationId", "application-api-it")
                 .header("Authorization", "Bearer application-api-it").accept(ContentType.JSON)
                 .queryParam("tagName", tag).when().get(path).then();
     }
 
     private ValidatableResponse post(String path, Object body) {
-        var request = given().port(port).header("X-Correlation-Id", "application-api-it")
+        var request = given().port(port).header("correlationId", "application-api-it")
                 .header("Authorization", "Bearer application-api-it").contentType(ContentType.JSON).accept(ContentType.JSON);
         if (body != null) request.body(body);
         return request.when().post(path).then();
     }
 
     private ValidatableResponse put(String path, Object body) {
-        return given().port(port).header("X-Correlation-Id", "application-api-it")
+        return given().port(port).header("correlationId", "application-api-it")
                 .header("Authorization", "Bearer application-api-it").contentType(ContentType.JSON)
                 .body(body).when().put(path).then();
     }
 
     private ValidatableResponse delete(String path) {
-        return given().port(port).header("X-Correlation-Id", "application-api-it")
+        return given().port(port).header("correlationId", "application-api-it")
                 .header("Authorization", "Bearer application-api-it").when().delete(path).then();
     }
 }

@@ -44,16 +44,16 @@ class WorkspaceApiIT {
     }
 
     @Test
-    void shouldCreateNormalizeAndReadActiveWorkspace() {
-        Map<String, Object> request = validCreate("  Workspace G3  ", " admin ");
-        request.put("description", "  Descrição válida do workspace G3  ");
-        request.put("requester", "  requester  ");
-        request.put("acronym", " G3 ");
-        request.put("authorizerGroup", "  GRP_WORKSPACE  ");
-        request.put("emailGroup", "  workspace@portalmanager.com  ");
+    void shouldCreateAndReadActiveWorkspaceWithStrictContract() {
+        Map<String, Object> request = validCreate("Workspace G3", "ADMIN");
+        request.put("description", "Descrição válida do workspace G3");
+        request.put("requester", "requester");
+        request.put("acronym", "G3");
+        request.put("authorizerGroup", "GRP_WORKSPACE");
+        request.put("emailGroup", "workspace@portalmanager.com");
         request.put("approvers", List.of(Map.of(
-                "functional", "  F1234  ",
-                "email", "  approver@portalmanager.com  "
+                "functional", "F1234",
+                "email", "approver@portalmanager.com"
         )));
 
         String identifier = post(request)
@@ -84,6 +84,18 @@ class WorkspaceApiIT {
     }
 
     @Test
+    void shouldRejectValuesThatRequireNormalization() {
+        Map<String, Object> request = validCreate(" Workspace Rígido ", "admin");
+        request.put("acronym", " wsp ");
+        request.put("emailGroup", " workspace@portalmanager.com ");
+        request.put("authorizerGroup", " grp_workspace ");
+
+        post(request)
+                .statusCode(400)
+                .body("code", equalTo("GLOBAL-0001"));
+    }
+
+    @Test
     void shouldListByLifecycleAndNormalizedTypeFilter() {
         String adminIdentifier = create("Workspace Admin", "ADMIN");
         String managerIdentifier = create("Workspace Manager", "MANAGER");
@@ -92,10 +104,10 @@ class WorkspaceApiIT {
 
         given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-api-it")
+                .header("correlationId", "workspace-api-it")
                 .header("Authorization", "Bearer workspace-api-it")
                 .accept(ContentType.JSON)
-                .queryParam("active", true)
+                .queryParam("lifecycle", "ACTIVE")
                 .queryParam("typeName", " admin ")
                 .when()
                 .get("/api/v1/workspaces")
@@ -105,7 +117,7 @@ class WorkspaceApiIT {
                 .body("identifier", not(hasItem(managerIdentifier)))
                 .body("workspaceType", containsInAnyOrder("ADMIN"));
 
-        get("/api/v1/workspaces?active=false")
+        get("/api/v1/workspaces?lifecycle=INACTIVE")
                 .statusCode(200)
                 .body("identifier", containsInAnyOrder(managerIdentifier))
                 .body("lifecycle", containsInAnyOrder("INACTIVE"));
@@ -139,6 +151,30 @@ class WorkspaceApiIT {
     }
 
     @Test
+    void shouldReplaceApproversWhenOneRemainsWithoutUniqueConstraintConflict() {
+        String identifier = create("Workspace Approver Replace", "ADMIN");
+        Integer version = get("/api/v1/workspaces/" + identifier)
+                .statusCode(200)
+                .extract()
+                .path("version");
+
+        Map<String, Object> update = validUpdate(version, "Workspace Approver Replace", "ADMIN");
+        update.put("approvers", List.of(
+                Map.of("functional", "F1000", "email", "approver@portalmanager.com"),
+                Map.of("functional", "F2000", "email", "second@portalmanager.com")
+        ));
+
+        put("/api/v1/workspaces/" + identifier, update)
+                .statusCode(200)
+                .body("approvers", hasSize(2))
+                .body("approvers.functional", containsInAnyOrder("F1000", "F2000"))
+                .body("approvers.email", containsInAnyOrder(
+                        "approver@portalmanager.com",
+                        "second@portalmanager.com"
+                ));
+    }
+
+    @Test
     void shouldRejectStaleUpdateWithConflict() {
         String identifier = create("Workspace Concorrente", "ADMIN");
         Integer version = get("/api/v1/workspaces/" + identifier)
@@ -159,10 +195,10 @@ class WorkspaceApiIT {
     }
 
     @Test
-    void shouldRejectDuplicateNameAfterNormalization() {
+    void shouldRejectDuplicateWorkspaceName() {
         create("Workspace Único G3", "ADMIN");
 
-        post(validCreate("  Workspace Único G3  ", "MANAGER"))
+        post(validCreate("Workspace Único G3", "MANAGER"))
                 .statusCode(400)
                 .body("code", equalTo("GLOBAL-0001"))
                 .body("details.field", hasItem("name"));
@@ -246,7 +282,8 @@ class WorkspaceApiIT {
     @Test
     void shouldReturnValidationDetailsForInvalidPayload() {
         Map<String, Object> invalid = new LinkedHashMap<>();
-        invalid.put("workspaceType", "INVALID");
+        invalid.put("version", -1);
+        invalid.put("workspaceType", "ADMIN");
         invalid.put("name", " A ");
         invalid.put("description", " curta ");
         invalid.put("requester", " x ");
@@ -257,13 +294,22 @@ class WorkspaceApiIT {
         post(invalid)
                 .statusCode(400)
                 .body("code", equalTo("GLOBAL-0001"))
-                .body("details.field", hasItem("workspaceType"))
                 .body("details.field", hasItem("name"))
                 .body("details.field", hasItem("description"))
                 .body("details.field", hasItem("requester"))
                 .body("details.field", hasItem("acronym"))
                 .body("details.field", hasItem("emailGroup"))
                 .body("details.field", hasItem("approvers"));
+    }
+
+    @Test
+    void shouldRejectWorkspaceTypeThatDoesNotExistInCatalog() {
+        Map<String, Object> invalid = validCreate("Workspace Invalid Type", "INVALID");
+
+        post(invalid)
+                .statusCode(400)
+                .body("code", equalTo("GLOBAL-0001"))
+                .body("details.field", hasItem("workspaceType"));
     }
 
     @Test
@@ -351,6 +397,7 @@ class WorkspaceApiIT {
 
     private Map<String, Object> validCreate(String name, String type) {
         Map<String, Object> request = new LinkedHashMap<>();
+        request.put("version", 0);
         request.put("workspaceType", type);
         request.put("name", name);
         request.put("description", "Descrição válida para " + name.trim());
@@ -376,7 +423,7 @@ class WorkspaceApiIT {
     private ValidatableResponse get(String path) {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-api-it")
+                .header("correlationId", "workspace-api-it")
                 .header("Authorization", "Bearer workspace-api-it")
                 .accept(ContentType.JSON)
                 .when()
@@ -387,7 +434,7 @@ class WorkspaceApiIT {
     private ValidatableResponse post(Map<String, Object> body) {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-api-it")
+                .header("correlationId", "workspace-api-it")
                 .header("Authorization", "Bearer workspace-api-it")
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -400,7 +447,7 @@ class WorkspaceApiIT {
     private ValidatableResponse post(String path) {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-api-it")
+                .header("correlationId", "workspace-api-it")
                 .header("Authorization", "Bearer workspace-api-it")
                 .accept(ContentType.JSON)
                 .when()
@@ -411,7 +458,7 @@ class WorkspaceApiIT {
     private ValidatableResponse put(String path, Map<String, Object> body) {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-api-it")
+                .header("correlationId", "workspace-api-it")
                 .header("Authorization", "Bearer workspace-api-it")
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -424,7 +471,7 @@ class WorkspaceApiIT {
     private ValidatableResponse delete(String path) {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-api-it")
+                .header("correlationId", "workspace-api-it")
                 .header("Authorization", "Bearer workspace-api-it")
                 .accept(ContentType.JSON)
                 .when()

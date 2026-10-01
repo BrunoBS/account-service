@@ -114,6 +114,7 @@ class WorkspaceAuditIT {
 
     private Map<String, Object> validCreate(String name) {
         Map<String, Object> request = new LinkedHashMap<>();
+        request.put("version", 0);
         request.put("workspaceType", "ADMIN");
         request.put("name", name);
         request.put("description", "Descrição válida para " + name);
@@ -159,7 +160,7 @@ class WorkspaceAuditIT {
     private io.restassured.specification.RequestSpecification authorized() {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-audit-request")
+                .header("correlationId", "workspace-audit-request")
                 .header("Authorization", "Bearer workspace-audit-it")
                 .accept(ContentType.JSON);
     }

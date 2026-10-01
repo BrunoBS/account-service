@@ -9,6 +9,6 @@ public record UpdateMicroserviceRequest(
         JsonNode settings
 ) {
     public UpdateMicroserviceInput toInput() {
-        return new UpdateMicroserviceInput(name, description, settings == null ? null : settings.toString());
+        return new UpdateMicroserviceInput(name, description, settings);
     }
 }

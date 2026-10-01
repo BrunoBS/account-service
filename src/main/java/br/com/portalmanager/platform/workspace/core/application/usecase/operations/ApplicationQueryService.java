@@ -7,6 +7,7 @@ import br.com.portalmanager.platform.workspace.core.application.domain.Applicati
 import br.com.portalmanager.platform.workspace.core.application.repository.ApplicationRepository;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationOutput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationSummary;
+import br.com.portalmanager.platform.workspace.core.application.usecase.validation.ApplicationValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import org.springframework.stereotype.Service;
@@ -38,23 +39,24 @@ public class ApplicationQueryService {
     @Transactional(readOnly = true)
     public ApplicationOutput findByIdentifier(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findActive(identifier, workspaceId);
+        Application app = finder.findByIdentifier(identifier, workspaceId);
+        ApplicationValidator.requireActive(app);
         return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
     }
 
-    @ResourceVisibility(Application.class)
     @Transactional(readOnly = true)
     public ApplicationOutput findInactiveByIdentifier(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findInactive(identifier, workspaceId);
+        Application app = finder.findByIdentifier(identifier, workspaceId);
+        ApplicationValidator.requireRestorable(app);
         return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
     }
 
-    @ResourceVisibility(Application.class)
     @Transactional(readOnly = true)
     public ApplicationOutput findInactiveForDeletion(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findInactiveForDeletion(identifier, workspaceId);
+        Application app = finder.findByIdentifier(identifier, workspaceId);
+        ApplicationValidator.requireDeletable(app);
         return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
     }
 

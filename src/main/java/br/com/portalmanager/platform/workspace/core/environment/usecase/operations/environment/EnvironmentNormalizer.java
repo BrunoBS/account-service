@@ -11,7 +11,7 @@ public class EnvironmentNormalizer {
     public CreateEnvironmentInput normalize(CreateEnvironmentInput input) {
         if (input == null) return null;
         return new CreateEnvironmentInput(trim(input.name()), trim(input.description()), authorization(input.authorizationType()),
-                input.sortOrder(), group(input.authorizerGroup()), settings(input.settings()),
+                input.sortOrder(), group(input.authorizerGroup()), input.settings(),
                 trim(input.environmentTypeCode()), trim(input.parentIdentifier()));
     }
 
@@ -19,7 +19,7 @@ public class EnvironmentNormalizer {
         if (input == null) return null;
         return new UpdateEnvironmentInput(input.version(), trim(input.name()), trim(input.description()),
                 authorization(input.authorizationType()), input.sortOrder(), group(input.authorizerGroup()),
-                settings(input.settings()), trim(input.environmentTypeCode()));
+                input.settings(), trim(input.environmentTypeCode()));
     }
 
     private String trim(String value) { return value == null ? null : value.trim(); }
@@ -32,5 +32,4 @@ public class EnvironmentNormalizer {
         if (group == null || group.isBlank()) return null;
         return group.startsWith("E-") ? group : "E-" + group;
     }
-    private String settings(String value) { return value == null || value.isBlank() ? "{}" : value.trim(); }
 }

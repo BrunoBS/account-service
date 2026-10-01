@@ -27,7 +27,7 @@ public record UpdateWorkspaceRequest(
                 requester,
                 acronym,
                 authorizerGroup,
-                settings == null ? null : settings.toString(),
+                settings,
                 emailGroup,
                 approvers == null ? null : approvers.stream()
                         .map(value -> value == null ? null : value.toInput())

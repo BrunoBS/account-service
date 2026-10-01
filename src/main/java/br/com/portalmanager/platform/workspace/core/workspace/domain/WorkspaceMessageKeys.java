@@ -14,6 +14,7 @@ public final class WorkspaceMessageKeys {
     public static final String ACRONYM_REQUIRED = "validation.acronym.required";
     public static final String ACRONYM_SIZE = "validation.acronym.size";
     public static final String EMAIL_INVALID = "validation.email.invalid";
+    public static final String SETTINGS_INVALID = "schemavalidation.invalid";
     public static final String APPROVERS_REQUIRED = "validation.approvers.required";
     public static final String APPROVER_FUNCTIONAL_REQUIRED =
             "validation.approver.functional.required";

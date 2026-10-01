@@ -1,19 +1,21 @@
 package br.com.portalmanager.platform.workspace.feature.platform.domain;
 
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class FeatureDomainTest {
+    private static final JsonMapper JSON = JsonMapper.builder().build();
 
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 9, 25, 13, 30);
 
     @Test
     void shouldAssociateAndRemoveActiveContext() {
         Microservice microservice = new Microservice("audit-service", "Audit Service", null, NOW);
-        Feature feature = new Feature("audit", "audit", null, microservice, "{}", NOW);
+        Feature feature = new Feature("audit", "audit", null, microservice, JSON.createObjectNode(), NOW);
         FeatureContext context = new FeatureContext("administration", "administration", null, NOW);
 
         feature.addContext(context);
@@ -29,7 +31,7 @@ class FeatureDomainTest {
     void shouldMoveFeatureBetweenActiveServicesMaintainingBidirectionalRelation() {
         Microservice original = new Microservice("workspace-service", "Workspace Service", null, NOW);
         Microservice target = new Microservice("audit-service", "Audit Service", null, NOW);
-        Feature feature = new Feature("audit", "audit", null, original, "{}", NOW);
+        Feature feature = new Feature("audit", "audit", null, original, JSON.createObjectNode(), NOW);
 
         feature.changeMicroservice(target, NOW.plusMinutes(1));
 

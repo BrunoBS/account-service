@@ -8,6 +8,6 @@ public record CreateEnvironmentRequest(String name, String description, String a
                                        String environmentTypeCode, String parentIdentifier) {
     public CreateEnvironmentInput toInput() {
         return new CreateEnvironmentInput(name, description, authorizationType, sortOrder, authorizerGroup,
-                settings == null ? null : settings.toString(), environmentTypeCode, parentIdentifier);
+                settings, environmentTypeCode, parentIdentifier);
     }
 }

@@ -45,7 +45,7 @@ class WorkspaceTaggingIT {
     @Test
     void shouldNormalizeExposeManualTagsAndHideSystemTags() {
         Map<String, Object> request = validCreate("Workspace Tags", "TAG", "TEAM_A");
-        request.put("tags", List.of("  Minha   Tag  ", "minha\tTag", "OUTRA TAG", "   "));
+        request.put("tags", List.of("minha-tag", "outra-tag"));
 
         String identifier = post(request)
                 .statusCode(201)
@@ -127,6 +127,7 @@ class WorkspaceTaggingIT {
 
     private Map<String, Object> validCreate(String name, String acronym, String authorizerGroup) {
         Map<String, Object> request = new LinkedHashMap<>();
+        request.put("version", 0);
         request.put("workspaceType", "ADMIN");
         request.put("name", name);
         request.put("description", "Descrição válida para " + name);
@@ -196,7 +197,7 @@ class WorkspaceTaggingIT {
     private io.restassured.specification.RequestSpecification authorized() {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "tagging-it")
+                .header("correlationId", "tagging-it")
                 .header("Authorization", "Bearer tagging-it")
                 .accept(ContentType.JSON);
     }

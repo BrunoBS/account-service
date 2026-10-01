@@ -6,6 +6,7 @@ import tools.jackson.databind.JsonNode;
 import java.util.List;
 
 public record CreateWorkspaceRequest(
+        Long version,
         String workspaceType,
         String name,
         String description,
@@ -19,13 +20,14 @@ public record CreateWorkspaceRequest(
 ) {
     public CreateWorkspaceInput toInput() {
         return new CreateWorkspaceInput(
+                version,
                 workspaceType,
                 name,
                 description,
                 requester,
                 acronym,
                 authorizerGroup,
-                settings == null ? null : settings.toString(),
+                settings,
                 emailGroup,
                 approvers == null ? null : approvers.stream()
                         .map(value -> value == null ? null : value.toInput())

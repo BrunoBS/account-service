@@ -12,6 +12,6 @@ public record CreateFeatureRequest(
 ) {
     public CreateFeatureInput toInput() {
         return new CreateFeatureInput(code, name, description, microserviceIdentifier,
-                settings == null ? null : settings.toString());
+                settings);
     }
 }

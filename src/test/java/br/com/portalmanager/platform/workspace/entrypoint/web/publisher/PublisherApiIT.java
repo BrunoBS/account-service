@@ -50,7 +50,7 @@ class PublisherApiIT {
     @Test
     void createsPublisherWithJsonSettingsAndDefaultSchemaResolution() {
         String code = "P_" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        String identifier = given().port(port).header("X-Correlation-Id", "publisher-it")
+        String identifier = given().port(port).header("correlationId", "publisher-it")
                 .header("Authorization", "Bearer publisher-it")
                 .contentType(ContentType.JSON)
                 .body(Map.of("code", code, "name", "Test Publisher",
@@ -59,7 +59,7 @@ class PublisherApiIT {
                 .statusCode(201).body("code", equalTo(code)).body("lifecycle", equalTo("ACTIVE"))
                 .body("settings", anEmptyMap())
                 .extract().path("identifier");
-        given().port(port).header("X-Correlation-Id", "publisher-it")
+        given().port(port).header("correlationId", "publisher-it")
                 .header("Authorization", "Bearer publisher-it")
                 .when().get("/api/v1/publishers/" + identifier).then().statusCode(200)
                 .body("settings", anEmptyMap());
@@ -76,7 +76,7 @@ class PublisherApiIT {
     @Test
     void invalidPublisherScopeIsRejectedIndependentlyOfSchemaConfiguration() {
         String code = "P_" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        given().port(port).header("X-Correlation-Id", "publisher-it")
+        given().port(port).header("correlationId", "publisher-it")
                 .header("Authorization", "Bearer publisher-it").contentType(ContentType.JSON)
                 .body(Map.of("code", code, "name", "Test Publisher",
                         "description", "Publisher for integration", "scope", "INVALID", "settings", Map.of()))

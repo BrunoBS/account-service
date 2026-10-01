@@ -8,6 +8,7 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.RollbackException;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @PlatformIntegrationTest
 @WithMySql
 class WorkspacePersistenceIT {
+    private static final JsonMapper JSON = JsonMapper.builder().build();
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -92,13 +94,27 @@ class WorkspacePersistenceIT {
             var first = firstEntityManager.find(Workspace.class, saved.getId());
             var stale = staleEntityManager.find(Workspace.class, saved.getId());
 
-            first.updateDescription(
+            first.update(
+                    first.getWorkspaceType(),
+                    first.getName(),
                     "Descrição alterada pela primeira transação",
+                    first.getRequester(),
+                    first.getAcronym(),
+                    first.getSettings(),
+                    first.getAuthorizerGroup(),
+                    first.getEmailGroup(),
                     LocalDateTime.of(2026, 9, 20, 11, 0));
             firstEntityManager.getTransaction().commit();
 
-            stale.updateDescription(
+            stale.update(
+                    stale.getWorkspaceType(),
+                    stale.getName(),
                     "Descrição da transação obsoleta",
+                    stale.getRequester(),
+                    stale.getAcronym(),
+                    stale.getSettings(),
+                    stale.getAuthorizerGroup(),
+                    stale.getEmailGroup(),
                     LocalDateTime.of(2026, 9, 20, 12, 0));
 
             assertThrows(RollbackException.class, staleEntityManager.getTransaction()::commit);
@@ -120,7 +136,7 @@ class WorkspacePersistenceIT {
                 description,
                 "requester",
                 "PM",
-                "{\"theme\":\"default\"}",
+                JSON.createObjectNode().put("theme", "default"),
                 null,
                 "workspace@portalmanager.com",
                 LocalDateTime.of(2026, 9, 20, 10, 0)

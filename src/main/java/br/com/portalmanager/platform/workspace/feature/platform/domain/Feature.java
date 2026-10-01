@@ -2,6 +2,9 @@ package br.com.portalmanager.platform.workspace.feature.platform.domain;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import tools.jackson.databind.JsonNode;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -42,8 +45,9 @@ public class Feature {
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
     private LifecycleTypeCode lifecycle;
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "settings", nullable = false, columnDefinition = "json")
-    private String settings;
+    private JsonNode settings;
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     @Column(name = "updated_at", nullable = false)
@@ -52,7 +56,7 @@ public class Feature {
     protected Feature() {
     }
 
-    public Feature(String code, String name, String description, Microservice microservice, String settings, LocalDateTime now) {
+    public Feature(String code, String name, String description, Microservice microservice, JsonNode settings, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.code = code;
         this.name = name;
@@ -65,7 +69,7 @@ public class Feature {
         microservice.attach(this);
     }
 
-    public void update(String name, String description, String settings, LocalDateTime now) {
+    public void update(String name, String description, JsonNode settings, LocalDateTime now) {
         this.name = name;
         this.description = description;
         this.settings = settings;
@@ -140,7 +144,7 @@ public class Feature {
         return lifecycle;
     }
 
-    public String getSettings() {
+    public JsonNode getSettings() {
         return settings;
     }
 

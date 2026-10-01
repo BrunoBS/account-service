@@ -10,6 +10,7 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @PlatformIntegrationTest
 @WithMySql
 class ApplicationPersistenceIT {
+    private static final JsonMapper JSON = JsonMapper.builder().build();
     @Autowired private JdbcTemplate jdbc;
     @Autowired private WorkspaceRepository workspaces;
     @Autowired private ApplicationRepository applications;
@@ -56,12 +58,12 @@ class ApplicationPersistenceIT {
 
     private Workspace workspace(String name) {
         return workspaces.saveAndFlush(new Workspace(WorkspaceTypeCode.of("MANAGER"), name,
-                "Workspace for applications", "requester", "MA", "{}", null,
+                "Workspace for applications", "requester", "MA", JSON.createObjectNode(), null,
                 "workspace@portalmanager.com", LocalDateTime.now()));
     }
 
     private Application application(Workspace workspace, String name) {
-        return new Application(workspace.getId(), name, "alias", "APP", ApplicationScopeTypeCode.of("BACKEND"), "A-APP", "{}",
+        return new Application(workspace.getId(), name, "alias", "APP", ApplicationScopeTypeCode.of("BACKEND"), "A-APP", JSON.createObjectNode(),
                 LocalDateTime.now());
     }
 }

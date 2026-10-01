@@ -9,6 +9,7 @@ import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.Up
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
 
 @Component
 public class MicroserviceValidator {
@@ -18,7 +19,7 @@ public class MicroserviceValidator {
     @Autowired
     public MicroserviceValidator(SchemaSettingsValidator settingsValidator) { this.settingsValidator = settingsValidator; }
 
-    public void validateSettings(String code, String settings) {
+    public void validateSettings(String code, JsonNode settings) {
         if (settingsValidator == null) return;
         ValidationResult result = new ValidationResult();
         settingsValidator.validate("MICROSERVICE", code, "settings", settings, result);

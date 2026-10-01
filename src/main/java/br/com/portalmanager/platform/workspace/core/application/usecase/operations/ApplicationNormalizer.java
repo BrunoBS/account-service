@@ -4,6 +4,8 @@ import br.com.portalmanager.platform.library.tagging.TagNormalizer;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 import java.util.Locale;
 
@@ -24,6 +26,7 @@ public class ApplicationNormalizer {
     }
 
     public String normalizeTag(String value) { return TagNormalizer.normalize(value); }
+    private JsonNode settings(JsonNode value) { return value == null ? JsonNodeFactory.instance.objectNode() : value; }
     private String trim(String value) { return value == null ? null : value.trim(); }
     private String code(String value) {
         String normalized = trim(value);
@@ -34,5 +37,4 @@ public class ApplicationNormalizer {
         if (normalized == null || normalized.isBlank()) return null;
         return normalized.startsWith("A-") ? normalized : "A-" + normalized;
     }
-    private String settings(String value) { return value == null || value.isBlank() ? "{}" : value.trim(); }
 }

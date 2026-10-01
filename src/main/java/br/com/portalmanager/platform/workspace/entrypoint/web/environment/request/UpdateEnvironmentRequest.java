@@ -7,6 +7,6 @@ public record UpdateEnvironmentRequest(Long version, String name, String descrip
                                        Integer sortOrder, String authorizerGroup, JsonNode settings, String environmentTypeCode) {
     public UpdateEnvironmentInput toInput() {
         return new UpdateEnvironmentInput(version, name, description, authorizationType, sortOrder, authorizerGroup,
-                settings == null ? null : settings.toString(), environmentTypeCode);
+                settings, environmentTypeCode);
     }
 }

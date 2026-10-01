@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.model;
 
+import tools.jackson.databind.JsonNode;
+
 import java.util.List;
 
 public record UpdateWorkspaceInput(
@@ -10,7 +12,7 @@ public record UpdateWorkspaceInput(
         String requester,
         String acronym,
         String authorizerGroup,
-        String settings,
+        JsonNode settings,
         String emailGroup,
         List<ApproverInput> approvers,
         List<String> tags

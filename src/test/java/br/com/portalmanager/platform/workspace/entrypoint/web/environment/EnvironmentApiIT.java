@@ -144,9 +144,9 @@ class EnvironmentApiIT {
 
     private String workspace() {
         return post("/api/v1/workspaces", Map.of(
-                "workspaceType", "MANAGER", "name", "Environment Workspace " + UUID.randomUUID(),
+                "version", 0, "workspaceType", "MANAGER", "name", "Environment Workspace " + UUID.randomUUID(),
                 "description", "Workspace for environments", "requester", "requester",
-                "acronym", "ENV", "settings", Map.of(), "emailGroup", "workspace@portalmanager.com",
+                "acronym", "ENV", "settings", Map.of(), "tags", java.util.List.of(), "emailGroup", "workspace@portalmanager.com",
                 "approvers", java.util.List.of(Map.of("functional", "F1234", "email", "approver@portalmanager.com"))))
                 .statusCode(201).extract().path("identifier");
     }
@@ -168,12 +168,12 @@ class EnvironmentApiIT {
     }
 
     private ValidatableResponse get(String path) {
-        return given().port(port).header("X-Correlation-Id", "environment-api-it")
+        return given().port(port).header("correlationId", "environment-api-it")
                 .header("Authorization", "Bearer environment-api-it").accept(ContentType.JSON).when().get(path).then();
     }
 
     private ValidatableResponse post(String path, Object body) {
-        var request = given().port(port).header("X-Correlation-Id", "environment-api-it")
+        var request = given().port(port).header("correlationId", "environment-api-it")
                 .header("Authorization", "Bearer environment-api-it").contentType(ContentType.JSON).accept(ContentType.JSON);
         if (body != null) request.body(body);
         return request.when().post(path).then();

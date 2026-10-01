@@ -10,6 +10,6 @@ public record CreateMicroserviceRequest(
         JsonNode settings
 ) {
     public CreateMicroserviceInput toInput() {
-        return new CreateMicroserviceInput(code, name, description, settings == null ? null : settings.toString());
+        return new CreateMicroserviceInput(code, name, description, settings);
     }
 }

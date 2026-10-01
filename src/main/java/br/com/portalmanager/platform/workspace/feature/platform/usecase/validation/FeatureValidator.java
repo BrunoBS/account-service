@@ -10,6 +10,7 @@ import br.com.portalmanager.platform.library.messaging.exception.ValidationExcep
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
 
 @Component
 public class FeatureValidator {
@@ -21,7 +22,7 @@ public class FeatureValidator {
     @Autowired
     public FeatureValidator(SchemaSettingsValidator settingsValidator) { this.settingsValidator = settingsValidator; }
 
-    public void validateSettings(String featureCode, String settings) {
+    public void validateSettings(String featureCode, JsonNode settings) {
         if (settingsValidator == null) return;
         ValidationResult result = new ValidationResult();
         settingsValidator.validate("FEATURE", featureCode, "settings", settings, result);

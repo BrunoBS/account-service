@@ -11,6 +11,7 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.CreateWorkspaceRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.UpdateWorkspaceRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.response.WorkspaceResponse;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -44,70 +45,74 @@ public class WorkspaceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/{identifier}")
+    @GetMapping("/{workspaceIdentifier}")
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
-    public WorkspaceResponse findByIdentifier(@PathVariable String identifier) {
-        return WorkspaceResponse.from(queryService.findByIdentifier(identifier));
+    public WorkspaceResponse findByIdentifier(@PathVariable String workspaceIdentifier) {
+        return WorkspaceResponse.from(queryService.findByIdentifier(workspaceIdentifier));
     }
 
     @GetMapping
     @AuthorizationRequired(level = AuthorizationLevel.OPEN)
     public List<WorkspaceResponse> findAll(
-            @RequestParam(defaultValue = "true") Boolean active,
+            @RequestParam(required = false) String lifecycle,
             @RequestParam(required = false) String typeName,
             @RequestParam(required = false) String tagName
     ) {
-        return queryService.findAll(new FindAllWorkspacesInput(active, typeName, tagName)).stream()
+        return queryService.findAll(new FindAllWorkspacesInput(
+                lifecycle == null ? null : LifecycleTypeCode.of(lifecycle),
+                typeName,
+                tagName
+        )).stream()
                 .map(WorkspaceResponse::from)
                 .toList();
     }
 
-    @PutMapping("/{identifier}")
+    @PutMapping("/{workspaceIdentifier}")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(
             resource = "WORKSPACE",
             action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "workspaceIdentifier")
     )
     public WorkspaceResponse update(
-            @PathVariable String identifier,
+            @PathVariable String workspaceIdentifier,
             @RequestBody UpdateWorkspaceRequest request
     ) {
-        return WorkspaceResponse.from(commandService.update(identifier, request.toInput()));
+        return WorkspaceResponse.from(commandService.update(workspaceIdentifier, request.toInput()));
     }
 
-    @PostMapping("/{identifier}/inactivate")
+    @PostMapping("/{workspaceIdentifier}/inactivate")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(
             resource = "WORKSPACE",
             action = "INACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "workspaceIdentifier")
     )
-    public ResponseEntity<Void> inactivate(@PathVariable String identifier) {
-        commandService.inactivate(identifier);
+    public ResponseEntity<Void> inactivate(@PathVariable String workspaceIdentifier) {
+        commandService.inactivate(workspaceIdentifier);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{identifier}/restore")
+    @PostMapping("/{workspaceIdentifier}/restore")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(
             resource = "WORKSPACE",
             action = "RESTORE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "workspaceIdentifier")
     )
-    public WorkspaceResponse restore(@PathVariable String identifier) {
-        return WorkspaceResponse.from(commandService.restore(identifier));
+    public WorkspaceResponse restore(@PathVariable String workspaceIdentifier) {
+        return WorkspaceResponse.from(commandService.restore(workspaceIdentifier));
     }
 
-    @DeleteMapping("/{identifier}")
+    @DeleteMapping("/{workspaceIdentifier}")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(
             resource = "WORKSPACE",
             action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "workspaceIdentifier")
     )
-    public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        commandService.delete(identifier);
+    public ResponseEntity<Void> delete(@PathVariable String workspaceIdentifier) {
+        commandService.delete(workspaceIdentifier);
         return ResponseEntity.noContent().build();
     }
 }
