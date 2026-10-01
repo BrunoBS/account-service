@@ -195,7 +195,7 @@ class WorkspaceApiIT {
     }
 
     @Test
-    void shouldRejectDuplicateNameAfterNormalization() {
+    void shouldRejectDuplicateWorkspaceName() {
         create("Workspace Único G3", "ADMIN");
 
         post(validCreate("Workspace Único G3", "MANAGER"))
