@@ -38,7 +38,7 @@ public class ApplicationController {
                 .body(ApplicationResponse.from(command.create(workspaceIdentifier, request.toInput(), request.schemaPayload())));
     }
 
-    @GetMapping("/{identifier}")
+    @GetMapping("/{applicationIdentifier}")
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
     public ApplicationResponse find(@PathVariable String workspaceIdentifier, @PathVariable String applicationIdentifier) {
         return ApplicationResponse.from(query.findByIdentifier(workspaceIdentifier, applicationIdentifier));
@@ -58,7 +58,7 @@ public class ApplicationController {
         return query.summary(workspaceIdentifier).stream().map(ApplicationSummaryResponse::from).toList();
     }
 
-    @PutMapping("/{identifier}")
+    @PutMapping("/{applicationIdentifier}")
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
     @Auditable(resource = "APPLICATION", action = "UPDATE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "applicationIdentifier"))
     public ApplicationResponse update(@PathVariable String workspaceIdentifier,
@@ -67,7 +67,7 @@ public class ApplicationController {
         return ApplicationResponse.from(command.update(workspaceIdentifier, applicationIdentifier, request.toInput(), request.schemaPayload()));
     }
 
-    @PostMapping("/{identifier}/inactivate")
+    @PostMapping("/{applicationIdentifier}/inactivate")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(resource = "APPLICATION", action = "INACTIVATE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "applicationIdentifier"))
     public ResponseEntity<Void> inactivate(@PathVariable String workspaceIdentifier, @PathVariable String applicationIdentifier) {
@@ -75,14 +75,14 @@ public class ApplicationController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{identifier}/restore")
+    @PostMapping("/{applicationIdentifier}/restore")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(resource = "APPLICATION", action = "RESTORE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "applicationIdentifier"))
     public ApplicationResponse restore(@PathVariable String workspaceIdentifier, @PathVariable String applicationIdentifier) {
         return ApplicationResponse.from(command.restore(workspaceIdentifier, applicationIdentifier));
     }
 
-    @DeleteMapping("/{identifier}")
+    @DeleteMapping("/{applicationIdentifier}")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(resource = "APPLICATION", action = "DELETE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "applicationIdentifier"))
     public ResponseEntity<Void> delete(@PathVariable String workspaceIdentifier, @PathVariable String applicationIdentifier) {
