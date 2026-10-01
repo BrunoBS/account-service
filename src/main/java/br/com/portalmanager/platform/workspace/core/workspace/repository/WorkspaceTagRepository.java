@@ -45,6 +45,14 @@ public interface WorkspaceTagRepository extends JpaRepository<WorkspaceTag, Long
             """)
     List<String> findWorkspaceIdentifiersByTag(@Param("name") String name);
 
+    @Query("""
+            select distinct t.workspace.identifier
+              from WorkspaceTag t
+             where t.name like concat(:prefix, '%')
+             order by t.workspace.identifier
+            """)
+    List<String> findWorkspaceIdentifiersByTagStartingWith(@Param("prefix") String prefix);
+
     @Modifying(flushAutomatically = true)
     @Query("delete from WorkspaceTag t where t.workspace.id = :workspaceId")
     int deleteByWorkspaceId(@Param("workspaceId") Long workspaceId);
