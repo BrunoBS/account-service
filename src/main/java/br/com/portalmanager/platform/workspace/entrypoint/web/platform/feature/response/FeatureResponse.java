@@ -37,7 +37,7 @@ public record FeatureResponse(
         );
     }
 
-    private static JsonNode toJsonNode(String settings) {
+    private static JsonNode toJsonNode(JsonNode settings) {
         if (settings == null || settings.isBlank()) {
             return null;
         }
