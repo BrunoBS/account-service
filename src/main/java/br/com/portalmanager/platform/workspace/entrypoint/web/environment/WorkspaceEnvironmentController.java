@@ -29,7 +29,7 @@ public class WorkspaceEnvironmentController {
 
     @PostMapping
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(resource = "ENVIRONMENT", action = "INSERT", resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "environmentIdentifier"))
+    @Auditable(resource = "ENVIRONMENT", action = "INSERT", resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier"))
     public ResponseEntity<EnvironmentResponse> create(@PathVariable String workspaceIdentifier, @RequestBody CreateEnvironmentRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(EnvironmentResponse.from(command.createCustom(workspaceIdentifier, request.toInput())));
     }
