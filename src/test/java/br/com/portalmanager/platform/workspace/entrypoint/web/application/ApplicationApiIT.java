@@ -265,6 +265,7 @@ class ApplicationApiIT {
         request.put("requester", "requester");
         request.put("acronym", "APP");
         request.put("settings", Map.of());
+        request.put("tags", List.of());
         request.put("emailGroup", "workspace@portalmanager.com");
         request.put("approvers", List.of(Map.of("functional", "F1234", "email", "approver@portalmanager.com")));
         return post("/api/v1/workspaces", request).statusCode(201).extract().path("identifier");
