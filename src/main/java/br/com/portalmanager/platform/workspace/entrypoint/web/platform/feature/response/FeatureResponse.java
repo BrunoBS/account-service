@@ -2,7 +2,6 @@ package br.com.portalmanager.platform.workspace.entrypoint.web.platform.feature.
 
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.FeatureOutput;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDateTime;
 
@@ -19,7 +18,6 @@ public record FeatureResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
 
     public static FeatureResponse from(FeatureOutput output) {
         return new FeatureResponse(
@@ -31,16 +29,10 @@ public record FeatureResponse(
                 output.microserviceIdentifier(),
                 output.microserviceCode(),
                 output.lifecycle(),
-                toJsonNode(output.settings()),
+                output.settings(),
                 output.createdAt(),
                 output.updatedAt()
         );
     }
 
-    private static JsonNode toJsonNode(JsonNode settings) {
-        if (settings == null || settings.isBlank()) {
-            return null;
-        }
-        return JSON_MAPPER.readTree(settings);
-    }
 }
