@@ -18,6 +18,7 @@ class WorkspaceNormalizerTest {
     @Test
     void shouldNormalizeBusinessFieldsAndPreserveNullAuthorizerGroup() {
         var normalized = normalizer.normalize(new CreateWorkspaceInput(
+                0L,
                 " manager ",
                 "  Workspace Normalizado  ",
                 "  Descrição normalizada  ",
@@ -33,6 +34,7 @@ class WorkspaceNormalizerTest {
                 List.of(" Manual Tag ")
         ));
 
+        assertThat(normalized.version()).isZero();
         assertThat(normalized.workspaceType()).isEqualTo("MANAGER");
         assertThat(normalized.name()).isEqualTo("Workspace Normalizado");
         assertThat(normalized.description()).isEqualTo("Descrição normalizada");
@@ -49,6 +51,7 @@ class WorkspaceNormalizerTest {
     @Test
     void shouldNormalizeAuthorizerGroupToUppercaseOnCreate() {
         var normalized = normalizer.normalize(new CreateWorkspaceInput(
+                0L,
                 "MANAGER",
                 "Workspace",
                 "Descrição",
