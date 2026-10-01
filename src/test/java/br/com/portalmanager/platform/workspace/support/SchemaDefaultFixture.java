@@ -69,7 +69,7 @@ public final class SchemaDefaultFixture {
                        '{
                           "type":"object",
                           "additionalProperties":false,
-                          "required":["workspaceType","name","description","requester","acronym","emailGroup","approvers"],
+                          "required":["version","workspaceType","name","description","requester","acronym","emailGroup","approvers"],
                           "properties":{
                             "version":{"type":"integer","minimum":0},
                             "workspaceType":{"type":"string","minLength":1,"maxLength":50,"pattern":"^[A-Z][A-Z0-9_-]*$"},
