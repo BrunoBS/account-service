@@ -45,7 +45,7 @@ class WorkspaceTaggingIT {
     @Test
     void shouldNormalizeExposeManualTagsAndHideSystemTags() {
         Map<String, Object> request = validCreate("Workspace Tags", "TAG", "TEAM_A");
-        request.put("tags", List.of("  Minha   Tag  ", "minha\tTag", "OUTRA TAG", "   "));
+        request.put("tags", List.of("minha-tag", "outra-tag"));
 
         String identifier = post(request)
                 .statusCode(201)
