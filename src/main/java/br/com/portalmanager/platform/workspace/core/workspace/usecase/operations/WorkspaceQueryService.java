@@ -5,6 +5,7 @@ import br.com.portalmanager.platform.library.tagging.TagManager;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceTag;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
+import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceTagRepository;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOutput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator;
@@ -18,15 +19,18 @@ import java.util.Map;
 @Service
 public class WorkspaceQueryService {
     private final WorkspaceRepository repository;
+    private final WorkspaceTagRepository tagRepository;
     private final WorkspaceFinder finder;
     private final WorkspaceNormalizer normalizer;
     private final WorkspaceValidator validator;
     private final TagManager<WorkspaceTag, Workspace, Long, String> tags;
 
-    public WorkspaceQueryService(WorkspaceRepository repository, WorkspaceFinder finder, WorkspaceNormalizer normalizer,
+    public WorkspaceQueryService(WorkspaceRepository repository, WorkspaceTagRepository tagRepository,
+                                 WorkspaceFinder finder, WorkspaceNormalizer normalizer,
                                  WorkspaceValidator validator,
                                  TagManager<WorkspaceTag, Workspace, Long, String> tags) {
         this.repository = repository;
+        this.tagRepository = tagRepository;
         this.finder = finder;
         this.normalizer = normalizer;
         this.validator = validator;
@@ -71,7 +75,7 @@ public class WorkspaceQueryService {
         if (tagFilter == null) {
             workspaces = repository.findFiltered(lifecycleCode, typeFilter);
         } else {
-            List<String> identifiers = tags.findOwnerKeysByTag(tagFilter);
+            List<String> identifiers = tagRepository.findWorkspaceIdentifiersByTagStartingWith(tagFilter);
             if (identifiers.isEmpty()) {
                 return List.of();
             }
