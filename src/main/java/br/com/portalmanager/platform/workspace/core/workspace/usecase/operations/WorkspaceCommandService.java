@@ -7,6 +7,7 @@ import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceSystemTags;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceTag;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOutput;
@@ -66,7 +67,7 @@ public class WorkspaceCommandService {
         return WorkspaceOutput.from(saved, tags.findManual(saved));
     }
 
-    private void replaceApprovers(Workspace workspace, List<br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput> approvers) {
+    private void replaceApprovers(Workspace workspace, List<ApproverInput> approvers) {
         workspace.clearApprovers();
         repository.deleteApproversByWorkspaceId(workspace.getId());
         approvers.forEach(approver -> workspace.addApprover(approver.functional(), approver.email()));
