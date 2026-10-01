@@ -9,6 +9,6 @@ public record UpdateApplicationRequest(Long version, String name, String alias, 
                                        String authorizerGroup, JsonNode settings, List<String> tags) {
     public UpdateApplicationInput toInput() {
         return new UpdateApplicationInput(version, name, alias, acronym, applicationScope, authorizerGroup,
-                settings == null ? null : settings.toString(), tags);
+                settings, tags);
     }
 }
