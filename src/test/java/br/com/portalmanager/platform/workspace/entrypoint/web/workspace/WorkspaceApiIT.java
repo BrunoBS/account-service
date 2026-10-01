@@ -257,6 +257,7 @@ class WorkspaceApiIT {
     @Test
     void shouldReturnValidationDetailsForInvalidPayload() {
         Map<String, Object> invalid = new LinkedHashMap<>();
+        invalid.put("version", -1);
         invalid.put("workspaceType", "INVALID");
         invalid.put("name", " A ");
         invalid.put("description", " curta ");
