@@ -59,7 +59,6 @@ public class ApplicationController {
     }
 
     @PutMapping("/{identifier}")
-    @ValidateResourceSchema(type = "APPLICATION", code = "application")
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
     @Auditable(resource = "APPLICATION", action = "UPDATE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
     public ApplicationResponse update(@PathVariable String workspaceIdentifier,
