@@ -7,6 +7,6 @@ public record UpdatePublisherRequest(Long version, String name, String descripti
                                      Boolean deprecated, JsonNode settings) {
     public UpdatePublisherInput toInput() {
         return new UpdatePublisherInput(version, name, description, scope, deprecated,
-                settings == null ? null : settings.toString());
+                settings);
     }
 }
