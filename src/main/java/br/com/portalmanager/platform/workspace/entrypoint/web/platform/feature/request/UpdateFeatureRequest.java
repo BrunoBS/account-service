@@ -11,6 +11,6 @@ public record UpdateFeatureRequest(
 ) {
     public UpdateFeatureInput toInput() {
         return new UpdateFeatureInput(name, description, microserviceIdentifier,
-                settings == null ? null : settings.toString());
+                settings);
     }
 }
