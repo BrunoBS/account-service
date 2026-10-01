@@ -63,7 +63,6 @@ public class WorkspaceController {
     }
 
     @PutMapping("/{identifier}")
-    @ValidateResourceSchema(type = "WORKSPACE", code = "workspace")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(
             resource = "WORKSPACE",
