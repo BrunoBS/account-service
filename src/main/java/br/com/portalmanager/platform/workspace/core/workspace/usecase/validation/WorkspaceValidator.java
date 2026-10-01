@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.library.messaging.exception.ValidationExcep
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceMessageKeys;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.usecase.WorkspaceTypeService;
@@ -48,23 +49,18 @@ public class WorkspaceValidator {
         if (!Objects.equals(current, requested)) throw new ResourceVersionConflictException();
     }
 
-    public void validateForCreate(WorkspaceValidationData data, boolean nameDuplicate) {
+    public void validateForCreate(Long version, String workspaceType, List<ApproverInput> approvers, boolean nameDuplicate) {
         ValidationResult result = new ValidationResult();
-        if (data == null || !Long.valueOf(0L).equals(data.version())) {
+        if (!Long.valueOf(0L).equals(version)) {
             result.addError("version", WorkspaceMessageKeys.VERSION_REQUIRED);
         }
-        validateSemanticRules(data, nameDuplicate, result);
+        validateSemanticRules(workspaceType, approvers, nameDuplicate, result);
         rejectIfInvalid(result);
     }
 
-    public void validateForUpdate(WorkspaceValidationData data, boolean nameDuplicate) {
+    public void validateForUpdate(String workspaceType, List<ApproverInput> approvers, boolean nameDuplicate) {
         ValidationResult result = new ValidationResult();
-        if (data == null) {
-            result.addError("request", WorkspaceMessageKeys.NAME_REQUIRED);
-            rejectIfInvalid(result);
-            return;
-        }
-        validateSemanticRules(data, nameDuplicate, result);
+        validateSemanticRules(workspaceType, approvers, nameDuplicate, result);
         rejectIfInvalid(result);
     }
 
@@ -77,27 +73,23 @@ public class WorkspaceValidator {
         rejectIfInvalid(result);
     }
 
-    private void validateSemanticRules(WorkspaceValidationData data, boolean nameDuplicate, ValidationResult result) {
-        if (data == null) {
-            result.addError("request", WorkspaceMessageKeys.NAME_REQUIRED);
-            return;
-        }
-        if (!isValidWorkspaceType(data.workspaceType())) {
+    private void validateSemanticRules(String workspaceType, List<ApproverInput> approvers,
+                                       boolean nameDuplicate, ValidationResult result) {
+        if (!isValidWorkspaceType(workspaceType)) {
             result.addError("workspaceType", WorkspaceMessageKeys.WORKSPACE_TYPE_INVALID);
         }
         if (nameDuplicate) {
             result.addError("name", WorkspaceMessageKeys.NAME_DUPLICATE);
         }
-        validateApproverUniqueness(data.approvers(), result);
+        validateApproverUniqueness(approvers, result);
     }
 
-
-    private void validateApproverUniqueness(List<ApproverData> approvers, ValidationResult result) {
+    private void validateApproverUniqueness(List<ApproverInput> approvers, ValidationResult result) {
         if (approvers == null) return;
         Set<String> functionals = new HashSet<>();
         Set<String> emails = new HashSet<>();
         for (int index = 0; index < approvers.size(); index++) {
-            ApproverData approver = approvers.get(index);
+            ApproverInput approver = approvers.get(index);
             if (approver == null) continue;
             String path = "approvers[" + index + "]";
             if (approver.functional() != null
