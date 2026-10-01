@@ -58,7 +58,11 @@ public class WorkspaceController {
             @RequestParam(required = false) String typeName,
             @RequestParam(required = false) String tagName
     ) {
-        return queryService.findAll(new FindAllWorkspacesInput(LifecycleTypeCode.of(lifecycle), typeName, tagName)).stream()
+        return queryService.findAll(new FindAllWorkspacesInput(
+                lifecycle == null ? null : LifecycleTypeCode.of(lifecycle),
+                typeName,
+                tagName
+        )).stream()
                 .map(WorkspaceResponse::from)
                 .toList();
     }
