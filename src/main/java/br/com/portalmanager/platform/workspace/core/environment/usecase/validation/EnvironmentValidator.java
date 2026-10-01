@@ -10,6 +10,8 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationt
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
 import org.springframework.stereotype.Component;
 
+import tools.jackson.databind.JsonNode;
+
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -49,7 +51,7 @@ public class EnvironmentValidator {
         if (!Objects.equals(current, requested)) throw new ResourceVersionConflictException();
     }
 
-    private void common(String name, String description, String authorization, Integer sort, String settings,
+    private void common(String name, String description, String authorization, Integer sort, JsonNode settings,
                         boolean duplicate, ValidationResult result) {
         if (name == null || name.length() < 3 || name.length() > 50)
             result.addError("name", EnvironmentMessageKeys.NAME_INVALID);
