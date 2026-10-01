@@ -41,6 +41,6 @@ public final class CreateApplicationRequest {
     }
 
     public Map<String, Object> schemaPayload() {
-        return Map.copyOf(schemaPayload);
+        return new LinkedHashMap<>(schemaPayload);
     }
 }
