@@ -46,7 +46,7 @@ public class Environment {
     @Column(name = "authorizer_group", length = 255)
     private String authorizerGroup;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "json")
     private String settings;
 
     @Column(name = "sort_order", nullable = false)
