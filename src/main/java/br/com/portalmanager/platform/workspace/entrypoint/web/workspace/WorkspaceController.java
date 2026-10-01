@@ -37,7 +37,7 @@ public class WorkspaceController {
     @Auditable(
             resource = "WORKSPACE",
             action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "workspaceIdentifier")
+            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
     )
     public ResponseEntity<WorkspaceResponse> create(@RequestBody CreateWorkspaceRequest request) {
         WorkspaceResponse response = WorkspaceResponse.from(commandService.create(request.toInput()));
