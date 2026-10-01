@@ -77,7 +77,7 @@ public final class SchemaDefaultFixture {
                             "description":{"type":"string","minLength":10,"maxLength":500,"pattern":"^[^ ].*[^ ]$|^[^ ]$"},
                             "requester":{"type":"string","minLength":5,"maxLength":255,"pattern":"^[^ ].*[^ ]$|^[^ ]$"},
                             "acronym":{"type":"string","minLength":1,"maxLength":5,"pattern":"^[A-Z0-9]+$"},
-                            "authorizerGroup":{"type":["string","null"],"minLength":1,"maxLength":255,"pattern":"^[^ ].*[^ ]$|^[^ ]$"},
+                            "authorizerGroup":{"type":["string","null"],"minLength":1,"maxLength":255,"pattern":"^(?!.*[a-z])[^ ].*[^ ]$|^[^a-z ]$"},
                             "settings":{"type":["object","null"],"additionalProperties":true},
                             "emailGroup":{"type":"string","minLength":3,"maxLength":320,"pattern":"^[^ @]+@[^ @]+[.][^ @]+$"},
                             "approvers":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["functional","email"],"properties":{"functional":{"type":"string","minLength":1,"maxLength":255,"pattern":"^[^ ].*[^ ]$|^[^ ]$"},"email":{"type":"string","minLength":3,"maxLength":320,"pattern":"^[^ @]+@[^ @]+[.][^ @]+$"}}}},
