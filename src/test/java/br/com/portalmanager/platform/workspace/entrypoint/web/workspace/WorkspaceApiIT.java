@@ -88,6 +88,7 @@ class WorkspaceApiIT {
         Map<String, Object> request = validCreate(" Workspace Rígido ", "admin");
         request.put("acronym", " wsp ");
         request.put("emailGroup", " workspace@portalmanager.com ");
+        request.put("authorizerGroup", " grp_workspace ");
 
         post(request)
                 .statusCode(400)
