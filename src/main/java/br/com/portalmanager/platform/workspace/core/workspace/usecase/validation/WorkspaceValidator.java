@@ -102,6 +102,7 @@ public class WorkspaceValidator {
         validateRequester(data.requester(), result);
         validateAcronym(data.acronym(), result);
         validateEmailGroup(data.emailGroup(), result);
+        validateSettings(data.settings(), result);
         validateApprovers(data.approvers(), result);
     }
 
@@ -148,6 +149,12 @@ public class WorkspaceValidator {
         }
     }
 
+
+    private void validateSettings(tools.jackson.databind.JsonNode settings, ValidationResult result) {
+        if (settings != null && !settings.isObject()) {
+            result.addError("settings", WorkspaceMessageKeys.SETTINGS_INVALID);
+        }
+    }
 
     private void validateEmailGroup(String emailGroup, ValidationResult result) {
         if (!isEmail(emailGroup)) {
