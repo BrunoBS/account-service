@@ -257,6 +257,7 @@ class ApplicationApiIT {
 
     private String createWorkspace(String type, String authorizerGroup) {
         Map<String, Object> request = new LinkedHashMap<>();
+        request.put("version", 0);
         request.put("workspaceType", type);
         if (authorizerGroup != null) request.put("authorizerGroup", authorizerGroup);
         request.put("name", "Workspace " + UUID.randomUUID());
