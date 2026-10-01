@@ -4,6 +4,9 @@ import br.com.portalmanager.platform.library.authorization.annotation.Authorizer
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import tools.jackson.databind.JsonNode;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -36,8 +39,9 @@ public class Workspace {
     private String requester;
     @Column(name = "acronym", nullable = false, length = 5)
     private String acronym;
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "settings", columnDefinition = "json")
-    private String settings;
+    private JsonNode settings;
     @AuthorizerGroup
     @Column(name = "authorizer_group", length = 255)
     private String authorizerGroup;
@@ -62,7 +66,7 @@ public class Workspace {
     }
 
     public Workspace(WorkspaceTypeCode workspaceType, String name, String description, String requester,
-                     String acronym, String settings, String authorizerGroup, String emailGroup, LocalDateTime now) {
+                     String acronym, JsonNode settings, String authorizerGroup, String emailGroup, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.workspaceType = workspaceType;
         this.name = name;
@@ -79,7 +83,7 @@ public class Workspace {
     }
 
     public void update(WorkspaceTypeCode workspaceType, String name, String description, String requester,
-                       String acronym, String settings, String authorizerGroup, String emailGroup, LocalDateTime now) {
+                       String acronym, JsonNode settings, String authorizerGroup, String emailGroup, LocalDateTime now) {
         this.workspaceType = workspaceType;
         this.name = name;
         this.description = description;
@@ -151,7 +155,7 @@ public class Workspace {
         return acronym;
     }
 
-    public String getSettings() {
+    public JsonNode getSettings() {
         return settings;
     }
 
