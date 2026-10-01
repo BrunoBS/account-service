@@ -27,25 +27,25 @@ public class WorkspaceValidator {
         this.workspaceTypeService = workspaceTypeService;
     }
 
-    public static void requireActive(Workspace workspace) {
+    public void requireActive(Workspace workspace) {
         if (!LifecycleTypeCode.active().equals(workspace.getLifecycle())) {
             throw new NotFoundException(WorkspaceMessageKeys.NOT_FOUND);
         }
     }
 
-    public static void requireRestorable(Workspace workspace) {
+    public void requireRestorable(Workspace workspace) {
         if (!LifecycleTypeCode.inactive().equals(workspace.getLifecycle())) {
             throw new ValidationException(WorkspaceMessageKeys.RESTORE_INVALID);
         }
     }
 
-    public static void requireDeletable(Workspace workspace) {
+    public void requireDeletable(Workspace workspace) {
         if (!LifecycleTypeCode.inactive().equals(workspace.getLifecycle())) {
             throw new ValidationException(WorkspaceMessageKeys.DELETE_INVALID);
         }
     }
 
-    public static void requireVersion(Long current, Long requested) {
+    public void requireVersion(Long current, Long requested) {
         if (!Objects.equals(current, requested)) throw new ResourceVersionConflictException();
     }
 
