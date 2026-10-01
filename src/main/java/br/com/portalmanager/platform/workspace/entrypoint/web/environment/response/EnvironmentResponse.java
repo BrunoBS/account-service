@@ -19,7 +19,7 @@ public record EnvironmentResponse(Long version, String identifier, String worksp
                 output.createdAt(), output.updatedAt());
     }
 
-    private static JsonNode toJsonNode(String settings) {
+    private static JsonNode toJsonNode(JsonNode settings) {
         if (settings == null || settings.isBlank()) {
             return null;
         }
