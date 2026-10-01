@@ -1,6 +1,5 @@
 package br.com.portalmanager.platform.workspace.core.application.usecase.operations;
 
-import br.com.portalmanager.platform.library.authorization.annotation.ResourceVisibility;
 import br.com.portalmanager.platform.library.tagging.TagManager;
 import br.com.portalmanager.platform.library.schemavalidation.annotation.SchemaPayload;
 import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchema;
@@ -62,7 +61,6 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
-    @ResourceVisibility(Application.class)
     @Transactional
     @ValidateResourceSchema(type = "APPLICATION", code = "application")
     public ApplicationOutput update(String workspaceIdentifier, String identifier, UpdateApplicationInput raw, @SchemaPayload Map<String, Object> schemaPayload) {
@@ -81,7 +79,6 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
-    @ResourceVisibility(Application.class)
     @Transactional
     public void inactivate(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -91,7 +88,6 @@ public class ApplicationCommandService {
         repository.saveAndFlush(app);
     }
 
-    @ResourceVisibility(Application.class)
     @Transactional
     public ApplicationOutput restore(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -104,7 +100,6 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
-    @ResourceVisibility(Application.class)
     @Transactional
     public void delete(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
