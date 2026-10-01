@@ -62,10 +62,10 @@ public class WorkspaceQueryService {
     @ResourceVisibility(Workspace.class)
     @Transactional(readOnly = true)
     public List<WorkspaceOutput> findAll(FindAllWorkspacesInput input) {
-        boolean active = input == null || !Boolean.FALSE.equals(input.active());
-        String lifecycleCode = active
-                ? LifecycleTypeCode.active().value()
-                : LifecycleTypeCode.inactive().value();
+        LifecycleTypeCode lifecycle = input == null || input.lifecycle() == null
+                ? LifecycleTypeCode.active()
+                : input.lifecycle();
+        String lifecycleCode = lifecycle.value();
 
         String typeFilter = normalizer.normalizeTypeFilter(input == null ? null : input.typeName());
         String tagFilter = normalizer.normalizeTagFilter(input == null ? null : input.tagName());
