@@ -3,6 +3,9 @@ package br.com.portalmanager.platform.workspace.core.publisher.domain;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeCode;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import tools.jackson.databind.JsonNode;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,7 +22,8 @@ public class Publisher {
     @Embedded @AttributeOverride(name = "value", column = @Column(name = "publisher_scope", nullable = false, length = 50))
     private ResourceScopeTypeCode scope;
     @Column(nullable = false) private boolean deprecated;
-    @Column(name = "settings", nullable = false, columnDefinition = "json") private String settings;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "settings", nullable = false, columnDefinition = "json") private JsonNode settings;
     @Embedded @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
     private LifecycleTypeCode lifecycle;
     @Column(name = "created_at", nullable = false, updatable = false) private LocalDateTime createdAt;
@@ -27,7 +31,7 @@ public class Publisher {
 
     protected Publisher() {}
     public Publisher(String code, String name, String description, ResourceScopeTypeCode scope,
-                     boolean deprecated, String settings, LocalDateTime now) {
+                     boolean deprecated, JsonNode settings, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.code = code;
         update(name, description, scope, deprecated, settings, now);
@@ -35,7 +39,7 @@ public class Publisher {
         this.createdAt = now;
     }
     public void update(String name, String description, ResourceScopeTypeCode scope,
-                       boolean deprecated, String settings, LocalDateTime now) {
+                       boolean deprecated, JsonNode settings, LocalDateTime now) {
         this.name = name; this.description = description; this.scope = scope; this.deprecated = deprecated;
         this.settings = settings; this.updatedAt = now;
     }
@@ -50,7 +54,7 @@ public class Publisher {
     public String getDescription() { return description; }
     public ResourceScopeTypeCode getScope() { return scope; }
     public boolean isDeprecated() { return deprecated; }
-    public String getSettings() { return settings; }
+    public JsonNode getSettings() { return settings; }
     public LifecycleTypeCode getLifecycle() { return lifecycle; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
