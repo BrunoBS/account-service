@@ -7,6 +7,6 @@ public record CreatePublisherRequest(String code, String name, String descriptio
                                      Boolean deprecated, JsonNode settings) {
     public CreatePublisherInput toInput() {
         return new CreatePublisherInput(code, name, description, scope, deprecated,
-                settings == null ? null : settings.toString());
+                settings);
     }
 }
