@@ -20,6 +20,7 @@ public class WorkspaceNormalizer {
         }
 
         return new CreateWorkspaceInput(
+                input.version(),
                 normalizeType(input.workspaceType()),
                 trim(input.name()),
                 trim(input.description()),
