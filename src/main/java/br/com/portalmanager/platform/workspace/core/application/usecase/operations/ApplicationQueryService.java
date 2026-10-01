@@ -78,6 +78,7 @@ public class ApplicationQueryService {
                 manual.getOrDefault(app.getIdentifier(), List.of()))).toList();
     }
 
+    @ResourceVisibility(Application.class)
     @Transactional(readOnly = true)
     public List<ApplicationSummary> summary(String workspaceIdentifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
