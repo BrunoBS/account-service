@@ -1,6 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
 import br.com.portalmanager.platform.library.tagging.TagManager;
+import br.com.portalmanager.platform.library.schemavalidation.annotation.SchemaPayload;
+import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchema;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceSystemTags;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceTag;
@@ -35,7 +37,8 @@ public class WorkspaceCommandService {
     }
 
     @Transactional
-    public WorkspaceOutput create(CreateWorkspaceInput rawInput) {
+    @ValidateResourceSchema(type = "WORKSPACE", code = "workspace")
+    public WorkspaceOutput create(@SchemaPayload CreateWorkspaceInput rawInput) {
         CreateWorkspaceInput input = normalizer.normalize(rawInput);
         boolean nameDuplicate = input != null && input.name() != null && repository.existsByName(input.name());
         validator.validateForCreate(normalizer.toValidationData(input), nameDuplicate);
@@ -49,7 +52,8 @@ public class WorkspaceCommandService {
     }
 
     @Transactional
-    public WorkspaceOutput update(String identifier, UpdateWorkspaceInput rawInput) {
+    @ValidateResourceSchema(type = "WORKSPACE", code = "workspace")
+    public WorkspaceOutput update(String identifier, @SchemaPayload UpdateWorkspaceInput rawInput) {
         Workspace workspace = finder.findByIdentifier(identifier);
         WorkspaceValidator.requireActive(workspace);
         UpdateWorkspaceInput input = normalizer.normalize(rawInput);
