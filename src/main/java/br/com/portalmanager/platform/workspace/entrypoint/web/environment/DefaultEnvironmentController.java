@@ -1,6 +1,5 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.environment;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationAccessPolicy;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environment.EnvironmentCommandService;
@@ -16,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/environment-defaults")
-@AuthorizationAccessPolicy(read = AuthorizationLevel.OPEN, write = AuthorizationLevel.OWNER)
+@AuthorizationRequired(level = AuthorizationLevel.OPEN)
 public class DefaultEnvironmentController {
     private final EnvironmentCommandService command;
     private final EnvironmentQueryService query;
