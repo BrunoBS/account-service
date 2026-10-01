@@ -37,33 +37,33 @@ public class DefaultEnvironmentController {
     }
 
     @GetMapping("/{identifier}")
-    public EnvironmentResponse find(@PathVariable String identifier) {
-        return EnvironmentResponse.from(query.findDefault(identifier));
+    public EnvironmentResponse find(@PathVariable String environmentIdentifier) {
+        return EnvironmentResponse.from(query.findDefault(environmentIdentifier));
     }
 
     @PutMapping("/{identifier}")
     @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public EnvironmentResponse update(@PathVariable String identifier, @RequestBody UpdateEnvironmentRequest request) {
-        return EnvironmentResponse.from(command.updateDefault(identifier, request.toInput()));
+    public EnvironmentResponse update(@PathVariable String environmentIdentifier, @RequestBody UpdateEnvironmentRequest request) {
+        return EnvironmentResponse.from(command.updateDefault(environmentIdentifier, request.toInput()));
     }
 
     @PostMapping("/{identifier}/inactivate")
     @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public ResponseEntity<Void> inactivate(@PathVariable String identifier) {
-        command.inactivateDefault(identifier);
+    public ResponseEntity<Void> inactivate(@PathVariable String environmentIdentifier) {
+        command.inactivateDefault(environmentIdentifier);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{identifier}/restore")
     @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public EnvironmentResponse restore(@PathVariable String identifier) {
-        return EnvironmentResponse.from(command.restoreDefault(identifier));
+    public EnvironmentResponse restore(@PathVariable String environmentIdentifier) {
+        return EnvironmentResponse.from(command.restoreDefault(environmentIdentifier));
     }
 
     @DeleteMapping("/{identifier}")
     @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        command.deleteDefault(identifier);
+    public ResponseEntity<Void> delete(@PathVariable String environmentIdentifier) {
+        command.deleteDefault(environmentIdentifier);
         return ResponseEntity.noContent().build();
     }
 }
