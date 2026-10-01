@@ -151,6 +151,30 @@ class WorkspaceApiIT {
     }
 
     @Test
+    void shouldReplaceApproversWhenOneRemainsWithoutUniqueConstraintConflict() {
+        String identifier = create("Workspace Approver Replace", "ADMIN");
+        Integer version = get("/api/v1/workspaces/" + identifier)
+                .statusCode(200)
+                .extract()
+                .path("version");
+
+        Map<String, Object> update = validUpdate(version, "Workspace Approver Replace", "ADMIN");
+        update.put("approvers", List.of(
+                Map.of("functional", "F1000", "email", "approver@portalmanager.com"),
+                Map.of("functional", "F2000", "email", "second@portalmanager.com")
+        ));
+
+        put("/api/v1/workspaces/" + identifier, update)
+                .statusCode(200)
+                .body("approvers", hasSize(2))
+                .body("approvers.functional", containsInAnyOrder("F1000", "F2000"))
+                .body("approvers.email", containsInAnyOrder(
+                        "approver@portalmanager.com",
+                        "second@portalmanager.com"
+                ));
+    }
+
+    @Test
     void shouldRejectStaleUpdateWithConflict() {
         String identifier = create("Workspace Concorrente", "ADMIN");
         Integer version = get("/api/v1/workspaces/" + identifier)
