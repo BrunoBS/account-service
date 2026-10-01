@@ -18,10 +18,10 @@ SELECT UUID(), sd.id, 1, 'Application Resource v1',
             "alias":{"type":"string","minLength":1,"maxLength":100},
             "acronym":{"type":"string","minLength":1,"maxLength":20},
             "applicationScope":{"type":"string","enum":["BACKEND","FRONTEND","SHARED"]},
-            "authorizerGroup":{"type":"string","minLength":1,"maxLength":255},
-            "settings":{"type":"object","additionalProperties":true},
+            "authorizerGroup":{"type":["string","null"],"minLength":1,"maxLength":255},
+            "settings":{"type":["object","null"],"additionalProperties":true},
             "tags":{
-              "type":"array",
+              "type":["array","null"],
               "uniqueItems":true,
               "items":{
                 "type":"string",
