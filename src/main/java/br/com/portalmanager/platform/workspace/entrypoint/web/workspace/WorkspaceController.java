@@ -44,7 +44,7 @@ public class WorkspaceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/{identifier}")
+    @GetMapping("/{workspaceIdentifier}")
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
     public WorkspaceResponse findByIdentifier(@PathVariable String workspaceIdentifier) {
         return WorkspaceResponse.from(queryService.findByIdentifier(workspaceIdentifier));
@@ -62,7 +62,7 @@ public class WorkspaceController {
                 .toList();
     }
 
-    @PutMapping("/{identifier}")
+    @PutMapping("/{workspaceIdentifier}")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(
             resource = "WORKSPACE",
@@ -76,7 +76,7 @@ public class WorkspaceController {
         return WorkspaceResponse.from(commandService.update(workspaceIdentifier, request.toInput()));
     }
 
-    @PostMapping("/{identifier}/inactivate")
+    @PostMapping("/{workspaceIdentifier}/inactivate")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(
             resource = "WORKSPACE",
@@ -88,7 +88,7 @@ public class WorkspaceController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{identifier}/restore")
+    @PostMapping("/{workspaceIdentifier}/restore")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(
             resource = "WORKSPACE",
@@ -99,7 +99,7 @@ public class WorkspaceController {
         return WorkspaceResponse.from(commandService.restore(workspaceIdentifier));
     }
 
-    @DeleteMapping("/{identifier}")
+    @DeleteMapping("/{workspaceIdentifier}")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     @Auditable(
             resource = "WORKSPACE",
