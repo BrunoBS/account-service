@@ -4,6 +4,7 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.Appr
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 
@@ -22,7 +23,7 @@ class WorkspaceNormalizerTest {
                 "  requester  ",
                 " ABC ",
                 "   ",
-                "{}",
+                JsonMapper.builder().build().createObjectNode(),
                 " group@portalmanager.com ",
                 List.of(new ApproverInput(
                         " F1234 ",
