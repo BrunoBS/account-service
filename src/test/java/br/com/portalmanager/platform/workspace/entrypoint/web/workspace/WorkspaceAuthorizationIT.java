@@ -120,6 +120,7 @@ class WorkspaceAuthorizationIT {
 
     private Map<String, Object> validCreate(String name, String authorizerGroup) {
         Map<String, Object> request = new LinkedHashMap<>();
+        request.put("version", 0);
         request.put("workspaceType", "ADMIN");
         request.put("name", name);
         request.put("description", "Descrição válida para " + name);
