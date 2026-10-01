@@ -59,7 +59,7 @@ public class Workspace {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL)
     private Set<WorkspaceApprover> approvers = new LinkedHashSet<>();
 
     protected Workspace() {
