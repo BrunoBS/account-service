@@ -20,7 +20,7 @@ public record ApplicationResponse(Long version, String identifier, String worksp
                 value.lifecycle(), value.createdAt(), value.updatedAt(), value.tags());
     }
 
-    private static JsonNode toJsonNode(String settings) {
+    private static JsonNode toJsonNode(JsonNode settings) {
         if (settings == null || settings.isBlank()) {
             return null;
         }
