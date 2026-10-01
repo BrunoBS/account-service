@@ -9,6 +9,6 @@ public record CreateApplicationRequest(String name, String alias, String acronym
                                        String authorizerGroup, JsonNode settings, List<String> tags) {
     public CreateApplicationInput toInput() {
         return new CreateApplicationInput(name, alias, acronym, applicationScope, authorizerGroup,
-                settings == null ? null : settings.toString(), tags);
+                settings, tags);
     }
 }
