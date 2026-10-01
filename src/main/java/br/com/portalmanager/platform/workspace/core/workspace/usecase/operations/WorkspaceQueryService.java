@@ -70,7 +70,16 @@ public class WorkspaceQueryService {
             if (identifiers.isEmpty()) return List.of();
             workspaces = repository.findFilteredByIdentifiers(lifecycleCode, normalizedType, identifiers);
         }
-        Map<String, List<String>> manualTags = tags.findManualByOwnerKeys(workspaces.stream().map(Workspace::getIdentifier).toList());
-        return workspaces.stream().map(w -> WorkspaceOutput.from(w, manualTags.getOrDefault(w.getIdentifier(), List.of()))).toList();
+        List<String> workspaceIdentifiers = workspaces.stream()
+                .map(Workspace::getIdentifier)
+                .toList();
+        Map<String, List<String>> manualTags = tags.findManualByOwnerKeys(workspaceIdentifiers);
+
+        return workspaces.stream()
+                .map(workspace -> WorkspaceOutput.from(
+                        workspace,
+                        manualTags.getOrDefault(workspace.getIdentifier(), List.of())
+                ))
+                .toList();
     }
 }
