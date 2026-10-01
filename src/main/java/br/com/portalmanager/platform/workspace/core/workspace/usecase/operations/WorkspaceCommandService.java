@@ -63,10 +63,10 @@ public class WorkspaceCommandService {
     @ValidateResourceSchema(type = "WORKSPACE", code = "workspace")
     public WorkspaceOutput update(String identifier, @SchemaPayload UpdateWorkspaceInput input) {
         Workspace workspace = finder.findByIdentifier(identifier);
-        WorkspaceValidator.requireActive(workspace);
+        validator.requireActive(workspace);
         boolean nameDuplicate = repository.existsByNameAndIdNot(input.name(), workspace.getId());
         validator.validateForUpdate(input.workspaceType(), input.approvers(), nameDuplicate);
-        WorkspaceValidator.requireVersion(workspace.getVersion(), input.version());
+        validator.requireVersion(workspace.getVersion(), input.version());
         WorkspaceTypeCode workspaceType = WorkspaceTypeCode.of(input.workspaceType());
         workspace.update(
                 workspaceType,
@@ -94,7 +94,7 @@ public class WorkspaceCommandService {
     @Transactional
     public void inactivate(String identifier) {
         Workspace workspace = finder.findByIdentifier(identifier);
-        WorkspaceValidator.requireActive(workspace);
+        validator.requireActive(workspace);
         workspace.inactivate(LocalDateTime.now());
         repository.saveAndFlush(workspace);
     }
@@ -102,7 +102,7 @@ public class WorkspaceCommandService {
     @Transactional
     public WorkspaceOutput restore(String identifier) {
         Workspace workspace = finder.findByIdentifier(identifier);
-        WorkspaceValidator.requireRestorable(workspace);
+        validator.requireRestorable(workspace);
         List<String> manualTags = tags.findManual(workspace);
         workspace.restore(LocalDateTime.now());
         Workspace saved = repository.saveAndFlush(workspace);
@@ -113,7 +113,7 @@ public class WorkspaceCommandService {
     @Transactional
     public void delete(String identifier) {
         Workspace workspace = finder.findByIdentifier(identifier);
-        WorkspaceValidator.requireDeletable(workspace);
+        validator.requireDeletable(workspace);
         workspace.quarantine(LocalDateTime.now());
         repository.saveAndFlush(workspace);
     }
