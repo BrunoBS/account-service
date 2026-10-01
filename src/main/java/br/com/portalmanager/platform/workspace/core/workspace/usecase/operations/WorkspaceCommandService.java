@@ -23,16 +23,14 @@ import java.util.List;
 public class WorkspaceCommandService {
     private final WorkspaceRepository repository;
     private final WorkspaceFinder finder;
-    private final WorkspaceNormalizer normalizer;
     private final WorkspaceValidator validator;
     private final TagManager<WorkspaceTag, Workspace, Long, String> tags;
 
-    public WorkspaceCommandService(WorkspaceRepository repository, WorkspaceFinder finder, WorkspaceNormalizer normalizer,
+    public WorkspaceCommandService(WorkspaceRepository repository, WorkspaceFinder finder,
                                    WorkspaceValidator validator,
                                    TagManager<WorkspaceTag, Workspace, Long, String> tags) {
         this.repository = repository;
         this.finder = finder;
-        this.normalizer = normalizer;
         this.validator = validator;
         this.tags = tags;
     }
@@ -40,11 +38,21 @@ public class WorkspaceCommandService {
     @Transactional
     @ValidateResourceSchema(type = "WORKSPACE", code = "workspace")
     public WorkspaceOutput create(@SchemaPayload CreateWorkspaceInput input) {
-        boolean nameDuplicate = input != null && input.name() != null && repository.existsByName(input.name());
+        boolean nameDuplicate = repository.existsByName(input.name());
         validator.validateForCreate(input.version(), input.workspaceType(), input.approvers(), nameDuplicate);
         LocalDateTime now = LocalDateTime.now();
-        Workspace workspace = new Workspace(WorkspaceTypeCode.of(input.workspaceType()), input.name(), input.description(),
-                input.requester(), input.acronym(), input.settings(), input.authorizerGroup(), input.emailGroup(), now);
+        WorkspaceTypeCode workspaceType = WorkspaceTypeCode.of(input.workspaceType());
+        Workspace workspace = new Workspace(
+                workspaceType,
+                input.name(),
+                input.description(),
+                input.requester(),
+                input.acronym(),
+                input.settings(),
+                input.authorizerGroup(),
+                input.emailGroup(),
+                now
+        );
         input.approvers().forEach(a -> workspace.addApprover(a.functional(), a.email()));
         Workspace saved = repository.saveAndFlush(workspace);
         tags.reconcile(saved, input.tags(), WorkspaceSystemTags.resolve(saved));
@@ -56,11 +64,21 @@ public class WorkspaceCommandService {
     public WorkspaceOutput update(String identifier, @SchemaPayload UpdateWorkspaceInput input) {
         Workspace workspace = finder.findByIdentifier(identifier);
         WorkspaceValidator.requireActive(workspace);
-        boolean nameDuplicate = input != null && input.name() != null && repository.existsByNameAndIdNot(input.name(), workspace.getId());
+        boolean nameDuplicate = repository.existsByNameAndIdNot(input.name(), workspace.getId());
         validator.validateForUpdate(input.workspaceType(), input.approvers(), nameDuplicate);
         WorkspaceValidator.requireVersion(workspace.getVersion(), input.version());
-        workspace.update(WorkspaceTypeCode.of(input.workspaceType()), input.name(), input.description(), input.requester(),
-                input.acronym(), input.settings(), input.authorizerGroup(), input.emailGroup(), LocalDateTime.now());
+        WorkspaceTypeCode workspaceType = WorkspaceTypeCode.of(input.workspaceType());
+        workspace.update(
+                workspaceType,
+                input.name(),
+                input.description(),
+                input.requester(),
+                input.acronym(),
+                input.settings(),
+                input.authorizerGroup(),
+                input.emailGroup(),
+                LocalDateTime.now()
+        );
         replaceApprovers(workspace, input.approvers());
         Workspace saved = repository.saveAndFlush(workspace);
         tags.reconcile(saved, input.tags(), WorkspaceSystemTags.resolve(saved));
