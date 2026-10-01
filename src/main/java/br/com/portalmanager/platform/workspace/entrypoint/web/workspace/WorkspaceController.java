@@ -37,7 +37,7 @@ public class WorkspaceController {
     @Auditable(
             resource = "WORKSPACE",
             action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
+            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "workspaceIdentifier")
     )
     public ResponseEntity<WorkspaceResponse> create(@RequestBody CreateWorkspaceRequest request) {
         WorkspaceResponse response = WorkspaceResponse.from(commandService.create(request.toInput()));
@@ -46,8 +46,8 @@ public class WorkspaceController {
 
     @GetMapping("/{identifier}")
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
-    public WorkspaceResponse findByIdentifier(@PathVariable String identifier) {
-        return WorkspaceResponse.from(queryService.findByIdentifier(identifier));
+    public WorkspaceResponse findByIdentifier(@PathVariable String workspaceIdentifier) {
+        return WorkspaceResponse.from(queryService.findByIdentifier(workspaceIdentifier));
     }
 
     @GetMapping
@@ -67,13 +67,13 @@ public class WorkspaceController {
     @Auditable(
             resource = "WORKSPACE",
             action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "workspaceIdentifier")
     )
     public WorkspaceResponse update(
-            @PathVariable String identifier,
+            @PathVariable String workspaceIdentifier,
             @RequestBody UpdateWorkspaceRequest request
     ) {
-        return WorkspaceResponse.from(commandService.update(identifier, request.toInput()));
+        return WorkspaceResponse.from(commandService.update(workspaceIdentifier, request.toInput()));
     }
 
     @PostMapping("/{identifier}/inactivate")
@@ -81,10 +81,10 @@ public class WorkspaceController {
     @Auditable(
             resource = "WORKSPACE",
             action = "INACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "workspaceIdentifier")
     )
-    public ResponseEntity<Void> inactivate(@PathVariable String identifier) {
-        commandService.inactivate(identifier);
+    public ResponseEntity<Void> inactivate(@PathVariable String workspaceIdentifier) {
+        commandService.inactivate(workspaceIdentifier);
         return ResponseEntity.noContent().build();
     }
 
@@ -93,10 +93,10 @@ public class WorkspaceController {
     @Auditable(
             resource = "WORKSPACE",
             action = "RESTORE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "workspaceIdentifier")
     )
-    public WorkspaceResponse restore(@PathVariable String identifier) {
-        return WorkspaceResponse.from(commandService.restore(identifier));
+    public WorkspaceResponse restore(@PathVariable String workspaceIdentifier) {
+        return WorkspaceResponse.from(commandService.restore(workspaceIdentifier));
     }
 
     @DeleteMapping("/{identifier}")
@@ -104,10 +104,10 @@ public class WorkspaceController {
     @Auditable(
             resource = "WORKSPACE",
             action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
+            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "workspaceIdentifier")
     )
-    public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        commandService.delete(identifier);
+    public ResponseEntity<Void> delete(@PathVariable String workspaceIdentifier) {
+        commandService.delete(workspaceIdentifier);
         return ResponseEntity.noContent().build();
     }
 }
