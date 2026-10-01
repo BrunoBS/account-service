@@ -4,6 +4,8 @@ import br.com.portalmanager.platform.library.tagging.TagNormalizer;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 import java.util.Locale;
 
@@ -12,7 +14,7 @@ public class ApplicationNormalizer {
     public CreateApplicationInput normalize(CreateApplicationInput value) {
         if (value == null) return null;
         return new CreateApplicationInput(trim(value.name()), trim(value.alias()), trim(value.acronym()),
-                code(value.applicationScope()), group(value.authorizerGroup()), value.settings(),
+                code(value.applicationScope()), group(value.authorizerGroup()), settings(value.settings()),
                 value.tags());
     }
 
@@ -20,10 +22,11 @@ public class ApplicationNormalizer {
         if (value == null) return null;
         return new UpdateApplicationInput(value.version(), trim(value.name()), trim(value.alias()),
                 trim(value.acronym()), code(value.applicationScope()), group(value.authorizerGroup()),
-                value.settings(), value.tags());
+                settings(value.settings()), value.tags());
     }
 
     public String normalizeTag(String value) { return TagNormalizer.normalize(value); }
+    private JsonNode settings(JsonNode value) { return value == null ? JsonNodeFactory.instance.objectNode() : value; }
     private String trim(String value) { return value == null ? null : value.trim(); }
     private String code(String value) {
         String normalized = trim(value);
