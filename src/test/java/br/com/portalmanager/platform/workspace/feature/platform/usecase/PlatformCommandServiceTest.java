@@ -14,6 +14,7 @@ import br.com.portalmanager.platform.workspace.feature.platform.usecase.operatio
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature.FeatureCommandService;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceCommandService;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class PlatformCommandServiceTest {
+    private static final JsonMapper JSON = JsonMapper.builder().build();
 
     @Test
     void shouldRejectInvalidCodeThroughUseCase() {
@@ -56,7 +58,7 @@ class PlatformCommandServiceTest {
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
         assertThatThrownBy(() -> command.create(
-                new CreateFeatureInput("audit", "Audit", null, microservice.getIdentifier(), "{}")))
+                new CreateFeatureInput("audit", "Audit", null, microservice.getIdentifier(), JSON.createObjectNode())))
                 .isInstanceOf(ValidationException.class);
         verify(features, never()).save(any(Feature.class));
     }
@@ -67,7 +69,7 @@ class PlatformCommandServiceTest {
         MicroserviceRepository services = mock(MicroserviceRepository.class);
         FeatureContextRepository contexts = mock(FeatureContextRepository.class);
         Microservice microservice = new Microservice("audit-service", "Audit Service", null, LocalDateTime.now());
-        Feature feature = new Feature("audit", "Audit", null, microservice, "{}", LocalDateTime.now());
+        Feature feature = new Feature("audit", "Audit", null, microservice, JSON.createObjectNode(), LocalDateTime.now());
         feature.inactivate(LocalDateTime.now());
         microservice.inactivate(LocalDateTime.now());
         when(features.findByIdentifier(feature.getIdentifier())).thenReturn(Optional.of(feature));
@@ -106,7 +108,7 @@ class PlatformCommandServiceTest {
         when(features.existsByName("Audit")).thenReturn(true);
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
-        assertThatThrownBy(() -> command.create(new CreateFeatureInput("audit", "Audit", null, "microservice-id", "{}")))
+        assertThatThrownBy(() -> command.create(new CreateFeatureInput("audit", "Audit", null, "microservice-id", JSON.createObjectNode())))
                 .isInstanceOf(ValidationException.class);
     }
 
@@ -127,7 +129,7 @@ class PlatformCommandServiceTest {
         FeatureContextRepository contexts = mock(FeatureContextRepository.class);
         FeatureContext context = new FeatureContext("manager-account", "Manager Account", null, LocalDateTime.now());
         Microservice microservice = new Microservice("portal-manager", "Portal Manager", null, LocalDateTime.now());
-        Feature feature = new Feature("application", "Application", null, microservice, "{}", LocalDateTime.now());
+        Feature feature = new Feature("application", "Application", null, microservice, JSON.createObjectNode(), LocalDateTime.now());
         feature.addContext(context);
 
         when(contexts.findByIdentifier(context.getIdentifier())).thenReturn(Optional.of(context));
@@ -143,7 +145,7 @@ class PlatformCommandServiceTest {
         MicroserviceRepository services = mock(MicroserviceRepository.class);
         FeatureContextRepository contexts = mock(FeatureContextRepository.class);
         Microservice microservice = new Microservice("audit-service", "Audit Service", null, LocalDateTime.now());
-        Feature feature = new Feature("audit", "Audit", null, microservice, "{}", LocalDateTime.now());
+        Feature feature = new Feature("audit", "Audit", null, microservice, JSON.createObjectNode(), LocalDateTime.now());
         FeatureContext context = new FeatureContext("administration", "administration", null, LocalDateTime.now());
         context.inactivate(LocalDateTime.now());
 
@@ -165,7 +167,7 @@ class PlatformCommandServiceTest {
         when(features.save(any(Feature.class))).thenAnswer(invocation -> invocation.getArgument(0));
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
-        command.create(new CreateFeatureInput("audit", "Audit", null, microservice.getIdentifier(), "{}"));
+        command.create(new CreateFeatureInput("audit", "Audit", null, microservice.getIdentifier(), JSON.createObjectNode()));
 
         verify(features).save(any(Feature.class));
     }
@@ -174,7 +176,7 @@ class PlatformCommandServiceTest {
     void shouldRejectServiceQuarantineWhileItOwnsFeatures() {
         MicroserviceRepository repository = mock(MicroserviceRepository.class);
         Microservice microservice = new Microservice("audit-service", "Audit Service", null, LocalDateTime.now());
-        new Feature("audit", "Audit", null, microservice, "{}", LocalDateTime.now());
+        new Feature("audit", "Audit", null, microservice, JSON.createObjectNode(), LocalDateTime.now());
         when(repository.findByIdentifier(microservice.getIdentifier())).thenReturn(Optional.of(microservice));
         MicroserviceCommandService command = new MicroserviceCommandService(repository);
 
