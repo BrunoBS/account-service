@@ -11,6 +11,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class WorkspaceNormalizerTest {
+    private static final JsonMapper JSON = JsonMapper.builder().build();
 
     private final WorkspaceNormalizer normalizer = new WorkspaceNormalizer();
 
@@ -54,7 +55,7 @@ class WorkspaceNormalizerTest {
                 "requester",
                 "ABC",
                 "  bbs-app  ",
-                "{}",
+                JSON.createObjectNode(),
                 "group@portalmanager.com",
                 List.of(),
                 List.of()
@@ -73,7 +74,7 @@ class WorkspaceNormalizerTest {
                 "requester",
                 "ABC",
                 "  catalog-team  ",
-                "{}",
+                JSON.createObjectNode(),
                 "group@portalmanager.com",
                 List.of(),
                 List.of()
