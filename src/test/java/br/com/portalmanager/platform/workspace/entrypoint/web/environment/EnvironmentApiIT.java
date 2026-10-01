@@ -147,7 +147,7 @@ class EnvironmentApiIT {
                 "version", 0, "workspaceType", "MANAGER", "name", "Environment Workspace " + UUID.randomUUID(),
                 "description", "Workspace for environments", "requester", "requester",
                 "acronym", "ENV", "settings", Map.of(), "tags", java.util.List.of(), "emailGroup", "workspace@portalmanager.com",
-                "approvers", java.util.List.of(Map.of("functional", "F1234", "email", "approver@portalmanager.com"))))
+                "approvers", java.util.List.of(Map.of("functional", "F1234", "email", "approver@portalmanager.com")), "tags", java.util.List.of()))
                 .statusCode(201).extract().path("identifier");
     }
 
