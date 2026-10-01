@@ -19,7 +19,7 @@ public class EnvironmentNormalizer {
         if (input == null) return null;
         return new UpdateEnvironmentInput(input.version(), trim(input.name()), trim(input.description()),
                 authorization(input.authorizationType()), input.sortOrder(), group(input.authorizerGroup()),
-                settings(input.settings()), trim(input.environmentTypeCode()));
+                input.settings(), trim(input.environmentTypeCode()));
     }
 
     private String trim(String value) { return value == null ? null : value.trim(); }
