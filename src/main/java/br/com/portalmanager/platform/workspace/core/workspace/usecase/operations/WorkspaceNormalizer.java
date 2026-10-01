@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
 import br.com.portalmanager.platform.library.tagging.TagNormalizer;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.ApproverData;
@@ -53,9 +54,11 @@ public class WorkspaceNormalizer {
     }
 
     private String normalizeType(String value) {
-        String normalized = trimOptional(value);
-        return normalized == null ? null : normalized.toUpperCase(Locale.ROOT);
+        if (value == null) {
+            return null;
+        }
+        String normalized = value.trim();
+        return normalized.isBlank() ? null : normalized.toUpperCase(Locale.ROOT);
     }
-
 
 }
