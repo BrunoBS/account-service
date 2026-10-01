@@ -4,6 +4,9 @@ import br.com.portalmanager.platform.library.authorization.annotation.Authorizer
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import tools.jackson.databind.JsonNode;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -32,8 +35,9 @@ public class Application {
     @AuthorizerGroup
     @Column(name = "authorizer_group", length = 255)
     private String authorizerGroup;
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "settings", columnDefinition = "json", nullable = false)
-    private String settings;
+    private JsonNode settings;
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
     private LifecycleTypeCode lifecycle;
@@ -45,7 +49,7 @@ public class Application {
     protected Application() {}
 
     public Application(Long workspaceId, String name, String alias, String acronym, ApplicationScopeTypeCode applicationScope,
-                       String authorizerGroup, String settings, LocalDateTime now) {
+                       String authorizerGroup, JsonNode settings, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.workspaceId = workspaceId;
         update(name, alias, acronym, applicationScope, authorizerGroup, settings, now);
@@ -54,7 +58,7 @@ public class Application {
     }
 
     public void update(String name, String alias, String acronym, ApplicationScopeTypeCode applicationScope,
-                       String authorizerGroup, String settings, LocalDateTime now) {
+                       String authorizerGroup, JsonNode settings, LocalDateTime now) {
         this.name = name;
         this.alias = alias;
         this.acronym = acronym;
@@ -77,7 +81,7 @@ public class Application {
     public String getAcronym() { return acronym; }
     public ApplicationScopeTypeCode getApplicationScope() { return applicationScope; }
     public String getAuthorizerGroup() { return authorizerGroup; }
-    public String getSettings() { return settings; }
+    public JsonNode getSettings() { return settings; }
     public LifecycleTypeCode getLifecycle() { return lifecycle; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
