@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ApplicationCommandService {
@@ -46,7 +47,7 @@ public class ApplicationCommandService {
 
     @Transactional
     @ValidateResourceSchema(type = "APPLICATION", code = "application")
-    public ApplicationOutput create(String workspaceIdentifier, @SchemaPayload CreateApplicationInput raw) {
+    public ApplicationOutput create(String workspaceIdentifier, CreateApplicationInput raw, @SchemaPayload Map<String, Object> schemaPayload) {
         workspaceVisibility.findByIdentifier(workspaceIdentifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         CreateApplicationInput input = normalizer.normalize(raw);
@@ -62,7 +63,7 @@ public class ApplicationCommandService {
 
     @Transactional
     @ValidateResourceSchema(type = "APPLICATION", code = "application")
-    public ApplicationOutput update(String workspaceIdentifier, String identifier, @SchemaPayload UpdateApplicationInput raw) {
+    public ApplicationOutput update(String workspaceIdentifier, String identifier, UpdateApplicationInput raw, @SchemaPayload Map<String, Object> schemaPayload) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findByIdentifier(identifier, workspaceId);
         ApplicationValidator.requireActive(app);
