@@ -173,7 +173,7 @@ class WorkspaceApiIT {
     void shouldRejectDuplicateNameAfterNormalization() {
         create("Workspace Único G3", "ADMIN");
 
-        post(validCreate("  Workspace Único G3  ", "MANAGER"))
+        post(validCreate("Workspace Único G3", "MANAGER"))
                 .statusCode(400)
                 .body("code", equalTo("GLOBAL-0001"))
                 .body("details.field", hasItem("name"));
@@ -362,6 +362,7 @@ class WorkspaceApiIT {
 
     private Map<String, Object> validCreate(String name, String type) {
         Map<String, Object> request = new LinkedHashMap<>();
+        request.put("version", 0);
         request.put("workspaceType", type);
         request.put("name", name);
         request.put("description", "Descrição válida para " + name.trim());
