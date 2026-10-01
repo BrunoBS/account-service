@@ -36,7 +36,7 @@ SELECT UUID(), sd.id, 1, 'Workspace Resource v1',
               }
             },
             "tags":{
-              "type":["array","null"],
+              "type":"array",
               "uniqueItems":true,
               "items":{"type":"string","minLength":1,"maxLength":150,"pattern":"^[a-z0-9]+(-[a-z0-9]+)*$"}
             }
