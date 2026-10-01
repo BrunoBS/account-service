@@ -5,7 +5,6 @@ import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.library.schemavalidation.web.annotation.ValidateResourceSchema;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceCommandService;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
@@ -34,7 +33,6 @@ public class WorkspaceController {
     }
 
     @PostMapping
-    @ValidateResourceSchema(type = "WORKSPACE", code = "workspace")
     @AuthorizationRequired(level = AuthorizationLevel.OPEN)
     @Auditable(
             resource = "WORKSPACE",
