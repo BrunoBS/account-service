@@ -17,7 +17,7 @@ public record PublisherResponse(Long version, String identifier, String code, St
                 output.lifecycle(), output.createdAt(), output.updatedAt());
     }
 
-    private static JsonNode toJsonNode(String settings) {
+    private static JsonNode toJsonNode(JsonNode settings) {
         if (settings == null || settings.isBlank()) return null;
         return JSON_MAPPER.readTree(settings);
     }
