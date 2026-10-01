@@ -41,7 +41,7 @@ public class WorkspaceCommandService {
     @ValidateResourceSchema(type = "WORKSPACE", code = "workspace")
     public WorkspaceOutput create(@SchemaPayload CreateWorkspaceInput input) {
         boolean nameDuplicate = input != null && input.name() != null && repository.existsByName(input.name());
-        validator.validateForCreate(normalizer.toValidationData(input), nameDuplicate);
+        validator.validateForCreate(input.version(), input.workspaceType(), input.approvers(), nameDuplicate);
         LocalDateTime now = LocalDateTime.now();
         Workspace workspace = new Workspace(WorkspaceTypeCode.of(input.workspaceType()), input.name(), input.description(),
                 input.requester(), input.acronym(), input.settings(), input.authorizerGroup(), input.emailGroup(), now);
@@ -57,7 +57,7 @@ public class WorkspaceCommandService {
         Workspace workspace = finder.findByIdentifier(identifier);
         WorkspaceValidator.requireActive(workspace);
         boolean nameDuplicate = input != null && input.name() != null && repository.existsByNameAndIdNot(input.name(), workspace.getId());
-        validator.validateForUpdate(normalizer.toValidationData(input), nameDuplicate);
+        validator.validateForUpdate(input.workspaceType(), input.approvers(), nameDuplicate);
         WorkspaceValidator.requireVersion(workspace.getVersion(), input.version());
         workspace.update(WorkspaceTypeCode.of(input.workspaceType()), input.name(), input.description(), input.requester(),
                 input.acronym(), input.settings(), input.authorizerGroup(), input.emailGroup(), LocalDateTime.now());
