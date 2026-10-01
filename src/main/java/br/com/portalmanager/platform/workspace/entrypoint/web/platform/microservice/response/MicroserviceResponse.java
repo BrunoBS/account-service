@@ -17,7 +17,7 @@ public record MicroserviceResponse(
                 output.description(), toJsonNode(output.settings()), output.lifecycle(), output.createdAt(), output.updatedAt());
     }
 
-    private static JsonNode toJsonNode(String settings) {
+    private static JsonNode toJsonNode(JsonNode settings) {
         if (settings == null || settings.isBlank()) return null;
         return JSON_MAPPER.readTree(settings);
     }
