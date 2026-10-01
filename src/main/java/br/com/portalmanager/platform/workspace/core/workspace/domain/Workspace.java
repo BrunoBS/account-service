@@ -118,11 +118,6 @@ public class Workspace {
         updatedAt = now;
     }
 
-    public void updateDescription(String description, LocalDateTime updatedAt) {
-        this.description = description;
-        this.updatedAt = updatedAt;
-    }
-
     public Long getId() {
         return id;
     }
