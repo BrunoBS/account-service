@@ -66,14 +66,8 @@ public class WorkspaceNormalizer {
             return null;
         }
         return new WorkspaceValidationData(
-                null,
+                input.version(),
                 input.workspaceType(),
-                input.name(),
-                input.description(),
-                input.requester(),
-                input.acronym(),
-                input.settings(),
-                input.emailGroup(),
                 toApproverData(input.approvers())
         );
     }
@@ -85,12 +79,6 @@ public class WorkspaceNormalizer {
         return new WorkspaceValidationData(
                 input.version(),
                 input.workspaceType(),
-                input.name(),
-                input.description(),
-                input.requester(),
-                input.acronym(),
-                input.settings(),
-                input.emailGroup(),
                 toApproverData(input.approvers())
         );
     }
