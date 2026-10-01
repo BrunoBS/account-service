@@ -44,16 +44,16 @@ class WorkspaceApiIT {
     }
 
     @Test
-    void shouldCreateNormalizeAndReadActiveWorkspace() {
-        Map<String, Object> request = validCreate("  Workspace G3  ", " admin ");
-        request.put("description", "  Descrição válida do workspace G3  ");
-        request.put("requester", "  requester  ");
-        request.put("acronym", " G3 ");
-        request.put("authorizerGroup", "  GRP_WORKSPACE  ");
-        request.put("emailGroup", "  workspace@portalmanager.com  ");
+    void shouldCreateAndReadActiveWorkspaceWithStrictContract() {
+        Map<String, Object> request = validCreate("Workspace G3", "ADMIN");
+        request.put("description", "Descrição válida do workspace G3");
+        request.put("requester", "requester");
+        request.put("acronym", "G3");
+        request.put("authorizerGroup", "GRP_WORKSPACE");
+        request.put("emailGroup", "workspace@portalmanager.com");
         request.put("approvers", List.of(Map.of(
-                "functional", "  F1234  ",
-                "email", "  approver@portalmanager.com  "
+                "functional", "F1234",
+                "email", "approver@portalmanager.com"
         )));
 
         String identifier = post(request)
@@ -81,6 +81,17 @@ class WorkspaceApiIT {
                 .body("identifier", equalTo(identifier))
                 .body("name", equalTo("Workspace G3"))
                 .body("lifecycle", equalTo("ACTIVE"));
+    }
+
+    @Test
+    void shouldRejectValuesThatRequireNormalization() {
+        Map<String, Object> request = validCreate(" Workspace Rígido ", "admin");
+        request.put("acronym", " wsp ");
+        request.put("emailGroup", " workspace@portalmanager.com ");
+
+        post(request)
+                .statusCode(400)
+                .body("code", equalTo("GLOBAL-0001"));
     }
 
     @Test
