@@ -32,7 +32,7 @@ public class Application {
     @AuthorizerGroup
     @Column(name = "authorizer_group", length = 255)
     private String authorizerGroup;
-    @Column(name = "settings", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "settings", columnDefinition = "json", nullable = false)
     private String settings;
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
