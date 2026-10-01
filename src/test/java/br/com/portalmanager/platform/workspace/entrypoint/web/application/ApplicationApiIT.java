@@ -269,7 +269,6 @@ class ApplicationApiIT {
         value.put("alias", "portal");
         value.put("acronym", "APP");
         value.put("applicationScope", "BACKEND");
-        value.put("settings", Map.of());
         value.put("tags", List.of("managed"));
         return value;
     }
