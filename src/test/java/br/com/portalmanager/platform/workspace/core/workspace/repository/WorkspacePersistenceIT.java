@@ -94,13 +94,27 @@ class WorkspacePersistenceIT {
             var first = firstEntityManager.find(Workspace.class, saved.getId());
             var stale = staleEntityManager.find(Workspace.class, saved.getId());
 
-            first.updateDescription(
+            first.update(
+                    first.getWorkspaceType(),
+                    first.getName(),
                     "Descrição alterada pela primeira transação",
+                    first.getRequester(),
+                    first.getAcronym(),
+                    first.getSettings(),
+                    first.getAuthorizerGroup(),
+                    first.getEmailGroup(),
                     LocalDateTime.of(2026, 9, 20, 11, 0));
             firstEntityManager.getTransaction().commit();
 
-            stale.updateDescription(
+            stale.update(
+                    stale.getWorkspaceType(),
+                    stale.getName(),
                     "Descrição da transação obsoleta",
+                    stale.getRequester(),
+                    stale.getAcronym(),
+                    stale.getSettings(),
+                    stale.getAuthorizerGroup(),
+                    stale.getEmailGroup(),
                     LocalDateTime.of(2026, 9, 20, 12, 0));
 
             assertThrows(RollbackException.class, staleEntityManager.getTransaction()::commit);
