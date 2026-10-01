@@ -1,6 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.application.usecase.operations;
 
 import br.com.portalmanager.platform.library.tagging.TagManager;
+import br.com.portalmanager.platform.library.schemavalidation.annotation.SchemaPayload;
+import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchema;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationSystemTags;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationTag;
@@ -43,7 +45,8 @@ public class ApplicationCommandService {
     }
 
     @Transactional
-    public ApplicationOutput create(String workspaceIdentifier, CreateApplicationInput raw) {
+    @ValidateResourceSchema(type = "APPLICATION", code = "application")
+    public ApplicationOutput create(String workspaceIdentifier, @SchemaPayload CreateApplicationInput raw) {
         workspaceVisibility.findByIdentifier(workspaceIdentifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         CreateApplicationInput input = normalizer.normalize(raw);
@@ -58,7 +61,8 @@ public class ApplicationCommandService {
     }
 
     @Transactional
-    public ApplicationOutput update(String workspaceIdentifier, String identifier, UpdateApplicationInput raw) {
+    @ValidateResourceSchema(type = "APPLICATION", code = "application")
+    public ApplicationOutput update(String workspaceIdentifier, String identifier, @SchemaPayload UpdateApplicationInput raw) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findByIdentifier(identifier, workspaceId);
         ApplicationValidator.requireActive(app);
