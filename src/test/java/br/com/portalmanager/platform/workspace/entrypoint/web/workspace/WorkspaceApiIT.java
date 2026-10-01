@@ -258,7 +258,7 @@ class WorkspaceApiIT {
     void shouldReturnValidationDetailsForInvalidPayload() {
         Map<String, Object> invalid = new LinkedHashMap<>();
         invalid.put("version", -1);
-        invalid.put("workspaceType", "INVALID");
+        invalid.put("workspaceType", "ADMIN");
         invalid.put("name", " A ");
         invalid.put("description", " curta ");
         invalid.put("requester", " x ");
@@ -269,13 +269,22 @@ class WorkspaceApiIT {
         post(invalid)
                 .statusCode(400)
                 .body("code", equalTo("GLOBAL-0001"))
-                .body("details.field", hasItem("workspaceType"))
                 .body("details.field", hasItem("name"))
                 .body("details.field", hasItem("description"))
                 .body("details.field", hasItem("requester"))
                 .body("details.field", hasItem("acronym"))
                 .body("details.field", hasItem("emailGroup"))
                 .body("details.field", hasItem("approvers"));
+    }
+
+    @Test
+    void shouldRejectWorkspaceTypeThatDoesNotExistInCatalog() {
+        Map<String, Object> invalid = validCreate("Workspace Invalid Type", "INVALID");
+
+        post(invalid)
+                .statusCode(400)
+                .body("code", equalTo("GLOBAL-0001"))
+                .body("details.field", hasItem("workspaceType"));
     }
 
     @Test
