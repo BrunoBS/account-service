@@ -1,7 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.integration;
 
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.workspace.foundation.integration.JsonSchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
@@ -10,15 +9,11 @@ import tools.jackson.databind.JsonNode;
 public class CatalogSettingsValidator {
 
     private static final String SETTINGS = "settings";
+    private static final String RESOURCE_TYPE = "CATALOG";
 
-    private final JsonSchemaValidator jsonSchemaValidator;
     private final SchemaSettingsValidator settingsValidator;
 
-    public CatalogSettingsValidator(
-            JsonSchemaValidator jsonSchemaValidator,
-            SchemaSettingsValidator settingsValidator
-    ) {
-        this.jsonSchemaValidator = jsonSchemaValidator;
+    public CatalogSettingsValidator(SchemaSettingsValidator settingsValidator) {
         this.settingsValidator = settingsValidator;
     }
 
@@ -27,12 +22,6 @@ public class CatalogSettingsValidator {
             JsonNode settings,
             ValidationResult result
     ) {
-        ValidationResult schemaResult = new ValidationResult();
-        settingsValidator.validate("CATALOG", catalogCode, SETTINGS, settings, schemaResult);
-        result.merge(schemaResult);
-    }
-
-    public JsonNode fromString(String json) {
-        return jsonSchemaValidator.fromString(json, SETTINGS);
+        settingsValidator.validate(RESOURCE_TYPE, catalogCode, SETTINGS, settings, result);
     }
 }
