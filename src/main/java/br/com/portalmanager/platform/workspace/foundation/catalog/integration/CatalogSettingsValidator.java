@@ -1,6 +1,5 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.integration;
 
-import br.com.portalmanager.platform.library.catalog.validation.CatalogValidationResult;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.foundation.integration.JsonSchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
@@ -26,14 +25,11 @@ public class CatalogSettingsValidator {
     public void validateSettings(
             String catalogCode,
             JsonNode settings,
-            CatalogValidationResult result
+            ValidationResult result
     ) {
         ValidationResult schemaResult = new ValidationResult();
         settingsValidator.validate("CATALOG", catalogCode, SETTINGS, settings, schemaResult);
-
-        schemaResult.getDetails().forEach(detail ->
-                result.addError(detail.field(), detail.messageKey(), detail.parameters())
-        );
+        result.merge(schemaResult);
     }
 
     public JsonNode fromString(String json) {
