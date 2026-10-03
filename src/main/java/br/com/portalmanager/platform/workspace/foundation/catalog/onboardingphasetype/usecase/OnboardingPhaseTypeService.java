@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.usecase;
 
 import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
-import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSettingsValidator;
+import br.com.portalmanager.platform.library.schemavalidation.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.repository.OnboardingPhaseTypeRepository;
@@ -16,13 +16,14 @@ public class OnboardingPhaseTypeService extends EnumCatalogService<OnboardingPha
     public OnboardingPhaseTypeService(
             OnboardingPhaseTypeRepository repository,
             ObjectMapper objectMapper,
-            CatalogSettingsValidator settingsValidator) {
+            SchemaValidator schemaValidator) {
         super(
                 repository,
                 objectMapper,
                 OnboardingPhaseType.class,
                 OnboardingPhaseTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(SCHEMA_RESOURCE_CODE, dto.settings(), result)
+                SCHEMA_RESOURCE_CODE,
+                schemaValidator
         );
     }
 }

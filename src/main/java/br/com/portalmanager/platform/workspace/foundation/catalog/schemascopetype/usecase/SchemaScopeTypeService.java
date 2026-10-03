@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.usecase;
 
 import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
-import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSettingsValidator;
+import br.com.portalmanager.platform.library.schemavalidation.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.repository.SchemaScopeTypeRepository;
@@ -16,13 +16,14 @@ public class SchemaScopeTypeService extends EnumCatalogService<SchemaScopeType, 
     public SchemaScopeTypeService(
             SchemaScopeTypeRepository repository,
             ObjectMapper objectMapper,
-            CatalogSettingsValidator settingsValidator) {
+            SchemaValidator schemaValidator) {
         super(
                 repository,
                 objectMapper,
                 SchemaScopeType.class,
                 SchemaScopeTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(SCHEMA_RESOURCE_CODE, dto.settings(), result)
+                SCHEMA_RESOURCE_CODE,
+                schemaValidator
         );
     }
 }

@@ -79,9 +79,7 @@ Princípios principais:
 A Golden migrou os 16 CRUDs de catálogo da referência funcional histórica para a
 application Foundation, reutilizando `platform-catalog`:
 
-- 12 `EnumCatalogService`;
-- 1 `DynamicCatalogService`;
-- 3 `BaseCatalogService` para contratos avançados.
+Na estrutura atual da Golden, os catálogos concretos presentes em `foundation.catalog` usam `EnumCatalogService`; o modelo Included/Dynamic permanece disponível na Foundation para catálogos cujo banco governa novos códigos em runtime. A antiga referência a `BaseCatalogService` não representa mais a API pública atual da `platform-catalog`.
 
 A validação de `settings` utiliza
 `com.networknt:json-schema-validator:3.0.7`, organizada em

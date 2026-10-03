@@ -43,7 +43,7 @@ class CatalogApiIT {
     }
 
     @Test
-    void shouldExposeCompleteCrudForStandardAndDynamicCatalogs() {
+    void shouldExposeCompleteCrudForEnumCatalogs() {
         List<CatalogCase> catalogs = List.of(
                 new CatalogCase("/api/v1/application-scope-type", "BACKEND"),
                 new CatalogCase("/api/v1/authorization-type", "DEV"),

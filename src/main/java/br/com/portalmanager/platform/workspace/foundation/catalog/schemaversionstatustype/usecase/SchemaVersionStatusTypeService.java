@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.usecase;
 
 import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
-import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSettingsValidator;
+import br.com.portalmanager.platform.library.schemavalidation.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.repository.SchemaVersionStatusTypeRepository;
@@ -16,13 +16,14 @@ public class SchemaVersionStatusTypeService extends EnumCatalogService<SchemaVer
     public SchemaVersionStatusTypeService(
             SchemaVersionStatusTypeRepository repository,
             ObjectMapper objectMapper,
-            CatalogSettingsValidator settingsValidator) {
+            SchemaValidator schemaValidator) {
         super(
                 repository,
                 objectMapper,
                 SchemaVersionStatusType.class,
                 SchemaVersionStatusTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(SCHEMA_RESOURCE_CODE, dto.settings(), result)
+                SCHEMA_RESOURCE_CODE,
+                schemaValidator
         );
     }
 }

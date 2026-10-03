@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.publisher;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationAccessPolicy;
+import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.operations.PublisherCommandService;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.operations.PublisherQueryService;
@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/publishers")
-@AuthorizationAccessPolicy(read = AuthorizationLevel.OPEN, write = AuthorizationLevel.OWNER)
+@AuthorizationRequired(level = AuthorizationLevel.OPEN)
 public class PublisherController {
     private final PublisherCommandService command;
     private final PublisherQueryService query;
@@ -24,6 +24,7 @@ public class PublisherController {
         this.query = query;
     }
     @PostMapping
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
     public ResponseEntity<PublisherResponse> create(@RequestBody CreatePublisherRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(PublisherResponse.from(command.create(request.toInput())));
     }
@@ -35,19 +36,23 @@ public class PublisherController {
     @GetMapping("/{identifier}")
     public PublisherResponse find(@PathVariable String identifier) { return PublisherResponse.from(query.find(identifier)); }
     @PutMapping("/{identifier}")
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
     public PublisherResponse update(@PathVariable String identifier, @RequestBody UpdatePublisherRequest request) {
         return PublisherResponse.from(command.update(identifier, request.toInput()));
     }
     @PostMapping("/{identifier}/inactivate")
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
     public ResponseEntity<Void> inactivate(@PathVariable String identifier) {
         command.inactivate(identifier);
         return ResponseEntity.noContent().build();
     }
     @PostMapping("/{identifier}/restore")
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
     public PublisherResponse restore(@PathVariable String identifier) {
         return PublisherResponse.from(command.restore(identifier));
     }
     @DeleteMapping("/{identifier}")
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
     public ResponseEntity<Void> delete(@PathVariable String identifier) {
         command.delete(identifier);
         return ResponseEntity.noContent().build();
