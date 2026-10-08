@@ -1,5 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.message.usecase.operations.translation;
 
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.model.AuditAction;
+
 import br.com.portalmanager.platform.workspace.feature.message.domain.Message;
 import br.com.portalmanager.platform.workspace.feature.message.domain.MessageTranslation;
 import br.com.portalmanager.platform.workspace.feature.message.repository.MessageTranslationRepository;
@@ -34,6 +37,7 @@ public class MessageTranslationCommandService {
         this.validator = validator;
     }
 
+    @Auditable(action = AuditAction.CREATE, event = "MESSAGE_TRANSLATION_CREATED", resourceType = "MESSAGE_TRANSLATION")
     @Transactional
     public MessageTranslationOutput create(
             String messageIdentifier,
@@ -59,6 +63,7 @@ public class MessageTranslationCommandService {
         return MessageTranslationOutput.from(repository.saveAndFlush(translation));
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "MESSAGE_TRANSLATION_UPDATED", resourceType = "MESSAGE_TRANSLATION")
     @Transactional
     public MessageTranslationOutput update(
             String messageIdentifier,
@@ -90,6 +95,7 @@ public class MessageTranslationCommandService {
         return MessageTranslationOutput.from(repository.saveAndFlush(translation));
     }
 
+    @Auditable(action = AuditAction.ACTIVATE, event = "MESSAGE_TRANSLATION_ACTIVATED", resourceType = "MESSAGE_TRANSLATION")
     @Transactional
     public MessageTranslationOutput activate(
             String messageIdentifier,
@@ -101,6 +107,7 @@ public class MessageTranslationCommandService {
         return MessageTranslationOutput.from(repository.saveAndFlush(translation));
     }
 
+    @Auditable(action = AuditAction.DEACTIVATE, event = "MESSAGE_TRANSLATION_DEACTIVATED", resourceType = "MESSAGE_TRANSLATION")
     @Transactional
     public MessageTranslationOutput inactivate(
             String messageIdentifier,
@@ -112,13 +119,14 @@ public class MessageTranslationCommandService {
         return MessageTranslationOutput.from(repository.saveAndFlush(translation));
     }
 
+    @Auditable(action = AuditAction.DELETE, event = "MESSAGE_TRANSLATION_DELETED", resourceType = "MESSAGE_TRANSLATION")
     @Transactional
-    public void delete(String messageIdentifier, String translationIdentifier) {
+    public MessageTranslationOutput delete(String messageIdentifier, String translationIdentifier) {
         Message message = finder.findMessage(messageIdentifier);
         MessageTranslation translation = finder.findTranslation(message, translationIdentifier);
         validator.validateDeletion(translation);
         translation.quarantine(LocalDateTime.now());
-        repository.saveAndFlush(translation);
+        return MessageTranslationOutput.from(repository.saveAndFlush(translation));
     }
 
 }
