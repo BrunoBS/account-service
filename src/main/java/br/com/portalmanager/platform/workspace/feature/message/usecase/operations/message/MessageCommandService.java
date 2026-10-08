@@ -48,8 +48,8 @@ public class MessageCommandService {
         this.microserviceQueryService = microserviceQueryService;
     }
 
-    @Auditable(action = AuditAction.CREATE, event = "MESSAGE_CREATED", resourceType = "MESSAGE")
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "MESSAGE_CREATED", resourceType = "MESSAGE")
     public MessageOutput create(CreateMessageInput rawInput) {
         CreateMessageInput input = normalizer.normalize(rawInput);
 
@@ -92,8 +92,8 @@ public class MessageCommandService {
         return output(saved);
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "MESSAGE_UPDATED", resourceType = "MESSAGE")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "MESSAGE_UPDATED", resourceType = "MESSAGE")
     public MessageOutput update(String identifier, UpdateMessageInput rawInput) {
         Message message = finder.findMessage(identifier);
         UpdateMessageInput input = normalizer.normalize(rawInput);
@@ -128,24 +128,24 @@ public class MessageCommandService {
         return output(messageRepository.saveAndFlush(message));
     }
 
-    @Auditable(action = AuditAction.ACTIVATE, event = "MESSAGE_ACTIVATED", resourceType = "MESSAGE")
     @Transactional
+    @Auditable(action = AuditAction.ACTIVATE, event = "MESSAGE_ACTIVATED", resourceType = "MESSAGE")
     public MessageOutput activate(String identifier) {
         Message message = finder.findMessage(identifier);
         message.activate(LocalDateTime.now());
         return output(messageRepository.saveAndFlush(message));
     }
 
-    @Auditable(action = AuditAction.DEACTIVATE, event = "MESSAGE_DEACTIVATED", resourceType = "MESSAGE")
     @Transactional
+    @Auditable(action = AuditAction.DEACTIVATE, event = "MESSAGE_DEACTIVATED", resourceType = "MESSAGE")
     public MessageOutput inactivate(String identifier) {
         Message message = finder.findMessage(identifier);
         message.inactivate(LocalDateTime.now());
         return output(messageRepository.saveAndFlush(message));
     }
 
-    @Auditable(action = AuditAction.DELETE, event = "MESSAGE_DELETED", resourceType = "MESSAGE")
     @Transactional
+    @Auditable(action = AuditAction.DELETE, event = "MESSAGE_DELETED", resourceType = "MESSAGE")
     public MessageOutput delete(String identifier) {
         Message message = finder.findMessage(identifier);
         validator.validateDeletion(message);
