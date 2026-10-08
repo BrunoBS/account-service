@@ -37,8 +37,8 @@ public class WorkspaceCommandService {
         this.tags = tags;
     }
 
-    @Auditable(action = AuditAction.CREATE, event = "WORKSPACE_CREATED", resourceType = "WORKSPACE")
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "WORKSPACE_CREATED", resourceType = "WORKSPACE")
     public WorkspaceOutput create(CreateWorkspaceInput rawInput) {
         CreateWorkspaceInput input = normalizer.normalize(rawInput);
         boolean nameDuplicate = input != null && input.name() != null && repository.existsByName(input.name());
@@ -52,8 +52,8 @@ public class WorkspaceCommandService {
         return WorkspaceOutput.from(saved, tags.findManual(saved));
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "WORKSPACE_UPDATED", resourceType = "WORKSPACE")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "WORKSPACE_UPDATED", resourceType = "WORKSPACE")
     public WorkspaceOutput update(String identifier, UpdateWorkspaceInput rawInput) {
         Workspace workspace = finder.findActive(identifier);
         UpdateWorkspaceInput input = normalizer.normalize(rawInput);
@@ -70,8 +70,8 @@ public class WorkspaceCommandService {
         return WorkspaceOutput.from(saved, tags.findManual(saved));
     }
 
-    @Auditable(action = AuditAction.DEACTIVATE, event = "WORKSPACE_DEACTIVATED", resourceType = "WORKSPACE")
     @Transactional
+    @Auditable(action = AuditAction.DEACTIVATE, event = "WORKSPACE_DEACTIVATED", resourceType = "WORKSPACE")
     public WorkspaceOutput inactivate(String identifier) {
         Workspace workspace = finder.findActive(identifier);
         workspace.inactivate(LocalDateTime.now());
@@ -79,8 +79,8 @@ public class WorkspaceCommandService {
         return WorkspaceOutput.from(saved, tags.findManual(saved));
     }
 
-    @Auditable(action = AuditAction.RESTORE, event = "WORKSPACE_RESTORED", resourceType = "WORKSPACE")
     @Transactional
+    @Auditable(action = AuditAction.RESTORE, event = "WORKSPACE_RESTORED", resourceType = "WORKSPACE")
     public WorkspaceOutput restore(String identifier) {
         Workspace workspace = finder.findInactiveForRestore(identifier);
         List<String> manualTags = tags.findManual(workspace);
@@ -90,8 +90,8 @@ public class WorkspaceCommandService {
         return WorkspaceOutput.from(saved, tags.findManual(saved));
     }
 
-    @Auditable(action = AuditAction.DELETE, event = "WORKSPACE_DELETED", resourceType = "WORKSPACE")
     @Transactional
+    @Auditable(action = AuditAction.DELETE, event = "WORKSPACE_DELETED", resourceType = "WORKSPACE")
     public WorkspaceOutput delete(String identifier) {
         Workspace workspace = finder.findInactiveForDeletion(identifier);
         workspace.quarantine(LocalDateTime.now());
