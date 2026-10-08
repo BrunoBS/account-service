@@ -25,7 +25,7 @@ public class ApplicationQueryService {
 
     public ApplicationQueryService(ApplicationRepository repository, ApplicationFinder finder,
                                    WorkspaceReferenceResolver workspaces,
-                                   TagManager<ApplicationTag, Application, Long, String> tags,
+                                   TagManager<ApplicationTag, Application> tags,
                                    ApplicationNormalizer normalizer) {
         this.repository = repository;
         this.finder = finder;
