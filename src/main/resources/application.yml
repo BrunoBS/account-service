@@ -21,7 +21,7 @@ platform:
         br.com.portalmanager.platform.workspace: DEBUG
         br.com.portalmanager.platform: DEBUG
   authorization:
-    enabled: false
+    mode: ${PLATFORM_AUTHORIZATION_MODE:REAL}
     service-url: ${AUTHORIZATION_SERVICE_URL:http://localhost:2020}
     mock:
       user-name: bbs
