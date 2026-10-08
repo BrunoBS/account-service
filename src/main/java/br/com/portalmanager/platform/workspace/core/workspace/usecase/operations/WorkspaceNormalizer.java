@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
-import br.com.portalmanager.platform.library.tagging.TagNormalizer;
+import br.com.portalmanager.platform.library.tagging.model.TagName;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
@@ -58,7 +58,7 @@ public class WorkspaceNormalizer {
     }
 
     public String normalizeTagFilter(String value) {
-        return TagNormalizer.normalize(value);
+        return value == null || value.isBlank() ? null : TagName.of(value).value();
     }
 
     public WorkspaceValidationData toValidationData(CreateWorkspaceInput input) {
