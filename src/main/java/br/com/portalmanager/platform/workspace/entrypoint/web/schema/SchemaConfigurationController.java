@@ -1,8 +1,5 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.schema;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.configuration.SchemaConfigurationService;
@@ -23,8 +20,6 @@ public class SchemaConfigurationController {
     public SchemaConfigurationController(SchemaConfigurationService service) { this.service = service; }
 
     @PostMapping
-    @Auditable(resource = "SCHEMA_CONFIGURATION", action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier"))
     public ResponseEntity<SchemaConfigurationResponse> create(@RequestBody CreateSchemaConfigurationRequest request) {
         var input = request == null ? null : request.toInput();
         return ResponseEntity.status(HttpStatus.CREATED).body(SchemaConfigurationResponse.from(service.create(input)));
@@ -41,8 +36,6 @@ public class SchemaConfigurationController {
     }
 
     @PutMapping("/{identifier}")
-    @Auditable(resource = "SCHEMA_CONFIGURATION", action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
     public SchemaConfigurationResponse update(@PathVariable String identifier, @RequestBody UpdateSchemaConfigurationRequest request) {
         var input = request == null ? null : request.toInput();
         return SchemaConfigurationResponse.from(service.update(identifier, input));
@@ -59,8 +52,6 @@ public class SchemaConfigurationController {
     }
 
     @DeleteMapping("/{identifier}")
-    @Auditable(resource = "SCHEMA_CONFIGURATION", action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
     public ResponseEntity<Void> delete(@PathVariable String identifier) {
         service.delete(identifier);
         return ResponseEntity.noContent().build();
