@@ -31,8 +31,8 @@ public class MicroserviceCommandService {
         this.validator = validator;
     }
 
-    @Auditable(action = AuditAction.CREATE, event = "MICROSERVICE_CREATED", resourceType = "MICROSERVICE")
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "MICROSERVICE_CREATED", resourceType = "MICROSERVICE")
     public MicroserviceOutput create(CreateMicroserviceInput input) {
         validator.validateCreate(input, input != null && repository.existsByCode(input.code()),
                 input != null && repository.existsByName(input.name()));
@@ -41,8 +41,8 @@ public class MicroserviceCommandService {
                 input.code(), input.name(), input.description(), input.settings(), now())));
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "MICROSERVICE_UPDATED", resourceType = "MICROSERVICE")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "MICROSERVICE_UPDATED", resourceType = "MICROSERVICE")
     public MicroserviceOutput update(String identifier, UpdateMicroserviceInput input) {
         Microservice microservice = required(identifier);
         validator.validateUpdate(input, input != null && !microservice.getName().equals(input.name())
