@@ -48,8 +48,8 @@ public class EnvironmentCommandService {
         this.types = types;
     }
 
-    @Auditable(action = AuditAction.CREATE, event = "ENVIRONMENT_CREATED", resourceType = "ENVIRONMENT")
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "ENVIRONMENT_CREATED", resourceType = "ENVIRONMENT")
     public EnvironmentOutput createCustom(String workspaceIdentifier, CreateEnvironmentInput input) {
         workspaceVisibility.findByIdentifier(workspaceIdentifier);
         return create(workspaces.resolveInternalId(workspaceIdentifier), workspaceIdentifier, input);
@@ -77,8 +77,8 @@ public class EnvironmentCommandService {
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "ENVIRONMENT_UPDATED", resourceType = "ENVIRONMENT")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "ENVIRONMENT_UPDATED", resourceType = "ENVIRONMENT")
     public EnvironmentOutput updateCustom(String workspaceIdentifier, String identifier, UpdateEnvironmentInput raw) {
         visibility.findCustom(workspaceIdentifier, identifier);
         return update(workspaces.resolveInternalId(workspaceIdentifier), workspaceIdentifier, identifier, raw);
@@ -111,8 +111,8 @@ public class EnvironmentCommandService {
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
 
-    @Auditable(action = AuditAction.DEACTIVATE, event = "ENVIRONMENT_DEACTIVATED", resourceType = "ENVIRONMENT")
     @Transactional
+    @Auditable(action = AuditAction.DEACTIVATE, event = "ENVIRONMENT_DEACTIVATED", resourceType = "ENVIRONMENT")
     public EnvironmentOutput inactivateCustom(String workspaceIdentifier, String identifier) {
         visibility.findCustom(workspaceIdentifier, identifier);
         return inactivate(workspaces.resolveInternalId(workspaceIdentifier), workspaceIdentifier, identifier);
@@ -126,8 +126,8 @@ public class EnvironmentCommandService {
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
 
-    @Auditable(action = AuditAction.RESTORE, event = "ENVIRONMENT_RESTORED", resourceType = "ENVIRONMENT")
     @Transactional
+    @Auditable(action = AuditAction.RESTORE, event = "ENVIRONMENT_RESTORED", resourceType = "ENVIRONMENT")
     public EnvironmentOutput restoreCustom(String workspaceIdentifier, String identifier) {
         visibility.findCustomInactive(workspaceIdentifier, identifier);
         return restore(workspaces.resolveInternalId(workspaceIdentifier), workspaceIdentifier, identifier);
@@ -153,8 +153,8 @@ public class EnvironmentCommandService {
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
 
-    @Auditable(action = AuditAction.DELETE, event = "ENVIRONMENT_DELETED", resourceType = "ENVIRONMENT")
     @Transactional
+    @Auditable(action = AuditAction.DELETE, event = "ENVIRONMENT_DELETED", resourceType = "ENVIRONMENT")
     public EnvironmentOutput deleteCustom(String workspaceIdentifier, String identifier) {
         visibility.findCustomForDeletion(workspaceIdentifier, identifier);
         return delete(workspaces.resolveInternalId(workspaceIdentifier), workspaceIdentifier, identifier);
