@@ -1,5 +1,8 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema;
 
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.model.AuditAction;
+
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
@@ -44,12 +47,14 @@ public class SchemaCommandService {
         this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
 
+    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_CREATED", resourceType = "SCHEMA")
     @Transactional
     public SchemaOutput createPlatform(CreateSchemaInput input) {
         operationValidator.validateCreateInput(input);
         return create(input, SchemaScopeTypeCode.platform(), null);
     }
 
+    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_CREATED", resourceType = "SCHEMA")
     @Transactional
     public SchemaOutput createWorkspace(CreateSchemaInput input) {
         operationValidator.validateCreateInput(input);
@@ -58,11 +63,13 @@ public class SchemaCommandService {
         return create(input, SchemaScopeTypeCode.workspace(), workspaceId);
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_UPDATED", resourceType = "SCHEMA")
     @Transactional
     public SchemaOutput updatePlatform(String identifier, UpdateSchemaInput input) {
         return update(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null), input);
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_UPDATED", resourceType = "SCHEMA")
     @Transactional
     public SchemaOutput updateWorkspace(String workspaceIdentifier, String identifier, UpdateSchemaInput input) {
         return update(requiredScoped(identifier, SchemaScopeTypeCode.workspace(),
@@ -85,6 +92,7 @@ public class SchemaCommandService {
         return inactivate(requiredScoped(identifier, SchemaScopeTypeCode.workspace(), workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)));
     }
 
+    @Auditable(action = AuditAction.DELETE, event = "SCHEMA_DELETED", resourceType = "SCHEMA")
     @Transactional
     public SchemaOutput quarantinePlatform(String identifier) { return quarantine(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null)); }
 
