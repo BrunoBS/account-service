@@ -47,8 +47,8 @@ public class ApplicationCommandService {
         this.workspaceVisibility = workspaceVisibility;
     }
 
-    @Auditable(action = AuditAction.CREATE, event = "APPLICATION_CREATED", resourceType = "APPLICATION")
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "APPLICATION_CREATED", resourceType = "APPLICATION")
     public ApplicationOutput create(String workspaceIdentifier, CreateApplicationInput raw) {
         workspaceVisibility.findByIdentifier(workspaceIdentifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -63,8 +63,8 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "APPLICATION_UPDATED", resourceType = "APPLICATION")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "APPLICATION_UPDATED", resourceType = "APPLICATION")
     public ApplicationOutput update(String workspaceIdentifier, String identifier, UpdateApplicationInput raw) {
         visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -81,8 +81,8 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
-    @Auditable(action = AuditAction.DEACTIVATE, event = "APPLICATION_DEACTIVATED", resourceType = "APPLICATION")
     @Transactional
+    @Auditable(action = AuditAction.DEACTIVATE, event = "APPLICATION_DEACTIVATED", resourceType = "APPLICATION")
     public ApplicationOutput inactivate(String workspaceIdentifier, String identifier) {
         visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -92,8 +92,8 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
-    @Auditable(action = AuditAction.RESTORE, event = "APPLICATION_RESTORED", resourceType = "APPLICATION")
     @Transactional
+    @Auditable(action = AuditAction.RESTORE, event = "APPLICATION_RESTORED", resourceType = "APPLICATION")
     public ApplicationOutput restore(String workspaceIdentifier, String identifier) {
         visibility.findInactiveByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
@@ -105,8 +105,8 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
-    @Auditable(action = AuditAction.DELETE, event = "APPLICATION_DELETED", resourceType = "APPLICATION")
     @Transactional
+    @Auditable(action = AuditAction.DELETE, event = "APPLICATION_DELETED", resourceType = "APPLICATION")
     public ApplicationOutput delete(String workspaceIdentifier, String identifier) {
         visibility.findInactiveForDeletion(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
