@@ -51,7 +51,5 @@ platform:
       enabled: true
       view-name: vw_platform_resource_schemas
   audit:
-    enabled: ${AUDIT_ENABLED:false}
-    service-url: ${AUDIT_SERVICE_URL:}
+    enabled: ${AUDIT_ENABLED:true}
     service-name: workspace-service
-    fail-on-error: false
