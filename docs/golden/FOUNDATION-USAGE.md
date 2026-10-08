@@ -35,12 +35,10 @@ Não usar checkout local nem `mvn install` da Foundation como mecanismo de integ
 Coordenadas Maven e packages Java da Foundation usam:
 
 ```text
-br.com.portalmanager.platform
+br.com.portalmanager.platform.library
 ```
 
 A Golden não deve introduzir aliases ou compatibilidade com o namespace provisório anterior.
-
-Coordenadas Maven e packages Java da Foundation usam `br.com.portalmanager.platform.library`.
 
 ## 3. Parent de build
 
