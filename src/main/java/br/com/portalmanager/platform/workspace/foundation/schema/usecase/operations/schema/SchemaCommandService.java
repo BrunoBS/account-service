@@ -47,15 +47,15 @@ public class SchemaCommandService {
         this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
 
-    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_CREATED", resourceType = "SCHEMA")
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_CREATED", resourceType = "SCHEMA")
     public SchemaOutput createPlatform(CreateSchemaInput input) {
         operationValidator.validateCreateInput(input);
         return create(input, SchemaScopeTypeCode.platform(), null);
     }
 
-    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_CREATED", resourceType = "SCHEMA")
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_CREATED", resourceType = "SCHEMA")
     public SchemaOutput createWorkspace(CreateSchemaInput input) {
         operationValidator.validateCreateInput(input);
         operationValidator.validateWorkspaceIdentifier(input.workspaceIdentifier());
@@ -63,14 +63,14 @@ public class SchemaCommandService {
         return create(input, SchemaScopeTypeCode.workspace(), workspaceId);
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_UPDATED", resourceType = "SCHEMA")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_UPDATED", resourceType = "SCHEMA")
     public SchemaOutput updatePlatform(String identifier, UpdateSchemaInput input) {
         return update(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null), input);
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_UPDATED", resourceType = "SCHEMA")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_UPDATED", resourceType = "SCHEMA")
     public SchemaOutput updateWorkspace(String workspaceIdentifier, String identifier, UpdateSchemaInput input) {
         return update(requiredScoped(identifier, SchemaScopeTypeCode.workspace(),
                 workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)), input);
@@ -92,8 +92,8 @@ public class SchemaCommandService {
         return inactivate(requiredScoped(identifier, SchemaScopeTypeCode.workspace(), workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)));
     }
 
-    @Auditable(action = AuditAction.DELETE, event = "SCHEMA_DELETED", resourceType = "SCHEMA")
     @Transactional
+    @Auditable(action = AuditAction.DELETE, event = "SCHEMA_DELETED", resourceType = "SCHEMA")
     public SchemaOutput quarantinePlatform(String identifier) { return quarantine(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null)); }
 
     @Transactional
