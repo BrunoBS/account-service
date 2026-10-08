@@ -1,5 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature;
 
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.model.AuditAction;
+
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.Feature;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
@@ -45,6 +48,7 @@ public class FeatureCommandService {
         this.validator = validator;
     }
 
+    @Auditable(action = AuditAction.CREATE, event = "FEATURE_CREATED", resourceType = "FEATURE")
     @Transactional
     public FeatureOutput create(CreateFeatureInput input) {
         validator.validateCreate(input, input != null && features.existsByCode(input.code()),
@@ -62,6 +66,7 @@ public class FeatureCommandService {
         )));
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "FEATURE_UPDATED", resourceType = "FEATURE")
     @Transactional
     public FeatureOutput update(String identifier, UpdateFeatureInput input) {
         Feature feature = requiredFeature(identifier);
@@ -77,6 +82,7 @@ public class FeatureCommandService {
         return FeatureOutput.from(feature);
     }
 
+    @Auditable(action = AuditAction.ACTIVATE, event = "FEATURE_ACTIVATED", resourceType = "FEATURE")
     @Transactional
     public FeatureOutput activate(String identifier) {
         Feature feature = requiredFeature(identifier);
@@ -85,6 +91,7 @@ public class FeatureCommandService {
         return FeatureOutput.from(feature);
     }
 
+    @Auditable(action = AuditAction.DEACTIVATE, event = "FEATURE_DEACTIVATED", resourceType = "FEATURE")
     @Transactional
     public FeatureOutput inactivate(String identifier) {
         Feature feature = requiredFeature(identifier);
@@ -92,6 +99,7 @@ public class FeatureCommandService {
         return FeatureOutput.from(feature);
     }
 
+    @Auditable(action = AuditAction.DELETE, event = "FEATURE_DELETED", resourceType = "FEATURE")
     @Transactional
     public FeatureOutput delete(String identifier) {
         Feature feature = requiredFeature(identifier);
@@ -99,6 +107,7 @@ public class FeatureCommandService {
         return FeatureOutput.from(feature);
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "FEATURE_CONTEXT_ASSOCIATED", resourceType = "FEATURE")
     @Transactional
     public FeatureOutput associateContext(String identifier, String contextIdentifier) {
         Feature feature = requiredFeature(identifier);
@@ -109,6 +118,7 @@ public class FeatureCommandService {
         return FeatureOutput.from(feature);
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "FEATURE_CONTEXT_REMOVED", resourceType = "FEATURE")
     @Transactional
     public FeatureOutput removeContext(String identifier, String contextIdentifier) {
         Feature feature = requiredFeature(identifier);
