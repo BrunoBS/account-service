@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.entrypoint.web.application;
 
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
+import br.com.portalmanager.platform.library.schemavalidation.annotation.SchemaPayload;
 import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchema;
 import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationCommandService;
 import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
@@ -31,7 +32,7 @@ public class ApplicationController {
     @ValidateResourceSchema(type = "APPLICATION", code = "application")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     public ResponseEntity<ApplicationResponse> create(@PathVariable String workspaceIdentifier,
-                                                       @RequestBody CreateApplicationRequest request) {
+                                                       @SchemaPayload @RequestBody CreateApplicationRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApplicationResponse.from(command.create(workspaceIdentifier, request.toInput())));
     }
@@ -61,7 +62,7 @@ public class ApplicationController {
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
     public ApplicationResponse update(@PathVariable String workspaceIdentifier,
                                       @PathVariable String identifier,
-                                      @RequestBody UpdateApplicationRequest request) {
+                                      @SchemaPayload @RequestBody UpdateApplicationRequest request) {
         return ApplicationResponse.from(command.update(workspaceIdentifier, identifier, request.toInput()));
     }
 
