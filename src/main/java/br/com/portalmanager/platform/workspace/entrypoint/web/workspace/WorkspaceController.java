@@ -1,8 +1,5 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.workspace;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
@@ -34,11 +31,6 @@ public class WorkspaceController {
 
     @PostMapping
     @AuthorizationRequired(level = AuthorizationLevel.OPEN)
-    @Auditable(
-            resource = "WORKSPACE",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
     public ResponseEntity<WorkspaceResponse> create(@RequestBody CreateWorkspaceRequest request) {
         WorkspaceResponse response = WorkspaceResponse.from(commandService.create(request.toInput()));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -64,11 +56,6 @@ public class WorkspaceController {
 
     @PutMapping("/{identifier}")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(
-            resource = "WORKSPACE",
-            action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public WorkspaceResponse update(
             @PathVariable String identifier,
             @RequestBody UpdateWorkspaceRequest request
@@ -78,11 +65,6 @@ public class WorkspaceController {
 
     @PostMapping("/{identifier}/inactivate")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(
-            resource = "WORKSPACE",
-            action = "INACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public ResponseEntity<Void> inactivate(@PathVariable String identifier) {
         commandService.inactivate(identifier);
         return ResponseEntity.noContent().build();
@@ -90,22 +72,12 @@ public class WorkspaceController {
 
     @PostMapping("/{identifier}/restore")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(
-            resource = "WORKSPACE",
-            action = "RESTORE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public WorkspaceResponse restore(@PathVariable String identifier) {
         return WorkspaceResponse.from(commandService.restore(identifier));
     }
 
     @DeleteMapping("/{identifier}")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(
-            resource = "WORKSPACE",
-            action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public ResponseEntity<Void> delete(@PathVariable String identifier) {
         commandService.delete(identifier);
         return ResponseEntity.noContent().build();
