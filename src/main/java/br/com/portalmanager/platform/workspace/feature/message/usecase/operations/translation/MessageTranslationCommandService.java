@@ -37,8 +37,8 @@ public class MessageTranslationCommandService {
         this.validator = validator;
     }
 
-    @Auditable(action = AuditAction.CREATE, event = "MESSAGE_TRANSLATION_CREATED", resourceType = "MESSAGE_TRANSLATION")
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "MESSAGE_TRANSLATION_CREATED", resourceType = "MESSAGE_TRANSLATION")
     public MessageTranslationOutput create(
             String messageIdentifier,
             CreateMessageTranslationInput rawInput
@@ -63,8 +63,8 @@ public class MessageTranslationCommandService {
         return MessageTranslationOutput.from(repository.saveAndFlush(translation));
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "MESSAGE_TRANSLATION_UPDATED", resourceType = "MESSAGE_TRANSLATION")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "MESSAGE_TRANSLATION_UPDATED", resourceType = "MESSAGE_TRANSLATION")
     public MessageTranslationOutput update(
             String messageIdentifier,
             String translationIdentifier,
@@ -95,8 +95,8 @@ public class MessageTranslationCommandService {
         return MessageTranslationOutput.from(repository.saveAndFlush(translation));
     }
 
-    @Auditable(action = AuditAction.ACTIVATE, event = "MESSAGE_TRANSLATION_ACTIVATED", resourceType = "MESSAGE_TRANSLATION")
     @Transactional
+    @Auditable(action = AuditAction.ACTIVATE, event = "MESSAGE_TRANSLATION_ACTIVATED", resourceType = "MESSAGE_TRANSLATION")
     public MessageTranslationOutput activate(
             String messageIdentifier,
             String translationIdentifier
@@ -107,8 +107,8 @@ public class MessageTranslationCommandService {
         return MessageTranslationOutput.from(repository.saveAndFlush(translation));
     }
 
-    @Auditable(action = AuditAction.DEACTIVATE, event = "MESSAGE_TRANSLATION_DEACTIVATED", resourceType = "MESSAGE_TRANSLATION")
     @Transactional
+    @Auditable(action = AuditAction.DEACTIVATE, event = "MESSAGE_TRANSLATION_DEACTIVATED", resourceType = "MESSAGE_TRANSLATION")
     public MessageTranslationOutput inactivate(
             String messageIdentifier,
             String translationIdentifier
@@ -119,8 +119,8 @@ public class MessageTranslationCommandService {
         return MessageTranslationOutput.from(repository.saveAndFlush(translation));
     }
 
-    @Auditable(action = AuditAction.DELETE, event = "MESSAGE_TRANSLATION_DELETED", resourceType = "MESSAGE_TRANSLATION")
     @Transactional
+    @Auditable(action = AuditAction.DELETE, event = "MESSAGE_TRANSLATION_DELETED", resourceType = "MESSAGE_TRANSLATION")
     public MessageTranslationOutput delete(String messageIdentifier, String translationIdentifier) {
         Message message = finder.findMessage(messageIdentifier);
         MessageTranslation translation = finder.findTranslation(message, translationIdentifier);
