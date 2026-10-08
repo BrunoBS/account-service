@@ -2,15 +2,10 @@ package br.com.portalmanager.platform.workspace.entrypoint.web.application;
 
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.library.schemavalidation.annotation.SchemaPayload;
-import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchema;
 import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationCommandService;
 import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.request.CreateApplicationRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.request.UpdateApplicationRequest;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.response.ApplicationResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.response.ApplicationSummaryResponse;
 import org.springframework.http.HttpStatus;
@@ -24,23 +19,18 @@ import java.util.List;
 public class ApplicationController {
     private final ApplicationCommandService command;
     private final ApplicationQueryService query;
-    private final ObjectMapper json;
 
-    public ApplicationController(ApplicationCommandService command,
-                                 ApplicationQueryService query, ObjectMapper json) {
+    public ApplicationController(ApplicationCommandService command, ApplicationQueryService query) {
         this.command = command;
         this.query = query;
-        this.json = json;
     }
 
     @PostMapping
-    @ValidateResourceSchema(type = "APPLICATION", code = "application")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     public ResponseEntity<ApplicationResponse> create(@PathVariable String workspaceIdentifier,
-                                                       @SchemaPayload @RequestBody JsonNode payload) throws JacksonException {
+                                                       @RequestBody CreateApplicationRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApplicationResponse.from(command.create(workspaceIdentifier,
-                        json.treeToValue(payload, CreateApplicationRequest.class).toInput())));
+                .body(ApplicationResponse.from(command.create(workspaceIdentifier, request.toInput())));
     }
 
     @GetMapping("/{identifier}")
@@ -64,13 +54,11 @@ public class ApplicationController {
     }
 
     @PutMapping("/{identifier}")
-    @ValidateResourceSchema(type = "APPLICATION", code = "application")
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
     public ApplicationResponse update(@PathVariable String workspaceIdentifier,
                                       @PathVariable String identifier,
-                                      @SchemaPayload @RequestBody JsonNode payload) throws JacksonException {
-        return ApplicationResponse.from(command.update(workspaceIdentifier, identifier,
-                json.treeToValue(payload, UpdateApplicationRequest.class).toInput()));
+                                      @RequestBody UpdateApplicationRequest request) {
+        return ApplicationResponse.from(command.update(workspaceIdentifier, identifier, request.toInput()));
     }
 
     @PostMapping("/{identifier}/inactivate")
