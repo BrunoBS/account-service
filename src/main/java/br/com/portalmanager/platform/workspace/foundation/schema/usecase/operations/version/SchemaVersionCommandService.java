@@ -1,5 +1,8 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.version;
 
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.model.AuditAction;
+
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
@@ -45,22 +48,26 @@ public class SchemaVersionCommandService {
         this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
 
+    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_VERSION_CREATED", resourceType = "SCHEMA_VERSION")
     @Transactional
     public SchemaVersionOutput createPlatformDraft(String schemaIdentifier, CreateSchemaVersionInput input) {
         return createOrUpdateDraft(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null), input);
     }
 
+    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_VERSION_CREATED", resourceType = "SCHEMA_VERSION")
     @Transactional
     public SchemaVersionOutput createWorkspaceDraft(String workspaceIdentifier, String schemaIdentifier, CreateSchemaVersionInput input) {
         return createOrUpdateDraft(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.workspace(),
                 workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)), input);
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_VERSION_PUBLISHED", resourceType = "SCHEMA_VERSION")
     @Transactional
     public SchemaVersionOutput publishPlatform(String schemaIdentifier, String versionIdentifier) {
         return publish(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null), versionIdentifier);
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_VERSION_PUBLISHED", resourceType = "SCHEMA_VERSION")
     @Transactional
     public SchemaVersionOutput publishWorkspace(String workspaceIdentifier, String schemaIdentifier, String versionIdentifier) {
         return publish(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.workspace(),
