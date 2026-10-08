@@ -48,8 +48,8 @@ public class FeatureCommandService {
         this.validator = validator;
     }
 
-    @Auditable(action = AuditAction.CREATE, event = "FEATURE_CREATED", resourceType = "FEATURE")
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "FEATURE_CREATED", resourceType = "FEATURE")
     public FeatureOutput create(CreateFeatureInput input) {
         validator.validateCreate(input, input != null && features.existsByCode(input.code()),
                 input != null && features.existsByName(input.name()));
@@ -66,8 +66,8 @@ public class FeatureCommandService {
         )));
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "FEATURE_UPDATED", resourceType = "FEATURE")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "FEATURE_UPDATED", resourceType = "FEATURE")
     public FeatureOutput update(String identifier, UpdateFeatureInput input) {
         Feature feature = requiredFeature(identifier);
         validator.validateUpdate(input, input != null && !feature.getName().equals(input.name())
@@ -82,8 +82,8 @@ public class FeatureCommandService {
         return FeatureOutput.from(feature);
     }
 
-    @Auditable(action = AuditAction.ACTIVATE, event = "FEATURE_ACTIVATED", resourceType = "FEATURE")
     @Transactional
+    @Auditable(action = AuditAction.ACTIVATE, event = "FEATURE_ACTIVATED", resourceType = "FEATURE")
     public FeatureOutput activate(String identifier) {
         Feature feature = requiredFeature(identifier);
         validator.validateMicroservice(feature.getMicroservice());
@@ -91,24 +91,24 @@ public class FeatureCommandService {
         return FeatureOutput.from(feature);
     }
 
-    @Auditable(action = AuditAction.DEACTIVATE, event = "FEATURE_DEACTIVATED", resourceType = "FEATURE")
     @Transactional
+    @Auditable(action = AuditAction.DEACTIVATE, event = "FEATURE_DEACTIVATED", resourceType = "FEATURE")
     public FeatureOutput inactivate(String identifier) {
         Feature feature = requiredFeature(identifier);
         feature.inactivate(now());
         return FeatureOutput.from(feature);
     }
 
-    @Auditable(action = AuditAction.DELETE, event = "FEATURE_DELETED", resourceType = "FEATURE")
     @Transactional
+    @Auditable(action = AuditAction.DELETE, event = "FEATURE_DELETED", resourceType = "FEATURE")
     public FeatureOutput delete(String identifier) {
         Feature feature = requiredFeature(identifier);
         feature.quarantine(now());
         return FeatureOutput.from(feature);
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "FEATURE_CONTEXT_ASSOCIATED", resourceType = "FEATURE")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "FEATURE_CONTEXT_ASSOCIATED", resourceType = "FEATURE")
     public FeatureOutput associateContext(String identifier, String contextIdentifier) {
         Feature feature = requiredFeature(identifier);
         FeatureContext context = contexts.findByIdentifier(contextIdentifier)
@@ -118,8 +118,8 @@ public class FeatureCommandService {
         return FeatureOutput.from(feature);
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "FEATURE_CONTEXT_REMOVED", resourceType = "FEATURE")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "FEATURE_CONTEXT_REMOVED", resourceType = "FEATURE")
     public FeatureOutput removeContext(String identifier, String contextIdentifier) {
         Feature feature = requiredFeature(identifier);
         FeatureContext context = contexts.findByIdentifier(contextIdentifier)
