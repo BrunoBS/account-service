@@ -1,5 +1,8 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.configuration;
 
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.model.AuditAction;
+
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaConfiguration;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaConfigurationRepository;
@@ -27,6 +30,7 @@ public class SchemaConfigurationService {
         this.validator = validator;
     }
 
+    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_CONFIGURATION_CREATED", resourceType = "SCHEMA_CONFIGURATION")
     @Transactional
     public SchemaConfigurationOutput create(CreateSchemaConfigurationInput input) {
         validator.validateCreate(input);
@@ -38,6 +42,7 @@ public class SchemaConfigurationService {
                 new SchemaConfiguration(type, code, schema, LocalDateTime.now())));
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_CONFIGURATION_UPDATED", resourceType = "SCHEMA_CONFIGURATION")
     @Transactional
     public SchemaConfigurationOutput update(String identifier, UpdateSchemaConfigurationInput input) {
         SchemaConfiguration configuration = required(identifier);
@@ -60,11 +65,13 @@ public class SchemaConfigurationService {
         return SchemaConfigurationOutput.from(configuration);
     }
 
+    @Auditable(action = AuditAction.DELETE, event = "SCHEMA_CONFIGURATION_DELETED", resourceType = "SCHEMA_CONFIGURATION")
     @Transactional
-    public void delete(String identifier) {
+    public SchemaConfigurationOutput delete(String identifier) {
         SchemaConfiguration configuration = required(identifier);
         validator.validateDeletion(configuration);
         repository.delete(configuration);
+        return SchemaConfigurationOutput.from(configuration);
     }
 
     @Transactional(readOnly = true)
