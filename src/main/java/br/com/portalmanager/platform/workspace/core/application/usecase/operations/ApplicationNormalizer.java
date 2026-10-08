@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.application.usecase.operations;
 
-import br.com.portalmanager.platform.library.tagging.TagNormalizer;
+import br.com.portalmanager.platform.library.tagging.model.TagName;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
 import org.springframework.stereotype.Component;
@@ -23,7 +23,7 @@ public class ApplicationNormalizer {
                 settings(value.settings()), value.tags());
     }
 
-    public String normalizeTag(String value) { return TagNormalizer.normalize(value); }
+    public String normalizeTag(String value) { return value == null || value.isBlank() ? null : TagName.of(value).value(); }
     private String trim(String value) { return value == null ? null : value.trim(); }
     private String code(String value) {
         String normalized = trim(value);
