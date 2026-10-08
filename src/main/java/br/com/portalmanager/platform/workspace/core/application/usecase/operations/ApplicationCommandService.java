@@ -1,5 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.application.usecase.operations;
 
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.model.AuditAction;
+
 import br.com.portalmanager.platform.library.tagging.TagManager;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationSystemTags;
@@ -44,6 +47,7 @@ public class ApplicationCommandService {
         this.workspaceVisibility = workspaceVisibility;
     }
 
+    @Auditable(action = AuditAction.CREATE, event = "APPLICATION_CREATED", resourceType = "APPLICATION")
     @Transactional
     public ApplicationOutput create(String workspaceIdentifier, CreateApplicationInput raw) {
         workspaceVisibility.findByIdentifier(workspaceIdentifier);
@@ -59,6 +63,7 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "APPLICATION_UPDATED", resourceType = "APPLICATION")
     @Transactional
     public ApplicationOutput update(String workspaceIdentifier, String identifier, UpdateApplicationInput raw) {
         visibility.findByIdentifier(workspaceIdentifier, identifier);
@@ -76,15 +81,18 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
+    @Auditable(action = AuditAction.DEACTIVATE, event = "APPLICATION_DEACTIVATED", resourceType = "APPLICATION")
     @Transactional
-    public void inactivate(String workspaceIdentifier, String identifier) {
+    public ApplicationOutput inactivate(String workspaceIdentifier, String identifier) {
         visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findActive(identifier, workspaceId);
         app.inactivate(LocalDateTime.now());
-        repository.saveAndFlush(app);
+        Application saved = repository.saveAndFlush(app);
+        return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
+    @Auditable(action = AuditAction.RESTORE, event = "APPLICATION_RESTORED", resourceType = "APPLICATION")
     @Transactional
     public ApplicationOutput restore(String workspaceIdentifier, String identifier) {
         visibility.findInactiveByIdentifier(workspaceIdentifier, identifier);
@@ -97,12 +105,14 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
+    @Auditable(action = AuditAction.DELETE, event = "APPLICATION_DELETED", resourceType = "APPLICATION")
     @Transactional
-    public void delete(String workspaceIdentifier, String identifier) {
+    public ApplicationOutput delete(String workspaceIdentifier, String identifier) {
         visibility.findInactiveForDeletion(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findInactiveForDeletion(identifier, workspaceId);
         app.quarantine(LocalDateTime.now());
-        repository.saveAndFlush(app);
+        Application saved = repository.saveAndFlush(app);
+        return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 }
