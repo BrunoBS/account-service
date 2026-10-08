@@ -1,5 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice;
 
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.model.AuditAction;
+
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.MicroserviceRepository;
@@ -28,6 +31,7 @@ public class MicroserviceCommandService {
         this.validator = validator;
     }
 
+    @Auditable(action = AuditAction.CREATE, event = "MICROSERVICE_CREATED", resourceType = "MICROSERVICE")
     @Transactional
     public MicroserviceOutput create(CreateMicroserviceInput input) {
         validator.validateCreate(input, input != null && repository.existsByCode(input.code()),
@@ -37,6 +41,7 @@ public class MicroserviceCommandService {
                 input.code(), input.name(), input.description(), input.settings(), now())));
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "MICROSERVICE_UPDATED", resourceType = "MICROSERVICE")
     @Transactional
     public MicroserviceOutput update(String identifier, UpdateMicroserviceInput input) {
         Microservice microservice = required(identifier);
@@ -47,8 +52,11 @@ public class MicroserviceCommandService {
         return MicroserviceOutput.from(microservice);
     }
 
+    @Auditable(action = AuditAction.ACTIVATE, event = "MICROSERVICE_ACTIVATED", resourceType = "MICROSERVICE")
     @Transactional public MicroserviceOutput activate(String identifier) { Microservice m = required(identifier); m.activate(now()); return MicroserviceOutput.from(m); }
+    @Auditable(action = AuditAction.DEACTIVATE, event = "MICROSERVICE_DEACTIVATED", resourceType = "MICROSERVICE")
     @Transactional public MicroserviceOutput inactivate(String identifier) { Microservice m = required(identifier); m.inactivate(now()); return MicroserviceOutput.from(m); }
+    @Auditable(action = AuditAction.DELETE, event = "MICROSERVICE_DELETED", resourceType = "MICROSERVICE")
     @Transactional public MicroserviceOutput delete(String identifier) { Microservice m = required(identifier); validator.validateDelete(m); m.quarantine(now()); return MicroserviceOutput.from(m); }
     private Microservice required(String identifier) { return repository.findByIdentifier(identifier).orElseThrow(() -> new NotFoundException(PlatformMessageKeys.MICROSERVICE_NOT_FOUND)); }
     private LocalDateTime now() { return LocalDateTime.now(); }
