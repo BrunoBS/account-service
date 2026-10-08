@@ -25,7 +25,7 @@ public class ApplicationCommandService {
     private final WorkspaceReferenceResolver workspaces;
     private final ApplicationNormalizer normalizer;
     private final ApplicationValidator validator;
-    private final TagManager<ApplicationTag, Application, Long, String> tags;
+    private final TagManager<ApplicationTag, Application> tags;
     private final ApplicationQueryService visibility;
     private final WorkspaceQueryService workspaceVisibility;
 
