@@ -1,8 +1,5 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice.request.CreateMicroserviceRequest;
@@ -30,11 +27,6 @@ public class MicroserviceController {
     }
 
     @PostMapping
-    @Auditable(
-            resource = "MICROSERVICE",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
     public ResponseEntity<MicroserviceResponse> create(@RequestBody CreateMicroserviceRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(MicroserviceResponse.from(commandService.create(request.toInput())));
@@ -51,11 +43,6 @@ public class MicroserviceController {
     }
 
     @PutMapping("/{identifier}")
-    @Auditable(
-            resource = "MICROSERVICE",
-            action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public MicroserviceResponse update(
             @PathVariable String identifier,
             @RequestBody UpdateMicroserviceRequest request
@@ -64,31 +51,16 @@ public class MicroserviceController {
     }
 
     @PatchMapping("/{identifier}/activate")
-    @Auditable(
-            resource = "MICROSERVICE",
-            action = "ACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public MicroserviceResponse activate(@PathVariable String identifier) {
         return MicroserviceResponse.from(commandService.activate(identifier));
     }
 
     @PatchMapping("/{identifier}/inactivate")
-    @Auditable(
-            resource = "MICROSERVICE",
-            action = "INACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public MicroserviceResponse inactivate(@PathVariable String identifier) {
         return MicroserviceResponse.from(commandService.inactivate(identifier));
     }
 
     @DeleteMapping("/{identifier}")
-    @Auditable(
-            resource = "MICROSERVICE",
-            action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public ResponseEntity<Void> delete(@PathVariable String identifier) {
         commandService.delete(identifier);
         return ResponseEntity.noContent().build();
