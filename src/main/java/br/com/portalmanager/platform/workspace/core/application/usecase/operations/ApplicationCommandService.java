@@ -16,8 +16,13 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.validati
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,12 +37,15 @@ public class ApplicationCommandService {
     private final TagManager<ApplicationTag, Application> tags;
     private final ApplicationQueryService visibility;
     private final WorkspaceQueryService workspaceVisibility;
+    private final ObjectMapper json;
 
+    @Autowired
     public ApplicationCommandService(ApplicationRepository repository, ApplicationFinder finder,
                                      WorkspaceReferenceResolver workspaces, ApplicationNormalizer normalizer,
                                      ApplicationValidator validator,
                                      TagManager<ApplicationTag, Application> tags,
-                                     ApplicationQueryService visibility, WorkspaceQueryService workspaceVisibility) {
+                                     ApplicationQueryService visibility, WorkspaceQueryService workspaceVisibility,
+                                     ObjectMapper json) {
         this.repository = repository;
         this.finder = finder;
         this.workspaces = workspaces;
@@ -46,12 +54,23 @@ public class ApplicationCommandService {
         this.tags = tags;
         this.visibility = visibility;
         this.workspaceVisibility = workspaceVisibility;
+        this.json = json;
+    }
+
+    public ApplicationCommandService(ApplicationRepository repository, ApplicationFinder finder,
+                                     WorkspaceReferenceResolver workspaces, ApplicationNormalizer normalizer,
+                                     ApplicationValidator validator,
+                                     TagManager<ApplicationTag, Application> tags,
+                                     ApplicationQueryService visibility, WorkspaceQueryService workspaceVisibility) {
+        this(repository, finder, workspaces, normalizer, validator, tags, visibility, workspaceVisibility,
+                JsonMapper.builder().build());
     }
 
     @Transactional
     @ValidateResourceSchema(type = "APPLICATION", code = "application")
     @Auditable(action = AuditAction.CREATE, event = "APPLICATION_CREATED", resourceType = "APPLICATION")
-    public ApplicationOutput create(String workspaceIdentifier, @SchemaPayload CreateApplicationInput raw) {
+    public ApplicationOutput create(String workspaceIdentifier, @SchemaPayload JsonNode payload) throws JacksonException {
+        CreateApplicationInput raw = json.treeToValue(payload, CreateApplicationInput.class);
         workspaceVisibility.findByIdentifier(workspaceIdentifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         CreateApplicationInput input = normalizer.normalize(raw);
@@ -69,7 +88,8 @@ public class ApplicationCommandService {
     @ValidateResourceSchema(type = "APPLICATION", code = "application")
     @Auditable(action = AuditAction.UPDATE, event = "APPLICATION_UPDATED", resourceType = "APPLICATION")
     public ApplicationOutput update(String workspaceIdentifier, String identifier,
-                                    @SchemaPayload UpdateApplicationInput raw) {
+                                    @SchemaPayload JsonNode payload) throws JacksonException {
+        UpdateApplicationInput raw = json.treeToValue(payload, UpdateApplicationInput.class);
         visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findActive(identifier, workspaceId);
@@ -120,7 +140,7 @@ public class ApplicationCommandService {
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
-    private String settings(tools.jackson.databind.JsonNode value) {
+    private String settings(JsonNode value) {
         return value == null ? "{}" : value.toString();
     }
 }
