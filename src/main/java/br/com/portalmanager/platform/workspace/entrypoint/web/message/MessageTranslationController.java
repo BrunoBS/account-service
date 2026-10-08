@@ -1,8 +1,5 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.message;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.entrypoint.web.message.request.CreateMessageTranslationRequest;
@@ -54,11 +51,6 @@ public class MessageTranslationController {
     }
 
     @PostMapping
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
     public ResponseEntity<MessageTranslationResponse> create(
             @PathVariable String messageIdentifier,
             @RequestBody CreateMessageTranslationRequest request
@@ -70,11 +62,6 @@ public class MessageTranslationController {
     }
 
     @PutMapping("/{translationIdentifier}")
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "translationIdentifier")
-    )
     public MessageTranslationResponse update(
             @PathVariable String messageIdentifier,
             @PathVariable String translationIdentifier,
@@ -86,11 +73,6 @@ public class MessageTranslationController {
     }
 
     @PatchMapping("/{translationIdentifier}/activate")
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "ACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "translationIdentifier")
-    )
     public MessageTranslationResponse activate(
             @PathVariable String messageIdentifier,
             @PathVariable String translationIdentifier
@@ -101,11 +83,6 @@ public class MessageTranslationController {
     }
 
     @PatchMapping("/{translationIdentifier}/inactivate")
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "INACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "translationIdentifier")
-    )
     public MessageTranslationResponse inactivate(
             @PathVariable String messageIdentifier,
             @PathVariable String translationIdentifier
@@ -116,11 +93,6 @@ public class MessageTranslationController {
     }
 
     @DeleteMapping("/{translationIdentifier}")
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "translationIdentifier")
-    )
     public ResponseEntity<Void> delete(
             @PathVariable String messageIdentifier,
             @PathVariable String translationIdentifier
