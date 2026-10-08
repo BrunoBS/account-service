@@ -1,5 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environment;
 
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.model.AuditAction;
+
 import br.com.portalmanager.platform.workspace.core.environment.domain.Environment;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentType;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
@@ -45,6 +48,7 @@ public class EnvironmentCommandService {
         this.types = types;
     }
 
+    @Auditable(action = AuditAction.CREATE, event = "ENVIRONMENT_CREATED", resourceType = "ENVIRONMENT")
     @Transactional
     public EnvironmentOutput createCustom(String workspaceIdentifier, CreateEnvironmentInput input) {
         workspaceVisibility.findByIdentifier(workspaceIdentifier);
@@ -73,6 +77,7 @@ public class EnvironmentCommandService {
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "ENVIRONMENT_UPDATED", resourceType = "ENVIRONMENT")
     @Transactional
     public EnvironmentOutput updateCustom(String workspaceIdentifier, String identifier, UpdateEnvironmentInput raw) {
         visibility.findCustom(workspaceIdentifier, identifier);
@@ -106,20 +111,22 @@ public class EnvironmentCommandService {
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
 
+    @Auditable(action = AuditAction.DEACTIVATE, event = "ENVIRONMENT_DEACTIVATED", resourceType = "ENVIRONMENT")
     @Transactional
-    public void inactivateCustom(String workspaceIdentifier, String identifier) {
+    public EnvironmentOutput inactivateCustom(String workspaceIdentifier, String identifier) {
         visibility.findCustom(workspaceIdentifier, identifier);
-        inactivate(workspaces.resolveInternalId(workspaceIdentifier), identifier);
+        return inactivate(workspaces.resolveInternalId(workspaceIdentifier), workspaceIdentifier, identifier);
     }
 
     @Transactional
-    public void inactivateDefault(String identifier) { visibility.findDefault(identifier); inactivate(null, identifier); }
-    private void inactivate(Long workspaceId, String identifier) {
+    public void inactivateDefault(String identifier) { visibility.findDefault(identifier); inactivate(null, null, identifier); }
+    private EnvironmentOutput inactivate(Long workspaceId, String workspaceIdentifier, String identifier) {
         Environment environment = finder.findActive(identifier, workspaceId);
         environment.inactivate(LocalDateTime.now());
-        repository.saveAndFlush(environment);
+        return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
 
+    @Auditable(action = AuditAction.RESTORE, event = "ENVIRONMENT_RESTORED", resourceType = "ENVIRONMENT")
     @Transactional
     public EnvironmentOutput restoreCustom(String workspaceIdentifier, String identifier) {
         visibility.findCustomInactive(workspaceIdentifier, identifier);
@@ -146,18 +153,19 @@ public class EnvironmentCommandService {
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
 
+    @Auditable(action = AuditAction.DELETE, event = "ENVIRONMENT_DELETED", resourceType = "ENVIRONMENT")
     @Transactional
-    public void deleteCustom(String workspaceIdentifier, String identifier) {
+    public EnvironmentOutput deleteCustom(String workspaceIdentifier, String identifier) {
         visibility.findCustomForDeletion(workspaceIdentifier, identifier);
-        delete(workspaces.resolveInternalId(workspaceIdentifier), identifier);
+        return delete(workspaces.resolveInternalId(workspaceIdentifier), workspaceIdentifier, identifier);
     }
 
     @Transactional
-    public void deleteDefault(String identifier) { visibility.findDefaultForDeletion(identifier); delete(null, identifier); }
-    private void delete(Long workspaceId, String identifier) {
+    public void deleteDefault(String identifier) { visibility.findDefaultForDeletion(identifier); delete(null, null, identifier); }
+    private EnvironmentOutput delete(Long workspaceId, String workspaceIdentifier, String identifier) {
         Environment environment = finder.findInactiveForDeletion(identifier, workspaceId);
         environment.quarantine(LocalDateTime.now());
-        repository.saveAndFlush(environment);
+        return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
 
     private Environment resolveParent(String identifier, Long workspaceId) {
