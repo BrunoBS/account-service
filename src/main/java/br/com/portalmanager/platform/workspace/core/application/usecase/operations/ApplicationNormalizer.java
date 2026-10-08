@@ -12,15 +12,14 @@ public class ApplicationNormalizer {
     public CreateApplicationInput normalize(CreateApplicationInput value) {
         if (value == null) return null;
         return new CreateApplicationInput(trim(value.name()), trim(value.alias()), trim(value.acronym()),
-                code(value.applicationScope()), group(value.authorizerGroup()), settings(value.settings()),
-                value.tags());
+                code(value.applicationScope()), group(value.authorizerGroup()), value.settings(), value.tags());
     }
 
     public UpdateApplicationInput normalize(UpdateApplicationInput value) {
         if (value == null) return null;
         return new UpdateApplicationInput(value.version(), trim(value.name()), trim(value.alias()),
                 trim(value.acronym()), code(value.applicationScope()), group(value.authorizerGroup()),
-                settings(value.settings()), value.tags());
+                value.settings(), value.tags());
     }
 
     public String normalizeTag(String value) { return value == null || value.isBlank() ? null : TagName.of(value).value(); }
@@ -34,5 +33,4 @@ public class ApplicationNormalizer {
         if (normalized == null || normalized.isBlank()) return null;
         return normalized.startsWith("A-") ? normalized : "A-" + normalized;
     }
-    private String settings(String value) { return value == null || value.isBlank() ? "{}" : value.trim(); }
 }
