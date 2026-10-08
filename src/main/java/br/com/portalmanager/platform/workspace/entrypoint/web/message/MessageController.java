@@ -1,8 +1,5 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.message;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.entrypoint.web.message.request.CreateMessageRequest;
@@ -30,11 +27,6 @@ public class MessageController {
     }
 
     @PostMapping
-    @Auditable(
-            resource = "MESSAGE",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
     public ResponseEntity<MessageResponse> create(@RequestBody CreateMessageRequest request) {
         MessageResponse response = MessageResponse.from(commandService.create(request.toInput()));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -58,11 +50,6 @@ public class MessageController {
     }
 
     @PutMapping("/{identifier}")
-    @Auditable(
-            resource = "MESSAGE",
-            action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public MessageResponse update(
             @PathVariable String identifier,
             @RequestBody UpdateMessageRequest request
@@ -71,31 +58,16 @@ public class MessageController {
     }
 
     @PatchMapping("/{identifier}/activate")
-    @Auditable(
-            resource = "MESSAGE",
-            action = "ACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public MessageResponse activate(@PathVariable String identifier) {
         return MessageResponse.from(commandService.activate(identifier));
     }
 
     @PatchMapping("/{identifier}/inactivate")
-    @Auditable(
-            resource = "MESSAGE",
-            action = "INACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public MessageResponse inactivate(@PathVariable String identifier) {
         return MessageResponse.from(commandService.inactivate(identifier));
     }
 
     @DeleteMapping("/{identifier}")
-    @Auditable(
-            resource = "MESSAGE",
-            action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public ResponseEntity<Void> delete(@PathVariable String identifier) {
         commandService.delete(identifier);
         return ResponseEntity.noContent().build();
