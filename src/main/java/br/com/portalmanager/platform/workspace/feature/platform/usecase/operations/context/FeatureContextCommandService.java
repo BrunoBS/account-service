@@ -1,5 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context;
 
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.model.AuditAction;
+
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureContextRepository;
@@ -29,6 +32,7 @@ public class FeatureContextCommandService {
         this.validator = validator;
     }
 
+    @Auditable(action = AuditAction.CREATE, event = "FEATURE_CONTEXT_CREATED", resourceType = "FEATURE_CONTEXT")
     @Transactional
     public FeatureContextOutput create(CreateFeatureContextInput input) {
         validator.validateCreate(input, input != null && repository.existsByCode(input.code()),
@@ -38,6 +42,7 @@ public class FeatureContextCommandService {
         ));
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "FEATURE_CONTEXT_UPDATED", resourceType = "FEATURE_CONTEXT")
     @Transactional
     public FeatureContextOutput update(String identifier, UpdateFeatureContextInput input) {
         FeatureContext context = required(identifier);
@@ -47,6 +52,7 @@ public class FeatureContextCommandService {
         return FeatureContextOutput.from(context);
     }
 
+    @Auditable(action = AuditAction.ACTIVATE, event = "FEATURE_CONTEXT_ACTIVATED", resourceType = "FEATURE_CONTEXT")
     @Transactional
     public FeatureContextOutput activate(String identifier) {
         FeatureContext context = required(identifier);
@@ -54,6 +60,7 @@ public class FeatureContextCommandService {
         return FeatureContextOutput.from(context);
     }
 
+    @Auditable(action = AuditAction.DEACTIVATE, event = "FEATURE_CONTEXT_DEACTIVATED", resourceType = "FEATURE_CONTEXT")
     @Transactional
     public FeatureContextOutput inactivate(String identifier) {
         FeatureContext context = required(identifier);
@@ -61,6 +68,7 @@ public class FeatureContextCommandService {
         return FeatureContextOutput.from(context);
     }
 
+    @Auditable(action = AuditAction.DELETE, event = "FEATURE_CONTEXT_DELETED", resourceType = "FEATURE_CONTEXT")
     @Transactional
     public FeatureContextOutput delete(String identifier) {
         FeatureContext context = required(identifier);
