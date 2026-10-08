@@ -18,7 +18,9 @@ Este repositório implementa a fase `GOLDEN-REFERENCE-V1` sobre o checkpoint `FO
 - `br.com.portalmanager.platform.library:platform-parent:1.0.0`
 - `br.com.portalmanager.platform.library:platform-libraries-bom:1.0.0`
 - `br.com.portalmanager.platform.library:platform-starter:1.0.0`
-- `br.com.portalmanager.platform.library:platform-testing:1.0.0`
+- `br.com.portalmanager.platform.library:platform-testing-http:1.0.0`;
+- `br.com.portalmanager.platform.library:platform-testing-database:1.0.0`;
+- `br.com.portalmanager.platform.library:platform-testing-authorization:1.0.0`
 - `br.com.portalmanager.platform.library:platform-catalog:1.0.0`
 
 ## Arquitetura
