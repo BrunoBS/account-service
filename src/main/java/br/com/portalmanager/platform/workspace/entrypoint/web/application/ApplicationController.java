@@ -8,6 +8,9 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.operatio
 import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.request.CreateApplicationRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.request.UpdateApplicationRequest;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.response.ApplicationResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.response.ApplicationSummaryResponse;
 import org.springframework.http.HttpStatus;
@@ -21,20 +24,23 @@ import java.util.List;
 public class ApplicationController {
     private final ApplicationCommandService command;
     private final ApplicationQueryService query;
+    private final ObjectMapper json;
 
     public ApplicationController(ApplicationCommandService command,
-                                 ApplicationQueryService query) {
+                                 ApplicationQueryService query, ObjectMapper json) {
         this.command = command;
         this.query = query;
+        this.json = json;
     }
 
     @PostMapping
     @ValidateResourceSchema(type = "APPLICATION", code = "application")
     @AuthorizationRequired(level = AuthorizationLevel.ADM)
     public ResponseEntity<ApplicationResponse> create(@PathVariable String workspaceIdentifier,
-                                                       @SchemaPayload @RequestBody CreateApplicationRequest request) {
+                                                       @SchemaPayload @RequestBody JsonNode payload) throws JacksonException {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApplicationResponse.from(command.create(workspaceIdentifier, request.toInput())));
+                .body(ApplicationResponse.from(command.create(workspaceIdentifier,
+                        json.treeToValue(payload, CreateApplicationRequest.class).toInput())));
     }
 
     @GetMapping("/{identifier}")
@@ -62,8 +68,9 @@ public class ApplicationController {
     @AuthorizationRequired(level = AuthorizationLevel.DEV)
     public ApplicationResponse update(@PathVariable String workspaceIdentifier,
                                       @PathVariable String identifier,
-                                      @SchemaPayload @RequestBody UpdateApplicationRequest request) {
-        return ApplicationResponse.from(command.update(workspaceIdentifier, identifier, request.toInput()));
+                                      @SchemaPayload @RequestBody JsonNode payload) throws JacksonException {
+        return ApplicationResponse.from(command.update(workspaceIdentifier, identifier,
+                json.treeToValue(payload, UpdateApplicationRequest.class).toInput()));
     }
 
     @PostMapping("/{identifier}/inactivate")
