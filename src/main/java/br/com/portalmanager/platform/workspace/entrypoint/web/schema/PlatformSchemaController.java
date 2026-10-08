@@ -1,8 +1,5 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.schema;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.CreateSchemaRequest;
@@ -39,11 +36,6 @@ public class PlatformSchemaController {
     }
 
     @PostMapping
-    @Auditable(
-            resource = "SCHEMA",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
     public ResponseEntity<SchemaResponse> create(@RequestBody CreateSchemaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(SchemaResponse.from(commandService.createPlatform(request.toPlatformInput())));
@@ -60,11 +52,6 @@ public class PlatformSchemaController {
     }
 
     @PutMapping("/{identifier}")
-    @Auditable(
-            resource = "SCHEMA",
-            action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public SchemaResponse update(
             @PathVariable String identifier,
             @RequestBody UpdateSchemaRequest request
@@ -83,22 +70,12 @@ public class PlatformSchemaController {
     }
 
     @DeleteMapping("/{identifier}")
-    @Auditable(
-            resource = "SCHEMA",
-            action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public ResponseEntity<Void> quarantine(@PathVariable String identifier) {
         commandService.quarantinePlatform(identifier);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{identifier}/versions")
-    @Auditable(
-            resource = "SCHEMA_VERSION",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
     public ResponseEntity<SchemaVersionResponse> createVersion(
             @PathVariable String identifier,
             @RequestBody CreateSchemaVersionRequest request
@@ -126,11 +103,6 @@ public class PlatformSchemaController {
     }
 
     @PatchMapping("/{identifier}/versions/{versionIdentifier}/publish")
-    @Auditable(
-            resource = "SCHEMA_VERSION",
-            action = "PUBLISH",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "versionIdentifier")
-    )
     public SchemaVersionResponse publish(
             @PathVariable String identifier,
             @PathVariable String versionIdentifier
