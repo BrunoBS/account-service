@@ -32,8 +32,8 @@ public class FeatureContextCommandService {
         this.validator = validator;
     }
 
-    @Auditable(action = AuditAction.CREATE, event = "FEATURE_CONTEXT_CREATED", resourceType = "FEATURE_CONTEXT")
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "FEATURE_CONTEXT_CREATED", resourceType = "FEATURE_CONTEXT")
     public FeatureContextOutput create(CreateFeatureContextInput input) {
         validator.validateCreate(input, input != null && repository.existsByCode(input.code()),
                 input != null && repository.existsByName(input.name()));
@@ -42,8 +42,8 @@ public class FeatureContextCommandService {
         ));
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "FEATURE_CONTEXT_UPDATED", resourceType = "FEATURE_CONTEXT")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "FEATURE_CONTEXT_UPDATED", resourceType = "FEATURE_CONTEXT")
     public FeatureContextOutput update(String identifier, UpdateFeatureContextInput input) {
         FeatureContext context = required(identifier);
         validator.validateUpdate(input, input != null && !context.getName().equals(input.name())
@@ -52,24 +52,24 @@ public class FeatureContextCommandService {
         return FeatureContextOutput.from(context);
     }
 
-    @Auditable(action = AuditAction.ACTIVATE, event = "FEATURE_CONTEXT_ACTIVATED", resourceType = "FEATURE_CONTEXT")
     @Transactional
+    @Auditable(action = AuditAction.ACTIVATE, event = "FEATURE_CONTEXT_ACTIVATED", resourceType = "FEATURE_CONTEXT")
     public FeatureContextOutput activate(String identifier) {
         FeatureContext context = required(identifier);
         context.activate(now());
         return FeatureContextOutput.from(context);
     }
 
-    @Auditable(action = AuditAction.DEACTIVATE, event = "FEATURE_CONTEXT_DEACTIVATED", resourceType = "FEATURE_CONTEXT")
     @Transactional
+    @Auditable(action = AuditAction.DEACTIVATE, event = "FEATURE_CONTEXT_DEACTIVATED", resourceType = "FEATURE_CONTEXT")
     public FeatureContextOutput inactivate(String identifier) {
         FeatureContext context = required(identifier);
         context.inactivate(now());
         return FeatureContextOutput.from(context);
     }
 
-    @Auditable(action = AuditAction.DELETE, event = "FEATURE_CONTEXT_DELETED", resourceType = "FEATURE_CONTEXT")
     @Transactional
+    @Auditable(action = AuditAction.DELETE, event = "FEATURE_CONTEXT_DELETED", resourceType = "FEATURE_CONTEXT")
     public FeatureContextOutput delete(String identifier) {
         FeatureContext context = required(identifier);
         validator.validateDelete(context);
