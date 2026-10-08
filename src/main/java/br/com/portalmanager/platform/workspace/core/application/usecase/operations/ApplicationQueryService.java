@@ -20,7 +20,7 @@ public class ApplicationQueryService {
     private final ApplicationRepository repository;
     private final ApplicationFinder finder;
     private final WorkspaceReferenceResolver workspaces;
-    private final TagManager<ApplicationTag, Application, Long, String> tags;
+    private final TagManager<ApplicationTag, Application> tags;
     private final ApplicationNormalizer normalizer;
 
     public ApplicationQueryService(ApplicationRepository repository, ApplicationFinder finder,
