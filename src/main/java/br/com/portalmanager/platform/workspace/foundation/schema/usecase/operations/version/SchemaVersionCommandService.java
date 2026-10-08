@@ -48,27 +48,27 @@ public class SchemaVersionCommandService {
         this.workspaceReferenceResolver = workspaceReferenceResolver;
     }
 
-    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_VERSION_CREATED", resourceType = "SCHEMA_VERSION")
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_VERSION_CREATED", resourceType = "SCHEMA_VERSION")
     public SchemaVersionOutput createPlatformDraft(String schemaIdentifier, CreateSchemaVersionInput input) {
         return createOrUpdateDraft(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null), input);
     }
 
-    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_VERSION_CREATED", resourceType = "SCHEMA_VERSION")
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_VERSION_CREATED", resourceType = "SCHEMA_VERSION")
     public SchemaVersionOutput createWorkspaceDraft(String workspaceIdentifier, String schemaIdentifier, CreateSchemaVersionInput input) {
         return createOrUpdateDraft(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.workspace(),
                 workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)), input);
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_VERSION_PUBLISHED", resourceType = "SCHEMA_VERSION")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_VERSION_PUBLISHED", resourceType = "SCHEMA_VERSION")
     public SchemaVersionOutput publishPlatform(String schemaIdentifier, String versionIdentifier) {
         return publish(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null), versionIdentifier);
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_VERSION_PUBLISHED", resourceType = "SCHEMA_VERSION")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_VERSION_PUBLISHED", resourceType = "SCHEMA_VERSION")
     public SchemaVersionOutput publishWorkspace(String workspaceIdentifier, String schemaIdentifier, String versionIdentifier) {
         return publish(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.workspace(),
                 workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)), versionIdentifier);
