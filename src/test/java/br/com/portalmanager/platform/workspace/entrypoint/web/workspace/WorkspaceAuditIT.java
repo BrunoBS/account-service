@@ -2,9 +2,9 @@ package br.com.portalmanager.platform.workspace.entrypoint.web.workspace;
 
 import br.com.portalmanager.platform.library.audit.model.AuditEventRequest;
 import br.com.portalmanager.platform.library.audit.publisher.AuditPublisher;
-import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
-import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
-import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
+import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
+import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;

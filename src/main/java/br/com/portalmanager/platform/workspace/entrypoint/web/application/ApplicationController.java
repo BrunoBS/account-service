@@ -5,7 +5,7 @@ import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.library.schemavalidation.web.annotation.ValidateResourceSchema;
+import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchema;
 import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationCommandService;
 import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.request.CreateApplicationRequest;

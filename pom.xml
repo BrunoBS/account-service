@@ -71,21 +71,20 @@
         <dependency>
             <groupId>com.networknt</groupId>
             <artifactId>json-schema-validator</artifactId>
-            <version>3.0.7</version>
         </dependency>
         <dependency>
             <groupId>br.com.portalmanager.platform.library</groupId>
-            <artifactId>platform-testing</artifactId>
+            <artifactId>platform-testing-http</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-testcontainers</artifactId>
+            <groupId>br.com.portalmanager.platform.library</groupId>
+            <artifactId>platform-testing-database</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers-mysql</artifactId>
+            <groupId>br.com.portalmanager.platform.library</groupId>
+            <artifactId>platform-testing-authorization</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

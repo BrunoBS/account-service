@@ -1,9 +1,9 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.schema;
 
-import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
-import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
-import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
+import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
+import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import io.restassured.http.ContentType;

@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspace.repository;
 
-import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
-import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
+import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
