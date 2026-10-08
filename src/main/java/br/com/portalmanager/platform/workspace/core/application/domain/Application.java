@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.application.domain;
 
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizerGroup;
+import br.com.portalmanager.platform.library.tagging.model.TagOwner;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
@@ -11,7 +12,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "applications", uniqueConstraints =
         @UniqueConstraint(name = "uk_applications_workspace_name", columnNames = {"workspace_id", "name"}))
-public class Application {
+public class Application implements TagOwner {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Version @Column(nullable = false)
