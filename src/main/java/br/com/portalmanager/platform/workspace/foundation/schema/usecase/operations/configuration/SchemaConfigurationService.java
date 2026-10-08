@@ -30,8 +30,8 @@ public class SchemaConfigurationService {
         this.validator = validator;
     }
 
-    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_CONFIGURATION_CREATED", resourceType = "SCHEMA_CONFIGURATION")
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_CONFIGURATION_CREATED", resourceType = "SCHEMA_CONFIGURATION")
     public SchemaConfigurationOutput create(CreateSchemaConfigurationInput input) {
         validator.validateCreate(input);
         String type = input.resourceType();
@@ -42,8 +42,8 @@ public class SchemaConfigurationService {
                 new SchemaConfiguration(type, code, schema, LocalDateTime.now())));
     }
 
-    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_CONFIGURATION_UPDATED", resourceType = "SCHEMA_CONFIGURATION")
     @Transactional
+    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_CONFIGURATION_UPDATED", resourceType = "SCHEMA_CONFIGURATION")
     public SchemaConfigurationOutput update(String identifier, UpdateSchemaConfigurationInput input) {
         SchemaConfiguration configuration = required(identifier);
         validator.validateUpdate(configuration, input);
@@ -65,8 +65,8 @@ public class SchemaConfigurationService {
         return SchemaConfigurationOutput.from(configuration);
     }
 
-    @Auditable(action = AuditAction.DELETE, event = "SCHEMA_CONFIGURATION_DELETED", resourceType = "SCHEMA_CONFIGURATION")
     @Transactional
+    @Auditable(action = AuditAction.DELETE, event = "SCHEMA_CONFIGURATION_DELETED", resourceType = "SCHEMA_CONFIGURATION")
     public SchemaConfigurationOutput delete(String identifier) {
         SchemaConfiguration configuration = required(identifier);
         validator.validateDeletion(configuration);
