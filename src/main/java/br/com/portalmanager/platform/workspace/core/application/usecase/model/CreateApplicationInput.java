@@ -1,6 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.application.usecase.model;
 
+import tools.jackson.databind.JsonNode;
+
 import java.util.List;
 
 public record CreateApplicationInput(String name, String alias, String acronym, String applicationScope,
-                                     String authorizerGroup, String settings, List<String> tags) {}
+                                     String authorizerGroup, JsonNode settings, List<String> tags) {}
