@@ -35,7 +35,7 @@ public class ApplicationCommandService {
     public ApplicationCommandService(ApplicationRepository repository, ApplicationFinder finder,
                                      WorkspaceReferenceResolver workspaces, ApplicationNormalizer normalizer,
                                      ApplicationValidator validator,
-                                     TagManager<ApplicationTag, Application, Long, String> tags,
+                                     TagManager<ApplicationTag, Application> tags,
                                      ApplicationQueryService visibility, WorkspaceQueryService workspaceVisibility) {
         this.repository = repository;
         this.finder = finder;
