@@ -168,12 +168,12 @@ class EnvironmentApiIT {
     }
 
     private ValidatableResponse get(String path) {
-        return given().port(port).header("X-Correlation-Id", "environment-api-it")
+        return given().port(port).header("correlationId", "environment-api-it")
                 .header("Authorization", "Bearer environment-api-it").accept(ContentType.JSON).when().get(path).then();
     }
 
     private ValidatableResponse post(String path, Object body) {
-        var request = given().port(port).header("X-Correlation-Id", "environment-api-it")
+        var request = given().port(port).header("correlationId", "environment-api-it")
                 .header("Authorization", "Bearer environment-api-it").contentType(ContentType.JSON).accept(ContentType.JSON);
         if (body != null) request.body(body);
         return request.when().post(path).then();

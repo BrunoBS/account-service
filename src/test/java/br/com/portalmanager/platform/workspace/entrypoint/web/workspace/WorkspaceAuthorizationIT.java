@@ -161,7 +161,7 @@ class WorkspaceAuthorizationIT {
     private io.restassured.specification.RequestSpecification authorized() {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "authorization-it")
+                .header("correlationId", "authorization-it")
                 .header("Authorization", "Bearer authorization-it")
                 .accept(ContentType.JSON);
     }

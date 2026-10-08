@@ -92,7 +92,7 @@ class WorkspaceApiIT {
 
         given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-api-it")
+                .header("correlationId", "workspace-api-it")
                 .header("Authorization", "Bearer workspace-api-it")
                 .accept(ContentType.JSON)
                 .queryParam("active", true)
@@ -376,7 +376,7 @@ class WorkspaceApiIT {
     private ValidatableResponse get(String path) {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-api-it")
+                .header("correlationId", "workspace-api-it")
                 .header("Authorization", "Bearer workspace-api-it")
                 .accept(ContentType.JSON)
                 .when()
@@ -387,7 +387,7 @@ class WorkspaceApiIT {
     private ValidatableResponse post(Map<String, Object> body) {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-api-it")
+                .header("correlationId", "workspace-api-it")
                 .header("Authorization", "Bearer workspace-api-it")
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -400,7 +400,7 @@ class WorkspaceApiIT {
     private ValidatableResponse post(String path) {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-api-it")
+                .header("correlationId", "workspace-api-it")
                 .header("Authorization", "Bearer workspace-api-it")
                 .accept(ContentType.JSON)
                 .when()
@@ -411,7 +411,7 @@ class WorkspaceApiIT {
     private ValidatableResponse put(String path, Map<String, Object> body) {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-api-it")
+                .header("correlationId", "workspace-api-it")
                 .header("Authorization", "Bearer workspace-api-it")
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -424,7 +424,7 @@ class WorkspaceApiIT {
     private ValidatableResponse delete(String path) {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-api-it")
+                .header("correlationId", "workspace-api-it")
                 .header("Authorization", "Bearer workspace-api-it")
                 .accept(ContentType.JSON)
                 .when()

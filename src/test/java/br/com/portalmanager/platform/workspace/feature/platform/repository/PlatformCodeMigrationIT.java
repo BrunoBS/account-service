@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @WithMySql
 @TestPropertySource(properties = {
         "spring.flyway.target=14",
+        "platform.schema-validation.enabled=false",
         "spring.jpa.hibernate.ddl-auto=none"
 })
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
