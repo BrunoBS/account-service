@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspace.domain;
 
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizerGroup;
+import br.com.portalmanager.platform.library.tagging.model.TagOwner;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import jakarta.persistence.*;
@@ -13,7 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "workspaces")
-public class Workspace {
+public class Workspace implements TagOwner {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
