@@ -29,7 +29,7 @@ public class WorkspaceCommandService {
 
     public WorkspaceCommandService(WorkspaceRepository repository, WorkspaceFinder finder, WorkspaceNormalizer normalizer,
                                    WorkspaceValidator validator,
-                                   TagManager<WorkspaceTag, Workspace, Long, String> tags) {
+                                   TagManager<WorkspaceTag, Workspace> tags) {
         this.repository = repository;
         this.finder = finder;
         this.normalizer = normalizer;
