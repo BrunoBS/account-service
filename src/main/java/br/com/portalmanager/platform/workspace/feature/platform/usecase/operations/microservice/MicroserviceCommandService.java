@@ -52,12 +52,15 @@ public class MicroserviceCommandService {
         return MicroserviceOutput.from(microservice);
     }
 
+    @Transactional
     @Auditable(action = AuditAction.ACTIVATE, event = "MICROSERVICE_ACTIVATED", resourceType = "MICROSERVICE")
-    @Transactional public MicroserviceOutput activate(String identifier) { Microservice m = required(identifier); m.activate(now()); return MicroserviceOutput.from(m); }
+    public MicroserviceOutput activate(String identifier) { Microservice m = required(identifier); m.activate(now()); return MicroserviceOutput.from(m); }
+    @Transactional
     @Auditable(action = AuditAction.DEACTIVATE, event = "MICROSERVICE_DEACTIVATED", resourceType = "MICROSERVICE")
-    @Transactional public MicroserviceOutput inactivate(String identifier) { Microservice m = required(identifier); m.inactivate(now()); return MicroserviceOutput.from(m); }
+    public MicroserviceOutput inactivate(String identifier) { Microservice m = required(identifier); m.inactivate(now()); return MicroserviceOutput.from(m); }
+    @Transactional
     @Auditable(action = AuditAction.DELETE, event = "MICROSERVICE_DELETED", resourceType = "MICROSERVICE")
-    @Transactional public MicroserviceOutput delete(String identifier) { Microservice m = required(identifier); validator.validateDelete(m); m.quarantine(now()); return MicroserviceOutput.from(m); }
+    public MicroserviceOutput delete(String identifier) { Microservice m = required(identifier); validator.validateDelete(m); m.quarantine(now()); return MicroserviceOutput.from(m); }
     private Microservice required(String identifier) { return repository.findByIdentifier(identifier).orElseThrow(() -> new NotFoundException(PlatformMessageKeys.MICROSERVICE_NOT_FOUND)); }
     private LocalDateTime now() { return LocalDateTime.now(); }
 }
