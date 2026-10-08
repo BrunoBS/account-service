@@ -1,8 +1,5 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.platform.context;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.entrypoint.web.platform.context.request.CreateFeatureContextRequest;
@@ -33,11 +30,6 @@ public class FeatureContextController {
     }
 
     @PostMapping
-    @Auditable(
-            resource = "FEATURE_CONTEXT",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
     public ResponseEntity<FeatureContextResponse> create(@RequestBody CreateFeatureContextRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(FeatureContextResponse.from(commandService.create(request.toInput())));
@@ -54,11 +46,6 @@ public class FeatureContextController {
     }
 
     @PutMapping("/{identifier}")
-    @Auditable(
-            resource = "FEATURE_CONTEXT",
-            action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public FeatureContextResponse update(
             @PathVariable String identifier,
             @RequestBody UpdateFeatureContextRequest request
@@ -67,31 +54,16 @@ public class FeatureContextController {
     }
 
     @PatchMapping("/{identifier}/activate")
-    @Auditable(
-            resource = "FEATURE_CONTEXT",
-            action = "ACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public FeatureContextResponse activate(@PathVariable String identifier) {
         return FeatureContextResponse.from(commandService.activate(identifier));
     }
 
     @PatchMapping("/{identifier}/inactivate")
-    @Auditable(
-            resource = "FEATURE_CONTEXT",
-            action = "INACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public FeatureContextResponse inactivate(@PathVariable String identifier) {
         return FeatureContextResponse.from(commandService.inactivate(identifier));
     }
 
     @DeleteMapping("/{identifier}")
-    @Auditable(
-            resource = "FEATURE_CONTEXT",
-            action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public ResponseEntity<Void> delete(@PathVariable String identifier) {
         commandService.delete(identifier);
         return ResponseEntity.noContent().build();
