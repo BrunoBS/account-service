@@ -11,8 +11,7 @@ import org.springframework.context.annotation.Configuration;
 class ApplicationTagConfiguration {
 
     @Bean
-    TagManager<ApplicationTag, Application, Long, String> applicationTagManager(
-            ApplicationTagRepository repository) {
-        return new TagManager<>(repository);
+    TagManager<ApplicationTag, Application> applicationTagManager(ApplicationTagRepository repository) {
+        return new TagManager<>(repository, ApplicationTag::new);
     }
 }
