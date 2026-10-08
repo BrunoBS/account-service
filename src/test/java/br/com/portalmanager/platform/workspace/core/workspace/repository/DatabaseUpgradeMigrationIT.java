@@ -1,5 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.workspace.repository;
 
+import br.com.portalmanager.platform.workspace.support.MigrationSchemaValidationTestConfiguration;
+import org.springframework.context.annotation.Import;
+
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import org.flywaydb.core.Flyway;
@@ -13,6 +16,7 @@ import javax.sql.DataSource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @PlatformIntegrationTest
+@Import(MigrationSchemaValidationTestConfiguration.class)
 @WithMySql
 @TestPropertySource(properties = {
         "spring.flyway.target=2",
