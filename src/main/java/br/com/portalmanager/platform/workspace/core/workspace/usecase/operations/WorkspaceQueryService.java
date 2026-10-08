@@ -21,7 +21,7 @@ public class WorkspaceQueryService {
     private final WorkspaceFinder finder;
     private final WorkspaceNormalizer normalizer;
     private final WorkspaceValidator validator;
-    private final TagManager<WorkspaceTag, Workspace, Long, String> tags;
+    private final TagManager<WorkspaceTag, Workspace> tags;
 
     public WorkspaceQueryService(WorkspaceRepository repository, WorkspaceFinder finder, WorkspaceNormalizer normalizer,
                                  WorkspaceValidator validator,
