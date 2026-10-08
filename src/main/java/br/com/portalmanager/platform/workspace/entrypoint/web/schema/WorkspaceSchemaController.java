@@ -1,8 +1,5 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.schema;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.CreateSchemaRequest;
@@ -39,11 +36,6 @@ public class WorkspaceSchemaController {
     }
 
     @PostMapping
-    @Auditable(
-            resource = "SCHEMA",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
     public ResponseEntity<SchemaResponse> create(
             @PathVariable String workspaceIdentifier,
             @RequestBody CreateSchemaRequest request
