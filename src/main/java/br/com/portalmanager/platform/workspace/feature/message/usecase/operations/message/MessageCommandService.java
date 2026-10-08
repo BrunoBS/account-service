@@ -1,5 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.message.usecase.operations.message;
 
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.model.AuditAction;
+
 import br.com.portalmanager.platform.workspace.feature.message.domain.Message;
 import br.com.portalmanager.platform.workspace.feature.message.domain.MessageTranslation;
 import br.com.portalmanager.platform.workspace.feature.message.repository.MessageRepository;
@@ -45,6 +48,7 @@ public class MessageCommandService {
         this.microserviceQueryService = microserviceQueryService;
     }
 
+    @Auditable(action = AuditAction.CREATE, event = "MESSAGE_CREATED", resourceType = "MESSAGE")
     @Transactional
     public MessageOutput create(CreateMessageInput rawInput) {
         CreateMessageInput input = normalizer.normalize(rawInput);
@@ -88,6 +92,7 @@ public class MessageCommandService {
         return output(saved);
     }
 
+    @Auditable(action = AuditAction.UPDATE, event = "MESSAGE_UPDATED", resourceType = "MESSAGE")
     @Transactional
     public MessageOutput update(String identifier, UpdateMessageInput rawInput) {
         Message message = finder.findMessage(identifier);
@@ -123,6 +128,7 @@ public class MessageCommandService {
         return output(messageRepository.saveAndFlush(message));
     }
 
+    @Auditable(action = AuditAction.ACTIVATE, event = "MESSAGE_ACTIVATED", resourceType = "MESSAGE")
     @Transactional
     public MessageOutput activate(String identifier) {
         Message message = finder.findMessage(identifier);
@@ -130,6 +136,7 @@ public class MessageCommandService {
         return output(messageRepository.saveAndFlush(message));
     }
 
+    @Auditable(action = AuditAction.DEACTIVATE, event = "MESSAGE_DEACTIVATED", resourceType = "MESSAGE")
     @Transactional
     public MessageOutput inactivate(String identifier) {
         Message message = finder.findMessage(identifier);
@@ -137,12 +144,14 @@ public class MessageCommandService {
         return output(messageRepository.saveAndFlush(message));
     }
 
+    @Auditable(action = AuditAction.DELETE, event = "MESSAGE_DELETED", resourceType = "MESSAGE")
     @Transactional
-    public void delete(String identifier) {
+    public MessageOutput delete(String identifier) {
         Message message = finder.findMessage(identifier);
         validator.validateDeletion(message);
         message.quarantine(LocalDateTime.now());
         messageRepository.saveAndFlush(message);
+        return output(message);
     }
 
     private MessageOutput output(Message message) {
