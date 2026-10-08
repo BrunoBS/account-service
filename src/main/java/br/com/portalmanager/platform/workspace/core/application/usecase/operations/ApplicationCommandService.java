@@ -2,7 +2,8 @@ package br.com.portalmanager.platform.workspace.core.application.usecase.operati
 
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
-
+import br.com.portalmanager.platform.library.schemavalidation.annotation.SchemaPayload;
+import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchema;
 import br.com.portalmanager.platform.library.tagging.TagManager;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationSystemTags;
@@ -48,8 +49,9 @@ public class ApplicationCommandService {
     }
 
     @Transactional
+    @ValidateResourceSchema(type = "APPLICATION", code = "application")
     @Auditable(action = AuditAction.CREATE, event = "APPLICATION_CREATED", resourceType = "APPLICATION")
-    public ApplicationOutput create(String workspaceIdentifier, CreateApplicationInput raw) {
+    public ApplicationOutput create(String workspaceIdentifier, @SchemaPayload CreateApplicationInput raw) {
         workspaceVisibility.findByIdentifier(workspaceIdentifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         CreateApplicationInput input = normalizer.normalize(raw);
@@ -57,15 +59,17 @@ public class ApplicationCommandService {
                 repository.existsByWorkspaceIdAndName(workspaceId, input.name());
         validator.validateForCreate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
         Application app = new Application(workspaceId, input.name(), input.alias(), input.acronym(),
-                ApplicationScopeTypeCode.of(input.applicationScope()), input.authorizerGroup(), input.settings(), LocalDateTime.now());
+                ApplicationScopeTypeCode.of(input.applicationScope()), input.authorizerGroup(), settings(input.settings()), LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
         tags.reconcile(saved, input.tags(), ApplicationSystemTags.resolve(saved, workspaceIdentifier));
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
     }
 
     @Transactional
+    @ValidateResourceSchema(type = "APPLICATION", code = "application")
     @Auditable(action = AuditAction.UPDATE, event = "APPLICATION_UPDATED", resourceType = "APPLICATION")
-    public ApplicationOutput update(String workspaceIdentifier, String identifier, UpdateApplicationInput raw) {
+    public ApplicationOutput update(String workspaceIdentifier, String identifier,
+                                    @SchemaPayload UpdateApplicationInput raw) {
         visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findActive(identifier, workspaceId);
@@ -75,7 +79,7 @@ public class ApplicationCommandService {
         validator.validateForUpdate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
         validator.requireVersion(app.getVersion(), input.version());
         app.update(input.name(), input.alias(), input.acronym(), ApplicationScopeTypeCode.of(input.applicationScope()),
-                input.authorizerGroup(), input.settings(), LocalDateTime.now());
+                input.authorizerGroup(), settings(input.settings()), LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
         tags.reconcile(saved, input.tags(), ApplicationSystemTags.resolve(saved, workspaceIdentifier));
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
@@ -114,5 +118,9 @@ public class ApplicationCommandService {
         app.quarantine(LocalDateTime.now());
         Application saved = repository.saveAndFlush(app);
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
+    }
+
+    private String settings(tools.jackson.databind.JsonNode value) {
+        return value == null ? "{}" : value.toString();
     }
 }
