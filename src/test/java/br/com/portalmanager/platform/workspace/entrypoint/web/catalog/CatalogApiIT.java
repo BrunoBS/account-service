@@ -264,7 +264,7 @@ class CatalogApiIT {
     private io.restassured.specification.RequestSpecification authorized() {
         return given()
                 .port(port)
-                .header("correlationId", "catalog-api-it")
+                .header("X-Correlation-Id", "catalog-api-it")
                 .header("Authorization", "Bearer catalog-api-it")
                 .accept(ContentType.JSON);
     }
