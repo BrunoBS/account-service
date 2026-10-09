@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.environment;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
+import br.com.portalmanager.platform.workspace.core.environment.facade.WorkspaceEnvironmentFacade;
+
 import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environment.EnvironmentCommandService;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environment.EnvironmentQueryService;
 import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.CreateEnvironmentRequest;
@@ -17,73 +17,68 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/workspaces/{workspaceIdentifier}/environments")
 public class WorkspaceEnvironmentController {
-    private final EnvironmentCommandService command;
-    private final EnvironmentQueryService query;
-    public WorkspaceEnvironmentController(EnvironmentCommandService command, EnvironmentQueryService query) {
-        this.command = command;
-        this.query = query;
-    }
+    private final WorkspaceEnvironmentFacade facade;
+
+    public WorkspaceEnvironmentController(WorkspaceEnvironmentFacade facade) { this.facade = facade; }
 
     @PostMapping
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
+
     public ResponseEntity<EnvironmentResponse> create(@PathVariable String workspaceIdentifier, @RequestBody CreateEnvironmentRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(EnvironmentResponse.from(command.createCustom(workspaceIdentifier, request.toInput())));
+        return facade.create(workspaceIdentifier, request);
     }
 
     @GetMapping
-    @AuthorizationRequired(level = AuthorizationLevel.DEV)
+
     public List<EnvironmentResponse> list(@PathVariable String workspaceIdentifier, @RequestParam(defaultValue = "true") Boolean active) {
-        return query.listCustom(workspaceIdentifier, active).stream().map(EnvironmentResponse::from).toList();
+        return facade.list(workspaceIdentifier, active);
     }
 
     @GetMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.DEV)
+
     public EnvironmentResponse find(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
-        return EnvironmentResponse.from(query.findCustom(workspaceIdentifier, identifier));
+        return facade.find(workspaceIdentifier, identifier);
     }
 
     @GetMapping("/roots")
-    @AuthorizationRequired(level = AuthorizationLevel.DEV)
+
     public List<EnvironmentResponse> roots(@PathVariable String workspaceIdentifier) {
-        return query.roots(workspaceIdentifier).stream().map(EnvironmentResponse::from).toList();
+        return facade.roots(workspaceIdentifier);
     }
 
     @GetMapping("/{identifier}/children")
-    @AuthorizationRequired(level = AuthorizationLevel.DEV)
+
     public List<EnvironmentResponse> children(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
-        return query.children(workspaceIdentifier, identifier).stream().map(EnvironmentResponse::from).toList();
+        return facade.children(workspaceIdentifier, identifier);
     }
 
     @GetMapping("/tree")
-    @AuthorizationRequired(level = AuthorizationLevel.DEV)
+
     public List<EnvironmentTreeResponse> tree(@PathVariable String workspaceIdentifier) {
-        return query.tree(workspaceIdentifier).stream().map(EnvironmentTreeResponse::from).toList();
+        return facade.tree(workspaceIdentifier);
     }
 
     @PutMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
+
     public EnvironmentResponse update(@PathVariable String workspaceIdentifier, @PathVariable String identifier,
                                       @RequestBody UpdateEnvironmentRequest request) {
-        return EnvironmentResponse.from(command.updateCustom(workspaceIdentifier, identifier, request.toInput()));
+        return facade.update(workspaceIdentifier, identifier, request);
     }
 
     @PostMapping("/{identifier}/inactivate")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
+
     public ResponseEntity<Void> inactivate(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
-        command.inactivateCustom(workspaceIdentifier, identifier);
-        return ResponseEntity.noContent().build();
+        return facade.inactivate(workspaceIdentifier, identifier);
     }
 
     @PostMapping("/{identifier}/restore")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
+
     public EnvironmentResponse restore(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
-        return EnvironmentResponse.from(command.restoreCustom(workspaceIdentifier, identifier));
+        return facade.restore(workspaceIdentifier, identifier);
     }
 
     @DeleteMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
+
     public ResponseEntity<Void> delete(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
-        command.deleteCustom(workspaceIdentifier, identifier);
-        return ResponseEntity.noContent().build();
+        return facade.delete(workspaceIdentifier, identifier);
     }
 }
