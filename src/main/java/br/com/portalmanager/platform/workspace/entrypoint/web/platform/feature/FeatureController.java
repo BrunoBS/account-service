@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import br.com.portalmanager.platform.workspace.feature.platform.facade.feature.FeatureFacade;
+import br.com.portalmanager.platform.workspace.feature.platform.facade.FeatureFacade;
 
 @RestController
 @RequestMapping("/api/v1/platform/features")
