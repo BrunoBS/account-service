@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import br.com.portalmanager.platform.workspace.feature.platform.facade.context.FeatureContextFacade;
+import br.com.portalmanager.platform.workspace.feature.platform.facade.FeatureContextFacade;
 
 @RestController
 @RequestMapping("/api/v1/platform/contexts")
