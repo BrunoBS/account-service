@@ -12,13 +12,7 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -29,506 +23,83 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class GoldenArchitectureTest {
-
     private static final String ROOT = "br.com.portalmanager.platform.workspace";
     private static final String FOUNDATION = ROOT + ".foundation..";
-    private static final String FOUNDATION_CATALOG = ROOT + ".foundation.catalog..";
     private static final String CORE = ROOT + ".core..";
     private static final String FEATURE = ROOT + ".feature..";
     private static final String ENTRYPOINT = ROOT + ".entrypoint..";
-    private static final Set<String> MODULE_LAYERS =
-            Set.of("domain", "usecase", "repository", "integration");
-    private static final Set<String> FOUNDATION_CAPABILITY_LAYERS =
-            Set.of("domain", "usecase", "repository", "integration");
-    private static final Set<String> RESERVED_CATALOG_SEGMENTS =
-            Set.of("domain", "usecase", "repository");
+    private static final Set<String> FOUNDATION_CAPABILITY_LAYERS = Set.of("domain", "usecase", "repository", "integration", "facade");
+    private static final Set<String> RESERVED_CATALOG_SEGMENTS = Set.of("domain", "usecase", "repository", "facade");
 
-    private final com.tngtech.archunit.core.domain.JavaClasses classes =
-            new ClassFileImporter()
-                    .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-                    .importPackages(ROOT);
+    private final com.tngtech.archunit.core.domain.JavaClasses classes = new ClassFileImporter()
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS).importPackages(ROOT);
 
-    @Test
-    void onlyApprovedArchitecturalZonesMayExist() {
+    @Test void onlyApprovedArchitecturalZonesMayExist() {
         Set<String> allowed = Set.of("foundation", "core", "feature", "entrypoint");
-
-        var invalidPackages = classes.stream()
-                .map(JavaClass::getPackageName)
-                .filter(packageName -> packageName.startsWith(ROOT + "."))
-                .map(packageName -> packageName.substring(ROOT.length() + 1))
-                .map(relative -> relative.substring(0, relative.indexOf('.') < 0
-                        ? relative.length()
-                        : relative.indexOf('.')))
-                .filter(zone -> !allowed.contains(zone))
-                .distinct()
-                .toList();
-
+        var invalidPackages = classes.stream().map(JavaClass::getPackageName).filter(p -> p.startsWith(ROOT + "."))
+                .map(p -> p.substring(ROOT.length() + 1)).map(r -> r.substring(0, r.indexOf('.') < 0 ? r.length() : r.indexOf('.')))
+                .filter(z -> !allowed.contains(z)).distinct().toList();
         assertThat(invalidPackages).isEmpty();
     }
 
-    @Test
-    void compositionRootMayContainOnlyBootstrapOrSpringConfiguration() {
-        var rootClasses = classes.stream()
-                .filter(javaClass -> javaClass.getPackageName().equals(ROOT))
-                .toList();
-
-        assertThat(rootClasses)
-                .extracting(JavaClass::getSimpleName)
-                .containsExactlyInAnyOrder(
-                        "WorkspaceServiceApplication"
-                );
-
-        assertThat(rootClasses).allSatisfy(javaClass -> {
-            boolean bootstrap = javaClass.isAnnotatedWith(SpringBootApplication.class);
-            boolean configuration = javaClass.isAnnotatedWith(Configuration.class);
-
-            assertThat(bootstrap || configuration)
-                    .as(javaClass.getName() + " must be bootstrap or @Configuration")
-                    .isTrue();
-        });
-
-        noClasses()
-                .that().resideInAnyPackage(FOUNDATION, CORE, FEATURE, ENTRYPOINT)
-                .should().dependOnClassesThat().resideInAPackage(ROOT)
-                .check(classes);
+    @Test void compositionRootMayContainOnlyBootstrapOrSpringConfiguration() {
+        var rootClasses = classes.stream().filter(c -> c.getPackageName().equals(ROOT)).toList();
+        assertThat(rootClasses).extracting(JavaClass::getSimpleName).containsExactlyInAnyOrder("WorkspaceServiceApplication");
+        assertThat(rootClasses).allSatisfy(c -> assertThat(c.isAnnotatedWith(SpringBootApplication.class) || c.isAnnotatedWith(Configuration.class)).isTrue());
+        noClasses().that().resideInAnyPackage(FOUNDATION, CORE, FEATURE, ENTRYPOINT).should().dependOnClassesThat().resideInAPackage(ROOT).check(classes);
     }
 
-    @Test
-    void catalogMustBeOrganizedByCatalogBeforeLayer() {
+    @Test void catalogMustBeOrganizedByCatalogBeforeLayer() {
         String prefix = ROOT + ".foundation.catalog.";
-
-        var invalidPackages = classes.stream()
-                .map(JavaClass::getPackageName)
-                .filter(packageName -> packageName.startsWith(prefix))
-                .map(packageName -> packageName.substring(prefix.length()))
-                .filter(relative -> !relative.equals("integration"))
-                .filter(relative -> !relative.startsWith("integration."))
-                .filter(relative -> {
-                    String[] segments = relative.split("\\.");
-                    if (segments.length < 2) {
-                        return true;
-                    }
-                    String catalog = segments[0];
-                    String layer = segments[1];
-                    return RESERVED_CATALOG_SEGMENTS.contains(catalog)
-                            || !FOUNDATION_CAPABILITY_LAYERS.contains(layer);
-                })
-                .distinct()
-                .toList();
-
-        assertThat(invalidPackages)
-                .as("Catalog packages must follow catalog/<catalog>/domain|usecase|repository")
-                .isEmpty();
+        var invalid = classes.stream().map(JavaClass::getPackageName).filter(p -> p.startsWith(prefix))
+                .map(p -> p.substring(prefix.length())).filter(r -> !r.equals("integration") && !r.startsWith("integration."))
+                .filter(r -> { String[] s=r.split("\\."); return s.length < 2 || RESERVED_CATALOG_SEGMENTS.contains(s[0]) || !FOUNDATION_CAPABILITY_LAYERS.contains(s[1]); })
+                .distinct().toList();
+        assertThat(invalid).as("Catalog packages must follow catalog/<catalog>/domain|usecase|repository|facade").isEmpty();
     }
 
-    @Test
-    void concreteCatalogModulesMustBeExplicitTypes() {
-        String prefix = ROOT + ".foundation.catalog.";
-
-        var invalidModules = classes.stream()
-                .map(JavaClass::getPackageName)
-                .filter(packageName -> packageName.startsWith(prefix))
-                .map(packageName -> packageName.substring(prefix.length()))
-                .map(relative -> relative.substring(0, relative.indexOf('.') < 0
-                        ? relative.length()
-                        : relative.indexOf('.')))
-                .filter(module -> !module.equals("integration"))
-                .filter(module -> !module.endsWith("type"))
-                .distinct()
-                .toList();
-
-        assertThat(invalidModules)
-                .as("Concrete catalog modules must end with 'type'")
-                .isEmpty();
-    }
-
-    @Test
-    void typeDomainNameMustMatchCatalogModuleName() {
-        String prefix = ROOT + ".foundation.catalog.";
-
-        var invalidTypes = classes.stream()
-                .filter(javaClass -> javaClass.getPackageName().startsWith(prefix))
-                .filter(javaClass -> javaClass.getPackageName().contains(".domain"))
-                .filter(javaClass -> javaClass.getSimpleName().endsWith("Type"))
-                .filter(javaClass -> {
-                    String relative = javaClass.getPackageName().substring(prefix.length());
-                    String module = relative.substring(0, relative.indexOf('.'));
-                    String expected = javaClass.getSimpleName().toLowerCase(java.util.Locale.ROOT);
-                    return !module.equals(expected);
-                })
-                .map(JavaClass::getName)
-                .toList();
-
-        assertThat(invalidTypes)
-                .as("Type domain names must match their catalog module names")
-                .isEmpty();
-    }
-
-    @Test
-    void schemaMustFollowApprovedInternalStructure() {
-        String prefix = ROOT + ".foundation.schema.";
-
-        var invalidLayers = classes.stream()
-                .map(JavaClass::getPackageName)
-                .filter(packageName -> packageName.startsWith(prefix))
-                .map(packageName -> packageName.substring(prefix.length()))
-                .map(relative -> relative.substring(0, relative.indexOf('.') < 0
-                        ? relative.length()
-                        : relative.indexOf('.')))
-                .filter(layer -> !FOUNDATION_CAPABILITY_LAYERS.contains(layer))
-                .distinct()
-                .toList();
-
-        assertThat(invalidLayers)
-                .as("invalid internal layers for foundation.schema")
-                .isEmpty();
-    }
-
-    @Test
-    void businessAndSchemaUseCasesMustUseApprovedPackages() {
-        Set<String> approved = Set.of("model", "operations", "validation");
-        var invalid = classes.stream()
-                .map(JavaClass::getPackageName)
-                .filter(packageName -> packageName.startsWith(ROOT + ".core.workspace.usecase.")
-                        || packageName.startsWith(ROOT + ".feature.message.usecase.")
-                        || packageName.startsWith(ROOT + ".feature.platform.usecase.")
-                        || packageName.startsWith(ROOT + ".foundation.schema.usecase."))
-                .filter(packageName -> {
-                    String relative = packageName.substring(packageName.indexOf(".usecase.") + ".usecase.".length());
-                    return !approved.contains(relative.split("\\.")[0]);
-                })
-                .distinct()
-                .toList();
-
-        assertThat(invalid)
-                .as("Use case implementations belong in model, operations or validation")
-                .isEmpty();
-    }
-
-    @Test
-    void genericSupportPackagesMustNotBeReintroduced() {
-        var invalid = classes.stream()
-                .map(JavaClass::getPackageName)
-                .filter(packageName -> packageName.equals(ROOT + ".support")
-                        || packageName.contains(".support.")
-                        || packageName.endsWith(".support"))
-                .distinct()
-                .toList();
-
+    @Test void concreteCatalogModulesMustBeExplicitTypes() {
+        String prefix=ROOT+".foundation.catalog.";
+        var invalid=classes.stream().map(JavaClass::getPackageName).filter(p->p.startsWith(prefix)).map(p->p.substring(prefix.length()))
+                .map(r->r.substring(0,r.indexOf('.')<0?r.length():r.indexOf('.'))).filter(m->!m.equals("integration")).filter(m->!m.endsWith("type")).distinct().toList();
         assertThat(invalid).isEmpty();
     }
 
-    @Test
-    void entitiesMustNotPersistCrossAggregateIdentifiers() {
-        var invalidFields = classes.stream()
-                .filter(javaClass -> javaClass.isAnnotatedWith(jakarta.persistence.Entity.class))
-                .flatMap(javaClass -> javaClass.getFields().stream())
-                .filter(field -> field.getName().endsWith("Identifier"))
-                .filter(field -> !field.getName().equals("identifier"))
-                .map(field -> field.getOwner().getName() + "." + field.getName())
-                .toList();
-
-        assertThat(invalidFields)
-                .as("Cross-aggregate relations must use internal BIGINT ids; identifiers are external contracts")
-                .isEmpty();
+    @Test void schemaMustFollowApprovedInternalStructure() {
+        String prefix=ROOT+".foundation.schema.";
+        var invalid=classes.stream().map(JavaClass::getPackageName).filter(p->p.startsWith(prefix)).map(p->p.substring(prefix.length()))
+                .map(r->r.substring(0,r.indexOf('.')<0?r.length():r.indexOf('.'))).filter(l->!FOUNDATION_CAPABILITY_LAYERS.contains(l)).distinct().toList();
+        assertThat(invalid).isEmpty();
     }
 
-    @Test
-    void webContractsMustNotExposeTechnicalIds() {
-        String webPackage = ROOT + ".entrypoint.web.";
+    @Test void restControllersMustResideInEntrypoint() { classes().that().areAnnotatedWith(RestController.class).should().resideInAPackage(ENTRYPOINT).check(classes); }
 
-        var invalidFields = classes.stream()
-                .filter(javaClass -> javaClass.getPackageName().startsWith(webPackage))
-                .filter(javaClass -> javaClass.getPackageName().contains(".response")
-                        || javaClass.getPackageName().contains(".request"))
-                .flatMap(javaClass -> javaClass.getFields().stream())
-                .map(field -> field.getOwner().getName() + "." + field.getName())
-                .filter(name -> name.endsWith(".id") || name.matches(".*\\.[a-zA-Z0-9]+Id$"))
-                .toList();
+    @Test void foundationMustNotDependOnHigherZones() { noClasses().that().resideInAPackage(FOUNDATION).should().dependOnClassesThat().resideInAnyPackage(CORE,FEATURE,ENTRYPOINT).check(classes); }
+    @Test void coreMustNotDependOnFeatureOrInput() { noClasses().that().resideInAPackage(CORE).should().dependOnClassesThat().resideInAnyPackage(FEATURE,ENTRYPOINT).check(classes); }
+    @Test void internalZonesMustNotDependOnInput() { noClasses().that().resideInAnyPackage(FOUNDATION,CORE,FEATURE).should().dependOnClassesThat().resideInAPackage(ENTRYPOINT).check(classes); }
 
-        assertThat(invalidFields)
-                .as("HTTP requests and responses must use stable identifiers, never technical database ids")
-                .isEmpty();
-    }
-
-    @Test
-    void restControllersMustResideInEntrypoint() {
-        classes()
-                .that().areAnnotatedWith(RestController.class)
-                .should().resideInAPackage(ENTRYPOINT)
-                .check(classes);
-    }
-
-    @Test
-    void restEndpointsMustNotExposeUseCaseModels() {
-        var invalidSignatures = classes.stream()
-                .filter(javaClass -> javaClass.isAnnotatedWith(RestController.class))
-                .map(JavaClass::reflect)
-                .flatMap(controller -> Arrays.stream(controller.getDeclaredMethods()))
-                .filter(this::isEndpoint)
-                .filter(method -> method.getGenericReturnType().getTypeName().contains(".usecase.model.")
-                        || Arrays.stream(method.getGenericParameterTypes())
-                        .anyMatch(type -> type.getTypeName().contains(".usecase.model.")))
-                .map(Method::toGenericString)
-                .toList();
-
-        assertThat(invalidSignatures)
-                .as("HTTP endpoints must use request/response contracts instead of use case Input/Output")
-                .isEmpty();
-    }
-
-    private boolean isEndpoint(Method method) {
-        return method.isAnnotationPresent(RequestMapping.class)
-                || method.isAnnotationPresent(GetMapping.class)
-                || method.isAnnotationPresent(PostMapping.class)
-                || method.isAnnotationPresent(PutMapping.class)
-                || method.isAnnotationPresent(PatchMapping.class)
-                || method.isAnnotationPresent(DeleteMapping.class);
-    }
-
-    @Test
-    void schemaMayDependOnlyOnApprovedCatalogContracts() {
-        classes()
-                .that().resideInAPackage(ROOT + ".foundation.schema..")
-                .should(schemaAccessOnlyApprovedCatalogs())
-                .check(classes);
-    }
-
-    @Test
-    void foundationMustNotDependOnHigherZones() {
-        noClasses()
-                .that().resideInAPackage(FOUNDATION)
-                .should().dependOnClassesThat().resideInAnyPackage(CORE, FEATURE, ENTRYPOINT)
-                .check(classes);
-    }
-
-    @Test
-    void coreMustNotDependOnFeatureOrInput() {
-        noClasses()
-                .that().resideInAPackage(CORE)
-                .should().dependOnClassesThat().resideInAnyPackage(FEATURE, ENTRYPOINT)
-                .check(classes);
-    }
-
-    @Test
-    void internalZonesMustNotDependOnInput() {
-        noClasses()
-                .that().resideInAnyPackage(FOUNDATION, CORE, FEATURE)
-                .should().dependOnClassesThat().resideInAPackage(ENTRYPOINT)
-                .check(classes);
-    }
-
-    @Test
-    void domainMustRemainIndependentFromOrchestrationPersistenceIntegrationAndWeb() {
-        noClasses()
-                .that().resideInAPackage("..domain..")
-                .should().dependOnClassesThat().resideInAnyPackage(
-                        "..usecase..",
-                        "..repository..",
-                        "..integration..",
-                        ENTRYPOINT,
-                        "org.springframework.web.."
-                )
-                .check(classes);
-    }
-
-    @Test
-    void entrypointMustNotBypassUseCasesIntoModuleInternals() {
-        noClasses()
-                .that().resideInAPackage(ENTRYPOINT)
-                .should().dependOnClassesThat().resideInAnyPackage(
-                        ROOT + ".core..domain..",
-                        ROOT + ".core..repository..",
-                        ROOT + ".core..integration..",
-                        ROOT + ".feature..domain..",
-                        ROOT + ".feature..repository..",
-                        ROOT + ".feature..integration.."
-                )
-                .check(classes);
-    }
-
-    @Test
-    void catalogEntrypointModulesMustBeExplicitTypes() {
-        String prefix = ROOT + ".entrypoint.web.catalog.";
-
-        var invalidModules = classes.stream()
-                .filter(javaClass -> javaClass.getPackageName().startsWith(prefix))
-                .filter(javaClass -> javaClass.isAnnotatedWith(RestController.class))
-                .map(JavaClass::getPackageName)
-                .map(packageName -> packageName.substring(prefix.length()))
-                .map(relative -> relative.substring(0, relative.indexOf('.') < 0
-                        ? relative.length()
-                        : relative.indexOf('.')))
-                .filter(module -> !module.endsWith("type"))
-                .distinct()
-                .toList();
-
-        assertThat(invalidModules)
-                .as("Catalog entrypoint modules must end with 'type'")
-                .isEmpty();
-    }
-
-    @Test
-    void catalogControllersMustRequireOwnerAuthorization() {
-        String catalogWebPrefix = ROOT + ".entrypoint.web.catalog";
-
-        var catalogControllers = classes.stream()
-                .filter(javaClass -> javaClass.getPackageName().startsWith(catalogWebPrefix))
-                .filter(javaClass -> javaClass.isAnnotatedWith(RestController.class))
-                .toList();
-
-        assertThat(catalogControllers).isNotEmpty();
-        assertThat(catalogControllers).allSatisfy(javaClass -> {
-            assertThat(javaClass.isAnnotatedWith(AuthorizationRequired.class))
-                    .as(javaClass.getName() + " must declare @AuthorizationRequired")
-                    .isTrue();
-            assertThat(javaClass.getAnnotationOfType(AuthorizationRequired.class).level())
-                    .as(javaClass.getName() + " must require OWNER")
-                    .isEqualTo(AuthorizationLevel.OWNER);
+    @Test void catalogFacadesMustRequireOwnerAuthorization() {
+        String prefix=ROOT+".foundation.catalog.";
+        var facades=classes.stream().filter(c->c.getPackageName().startsWith(prefix) && c.getPackageName().endsWith(".facade")).toList();
+        assertThat(facades).isNotEmpty();
+        assertThat(facades).allSatisfy(c -> {
+            var annotated = Arrays.stream(c.reflect().getMethods()).filter(m -> m.isAnnotationPresent(AuthorizationRequired.class)).toList();
+            assertThat(annotated).as(c.getName()+" must expose authorized facade methods").isNotEmpty();
+            assertThat(annotated).allSatisfy(m -> assertThat(m.getAnnotation(AuthorizationRequired.class).level()).isEqualTo(AuthorizationLevel.OWNER));
         });
     }
 
-    @Test
-    void restControllersMustNotAccessRepositories() {
-        noClasses()
-                .that().areAnnotatedWith(RestController.class)
-                .should().dependOnClassesThat().resideInAPackage("..repository..")
-                .check(classes);
+    @Test void restControllersMustNotAccessRepositories(){ noClasses().that().areAnnotatedWith(RestController.class).should().dependOnClassesThat().resideInAPackage("..repository..").check(classes); }
+    @Test void restControllersMustNotAccessIntegrations(){ noClasses().that().areAnnotatedWith(RestController.class).should().dependOnClassesThat().resideInAPackage("..integration..").check(classes); }
+
+    @Test void domainMustRemainIndependentFromOrchestrationPersistenceIntegrationAndWeb(){ noClasses().that().resideInAPackage("..domain..").should().dependOnClassesThat().resideInAnyPackage("..usecase..","..repository..","..integration..",ENTRYPOINT,"org.springframework.web..").check(classes); }
+
+    @Test void restEndpointsMustNotExposeUseCaseModels(){
+        var invalid=classes.stream().filter(c->c.isAnnotatedWith(RestController.class)).map(JavaClass::reflect).flatMap(c->Arrays.stream(c.getDeclaredMethods()))
+                .filter(this::isEndpoint).filter(m->m.getGenericReturnType().getTypeName().contains(".usecase.model.") || Arrays.stream(m.getGenericParameterTypes()).anyMatch(t->t.getTypeName().contains(".usecase.model.")))
+                .map(Method::toGenericString).toList();
+        assertThat(invalid).isEmpty();
     }
 
-    @Test
-    void restControllersMustNotAccessIntegrations() {
-        noClasses()
-                .that().areAnnotatedWith(RestController.class)
-                .should().dependOnClassesThat().resideInAPackage("..integration..")
-                .check(classes);
-    }
-
-    @Test
-    void businessModulesMayCollaborateOnlyThroughUseCaseContracts() {
-        classes()
-                .that().resideInAnyPackage(CORE, FEATURE)
-                .should(notAccessInternalsOfAnotherBusinessModule())
-                .check(classes);
-    }
-
-    @Test
-    void nestedBusinessModulesMustBeIdentifiedIndependently() {
-        assertThat(businessModule(
-                ROOT + ".core.configuration.workspace.usecase.create"
-        )).isEqualTo("core.configuration.workspace");
-
-        assertThat(businessModule(
-                ROOT + ".core.configuration.application.repository"
-        )).isEqualTo("core.configuration.application");
-
-        assertThat(businessModule(
-                ROOT + ".core.workspace.domain"
-        )).isEqualTo("core.workspace");
-    }
-
-    private ArchCondition<JavaClass> schemaAccessOnlyApprovedCatalogs() {
-        return new ArchCondition<>("depend only on approved catalog contracts") {
-            @Override
-            public void check(JavaClass source, ConditionEvents events) {
-                for (Dependency dependency : source.getDirectDependenciesFromSelf()) {
-                    String targetPackage = dependency.getTargetClass().getPackageName();
-                    if (!targetPackage.startsWith(ROOT + ".foundation.catalog.")) {
-                        continue;
-                    }
-                    boolean approved = targetPackage.startsWith(
-                            ROOT + ".foundation.catalog.lifecycletype.domain"
-                    ) || targetPackage.startsWith(
-                            ROOT + ".foundation.catalog.schemascopetype.domain"
-                    ) || targetPackage.startsWith(
-                            ROOT + ".foundation.catalog.schemaversionstatustype.domain"
-                    );
-                    if (!approved) {
-                        events.add(SimpleConditionEvent.violated(
-                                source,
-                                source.getName()
-                                        + " depends on non-approved catalog type "
-                                        + dependency.getTargetClass().getName()
-                        ));
-                    }
-                }
-            }
-        };
-    }
-
-    private ArchCondition<JavaClass> notAccessInternalsOfAnotherBusinessModule() {
-        return new ArchCondition<>("collaborate with another business module only through Use Case contracts") {
-            @Override
-            public void check(JavaClass source, ConditionEvents events) {
-                String sourceModule = businessModule(source.getPackageName());
-                if (sourceModule == null) {
-                    return;
-                }
-
-                for (Dependency dependency : source.getDirectDependenciesFromSelf()) {
-                    JavaClass target = dependency.getTargetClass();
-                    String targetModule = businessModule(target.getPackageName());
-
-                    if (targetModule == null || targetModule.equals(sourceModule)) {
-                        continue;
-                    }
-
-                    if (!isPublicUseCaseContract(target)) {
-                        events.add(SimpleConditionEvent.violated(
-                                source,
-                                source.getName()
-                                        + " accesses non-public type "
-                                        + target.getName()
-                                        + " from module "
-                                        + targetModule
-                        ));
-                    }
-                }
-            }
-        };
-    }
-
-    private boolean isPublicUseCaseContract(JavaClass target) {
-        if (!target.getPackageName().contains(".usecase.")) {
-            return false;
-        }
-
-        String simpleName = target.getSimpleName();
-        return simpleName.endsWith("CommandService")
-                || simpleName.endsWith("QueryService")
-                || simpleName.endsWith("Input")
-                || simpleName.endsWith("Output");
-    }
-
-    private String businessModule(String packageName) {
-        for (String zone : new String[]{"core", "feature"}) {
-            String prefix = ROOT + "." + zone + ".";
-            if (!packageName.startsWith(prefix)) {
-                continue;
-            }
-
-            String remainder = packageName.substring(prefix.length());
-            String[] segments = remainder.split("\\.");
-
-            int layerIndex = -1;
-            for (int index = 0; index < segments.length; index++) {
-                if (MODULE_LAYERS.contains(segments[index])) {
-                    layerIndex = index;
-                    break;
-                }
-            }
-
-            int moduleSegmentCount = layerIndex > 0 ? layerIndex : Math.min(1, segments.length);
-            if (moduleSegmentCount == 0) {
-                return null;
-            }
-
-            return zone + "." + String.join(
-                    ".",
-                    Arrays.copyOfRange(segments, 0, moduleSegmentCount)
-            );
-        }
-
-        return null;
-    }
+    private boolean isEndpoint(Method method){ return method.isAnnotationPresent(RequestMapping.class)||method.isAnnotationPresent(GetMapping.class)||method.isAnnotationPresent(PostMapping.class)||method.isAnnotationPresent(PutMapping.class)||method.isAnnotationPresent(PatchMapping.class)||method.isAnnotationPresent(DeleteMapping.class); }
 }

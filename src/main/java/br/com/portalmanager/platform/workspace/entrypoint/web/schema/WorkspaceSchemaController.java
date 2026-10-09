@@ -1,126 +1,14 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.schema;
-
-import br.com.portalmanager.platform.workspace.foundation.schema.facade.WorkspaceSchemaFacade;
-
-import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.CreateSchemaRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.CreateSchemaVersionRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.UpdateSchemaRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.schema.response.SchemaResponse;
-import br.com.portalmanager.platform.workspace.entrypoint.web.schema.response.SchemaVersionResponse;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaCommandService;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaQueryService;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.version.SchemaVersionCommandService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/v1/workspaces/{workspaceIdentifier}/schemas")
-public class WorkspaceSchemaController {
-    private final WorkspaceSchemaFacade facade;
-
-
-    public WorkspaceSchemaController(WorkspaceSchemaFacade facade) { this.facade = facade; }
-
-    @PostMapping
-
-    public ResponseEntity<SchemaResponse> create(
-            @PathVariable String workspaceIdentifier,
-            @RequestBody CreateSchemaRequest request
-    ) {
-        return facade.create(workspaceIdentifier, request);
-    }
-
-    @GetMapping
-
-    public List<SchemaResponse> findAll(@PathVariable String workspaceIdentifier) {
-        return facade.findAll(workspaceIdentifier);
-    }
-
-    @GetMapping("/{identifier}")
-
-    public SchemaResponse findByIdentifier(
-            @PathVariable String workspaceIdentifier,
-            @PathVariable String identifier
-    ) {
-        return facade.findByIdentifier(workspaceIdentifier, identifier);
-    }
-
-    @PutMapping("/{identifier}")
-
-    public SchemaResponse update(
-            @PathVariable String workspaceIdentifier,
-            @PathVariable String identifier,
-            @RequestBody UpdateSchemaRequest request
-    ) {
-        return facade.update(workspaceIdentifier, identifier, request);
-    }
-
-    @PatchMapping("/{identifier}/activate")
-
-    public SchemaResponse activate(
-            @PathVariable String workspaceIdentifier,
-            @PathVariable String identifier
-    ) {
-        return facade.activate(workspaceIdentifier, identifier);
-    }
-
-    @PatchMapping("/{identifier}/inactivate")
-
-    public SchemaResponse inactivate(
-            @PathVariable String workspaceIdentifier,
-            @PathVariable String identifier
-    ) {
-        return facade.inactivate(workspaceIdentifier, identifier);
-    }
-
-    @DeleteMapping("/{identifier}")
-
-    public ResponseEntity<Void> quarantine(
-            @PathVariable String workspaceIdentifier,
-            @PathVariable String identifier
-    ) {
-        return facade.quarantine(workspaceIdentifier, identifier);
-    }
-
-    @PostMapping("/{identifier}/versions")
-
-    public ResponseEntity<SchemaVersionResponse> createVersion(
-            @PathVariable String workspaceIdentifier,
-            @PathVariable String identifier,
-            @RequestBody CreateSchemaVersionRequest request
-    ) {
-        return facade.createVersion(workspaceIdentifier, identifier, request);
-    }
-
-    @DeleteMapping("/{identifier}/versions/{versionIdentifier}")
-
-    public ResponseEntity<Void> deleteDraft(
-            @PathVariable String workspaceIdentifier,
-            @PathVariable String identifier,
-            @PathVariable String versionIdentifier
-    ) {
-        return facade.deleteDraft(workspaceIdentifier, identifier, versionIdentifier);
-    }
-
-    @GetMapping("/{identifier}/versions")
-
-    public List<SchemaVersionResponse> findVersions(
-            @PathVariable String workspaceIdentifier,
-            @PathVariable String identifier
-    ) {
-        return facade.findVersions(workspaceIdentifier, identifier);
-    }
-
-    @PatchMapping("/{identifier}/versions/{versionIdentifier}/publish")
-
-    public SchemaVersionResponse publish(
-            @PathVariable String workspaceIdentifier,
-            @PathVariable String identifier,
-            @PathVariable String versionIdentifier
-    ) {
-        return facade.publish(workspaceIdentifier, identifier, versionIdentifier);
-    }
-}
+import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.*;import br.com.portalmanager.platform.workspace.entrypoint.web.schema.response.*;import br.com.portalmanager.platform.workspace.foundation.schema.facade.WorkspaceSchemaFacade;import org.springframework.http.*;import org.springframework.web.bind.annotation.*;import java.util.List;
+@RestController @RequestMapping("/api/v1/workspaces/{workspaceIdentifier}/schemas") public class WorkspaceSchemaController {private final WorkspaceSchemaFacade facade;public WorkspaceSchemaController(WorkspaceSchemaFacade f){facade=f;}
+@PostMapping public ResponseEntity<SchemaResponse> create(@PathVariable String workspaceIdentifier,@RequestBody CreateSchemaRequest r){return ResponseEntity.status(HttpStatus.CREATED).body(SchemaResponse.from(facade.create(r.toWorkspaceInput(workspaceIdentifier))));}
+@GetMapping public List<SchemaResponse> findAll(@PathVariable String workspaceIdentifier){return facade.findAll(workspaceIdentifier).stream().map(SchemaResponse::from).toList();}
+@GetMapping("/{identifier}") public SchemaResponse findByIdentifier(@PathVariable String workspaceIdentifier,@PathVariable String identifier){return SchemaResponse.from(facade.findByIdentifier(workspaceIdentifier,identifier));}
+@PutMapping("/{identifier}") public SchemaResponse update(@PathVariable String workspaceIdentifier,@PathVariable String identifier,@RequestBody UpdateSchemaRequest r){return SchemaResponse.from(facade.update(workspaceIdentifier,identifier,r.toInput()));}
+@PatchMapping("/{identifier}/activate") public SchemaResponse activate(@PathVariable String workspaceIdentifier,@PathVariable String identifier){return SchemaResponse.from(facade.activate(workspaceIdentifier,identifier));}
+@PatchMapping("/{identifier}/inactivate") public SchemaResponse inactivate(@PathVariable String workspaceIdentifier,@PathVariable String identifier){return SchemaResponse.from(facade.inactivate(workspaceIdentifier,identifier));}
+@DeleteMapping("/{identifier}") public ResponseEntity<Void> quarantine(@PathVariable String workspaceIdentifier,@PathVariable String identifier){facade.quarantine(workspaceIdentifier,identifier);return ResponseEntity.noContent().build();}
+@PostMapping("/{identifier}/versions") public ResponseEntity<SchemaVersionResponse> createVersion(@PathVariable String workspaceIdentifier,@PathVariable String identifier,@RequestBody CreateSchemaVersionRequest r){return ResponseEntity.status(HttpStatus.CREATED).body(SchemaVersionResponse.from(facade.createVersion(workspaceIdentifier,identifier,r.toInput())));}
+@DeleteMapping("/{identifier}/versions/{versionIdentifier}") public ResponseEntity<Void> deleteDraft(@PathVariable String workspaceIdentifier,@PathVariable String identifier,@PathVariable String versionIdentifier){facade.deleteDraft(workspaceIdentifier,identifier,versionIdentifier);return ResponseEntity.noContent().build();}
+@GetMapping("/{identifier}/versions") public List<SchemaVersionResponse> findVersions(@PathVariable String workspaceIdentifier,@PathVariable String identifier){return facade.findVersions(workspaceIdentifier,identifier).stream().map(SchemaVersionResponse::from).toList();}
+@PatchMapping("/{identifier}/versions/{versionIdentifier}/publish") public SchemaVersionResponse publish(@PathVariable String workspaceIdentifier,@PathVariable String identifier,@PathVariable String versionIdentifier){return SchemaVersionResponse.from(facade.publish(workspaceIdentifier,identifier,versionIdentifier));}}

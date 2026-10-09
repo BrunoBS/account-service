@@ -1,60 +1,18 @@
 package br.com.portalmanager.platform.workspace.core.workspace.facade;
-
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationAction;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceCommandService;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
-import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.CreateWorkspaceRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.UpdateWorkspaceRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.response.WorkspaceResponse;
+import br.com.portalmanager.platform.library.authorization.model.*;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.*;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.*;
 import org.springframework.stereotype.Service;
 import java.util.List;
-
-@Service
-public class WorkspaceFacade {
-    private final WorkspaceCommandService command;
-    private final WorkspaceQueryService query;
-
-    public WorkspaceFacade(WorkspaceCommandService command, WorkspaceQueryService query) {
-        this.command = command;
-        this.query = query;
-    }
-
-    @AuthorizationRequired(level = AuthorizationLevel.OPEN, action = AuthorizationAction.CREATE)
-    public WorkspaceResponse create(CreateWorkspaceRequest request) {
-        return WorkspaceResponse.from(command.create(request.toInput()));
-    }
-
-    @AuthorizationRequired(level = AuthorizationLevel.DEV, action = AuthorizationAction.READ)
-    public WorkspaceResponse findByIdentifier(String identifier) {
-        return WorkspaceResponse.from(query.findByIdentifier(identifier));
-    }
-
-    @AuthorizationRequired(level = AuthorizationLevel.OPEN, action = AuthorizationAction.READ)
-    public List<WorkspaceResponse> findAll(Boolean active, String typeName, String tagName) {
-        return query.findAll(new FindAllWorkspacesInput(active, typeName, tagName))
-                .stream().map(WorkspaceResponse::from).toList();
-    }
-
-    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.UPDATE)
-    public WorkspaceResponse update(String identifier, UpdateWorkspaceRequest request) {
-        return WorkspaceResponse.from(command.update(identifier, request.toInput()));
-    }
-
-    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.DEACTIVATE)
-    public void inactivate(String identifier) {
-        command.inactivate(identifier);
-    }
-
-    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.RESTORE)
-    public WorkspaceResponse restore(String identifier) {
-        return WorkspaceResponse.from(command.restore(identifier));
-    }
-
-    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.DELETE)
-    public void delete(String identifier) {
-        command.delete(identifier);
-    }
+@Service public class WorkspaceFacade {
+ private final WorkspaceCommandService command; private final WorkspaceQueryService query;
+ public WorkspaceFacade(WorkspaceCommandService c,WorkspaceQueryService q){command=c;query=q;}
+ @AuthorizationRequired(level=AuthorizationLevel.OPEN,action=AuthorizationAction.CREATE) public WorkspaceOutput create(CreateWorkspaceInput i){return command.create(i);}
+ @AuthorizationRequired(level=AuthorizationLevel.DEV,action=AuthorizationAction.READ) public WorkspaceOutput findByIdentifier(String i){return query.findByIdentifier(i);}
+ @AuthorizationRequired(level=AuthorizationLevel.OPEN,action=AuthorizationAction.READ) public List<WorkspaceOutput> findAll(Boolean a,String t,String tag){return query.findAll(new FindAllWorkspacesInput(a,t,tag));}
+ @AuthorizationRequired(level=AuthorizationLevel.ADM,action=AuthorizationAction.UPDATE) public WorkspaceOutput update(String i,UpdateWorkspaceInput in){return command.update(i,in);}
+ @AuthorizationRequired(level=AuthorizationLevel.ADM,action=AuthorizationAction.DEACTIVATE) public void inactivate(String i){command.inactivate(i);}
+ @AuthorizationRequired(level=AuthorizationLevel.ADM,action=AuthorizationAction.RESTORE) public WorkspaceOutput restore(String i){return command.restore(i);}
+ @AuthorizationRequired(level=AuthorizationLevel.ADM,action=AuthorizationAction.DELETE) public void delete(String i){command.delete(i);}
 }
