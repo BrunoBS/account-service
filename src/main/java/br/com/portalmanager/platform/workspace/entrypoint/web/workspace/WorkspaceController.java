@@ -1,10 +1,5 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.workspace;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceCommandService;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.CreateWorkspaceRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.UpdateWorkspaceRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.response.WorkspaceResponse;
@@ -13,73 +8,60 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import br.com.portalmanager.platform.workspace.core.workspace.facade.WorkspaceFacade;
 
 @RestController
 @RequestMapping("/api/v1/workspaces")
 public class WorkspaceController {
 
-    private final WorkspaceCommandService commandService;
-    private final WorkspaceQueryService queryService;
+    private final WorkspaceFacade facade;
 
-    public WorkspaceController(
-            WorkspaceCommandService commandService,
-            WorkspaceQueryService queryService
-    ) {
-        this.commandService = commandService;
-        this.queryService = queryService;
+    public WorkspaceController(WorkspaceFacade facade) {
+        this.facade = facade;
     }
 
     @PostMapping
-    @AuthorizationRequired(level = AuthorizationLevel.OPEN)
     public ResponseEntity<WorkspaceResponse> create(@RequestBody CreateWorkspaceRequest request) {
-        WorkspaceResponse response = WorkspaceResponse.from(commandService.create(request.toInput()));
+        WorkspaceResponse response = facade.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.DEV)
     public WorkspaceResponse findByIdentifier(@PathVariable String identifier) {
-        return WorkspaceResponse.from(queryService.findByIdentifier(identifier));
+        return facade.findByIdentifier(identifier);
     }
 
     @GetMapping
-    @AuthorizationRequired(level = AuthorizationLevel.OPEN)
     public List<WorkspaceResponse> findAll(
             @RequestParam(defaultValue = "true") Boolean active,
             @RequestParam(required = false) String typeName,
             @RequestParam(required = false) String tagName
     ) {
-        return queryService.findAll(new FindAllWorkspacesInput(active, typeName, tagName)).stream()
-                .map(WorkspaceResponse::from)
-                .toList();
+        return facade.findAll(active, typeName, tagName);
     }
 
     @PutMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
     public WorkspaceResponse update(
             @PathVariable String identifier,
             @RequestBody UpdateWorkspaceRequest request
     ) {
-        return WorkspaceResponse.from(commandService.update(identifier, request.toInput()));
+        return facade.update(identifier, request);
     }
 
     @PostMapping("/{identifier}/inactivate")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
     public ResponseEntity<Void> inactivate(@PathVariable String identifier) {
-        commandService.inactivate(identifier);
+        facade.inactivate(identifier);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{identifier}/restore")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
     public WorkspaceResponse restore(@PathVariable String identifier) {
-        return WorkspaceResponse.from(commandService.restore(identifier));
+        return facade.restore(identifier);
     }
 
     @DeleteMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
     public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        commandService.delete(identifier);
+        facade.delete(identifier);
         return ResponseEntity.noContent().build();
     }
 }
