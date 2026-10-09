@@ -4,7 +4,7 @@ spring:
 
 platform:
   authorization:
-    mode: REAL
+    mode: MOCK
     service-url: http://127.0.0.1:9
   messaging:
     enabled: true
