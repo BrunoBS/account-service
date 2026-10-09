@@ -139,7 +139,7 @@ class SchemaApiIT {
     }
 
     private io.restassured.specification.RequestSpecification request() {
-        return given().port(port).header("correlationId", "schema-configuration-it")
+        return given().port(port).header("X-Correlation-Id", "schema-configuration-it")
                 .header("Authorization", "Bearer schema-configuration-it").accept(ContentType.JSON);
     }
     private io.restassured.response.ValidatableResponse post(String path, Object body) {
