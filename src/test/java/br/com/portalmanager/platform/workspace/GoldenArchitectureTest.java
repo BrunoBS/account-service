@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace;
 
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -99,6 +100,24 @@ class GoldenArchitectureTest {
                 .filter(this::isEndpoint).filter(m->m.getGenericReturnType().getTypeName().contains(".usecase.model.") || Arrays.stream(m.getGenericParameterTypes()).anyMatch(t->t.getTypeName().contains(".usecase.model.")))
                 .map(Method::toGenericString).toList();
         assertThat(invalid).isEmpty();
+    }
+
+    @Test void authorizedFacadeMethodsMustReceiveAuthorizationContext() {
+        var methods = classes.stream().filter(c -> c.getPackageName().endsWith(".facade"))
+                .map(JavaClass::reflect).flatMap(c -> Arrays.stream(c.getMethods()))
+                .filter(m -> m.isAnnotationPresent(AuthorizationRequired.class)).toList();
+        assertThat(methods).isNotEmpty();
+        assertThat(methods).allSatisfy(m -> assertThat(m.getParameterTypes())
+                .as(m.toGenericString()).contains(AuthorizationContext.class));
+    }
+
+    @Test void restEndpointsMustReceiveAuthorizationContext() {
+        var methods = classes.stream().filter(c -> c.isAnnotatedWith(RestController.class))
+                .map(JavaClass::reflect).flatMap(c -> Arrays.stream(c.getMethods()))
+                .filter(this::isEndpoint).toList();
+        assertThat(methods).isNotEmpty();
+        assertThat(methods).allSatisfy(m -> assertThat(m.getParameterTypes())
+                .as(m.toGenericString()).contains(AuthorizationContext.class));
     }
 
     private boolean isEndpoint(Method method){ return method.isAnnotationPresent(RequestMapping.class)||method.isAnnotationPresent(GetMapping.class)||method.isAnnotationPresent(PostMapping.class)||method.isAnnotationPresent(PutMapping.class)||method.isAnnotationPresent(PatchMapping.class)||method.isAnnotationPresent(DeleteMapping.class); }

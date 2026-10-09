@@ -274,32 +274,32 @@ class ApplicationApiIT {
     }
 
     private ValidatableResponse get(String path) {
-        return given().port(port).header("X-Correlation-Id", "application-api-it")
+        return given().port(port).header("correlation-id", "application-api-it")
                 .header("Authorization", "Bearer application-api-it").accept(ContentType.JSON)
                 .when().get(path).then();
     }
 
     private ValidatableResponse getByTag(String path, String tag) {
-        return given().port(port).header("X-Correlation-Id", "application-api-it")
+        return given().port(port).header("correlation-id", "application-api-it")
                 .header("Authorization", "Bearer application-api-it").accept(ContentType.JSON)
                 .queryParam("tagName", tag).when().get(path).then();
     }
 
     private ValidatableResponse post(String path, Object body) {
-        var request = given().port(port).header("X-Correlation-Id", "application-api-it")
+        var request = given().port(port).header("correlation-id", "application-api-it")
                 .header("Authorization", "Bearer application-api-it").contentType(ContentType.JSON).accept(ContentType.JSON);
         if (body != null) request.body(body);
         return request.when().post(path).then();
     }
 
     private ValidatableResponse put(String path, Object body) {
-        return given().port(port).header("X-Correlation-Id", "application-api-it")
+        return given().port(port).header("correlation-id", "application-api-it")
                 .header("Authorization", "Bearer application-api-it").contentType(ContentType.JSON)
                 .body(body).when().put(path).then();
     }
 
     private ValidatableResponse delete(String path) {
-        return given().port(port).header("X-Correlation-Id", "application-api-it")
+        return given().port(port).header("correlation-id", "application-api-it")
                 .header("Authorization", "Bearer application-api-it").when().delete(path).then();
     }
 }

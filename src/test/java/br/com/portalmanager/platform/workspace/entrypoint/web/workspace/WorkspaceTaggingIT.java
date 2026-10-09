@@ -196,7 +196,7 @@ class WorkspaceTaggingIT {
     private io.restassured.specification.RequestSpecification authorized() {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "tagging-it")
+                .header("correlation-id", "tagging-it")
                 .header("Authorization", "Bearer tagging-it")
                 .accept(ContentType.JSON);
     }

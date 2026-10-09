@@ -55,6 +55,32 @@ class WorkspaceAuthorizationIT {
     }
 
     @Test
+    void shouldRejectMissingCorrelationIdEvenWithBearerToken() {
+        given()
+                .port(port)
+                .header("Authorization", "Bearer authorization-it")
+                .accept(ContentType.JSON)
+                .when()
+                .get("/api/v1/workspaces")
+                .then()
+                .statusCode(401)
+                .body("key", equalTo("authorization.correlation-id.missing"));
+    }
+
+    @Test
+    void shouldRejectMissingBearerTokenEvenWithCorrelationId() {
+        given()
+                .port(port)
+                .header("correlation-id", "authorization-it")
+                .accept(ContentType.JSON)
+                .when()
+                .get("/api/v1/workspaces")
+                .then()
+                .statusCode(401)
+                .body("key", equalTo("authorization.token.missing"));
+    }
+
+    @Test
     void shouldApplyOpenDevAndAdmPolicies() {
         String identifier = post(validCreate("Workspace Policy", "TEAM_POLICY"))
                 .statusCode(201)
@@ -161,7 +187,7 @@ class WorkspaceAuthorizationIT {
     private io.restassured.specification.RequestSpecification authorized() {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "authorization-it")
+                .header("correlation-id", "authorization-it")
                 .header("Authorization", "Bearer authorization-it")
                 .accept(ContentType.JSON);
     }

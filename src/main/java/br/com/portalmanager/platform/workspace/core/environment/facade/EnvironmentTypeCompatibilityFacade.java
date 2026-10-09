@@ -1,7 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.environment.facade;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;import br.com.portalmanager.platform.library.authorization.model.*;import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentCompatibilityOutput;import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.compatibility.*;import org.springframework.stereotype.Service;import java.util.List;
 @Service public class EnvironmentTypeCompatibilityFacade {private final EnvironmentTypeCompatibilityCommandService command;private final EnvironmentTypeCompatibilityQueryService query;public EnvironmentTypeCompatibilityFacade(EnvironmentTypeCompatibilityCommandService c,EnvironmentTypeCompatibilityQueryService q){command=c;query=q;}
-@AuthorizationRequired(level=AuthorizationLevel.OPEN,action=AuthorizationAction.READ) public List<EnvironmentCompatibilityOutput> list(String l){return query.list(l);}
-@AuthorizationRequired(level=AuthorizationLevel.OWNER,action=AuthorizationAction.CREATE) public EnvironmentCompatibilityOutput allow(String p,String c){return command.allow(p,c);}
-@AuthorizationRequired(level=AuthorizationLevel.OWNER,action=AuthorizationAction.DEACTIVATE) public void disallow(String i){command.disallow(i);}
-@AuthorizationRequired(level=AuthorizationLevel.OWNER,action=AuthorizationAction.DELETE) public void delete(String i){command.delete(i);}}
+@AuthorizationRequired(level=AuthorizationLevel.OPEN,action=AuthorizationAction.READ) public List<EnvironmentCompatibilityOutput> list(AuthorizationContext context, String l){return query.list(l);}
+@AuthorizationRequired(level=AuthorizationLevel.OWNER,action=AuthorizationAction.CREATE) public EnvironmentCompatibilityOutput allow(AuthorizationContext context, String p,String c){return command.allow(p,c);}
+@AuthorizationRequired(level=AuthorizationLevel.OWNER,action=AuthorizationAction.DEACTIVATE) public void disallow(AuthorizationContext context, String i){command.disallow(i);}
+@AuthorizationRequired(level=AuthorizationLevel.OWNER,action=AuthorizationAction.DELETE) public void delete(AuthorizationContext context, String i){command.delete(i);}}

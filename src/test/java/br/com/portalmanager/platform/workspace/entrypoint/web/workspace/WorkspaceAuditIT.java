@@ -143,7 +143,7 @@ class WorkspaceAuditIT {
     private io.restassured.specification.RequestSpecification authorized() {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "workspace-audit-request")
+                .header("correlation-id", "workspace-audit-request")
                 .header("Authorization", "Bearer workspace-audit-it")
                 .accept(ContentType.JSON);
     }

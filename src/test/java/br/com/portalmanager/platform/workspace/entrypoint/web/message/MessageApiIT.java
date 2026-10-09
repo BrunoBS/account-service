@@ -531,7 +531,7 @@ class MessageApiIT {
     private io.restassured.specification.RequestSpecification authorized() {
         return given()
                 .port(port)
-                .header("X-Correlation-Id", "message-api-it")
+                .header("correlation-id", "message-api-it")
                 .header("Authorization", "Bearer message-api-it")
                 .accept(ContentType.JSON);
     }
