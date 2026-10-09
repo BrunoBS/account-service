@@ -1,9 +1,5 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.publisher;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.core.publisher.usecase.operations.PublisherCommandService;
-import br.com.portalmanager.platform.workspace.core.publisher.usecase.operations.PublisherQueryService;
 import br.com.portalmanager.platform.workspace.entrypoint.web.publisher.request.CreatePublisherRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.publisher.request.UpdatePublisherRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.publisher.response.PublisherResponse;
@@ -12,49 +8,40 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import br.com.portalmanager.platform.workspace.core.publisher.facade.PublisherFacade;
 
 @RestController
 @RequestMapping("/api/v1/publishers")
-@AuthorizationRequired(level = AuthorizationLevel.OPEN)
 public class PublisherController {
-    private final PublisherCommandService command;
-    private final PublisherQueryService query;
-    public PublisherController(PublisherCommandService command, PublisherQueryService query) {
-        this.command = command;
-        this.query = query;
-    }
+    private final PublisherFacade facade;
+    public PublisherController(PublisherFacade facade) { this.facade = facade; }
     @PostMapping
-    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public ResponseEntity<PublisherResponse> create(@RequestBody CreatePublisherRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(PublisherResponse.from(command.create(request.toInput())));
+        public ResponseEntity<PublisherResponse> create(@RequestBody CreatePublisherRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(facade.create(request));
     }
     @GetMapping
     public List<PublisherResponse> list(@RequestParam(defaultValue = "true") Boolean active,
                                         @RequestParam(required = false) String scope) {
-        return query.list(active, scope).stream().map(PublisherResponse::from).toList();
+        return facade.list(active, scope);
     }
     @GetMapping("/{identifier}")
-    public PublisherResponse find(@PathVariable String identifier) { return PublisherResponse.from(query.find(identifier)); }
+    public PublisherResponse find(@PathVariable String identifier) { return facade.find(identifier); }
     @PutMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public PublisherResponse update(@PathVariable String identifier, @RequestBody UpdatePublisherRequest request) {
-        return PublisherResponse.from(command.update(identifier, request.toInput()));
+        public PublisherResponse update(@PathVariable String identifier, @RequestBody UpdatePublisherRequest request) {
+        return facade.update(identifier, request);
     }
     @PostMapping("/{identifier}/inactivate")
-    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public ResponseEntity<Void> inactivate(@PathVariable String identifier) {
-        command.inactivate(identifier);
+        public ResponseEntity<Void> inactivate(@PathVariable String identifier) {
+        facade.inactivate(identifier);
         return ResponseEntity.noContent().build();
     }
     @PostMapping("/{identifier}/restore")
-    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public PublisherResponse restore(@PathVariable String identifier) {
-        return PublisherResponse.from(command.restore(identifier));
+        public PublisherResponse restore(@PathVariable String identifier) {
+        return facade.restore(identifier);
     }
     @DeleteMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        command.delete(identifier);
+        public ResponseEntity<Void> delete(@PathVariable String identifier) {
+        facade.delete(identifier);
         return ResponseEntity.noContent().build();
     }
 }
