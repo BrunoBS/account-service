@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.schema;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
+import br.com.portalmanager.platform.workspace.foundation.schema.facade.PlatformSchemaFacade;
+
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.CreateSchemaRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.CreateSchemaVersionRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.UpdateSchemaRequest;
@@ -18,97 +18,87 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/schemas")
-@AuthorizationRequired(level = AuthorizationLevel.OWNER)
 public class PlatformSchemaController {
+    private final PlatformSchemaFacade facade;
 
-    private final SchemaCommandService commandService;
-    private final SchemaQueryService queryService;
-    private final SchemaVersionCommandService versionCommandService;
 
-    public PlatformSchemaController(
-            SchemaCommandService commandService,
-            SchemaQueryService queryService,
-            SchemaVersionCommandService versionCommandService
-    ) {
-        this.commandService = commandService;
-        this.queryService = queryService;
-        this.versionCommandService = versionCommandService;
-    }
+    public PlatformSchemaController(PlatformSchemaFacade facade) { this.facade = facade; }
 
     @PostMapping
+
     public ResponseEntity<SchemaResponse> create(@RequestBody CreateSchemaRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(SchemaResponse.from(commandService.createPlatform(request.toPlatformInput())));
+        return facade.create(request);
     }
 
     @GetMapping
+
     public List<SchemaResponse> findAll() {
-        return queryService.findPlatform().stream().map(SchemaResponse::from).toList();
+        return facade.findAll();
     }
 
     @GetMapping("/{identifier}")
+
     public SchemaResponse findByIdentifier(@PathVariable String identifier) {
-        return SchemaResponse.from(queryService.findPlatformByIdentifier(identifier));
+        return facade.findByIdentifier(identifier);
     }
 
     @PutMapping("/{identifier}")
+
     public SchemaResponse update(
             @PathVariable String identifier,
             @RequestBody UpdateSchemaRequest request
     ) {
-        return SchemaResponse.from(commandService.updatePlatform(identifier, request.toInput()));
+        return facade.update(identifier, request);
     }
 
     @PatchMapping("/{identifier}/activate")
+
     public SchemaResponse activate(@PathVariable String identifier) {
-        return SchemaResponse.from(commandService.activatePlatform(identifier));
+        return facade.activate(identifier);
     }
 
     @PatchMapping("/{identifier}/inactivate")
+
     public SchemaResponse inactivate(@PathVariable String identifier) {
-        return SchemaResponse.from(commandService.inactivatePlatform(identifier));
+        return facade.inactivate(identifier);
     }
 
     @DeleteMapping("/{identifier}")
+
     public ResponseEntity<Void> quarantine(@PathVariable String identifier) {
-        commandService.quarantinePlatform(identifier);
-        return ResponseEntity.noContent().build();
+        return facade.quarantine(identifier);
     }
 
     @PostMapping("/{identifier}/versions")
+
     public ResponseEntity<SchemaVersionResponse> createVersion(
             @PathVariable String identifier,
             @RequestBody CreateSchemaVersionRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(SchemaVersionResponse.from(
-                        versionCommandService.createPlatformDraft(identifier, request.toInput())
-                ));
+        return facade.createVersion(identifier, request);
     }
 
     @DeleteMapping("/{identifier}/versions/{versionIdentifier}")
+
     public ResponseEntity<Void> deleteDraft(
             @PathVariable String identifier,
             @PathVariable String versionIdentifier
     ) {
-        versionCommandService.deletePlatformDraft(identifier, versionIdentifier);
-        return ResponseEntity.noContent().build();
+        return facade.deleteDraft(identifier, versionIdentifier);
     }
 
     @GetMapping("/{identifier}/versions")
+
     public List<SchemaVersionResponse> findVersions(@PathVariable String identifier) {
-        return queryService.findPlatformVersions(identifier).stream()
-                .map(SchemaVersionResponse::from)
-                .toList();
+        return facade.findVersions(identifier);
     }
 
     @PatchMapping("/{identifier}/versions/{versionIdentifier}/publish")
+
     public SchemaVersionResponse publish(
             @PathVariable String identifier,
             @PathVariable String versionIdentifier
     ) {
-        return SchemaVersionResponse.from(
-                versionCommandService.publishPlatform(identifier, versionIdentifier)
-        );
+        return facade.publish(identifier, versionIdentifier);
     }
 }
