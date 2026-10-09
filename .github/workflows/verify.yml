@@ -26,6 +26,11 @@ jobs:
           distribution: temurin
           java-version: '25'
 
+      - name: Preload MySQL image from public ECR mirror
+        run: |
+          docker pull public.ecr.aws/docker/library/mysql:8.4.11
+          docker tag public.ecr.aws/docker/library/mysql:8.4.11 mysql:8.4.11
+
       - name: Verify with isolated Maven repository
         env:
           GITHUB_PACKAGES_USERNAME: BrunoBS
