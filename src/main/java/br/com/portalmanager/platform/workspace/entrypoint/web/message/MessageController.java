@@ -1,75 +1,41 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.message;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.entrypoint.web.message.request.CreateMessageRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.message.request.UpdateMessageRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.message.response.MessageResponse;
-import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.message.MessageCommandService;
-import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.message.MessageQueryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import br.com.portalmanager.platform.workspace.feature.message.facade.MessageFacade;
 
 @RestController
 @RequestMapping("/api/v1/messages")
-@AuthorizationRequired(level = AuthorizationLevel.ADM)
 public class MessageController {
 
-    private final MessageCommandService commandService;
-    private final MessageQueryService queryService;
-
-    public MessageController(MessageCommandService commandService, MessageQueryService queryService) {
-        this.commandService = commandService;
-        this.queryService = queryService;
-    }
+    private final MessageFacade facade;
+    public MessageController(MessageFacade facade) { this.facade = facade; }
 
     @PostMapping
     public ResponseEntity<MessageResponse> create(@RequestBody CreateMessageRequest request) {
-        MessageResponse response = MessageResponse.from(commandService.create(request.toInput()));
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(facade.create(request));
     }
-
     @GetMapping("/{identifier}")
-    public MessageResponse findByIdentifier(@PathVariable String identifier) {
-        return MessageResponse.from(queryService.findByIdentifier(identifier));
-    }
-
+    public MessageResponse findByIdentifier(@PathVariable String identifier) { return facade.findByIdentifier(identifier); }
     @GetMapping
-    public List<MessageResponse> findAll(
-            @RequestParam(required = false) String microserviceIdentifier,
-            @RequestParam(required = false) Boolean active,
-            @RequestParam(required = false) String code,
-            @RequestParam(required = false) String messageKey
-    ) {
-        return queryService.findAll(microserviceIdentifier, active, code, messageKey).stream()
-                .map(MessageResponse::from)
-                .toList();
+    public List<MessageResponse> findAll(@RequestParam(required = false) String microserviceIdentifier,
+                                          @RequestParam(required = false) Boolean active,
+                                          @RequestParam(required = false) String code,
+                                          @RequestParam(required = false) String messageKey) {
+        return facade.findAll(microserviceIdentifier, active, code, messageKey);
     }
-
     @PutMapping("/{identifier}")
-    public MessageResponse update(
-            @PathVariable String identifier,
-            @RequestBody UpdateMessageRequest request
-    ) {
-        return MessageResponse.from(commandService.update(identifier, request.toInput()));
-    }
-
+    public MessageResponse update(@PathVariable String identifier, @RequestBody UpdateMessageRequest request) { return facade.update(identifier, request); }
     @PatchMapping("/{identifier}/activate")
-    public MessageResponse activate(@PathVariable String identifier) {
-        return MessageResponse.from(commandService.activate(identifier));
-    }
-
+    public MessageResponse activate(@PathVariable String identifier) { return facade.activate(identifier); }
     @PatchMapping("/{identifier}/inactivate")
-    public MessageResponse inactivate(@PathVariable String identifier) {
-        return MessageResponse.from(commandService.inactivate(identifier));
-    }
-
+    public MessageResponse inactivate(@PathVariable String identifier) { return facade.inactivate(identifier); }
     @DeleteMapping("/{identifier}")
-    public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        commandService.delete(identifier);
-        return ResponseEntity.noContent().build();
-    }
+    public ResponseEntity<Void> delete(@PathVariable String identifier) { facade.delete(identifier); return ResponseEntity.noContent().build(); }
 }
