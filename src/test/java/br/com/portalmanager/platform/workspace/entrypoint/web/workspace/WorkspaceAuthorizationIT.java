@@ -64,7 +64,7 @@ class WorkspaceAuthorizationIT {
                 .get("/api/v1/workspaces")
                 .then()
                 .statusCode(401)
-                .body("key", equalTo("authorization.correlation-id.missing"));
+                .body("code", equalTo("AUTH-401-001"));
     }
 
     @Test
@@ -77,7 +77,7 @@ class WorkspaceAuthorizationIT {
                 .get("/api/v1/workspaces")
                 .then()
                 .statusCode(401)
-                .body("key", equalTo("authorization.token.missing"));
+                .body("code", equalTo("AUTH-401-002"));
     }
 
     @Test
