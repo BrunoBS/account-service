@@ -49,6 +49,7 @@ class SharedApiIT {
         String contract = createContract(owner);
         String participation = requestParticipation(participant, owner, contract)
                 .statusCode(201).body("status", equalTo("PENDING")).extract().path("identifier");
+        requestParticipation(participant, owner, contract).statusCode(409);
 
         post(owner.contractPath(contract) + "/participations/" + participation + "/approval",
                 Map.of("publicationModeCode", "UNKNOWN", "environmentMappings", Map.of("mappings", List.of())))
