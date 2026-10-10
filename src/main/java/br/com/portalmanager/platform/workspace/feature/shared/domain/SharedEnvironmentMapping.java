@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "shared_environment_mappings", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_shared_mapping_source", columnNames = {"participation_id", "source_environment_identifier"}),
         @UniqueConstraint(name = "uk_shared_mapping_destination", columnNames = {"participation_id", "destination_environment_identifier"})})
 public class SharedEnvironmentMapping {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
