@@ -139,11 +139,12 @@ public class SharedCommandService {
         SharedContract contract = requiredActiveContract(ownerWorkspace, ownerApplication, contractIdentifier);
         SharedParticipation participation = requiredParticipation(contract, participationIdentifier);
         if (input == null || !validPublicationMode(input.publicationModeCode()))
-            throw new ValidationException(SharedMessageKeys.STATE_INVALID);
+            throw new ValidationException(SharedMessageKeys.PUBLICATION_MODE_INVALID);
         transitions.requireTransition(participation.getStatus(), ShareStatusTypeEnum.APPROVED);
         activeApplicationForShared(participation.getParticipantWorkspaceIdentifier(), participation.getParticipantApplicationIdentifier());
         EnvironmentMappingInput mappingInput = input.environmentMappings() == null
                 ? new EnvironmentMappingInput(List.of()) : input.environmentMappings();
+        if (mappingInput.mappings() == null) throw new ValidationException(SharedMessageKeys.MAPPING_INVALID);
         participation.replaceMappings(buildMappings(ownerWorkspace, participation.getParticipantWorkspaceIdentifier(), mappingInput), now());
         participation.approve(PublicationModeTypeCode.of(input.publicationModeCode()), now());
         return SharedParticipationOutput.from(participation);
@@ -177,8 +178,9 @@ public class SharedCommandService {
             String participationIdentifier, String modeCode) {
         SharedContract contract = requiredActiveContract(ownerWorkspace, ownerApplication, contractIdentifier);
         SharedParticipation participation = requiredParticipation(contract, participationIdentifier);
-        if (!ShareStatusTypeEnum.APPROVED.name().equals(participation.getStatus().value()) || !validPublicationMode(modeCode))
+        if (!ShareStatusTypeEnum.APPROVED.name().equals(participation.getStatus().value()))
             throw new ValidationException(SharedMessageKeys.STATE_INVALID);
+        if (!validPublicationMode(modeCode)) throw new ValidationException(SharedMessageKeys.PUBLICATION_MODE_INVALID);
         participation.changePublicationMode(PublicationModeTypeCode.of(modeCode), now());
         return SharedParticipationOutput.from(participation);
     }
@@ -189,8 +191,9 @@ public class SharedCommandService {
             String participationIdentifier, EnvironmentMappingInput input) {
         SharedContract contract = requiredActiveContract(ownerWorkspace, ownerApplication, contractIdentifier);
         SharedParticipation participation = requiredParticipation(contract, participationIdentifier);
-        if (!ShareStatusTypeEnum.APPROVED.name().equals(participation.getStatus().value()) || input == null || input.mappings() == null)
+        if (!ShareStatusTypeEnum.APPROVED.name().equals(participation.getStatus().value()))
             throw new ValidationException(SharedMessageKeys.STATE_INVALID);
+        if (input == null || input.mappings() == null) throw new ValidationException(SharedMessageKeys.MAPPING_INVALID);
         activeApplicationForShared(participation.getParticipantWorkspaceIdentifier(), participation.getParticipantApplicationIdentifier());
         participation.replaceMappings(buildMappings(ownerWorkspace, participation.getParticipantWorkspaceIdentifier(), input), now());
         return SharedParticipationOutput.from(participation);
@@ -198,6 +201,8 @@ public class SharedCommandService {
 
     private LinkedHashSet<SharedEnvironmentMapping> buildMappings(String ownerWorkspace, String participantWorkspace,
             EnvironmentMappingInput input) {
+        if (input == null || input.mappings() == null)
+            throw new ValidationException(SharedMessageKeys.MAPPING_INVALID);
         var replacement = new LinkedHashSet<SharedEnvironmentMapping>();
         var destinations = new LinkedHashSet<String>();
         for (EnvironmentMappingInput.Mapping mapping : input.mappings()) {
