@@ -51,6 +51,7 @@ public class SharedQueryService {
         return contracts.findByLifecycleValueOrderById(LifecycleTypeCode.active().value()).stream()
                 .filter(c -> !c.getOwnerWorkspaceIdentifier().equals(participantWorkspace)
                         || !c.getOwnerApplicationIdentifier().equals(participantApplication))
+                .filter(this::hasActiveOwnerApplication)
                 .map(SharedContractOutput::from).toList();
     }
 
@@ -61,6 +62,7 @@ public class SharedQueryService {
         SharedContract contract = contracts.findByIdentifierAndLifecycleValue(contractIdentifier, LifecycleTypeCode.active().value())
                 .filter(c -> !c.getOwnerWorkspaceIdentifier().equals(participantWorkspace)
                         || !c.getOwnerApplicationIdentifier().equals(participantApplication))
+                .filter(this::hasActiveOwnerApplication)
                 .orElseThrow(() -> new NotFoundException(SharedMessageKeys.NOT_FOUND));
         return SharedContractOutput.from(contract);
     }
@@ -124,6 +126,16 @@ public class SharedQueryService {
             try { return applications.findInactiveForShared(participation.getParticipantWorkspaceIdentifier(),
                     participation.getParticipantApplicationIdentifier()).name(); }
             catch (NotFoundException ignored) { return ""; }
+        }
+    }
+
+    private boolean hasActiveOwnerApplication(SharedContract contract) {
+        try {
+            applications.findActiveForShared(contract.getOwnerWorkspaceIdentifier(),
+                    contract.getOwnerApplicationIdentifier());
+            return true;
+        } catch (NotFoundException ex) {
+            return false;
         }
     }
 
