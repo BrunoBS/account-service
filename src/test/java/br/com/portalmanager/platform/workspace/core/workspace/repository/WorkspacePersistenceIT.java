@@ -8,6 +8,7 @@ import br.com.portalmanager.platform.library.testing.lifecycle.annotation.Platfo
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.RollbackException;
 import java.time.LocalDateTime;
@@ -61,11 +62,11 @@ class WorkspacePersistenceIT {
 
     @Test
     void shouldPersistWorkspaceWithApproversAndDefaultLifecycle() {
-        var workspace = newWorkspace("Portal Manager", "Primeira descrição válida");
+        Workspace workspace = newWorkspace("Portal Manager", "Primeira descrição válida");
         workspace.addApprover("123456", "approver@portalmanager.com");
 
-        var saved = workspaceRepository.saveAndFlush(workspace);
-        var reloaded = workspaceRepository.findDetailedById(saved.getId()).orElseThrow();
+        Workspace saved = workspaceRepository.saveAndFlush(workspace);
+        Workspace reloaded = workspaceRepository.findDetailedById(saved.getId()).orElseThrow();
 
         assertThat(reloaded.getIdentifier()).hasSize(36);
         assertThat(reloaded.getVersion()).isNotNull();
@@ -84,25 +85,27 @@ class WorkspacePersistenceIT {
     void shouldEnforceUniqueWorkspaceNameRegardlessOfLifecycle() {
         workspaceRepository.saveAndFlush(newWorkspace("Unique Workspace", "Descrição válida número um"));
 
-        var duplicate = newWorkspace("Unique Workspace", "Descrição válida número dois");
+        Workspace duplicate = newWorkspace("Unique Workspace", "Descrição válida número dois");
 
         assertThrows(DataIntegrityViolationException.class, () -> workspaceRepository.saveAndFlush(duplicate));
     }
 
     @Test
     void shouldRejectStaleUpdateUsingJpaVersion() {
-        var saved = workspaceRepository.saveAndFlush(newWorkspace("Optimistic Workspace", "Descrição inicial válida"));
-        var initialVersion = saved.getVersion();
+        Workspace saved = workspaceRepository.saveAndFlush(
+            newWorkspace("Optimistic Workspace", "Descrição inicial válida")
+        );
+        Long initialVersion = saved.getVersion();
 
-        var firstEntityManager = entityManagerFactory.createEntityManager();
-        var staleEntityManager = entityManagerFactory.createEntityManager();
+        EntityManager firstEntityManager = entityManagerFactory.createEntityManager();
+        EntityManager staleEntityManager = entityManagerFactory.createEntityManager();
 
         try {
             firstEntityManager.getTransaction().begin();
             staleEntityManager.getTransaction().begin();
 
-            var first = firstEntityManager.find(Workspace.class, saved.getId());
-            var stale = staleEntityManager.find(Workspace.class, saved.getId());
+            Workspace first = firstEntityManager.find(Workspace.class, saved.getId());
+            Workspace stale = staleEntityManager.find(Workspace.class, saved.getId());
 
             first.updateDescription("Descrição alterada pela primeira transação", LocalDateTime.of(2026, 9, 20, 11, 0));
             firstEntityManager.getTransaction().commit();
@@ -115,7 +118,7 @@ class WorkspacePersistenceIT {
             staleEntityManager.close();
         }
 
-        var reloaded = workspaceRepository.findById(saved.getId()).orElseThrow();
+        Workspace reloaded = workspaceRepository.findById(saved.getId()).orElseThrow();
 
         assertThat(reloaded.getDescription()).isEqualTo("Descrição alterada pela primeira transação");
         assertThat(reloaded.getVersion()).isGreaterThan(initialVersion);

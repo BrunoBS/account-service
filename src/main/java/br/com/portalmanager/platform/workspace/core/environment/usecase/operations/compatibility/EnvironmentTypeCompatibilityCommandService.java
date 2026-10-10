@@ -2,14 +2,17 @@ package br.com.portalmanager.platform.workspace.core.environment.usecase.operati
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
-import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentTypeCompatibility;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentType;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentTypeCompatibility;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeCompatibilityRepository;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentCompatibilityOutput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentTypeCompatibilityValidator;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentTypeCompatibilityValidator.TypePair;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,13 +36,16 @@ public class EnvironmentTypeCompatibilityCommandService {
 
     @Transactional
     public EnvironmentCompatibilityOutput allow(String parentCode, String childCode) {
-        var pair = validator.resolve(parentCode, childCode);
-        var parent = pair.parent();
-        var child = pair.child();
+        TypePair pair = validator.resolve(parentCode, childCode);
+        EnvironmentType parent = pair.parent();
+        EnvironmentType child = pair.child();
         boolean sameType = parent.getId().equals(child.getId());
         boolean cycle = !sameType && reaches(child.getId(), parent.getId(), new HashSet<>());
         validator.requireAcyclic(sameType, cycle);
-        var existing = compatibilities.findByParentTypeIdAndChildTypeId(parent.getId(), child.getId());
+        Optional<EnvironmentTypeCompatibility> existing = compatibilities.findByParentTypeIdAndChildTypeId(
+            parent.getId(),
+            child.getId()
+        );
         if (existing.isPresent()) {
             existing.get().activate(LocalDateTime.now());
             return EnvironmentCompatibilityOutput.from(existing.get());

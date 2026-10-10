@@ -2,6 +2,9 @@ package br.com.portalmanager.platform.workspace.feature.shared.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.portalmanager.platform.workspace.feature.shared.domain.contract.SharedContract;
+import br.com.portalmanager.platform.workspace.feature.shared.domain.participation.SharedEnvironmentMapping;
+import br.com.portalmanager.platform.workspace.feature.shared.domain.participation.SharedParticipation;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publicationmodetype.domain.PublicationModeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publicationmodetype.domain.PublicationModeTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain.ShareStatusTypeEnum;
@@ -12,18 +15,18 @@ import org.junit.jupiter.api.Test;
 class SharedParticipationTest {
 
     @Test
-    void resubmissionReusesTheLinkButClearsApprovalConfiguration() {
+    void requestingAgainReusesTheLinkButClearsApprovalConfiguration() {
         LocalDateTime now = LocalDateTime.now();
-        SharedContract contract = new SharedContract("owner-w", "owner-a", "Sharing", null, now);
-        SharedParticipation participation = new SharedParticipation(contract, "source-w", "source-a", now);
+        SharedContract contract = new SharedContract(1L, 2L, 3L, null, now);
+        SharedParticipation participation = new SharedParticipation(contract, 3L, 4L, now);
         participation.approve(PublicationModeTypeCode.of(PublicationModeTypeEnum.MANUAL), now);
         LinkedHashSet<SharedEnvironmentMapping> mappings = new LinkedHashSet<>();
-        mappings.add(new SharedEnvironmentMapping("source-env", "destination-env", now));
+        mappings.add(new SharedEnvironmentMapping(5L, 6L, now));
         participation.replaceMappings(mappings, now);
 
         String identifier = participation.getIdentifier();
         participation.revoke(now);
-        participation.resubmit(now);
+        participation.requestAgain(now);
 
         assertThat(participation.getIdentifier()).isEqualTo(identifier);
         assertThat(participation.getStatus().value()).isEqualTo(ShareStatusTypeEnum.PENDING.name());

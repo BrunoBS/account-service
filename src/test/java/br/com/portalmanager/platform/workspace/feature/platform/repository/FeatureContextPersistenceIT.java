@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.featurecontext.FeatureContext;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,16 +32,21 @@ class FeatureContextPersistenceIT {
 
     @Test
     void shouldEnforceUniqueContextNameAtDatabaseLevel() {
-        var now = LocalDateTime.of(2026, 9, 25, 15, 30);
+        LocalDateTime now = LocalDateTime.of(2026, 9, 25, 15, 30);
         repository.saveAndFlush(new FeatureContext("manager-account", "Manager Account", "Manager context", now));
-        var duplicate = new FeatureContext("manager-account-alt", "Manager Account", "Duplicate manager context", now);
+        FeatureContext duplicate = new FeatureContext(
+            "manager-account-alt",
+            "Manager Account",
+            "Duplicate manager context",
+            now
+        );
         assertThrows(DataIntegrityViolationException.class, () -> repository.saveAndFlush(duplicate));
     }
 
     @Test
     void shouldRejectStaleVersionOnUpdate() {
-        var now = LocalDateTime.of(2026, 9, 25, 15, 45);
-        var saved = repository.saveAndFlush(
+        LocalDateTime now = LocalDateTime.of(2026, 9, 25, 15, 45);
+        FeatureContext saved = repository.saveAndFlush(
             new FeatureContext("catalog-account", "Catalog Account", "Catalog context", now)
         );
 

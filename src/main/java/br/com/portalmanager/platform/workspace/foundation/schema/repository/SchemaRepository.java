@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.repository;
 
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;

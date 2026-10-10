@@ -2,9 +2,9 @@ package br.com.portalmanager.platform.workspace.core.environment.usecase.validat
 
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.workspace.core.environment.domain.Environment;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
-import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentType;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environment.Environment;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentType;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeCompatibilityRepository;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import java.util.Objects;

@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.environment.usecase.model;
 
-import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentTypeCompatibility;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentTypeCompatibility;
 
 public record EnvironmentCompatibilityOutput(
     String identifier,

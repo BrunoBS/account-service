@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.shared.usecase.validation;
 
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.SharedMessageKeys;
+import br.com.portalmanager.platform.workspace.feature.shared.domain.SharedMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain.ShareStatusTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain.ShareStatusTypeEnum;
 import org.springframework.stereotype.Component;
@@ -13,7 +13,7 @@ public class SharedTransitionPolicy {
         ShareStatusTypeEnum currentStatus;
         try {
             currentStatus = ShareStatusTypeEnum.valueOf(current.value());
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException exception) {
             throw new ValidationException(SharedMessageKeys.STATE_INVALID);
         }
         if (!currentStatus.canTransitionTo(next)) throw new ValidationException(SharedMessageKeys.STATE_INVALID);

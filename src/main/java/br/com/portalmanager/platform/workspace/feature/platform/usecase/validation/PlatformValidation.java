@@ -2,7 +2,7 @@ package br.com.portalmanager.platform.workspace.feature.platform.usecase.validat
 
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.PlatformMessageKeys;
 import java.util.regex.Pattern;
 
 final class PlatformValidation {

@@ -2,6 +2,8 @@ package br.com.portalmanager.platform.workspace.feature.platform.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.portalmanager.platform.workspace.feature.platform.domain.feature.Feature;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;

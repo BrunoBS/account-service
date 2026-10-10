@@ -5,5 +5,6 @@ public record CreateFeatureInput(
     String name,
     String description,
     String microserviceIdentifier,
-    String settings
+    String settings,
+    boolean shareable
 ) {}

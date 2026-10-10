@@ -1,7 +1,9 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.configuration.SchemaConfiguration;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaConfigurationRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
@@ -47,9 +49,9 @@ public class SchemaResolver implements SchemaResolutionPort {
     }
 
     private Optional<String> definition(String type, String code) {
-        var binding = configurations.findByResourceTypeAndResourceCode(type, code);
+        Optional<SchemaConfiguration> binding = configurations.findByResourceTypeAndResourceCode(type, code);
         if (binding.isEmpty()) return Optional.empty();
-        var configuration = binding.get();
+        SchemaConfiguration configuration = binding.get();
         if (!configuration.isActive()) {
             LOGGER.warn("Inactive schema configuration: type={}, code={}", type, code);
             return Optional.empty();
@@ -59,7 +61,7 @@ public class SchemaResolver implements SchemaResolutionPort {
             LOGGER.warn("Inactive or missing configured schema: type={}, code={}", type, code);
             return Optional.empty();
         }
-        var published = versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
+        Optional<SchemaVersion> published = versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
             schema.getId(),
             SchemaVersionStatusTypeCode.published()
         );

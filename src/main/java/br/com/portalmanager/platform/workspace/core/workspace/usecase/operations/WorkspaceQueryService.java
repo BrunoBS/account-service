@@ -1,16 +1,20 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
 import br.com.portalmanager.platform.library.authorization.annotation.ResourceVisibility;
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.library.tagging.TagManager;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
+import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceMessageKeys;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceTag;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOutput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +49,34 @@ public class WorkspaceQueryService {
     @Transactional(readOnly = true)
     public String findIdentifierByInternalId(Long id) {
         return finder.findActive(id).getIdentifier();
+    }
+
+    /** Resolves a persisted reference for Shared history, including inactive workspaces. */
+    @Transactional(readOnly = true)
+    public String findReferenceIdentifierByInternalId(Long workspaceId) {
+        return repository
+            .findById(workspaceId)
+            .orElseThrow(() -> new NotFoundException(WorkspaceMessageKeys.NOT_FOUND))
+            .getIdentifier();
+    }
+
+    /** Cross-module reference lookup for Shared discovery; does not expose workspace entities. */
+    @Transactional(readOnly = true)
+    public Map<Long, String> findReferenceIdentifiersByInternalIds(Collection<Long> workspaceIds) {
+        if (workspaceIds.isEmpty()) return Map.of();
+        return repository
+            .findAllById(workspaceIds)
+            .stream()
+            .collect(Collectors.toMap(Workspace::getId, Workspace::getIdentifier));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, String> findActiveIdentifiersByInternalIds(Collection<Long> workspaceIds) {
+        if (workspaceIds.isEmpty()) return Map.of();
+        return repository
+            .findByIdInAndLifecycleValue(workspaceIds, LifecycleTypeCode.active().value())
+            .stream()
+            .collect(Collectors.toMap(Workspace::getId, Workspace::getIdentifier));
     }
 
     @ResourceVisibility(Workspace.class)

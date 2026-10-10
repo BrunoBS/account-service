@@ -14,6 +14,7 @@ public record FeatureResponse(
     String microserviceIdentifier,
     String microserviceCode,
     String lifecycle,
+    boolean shareable,
     JsonNode settings,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
@@ -30,6 +31,7 @@ public record FeatureResponse(
             output.microserviceIdentifier(),
             output.microserviceCode(),
             output.lifecycle(),
+            output.shareable(),
             toJsonNode(output.settings()),
             output.createdAt(),
             output.updatedAt()

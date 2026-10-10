@@ -2,14 +2,18 @@ package br.com.portalmanager.platform.workspace.core.environment.usecase.operati
 
 import br.com.portalmanager.platform.library.authorization.annotation.ResourceVisibility;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.workspace.core.environment.domain.Environment;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environment.Environment;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentOutput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentReferenceOutput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTreeOutput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +32,22 @@ public class EnvironmentQueryService {
         this.repository = repository;
         this.finder = finder;
         this.workspaces = workspaces;
+    }
+
+    @Transactional(readOnly = true)
+    public Long findInternalIdByIdentifier(String identifier) {
+        return repository
+            .findByIdentifier(identifier)
+            .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND))
+            .getId();
+    }
+
+    @Transactional(readOnly = true)
+    public String findIdentifierByInternalId(Long environmentId) {
+        return repository
+            .findById(environmentId)
+            .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND))
+            .getIdentifier();
     }
 
     @ResourceVisibility(Environment.class)
@@ -69,6 +89,16 @@ public class EnvironmentQueryService {
             .toList();
     }
 
+    /** Resolves environment references in bulk, retaining inactive environments in Shared history. */
+    @Transactional(readOnly = true)
+    public Map<Long, String> findIdentifiersByInternalIds(Collection<Long> environmentIds) {
+        if (environmentIds.isEmpty()) return Map.of();
+        return repository
+            .findAllById(environmentIds)
+            .stream()
+            .collect(Collectors.toMap(Environment::getId, Environment::getIdentifier));
+    }
+
     /**
      * Cross-application Shared read. Callers must first authorize the receiving application
      * and verify an active contract/participation before exposing this result.
@@ -79,6 +109,7 @@ public class EnvironmentQueryService {
         List<EnvironmentOutput> defaults = repository
             .findDefaultsByLifecycle(LifecycleTypeCode.active())
             .stream()
+            .filter(finder::accessible)
             .map(e -> EnvironmentOutput.from(e, null))
             .toList();
         List<EnvironmentOutput> custom = repository
@@ -95,6 +126,47 @@ public class EnvironmentQueryService {
     public EnvironmentOutput findActiveForShared(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         return EnvironmentOutput.from(finder.findActive(identifier, workspaceId), workspaceIdentifier);
+    }
+
+    /** Resolves only the requested environments, retaining workspace and ancestor activity checks. */
+    @Transactional(readOnly = true)
+    public Map<String, EnvironmentReferenceOutput> findAvailableReferencesForShared(
+        String workspaceIdentifier,
+        Collection<String> identifiers
+    ) {
+        if (identifiers.isEmpty()) return Map.of();
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        Map<String, EnvironmentReferenceOutput> available = repository
+            .findSharedReferences(workspaceId, identifiers)
+            .stream()
+            .filter(finder::accessible)
+            .collect(
+                Collectors.toMap(Environment::getIdentifier, environment ->
+                    new EnvironmentReferenceOutput(
+                        environment.getId(),
+                        EnvironmentOutput.from(
+                            environment,
+                            environment.getWorkspaceId() == null ? null : workspaceIdentifier
+                        )
+                    )
+                )
+            );
+        if (!available.keySet().containsAll(identifiers)) {
+            throw new NotFoundException(EnvironmentMessageKeys.NOT_FOUND);
+        }
+        return available;
+    }
+
+    /** Resolves a Shared environment in the workspace or in the global defaults. */
+    @Transactional(readOnly = true)
+    public EnvironmentOutput findAvailableForShared(String workspaceIdentifier, String environmentIdentifier) {
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        Environment environment = repository
+            .findByIdentifierAndWorkspaceId(environmentIdentifier, workspaceId)
+            .or(() -> repository.findByIdentifierAndWorkspaceIdIsNull(environmentIdentifier))
+            .filter(finder::accessible)
+            .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND));
+        return EnvironmentOutput.from(environment, environment.getWorkspaceId() == null ? null : workspaceIdentifier);
     }
 
     @Transactional(readOnly = true)

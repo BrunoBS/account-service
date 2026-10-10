@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.environment.repository;
 
-import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentTypeCompatibility;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentTypeCompatibility;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import java.util.List;
 import java.util.Optional;

@@ -8,6 +8,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ class CatalogCodeArchitectureTest {
     void everyCatalogEnumMustHaveCorrespondingCodeValueObject() {
         Set<String> classNames = classes.stream().map(JavaClass::getName).collect(Collectors.toSet());
 
-        var missingCodes = catalogEnums()
+        List<String> missingCodes = catalogEnums()
             .stream()
             .map(this::expectedCodeClassName)
             .filter(expected -> !classNames.contains(expected))
@@ -38,7 +39,7 @@ class CatalogCodeArchitectureTest {
 
     @Test
     void catalogCodesMustExtendAbstractCatalogCodeAndExposeBothOfFactories() {
-        var violations = catalogEnums()
+        List<String> violations = catalogEnums()
             .stream()
             .filter(enumClass ->
                 classes.stream().anyMatch(candidate -> candidate.getName().equals(expectedCodeClassName(enumClass)))

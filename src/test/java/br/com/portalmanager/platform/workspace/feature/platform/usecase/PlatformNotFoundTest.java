@@ -5,11 +5,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.PlatformMessageKeys;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice;
+import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureContextRelationRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureContextRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.MicroserviceRepository;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context.FeatureContextQueryService;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature.FeatureQueryService;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceQueryService;
@@ -26,7 +27,12 @@ class PlatformNotFoundTest {
         )
             .isInstanceOf(NotFoundException.class)
             .hasMessage(PlatformMessageKeys.MICROSERVICE_NOT_FOUND);
-        assertThatThrownBy(() -> new FeatureQueryService(mock(FeatureRepository.class)).findByIdentifier("missing"))
+        assertThatThrownBy(() ->
+            new FeatureQueryService(
+                mock(FeatureRepository.class),
+                mock(FeatureContextRelationRepository.class)
+            ).findByIdentifier("missing")
+        )
             .isInstanceOf(NotFoundException.class)
             .hasMessage(PlatformMessageKeys.FEATURE_NOT_FOUND);
         assertThatThrownBy(() ->

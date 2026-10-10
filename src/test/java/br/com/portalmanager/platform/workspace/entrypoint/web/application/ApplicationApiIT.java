@@ -11,7 +11,10 @@ import br.com.portalmanager.platform.library.testing.lifecycle.annotation.Platfo
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.request.CreateApplicationRequest;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;
+import io.restassured.response.ExtractableResponse;
+import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
+import io.restassured.specification.RequestSpecification;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -139,7 +142,7 @@ class ApplicationApiIT {
         Map<String, Object> create = request("Application Original");
         create.put("authorizerGroup", "TEAM_A");
         create.put("tags", List.of("minha-tag", "outra-tag"));
-        var created = post(path, create)
+        ExtractableResponse<Response> created = post(path, create)
             .statusCode(201)
             .body("tags", containsInAnyOrder("minha-tag", "outra-tag"))
             .body("authorizerGroup", equalTo("A-TEAM_A"))
@@ -373,7 +376,7 @@ class ApplicationApiIT {
     }
 
     private ValidatableResponse post(String path, Object body) {
-        var request = given()
+        RequestSpecification request = given()
             .port(port)
             .header("correlation-id", "application-api-it")
             .header("Authorization", "Bearer application-api-it")

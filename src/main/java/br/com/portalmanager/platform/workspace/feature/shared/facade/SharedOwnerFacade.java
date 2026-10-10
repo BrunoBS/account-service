@@ -2,143 +2,205 @@ package br.com.portalmanager.platform.workspace.feature.shared.facade;
 
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
 import br.com.portalmanager.platform.library.authorization.model.*;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentOutput;
-import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.*;
-import br.com.portalmanager.platform.workspace.feature.shared.usecase.operations.SharedCommandService;
-import br.com.portalmanager.platform.workspace.feature.shared.usecase.operations.SharedQueryService;
-import java.util.List;
+import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.contract.SharedContractInput;
+import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.contract.SharedContractOutput;
+import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.contract.SharedContractPageOutput;
+import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.participation.ParticipationConfigurationInput;
+import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.participation.ParticipationStatusInput;
+import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.participation.SharedParticipationOutput;
+import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.participation.SharedParticipationPageOutput;
+import br.com.portalmanager.platform.workspace.feature.shared.usecase.operations.contract.SharedContractCommandService;
+import br.com.portalmanager.platform.workspace.feature.shared.usecase.operations.contract.SharedContractQueryService;
+import br.com.portalmanager.platform.workspace.feature.shared.usecase.operations.participation.SharedParticipationCommandService;
+import br.com.portalmanager.platform.workspace.feature.shared.usecase.operations.participation.SharedParticipationQueryService;
+import br.com.portalmanager.platform.workspace.feature.shared.usecase.operations.participation.SharedParticipationStatusService;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SharedOwnerFacade {
 
-    private final SharedCommandService command;
-    private final SharedQueryService query;
+    private final SharedParticipationStatusService statusService;
+    private final SharedContractCommandService contractCommandService;
+    private final SharedParticipationCommandService participationCommandService;
+    private final SharedContractQueryService contractQueryService;
+    private final SharedParticipationQueryService participationQueryService;
 
-    public SharedOwnerFacade(SharedCommandService command, SharedQueryService query) {
-        this.command = command;
-        this.query = query;
+    public SharedOwnerFacade(
+        SharedParticipationStatusService statusService,
+        SharedContractCommandService contractCommandService,
+        SharedParticipationCommandService participationCommandService,
+        SharedContractQueryService contractQueryService,
+        SharedParticipationQueryService participationQueryService
+    ) {
+        this.statusService = statusService;
+        this.contractCommandService = contractCommandService;
+        this.participationCommandService = participationCommandService;
+        this.contractQueryService = contractQueryService;
+        this.participationQueryService = participationQueryService;
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.CREATE)
-    public SharedContractOutput create(AuthorizationContext context, String w, String a, SharedContractInput input) {
-        return command.createContract(w, a, input);
+    public SharedContractOutput create(
+        AuthorizationContext authorizationContext,
+        String ownerWorkspaceIdentifier,
+        String ownerApplicationIdentifier,
+        SharedContractInput input
+    ) {
+        return contractCommandService.createContract(ownerWorkspaceIdentifier, ownerApplicationIdentifier, input);
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.DEV, action = AuthorizationAction.READ)
-    public List<SharedContractOutput> list(AuthorizationContext context, String w, String a) {
-        return query.listContracts(w, a);
+    public SharedContractPageOutput list(
+        AuthorizationContext authorizationContext,
+        String ownerWorkspaceIdentifier,
+        String ownerApplicationIdentifier,
+        String page,
+        String size
+    ) {
+        return contractQueryService.listContracts(ownerWorkspaceIdentifier, ownerApplicationIdentifier, page, size);
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.DEV, action = AuthorizationAction.READ)
-    public SharedContractOutput find(AuthorizationContext context, String w, String a, String c) {
-        return query.findContract(w, a, c);
+    public SharedContractOutput find(
+        AuthorizationContext authorizationContext,
+        String ownerWorkspaceIdentifier,
+        String ownerApplicationIdentifier,
+        String contractIdentifier
+    ) {
+        return contractQueryService.findContract(
+            ownerWorkspaceIdentifier,
+            ownerApplicationIdentifier,
+            contractIdentifier
+        );
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.UPDATE)
     public SharedContractOutput update(
-        AuthorizationContext context,
-        String w,
-        String a,
-        String c,
+        AuthorizationContext authorizationContext,
+        String ownerWorkspaceIdentifier,
+        String ownerApplicationIdentifier,
+        String contractIdentifier,
         SharedContractInput input
     ) {
-        return command.updateContract(w, a, c, input);
+        return contractCommandService.updateContract(
+            ownerWorkspaceIdentifier,
+            ownerApplicationIdentifier,
+            contractIdentifier,
+            input
+        );
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.ACTIVATE)
-    public SharedContractOutput activate(AuthorizationContext context, String w, String a, String c) {
-        return command.activateContract(w, a, c);
+    public SharedContractOutput activate(
+        AuthorizationContext authorizationContext,
+        String ownerWorkspaceIdentifier,
+        String ownerApplicationIdentifier,
+        String contractIdentifier
+    ) {
+        return contractCommandService.activateContract(
+            ownerWorkspaceIdentifier,
+            ownerApplicationIdentifier,
+            contractIdentifier
+        );
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.DEACTIVATE)
-    public SharedContractOutput inactivate(AuthorizationContext context, String w, String a, String c) {
-        return command.inactivateContract(w, a, c);
+    public SharedContractOutput inactivate(
+        AuthorizationContext authorizationContext,
+        String ownerWorkspaceIdentifier,
+        String ownerApplicationIdentifier,
+        String contractIdentifier
+    ) {
+        return contractCommandService.inactivateContract(
+            ownerWorkspaceIdentifier,
+            ownerApplicationIdentifier,
+            contractIdentifier
+        );
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.DELETE)
-    public void delete(AuthorizationContext context, String w, String a, String c) {
-        command.deleteContract(w, a, c);
+    public void delete(
+        AuthorizationContext authorizationContext,
+        String ownerWorkspaceIdentifier,
+        String ownerApplicationIdentifier,
+        String contractIdentifier
+    ) {
+        contractCommandService.deleteContract(ownerWorkspaceIdentifier, ownerApplicationIdentifier, contractIdentifier);
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.DEV, action = AuthorizationAction.READ)
-    public List<SharedParticipationOutput> participants(
-        AuthorizationContext context,
-        String w,
-        String a,
-        String c,
-        String name,
-        String participantApplication,
-        String status
+    public SharedParticipationPageOutput participants(
+        AuthorizationContext authorizationContext,
+        String ownerWorkspaceIdentifier,
+        String ownerApplicationIdentifier,
+        String contractIdentifier,
+        String participantName,
+        String participantApplicationIdentifier,
+        String status,
+        String page,
+        String size
     ) {
-        return query.listOwnerParticipations(w, a, c, name, participantApplication, status);
+        return participationQueryService.listOwnerParticipations(
+            ownerWorkspaceIdentifier,
+            ownerApplicationIdentifier,
+            contractIdentifier,
+            participantName,
+            participantApplicationIdentifier,
+            status,
+            page,
+            size
+        );
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.DEV, action = AuthorizationAction.READ)
     public SharedParticipationOutput participation(
-        AuthorizationContext context,
-        String w,
-        String a,
-        String c,
-        String p
+        AuthorizationContext authorizationContext,
+        String ownerWorkspaceIdentifier,
+        String ownerApplicationIdentifier,
+        String contractIdentifier,
+        String participationIdentifier
     ) {
-        return query.findOwnerParticipation(w, a, c, p);
-    }
-
-    @AuthorizationRequired(level = AuthorizationLevel.DEV, action = AuthorizationAction.READ)
-    public List<EnvironmentOutput> sourceEnvironments(
-        AuthorizationContext context,
-        String w,
-        String a,
-        String c,
-        String p
-    ) {
-        return query.listSourceEnvironments(w, a, c, p);
+        return participationQueryService.findOwnerParticipationDetails(
+            ownerWorkspaceIdentifier,
+            ownerApplicationIdentifier,
+            contractIdentifier,
+            participationIdentifier
+        );
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.UPDATE)
-    public SharedParticipationOutput approve(
-        AuthorizationContext context,
-        String w,
-        String a,
-        String c,
-        String p,
-        ParticipationApprovalInput input
+    public SharedParticipationOutput changeParticipationStatus(
+        AuthorizationContext authorizationContext,
+        String ownerWorkspaceIdentifier,
+        String ownerApplicationIdentifier,
+        String contractIdentifier,
+        String participationIdentifier,
+        ParticipationStatusInput input
     ) {
-        return command.approve(w, a, c, p, input);
+        return statusService.changeStatus(
+            ownerWorkspaceIdentifier,
+            ownerApplicationIdentifier,
+            contractIdentifier,
+            participationIdentifier,
+            input
+        );
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.UPDATE)
-    public SharedParticipationOutput reject(AuthorizationContext context, String w, String a, String c, String p) {
-        return command.reject(w, a, c, p);
-    }
-
-    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.UPDATE)
-    public SharedParticipationOutput revoke(AuthorizationContext context, String w, String a, String c, String p) {
-        return command.revoke(w, a, c, p);
-    }
-
-    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.UPDATE)
-    public SharedParticipationOutput publicationMode(
-        AuthorizationContext context,
-        String w,
-        String a,
-        String c,
-        String p,
-        PublicationModeInput input
+    public SharedParticipationOutput updateConfiguration(
+        AuthorizationContext authorizationContext,
+        String ownerWorkspaceIdentifier,
+        String ownerApplicationIdentifier,
+        String contractIdentifier,
+        String participationIdentifier,
+        ParticipationConfigurationInput input
     ) {
-        return command.changePublicationMode(w, a, c, p, input == null ? null : input.publicationModeCode());
-    }
-
-    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.UPDATE)
-    public SharedParticipationOutput mappings(
-        AuthorizationContext context,
-        String w,
-        String a,
-        String c,
-        String p,
-        EnvironmentMappingInput input
-    ) {
-        return command.replaceMappings(w, a, c, p, input);
+        return participationCommandService.updateConfiguration(
+            ownerWorkspaceIdentifier,
+            ownerApplicationIdentifier,
+            contractIdentifier,
+            participationIdentifier,
+            input
+        );
     }
 }

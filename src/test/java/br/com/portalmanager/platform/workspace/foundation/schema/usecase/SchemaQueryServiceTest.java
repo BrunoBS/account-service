@@ -4,9 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaQueryService;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +34,7 @@ class SchemaQueryServiceTest {
         );
         when(versionRepository.findBySchema_IdOrderBySchemaVersionDesc(42L)).thenReturn(List.of());
 
-        var versions = service.findWorkspaceVersions("workspace-identifier", "schema-identifier");
+        List<SchemaVersionOutput> versions = service.findWorkspaceVersions("workspace-identifier", "schema-identifier");
 
         assertThat(versions).isEmpty();
         verify(workspaceReferenceResolver).resolveInternalId("workspace-identifier");

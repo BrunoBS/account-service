@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.model;
 
-import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.featurecontext.FeatureContext;
 import java.time.LocalDateTime;
 
 public record FeatureContextOutput(

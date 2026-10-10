@@ -16,6 +16,7 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -45,7 +46,7 @@ class GoldenArchitectureTest {
     @Test
     void onlyApprovedArchitecturalZonesMayExist() {
         Set<String> allowed = Set.of("foundation", "core", "feature", "entrypoint");
-        var invalidPackages = classes
+        List<String> invalidPackages = classes
             .stream()
             .map(JavaClass::getPackageName)
             .filter(p -> p.startsWith(ROOT + "."))
@@ -59,7 +60,7 @@ class GoldenArchitectureTest {
 
     @Test
     void compositionRootMayContainOnlyBootstrapOrSpringConfiguration() {
-        var rootClasses = classes
+        List<JavaClass> rootClasses = classes
             .stream()
             .filter(c -> c.getPackageName().equals(ROOT))
             .toList();
@@ -83,7 +84,7 @@ class GoldenArchitectureTest {
     @Test
     void catalogMustBeOrganizedByCatalogBeforeLayer() {
         String prefix = ROOT + ".foundation.catalog.";
-        var invalid = classes
+        List<String> invalid = classes
             .stream()
             .map(JavaClass::getPackageName)
             .filter(p -> p.startsWith(prefix))
@@ -107,7 +108,7 @@ class GoldenArchitectureTest {
     @Test
     void concreteCatalogModulesMustBeExplicitTypes() {
         String prefix = ROOT + ".foundation.catalog.";
-        var invalid = classes
+        List<String> invalid = classes
             .stream()
             .map(JavaClass::getPackageName)
             .filter(p -> p.startsWith(prefix))
@@ -123,7 +124,7 @@ class GoldenArchitectureTest {
     @Test
     void schemaMustFollowApprovedInternalStructure() {
         String prefix = ROOT + ".foundation.schema.";
-        var invalid = classes
+        List<String> invalid = classes
             .stream()
             .map(JavaClass::getPackageName)
             .filter(p -> p.startsWith(prefix))
@@ -176,13 +177,13 @@ class GoldenArchitectureTest {
     @Test
     void catalogFacadesMustRequireOwnerAuthorization() {
         String prefix = ROOT + ".foundation.catalog.";
-        var facades = classes
+        List<JavaClass> facades = classes
             .stream()
             .filter(c -> c.getPackageName().startsWith(prefix) && c.getPackageName().endsWith(".facade"))
             .toList();
         assertThat(facades).isNotEmpty();
         assertThat(facades).allSatisfy(c -> {
-            var annotated = Arrays.stream(c.reflect().getMethods())
+            List<Method> annotated = Arrays.stream(c.reflect().getMethods())
                 .filter(m -> m.isAnnotationPresent(AuthorizationRequired.class))
                 .toList();
             assertThat(annotated)
@@ -234,8 +235,13 @@ class GoldenArchitectureTest {
     }
 
     @Test
+    void messageKeysMustResideInModuleDomain() {
+        classes().that().haveSimpleNameEndingWith("MessageKeys").should().resideInAPackage("..domain").check(classes);
+    }
+
+    @Test
     void restEndpointsMustNotExposeUseCaseModels() {
-        var invalid = classes
+        List<String> invalid = classes
             .stream()
             .filter(c -> c.isAnnotatedWith(RestController.class))
             .map(JavaClass::reflect)
@@ -255,7 +261,7 @@ class GoldenArchitectureTest {
 
     @Test
     void authorizedFacadeMethodsMustReceiveAuthorizationContext() {
-        var methods = classes
+        List<Method> methods = classes
             .stream()
             .filter(c -> c.getPackageName().endsWith(".facade"))
             .map(JavaClass::reflect)
@@ -270,7 +276,7 @@ class GoldenArchitectureTest {
 
     @Test
     void restEndpointsMustReceiveAuthorizationContext() {
-        var methods = classes
+        List<Method> methods = classes
             .stream()
             .filter(c -> c.isAnnotatedWith(RestController.class))
             .map(JavaClass::reflect)

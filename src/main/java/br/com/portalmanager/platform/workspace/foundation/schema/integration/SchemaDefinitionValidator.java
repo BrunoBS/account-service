@@ -2,7 +2,7 @@ package br.com.portalmanager.platform.workspace.foundation.schema.integration;
 
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaMessageKeys;
 import com.networknt.schema.Error;
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaRegistry;

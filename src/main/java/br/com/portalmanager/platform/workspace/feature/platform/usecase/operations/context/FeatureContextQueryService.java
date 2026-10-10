@@ -1,9 +1,9 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context;
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureContextRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.FeatureContextOutput;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import java.util.List;
 import org.springframework.transaction.annotation.Transactional;
 

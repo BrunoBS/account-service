@@ -62,6 +62,8 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
         @Param("identifiers") Collection<String> identifiers
     );
 
+    List<Workspace> findByIdInAndLifecycleValue(Collection<Long> ids, String lifecycle);
+
     boolean existsByName(String name);
 
     boolean existsByNameAndIdNot(String name, Long id);

@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.platform.repository;
 
-import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

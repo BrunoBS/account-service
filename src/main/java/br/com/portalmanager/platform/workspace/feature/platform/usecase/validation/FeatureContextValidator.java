@@ -1,9 +1,10 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.validation;
 
-import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.PlatformMessageKeys;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.featurecontext.FeatureContext;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateFeatureContextInput;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateFeatureContextInput;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -41,8 +42,23 @@ public class FeatureContextValidator {
         );
     }
 
-    public void validateDelete(FeatureContext context) {
-        if (!context.getFeatures().isEmpty()) {
+    public void validateAssociation(FeatureContext context) {
+        if (!context.isActive()) {
+            PlatformValidation.reject("featureIdentifiers", PlatformMessageKeys.CONTEXT_INACTIVE);
+        }
+    }
+
+    public void validateFeatureIdentifiers(List<String> identifiers) {
+        if (
+            identifiers != null &&
+            identifiers.stream().anyMatch(identifier -> identifier == null || identifier.isBlank())
+        ) {
+            PlatformValidation.reject("featureIdentifiers", PlatformMessageKeys.FEATURE_NOT_FOUND);
+        }
+    }
+
+    public void validateDelete(boolean hasFeatures) {
+        if (hasFeatures) {
             PlatformValidation.reject("context", PlatformMessageKeys.CONTEXT_HAS_FEATURES);
         }
     }

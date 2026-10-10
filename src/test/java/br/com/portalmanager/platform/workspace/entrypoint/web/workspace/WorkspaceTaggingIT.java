@@ -9,6 +9,8 @@ import br.com.portalmanager.platform.library.testing.database.annotation.WithMyS
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;
+import io.restassured.response.ExtractableResponse;
+import io.restassured.response.Response;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +67,7 @@ class WorkspaceTaggingIT {
         Map<String, Object> create = validCreate("Workspace Original", "ORG", "TEAM_A");
         create.put("tags", List.of("manual-tag"));
 
-        var created = post(create).statusCode(201).extract();
+        ExtractableResponse<Response> created = post(create).statusCode(201).extract();
         String identifier = created.path("identifier");
         Integer version = created.path("version");
 

@@ -27,6 +27,13 @@ public class ApplicationFinder {
         return app;
     }
 
+    public Application findActiveForUpdate(String identifier, Long workspaceId) {
+        return repository
+            .findByIdentifierAndWorkspaceIdForUpdate(identifier, workspaceId)
+            .filter(application -> LifecycleTypeCode.active().equals(application.getLifecycle()))
+            .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
+    }
+
     public Application findInactive(String identifier, Long workspaceId) {
         Application app = repository
             .findByIdentifierAndWorkspaceId(identifier, workspaceId)

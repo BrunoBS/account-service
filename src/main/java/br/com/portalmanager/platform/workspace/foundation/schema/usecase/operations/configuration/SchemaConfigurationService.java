@@ -2,8 +2,8 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operat
 
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaConfiguration;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.configuration.SchemaConfiguration;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaConfigurationRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaConfigurationInput;

@@ -1,7 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.environment.repository;
 
-import br.com.portalmanager.platform.workspace.core.environment.domain.Environment;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environment.Environment;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +12,14 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EnvironmentRepository extends JpaRepository<Environment, Long> {
+    @Query(
+        "select environment from Environment environment where environment.identifier in :identifiers and (environment.workspaceId = :workspaceId or environment.workspaceId is null)"
+    )
+    List<Environment> findSharedReferences(
+        @Param("workspaceId") Long workspaceId,
+        @Param("identifiers") Collection<String> identifiers
+    );
+
     Optional<Environment> findByIdentifierAndWorkspaceId(String identifier, Long workspaceId);
     Optional<Environment> findByIdentifierAndWorkspaceIdIsNull(String identifier);
     Optional<Environment> findByIdentifier(String identifier);

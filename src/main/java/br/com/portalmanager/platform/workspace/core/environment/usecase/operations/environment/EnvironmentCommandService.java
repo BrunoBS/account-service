@@ -3,9 +3,9 @@ package br.com.portalmanager.platform.workspace.core.environment.usecase.operati
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.workspace.core.environment.domain.Environment;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
-import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentType;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environment.Environment;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentType;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.CreateEnvironmentInput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentOutput;

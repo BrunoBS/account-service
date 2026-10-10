@@ -2,10 +2,12 @@ package br.com.portalmanager.platform.workspace.core.application.usecase.operati
 
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.schemavalidation.annotation.SchemaPayload;
 import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchema;
 import br.com.portalmanager.platform.library.tagging.TagManager;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
+import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationMessageKeys;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationSystemTags;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationTag;
 import br.com.portalmanager.platform.workspace.core.application.repository.ApplicationRepository;
@@ -15,6 +17,8 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.model.Up
 import br.com.portalmanager.platform.workspace.core.application.usecase.validation.ApplicationValidator;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeEnum;
+import br.com.portalmanager.platform.workspace.foundation.integration.ApplicationSharingReferenceGuard;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,6 +42,7 @@ public class ApplicationCommandService {
     private final ApplicationQueryService visibility;
     private final WorkspaceQueryService workspaceVisibility;
     private final ObjectMapper json;
+    private final ApplicationSharingReferenceGuard sharingReferences;
 
     @Autowired
     public ApplicationCommandService(
@@ -49,7 +54,8 @@ public class ApplicationCommandService {
         TagManager<ApplicationTag, Application> tags,
         ApplicationQueryService visibility,
         WorkspaceQueryService workspaceVisibility,
-        ObjectMapper json
+        ObjectMapper json,
+        ApplicationSharingReferenceGuard sharingReferences
     ) {
         this.repository = repository;
         this.finder = finder;
@@ -60,6 +66,7 @@ public class ApplicationCommandService {
         this.visibility = visibility;
         this.workspaceVisibility = workspaceVisibility;
         this.json = json;
+        this.sharingReferences = sharingReferences;
     }
 
     public ApplicationCommandService(
@@ -81,7 +88,8 @@ public class ApplicationCommandService {
             tags,
             visibility,
             workspaceVisibility,
-            JsonMapper.builder().build()
+            JsonMapper.builder().build(),
+            applicationId -> false
         );
     }
 
@@ -120,7 +128,7 @@ public class ApplicationCommandService {
         UpdateApplicationInput raw = json.treeToValue(payload, UpdateApplicationInput.class);
         visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findActive(identifier, workspaceId);
+        Application app = finder.findActiveForUpdate(identifier, workspaceId);
         UpdateApplicationInput input = normalizer.normalize(raw);
         boolean duplicate =
             input != null &&
@@ -128,6 +136,12 @@ public class ApplicationCommandService {
             repository.existsByWorkspaceIdAndNameAndIdNot(workspaceId, input.name(), app.getId());
         validator.validateForUpdate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
         validator.requireVersion(app.getVersion(), input.version());
+        if (
+            !ApplicationScopeTypeEnum.SHARED.name().equals(input.applicationScope()) &&
+            sharingReferences.hasSharedContracts(app.getId())
+        ) {
+            throw new ValidationException(ApplicationMessageKeys.HAS_SHARED_CONTRACTS);
+        }
         app.update(
             input.name(),
             input.alias(),

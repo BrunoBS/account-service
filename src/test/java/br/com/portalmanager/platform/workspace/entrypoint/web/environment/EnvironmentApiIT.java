@@ -10,6 +10,8 @@ import br.com.portalmanager.platform.library.testing.lifecycle.annotation.Platfo
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
+import io.restassured.specification.RequestSpecification;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -258,13 +260,13 @@ class EnvironmentApiIT {
     }
 
     private Map<String, Object> withType(String name, String code) {
-        var result = new java.util.HashMap<String, Object>(input(name));
+        HashMap<String, Object> result = new java.util.HashMap<String, Object>(input(name));
         result.put("environmentTypeCode", code);
         return result;
     }
 
     private Map<String, Object> child(String name, String code, String parent) {
-        var result = new java.util.HashMap<String, Object>(withType(name, code));
+        HashMap<String, Object> result = new java.util.HashMap<String, Object>(withType(name, code));
         result.put("parentIdentifier", parent);
         return result;
     }
@@ -281,7 +283,7 @@ class EnvironmentApiIT {
     }
 
     private ValidatableResponse post(String path, Object body) {
-        var request = given()
+        RequestSpecification request = given()
             .port(port)
             .header("correlation-id", "environment-api-it")
             .header("Authorization", "Bearer environment-api-it")

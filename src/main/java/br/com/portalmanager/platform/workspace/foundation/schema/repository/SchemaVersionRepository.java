@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.repository;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
 import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;

@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.FeatureContextOutput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature.FeatureQueryService;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -70,7 +72,7 @@ class PlatformQueryIT {
             """
         );
 
-        var contexts = queryService.findContexts("22222222-2222-2222-2222-222222222222");
+        List<FeatureContextOutput> contexts = queryService.findContexts("22222222-2222-2222-2222-222222222222");
 
         assertThat(contexts)
             .hasSize(1)

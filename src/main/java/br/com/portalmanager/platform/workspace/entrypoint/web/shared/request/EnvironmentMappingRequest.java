@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.shared.request;
 
-import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.EnvironmentMappingInput;
+import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.mapping.EnvironmentMappingInput;
 import java.util.List;
 
 public record EnvironmentMappingRequest(List<Mapping> mappings) {
@@ -12,12 +12,12 @@ public record EnvironmentMappingRequest(List<Mapping> mappings) {
                 ? null
                 : mappings
                       .stream()
-                      .map(m ->
-                          m == null
+                      .map(mapping ->
+                          mapping == null
                               ? null
                               : new EnvironmentMappingInput.Mapping(
-                                    m.sourceEnvironmentIdentifier(),
-                                    m.destinationEnvironmentIdentifiers()
+                                    mapping.sourceEnvironmentIdentifier(),
+                                    mapping.destinationEnvironmentIdentifiers()
                                 )
                       )
                       .toList()

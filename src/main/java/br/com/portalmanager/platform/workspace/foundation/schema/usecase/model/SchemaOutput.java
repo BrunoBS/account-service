@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.model;
 
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 
 public record SchemaOutput(
     String identifier,

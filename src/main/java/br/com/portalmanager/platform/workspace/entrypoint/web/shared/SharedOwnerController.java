@@ -1,18 +1,18 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.shared;
 
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
-import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.web.shared.request.*;
+import br.com.portalmanager.platform.workspace.entrypoint.web.shared.response.SharedContractPageResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.web.shared.response.SharedContractResponse;
+import br.com.portalmanager.platform.workspace.entrypoint.web.shared.response.SharedParticipationPageResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.web.shared.response.SharedParticipationResponse;
 import br.com.portalmanager.platform.workspace.feature.shared.facade.SharedOwnerFacade;
-import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/workspaces/{workspaceIdentifier}/applications/{applicationIdentifier}/shared/contracts")
+@RequestMapping("/api/v1/workspaces/{workspaceIdentifier}/applications/{applicationIdentifier}/shared-contracts")
 public class SharedOwnerController {
 
     private final SharedOwnerFacade facade;
@@ -41,16 +41,16 @@ public class SharedOwnerController {
     }
 
     @GetMapping
-    public List<SharedContractResponse> list(
+    public SharedContractPageResponse list(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
-        @PathVariable String applicationIdentifier
+        @PathVariable String applicationIdentifier,
+        @RequestParam(defaultValue = "0") String page,
+        @RequestParam(defaultValue = "20") String size
     ) {
-        return facade
-            .list(context, workspaceIdentifier, applicationIdentifier)
-            .stream()
-            .map(SharedContractResponse::from)
-            .toList();
+        return SharedContractPageResponse.from(
+            facade.list(context, workspaceIdentifier, applicationIdentifier, page, size)
+        );
     }
 
     @GetMapping("/{contractIdentifier}")
@@ -120,41 +120,43 @@ public class SharedOwnerController {
     }
 
     @GetMapping("/{contractIdentifier}/participations")
-    public List<SharedParticipationResponse> participants(
+    public SharedParticipationPageResponse participants(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
         @PathVariable String applicationIdentifier,
         @PathVariable String contractIdentifier,
         @RequestParam(required = false) String participantName,
         @RequestParam(required = false) String participantApplicationIdentifier,
-        @RequestParam(required = false) String status
+        @RequestParam(required = false) String status,
+        @RequestParam(defaultValue = "0") String page,
+        @RequestParam(defaultValue = "20") String size
     ) {
-        return facade
-            .participants(
+        return SharedParticipationPageResponse.from(
+            facade.participants(
                 context,
                 workspaceIdentifier,
                 applicationIdentifier,
                 contractIdentifier,
                 participantName,
                 participantApplicationIdentifier,
-                status
+                status,
+                page,
+                size
             )
-            .stream()
-            .map(SharedParticipationResponse::from)
-            .toList();
+        );
     }
 
-    @PostMapping("/{contractIdentifier}/participations/{participationIdentifier}/approval")
-    public SharedParticipationResponse approve(
+    @PatchMapping("/{contractIdentifier}/participations/{participationIdentifier}/status")
+    public SharedParticipationResponse changeParticipationStatus(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
         @PathVariable String applicationIdentifier,
         @PathVariable String contractIdentifier,
         @PathVariable String participationIdentifier,
-        @RequestBody ParticipationApprovalRequest input
+        @RequestBody(required = false) ParticipationStatusRequest input
     ) {
         return SharedParticipationResponse.from(
-            facade.approve(
+            facade.changeParticipationStatus(
                 context,
                 workspaceIdentifier,
                 applicationIdentifier,
@@ -165,8 +167,8 @@ public class SharedOwnerController {
         );
     }
 
-    @PostMapping("/{contractIdentifier}/participations/{participationIdentifier}/rejection")
-    public SharedParticipationResponse reject(
+    @GetMapping("/{contractIdentifier}/participations/{participationIdentifier}")
+    public SharedParticipationResponse findParticipation(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
         @PathVariable String applicationIdentifier,
@@ -174,7 +176,7 @@ public class SharedOwnerController {
         @PathVariable String participationIdentifier
     ) {
         return SharedParticipationResponse.from(
-            facade.reject(
+            facade.participation(
                 context,
                 workspaceIdentifier,
                 applicationIdentifier,
@@ -184,105 +186,17 @@ public class SharedOwnerController {
         );
     }
 
-    @PostMapping("/{contractIdentifier}/participations/{participationIdentifier}/revocation")
-    public SharedParticipationResponse revoke(
-        AuthorizationContext context,
-        @PathVariable String workspaceIdentifier,
-        @PathVariable String applicationIdentifier,
-        @PathVariable String contractIdentifier,
-        @PathVariable String participationIdentifier
-    ) {
-        return SharedParticipationResponse.from(
-            facade.revoke(
-                context,
-                workspaceIdentifier,
-                applicationIdentifier,
-                contractIdentifier,
-                participationIdentifier
-            )
-        );
-    }
-
-    @PutMapping("/{contractIdentifier}/participations/{participationIdentifier}/publication-mode")
-    public SharedParticipationResponse publicationMode(
+    @PutMapping("/{contractIdentifier}/participations/{participationIdentifier}/configuration")
+    public SharedParticipationResponse updateConfiguration(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
         @PathVariable String applicationIdentifier,
         @PathVariable String contractIdentifier,
         @PathVariable String participationIdentifier,
-        @RequestBody PublicationModeRequest input
+        @RequestBody(required = false) ParticipationConfigurationRequest input
     ) {
         return SharedParticipationResponse.from(
-            facade.publicationMode(
-                context,
-                workspaceIdentifier,
-                applicationIdentifier,
-                contractIdentifier,
-                participationIdentifier,
-                input == null ? null : input.toInput()
-            )
-        );
-    }
-
-    @GetMapping("/{contractIdentifier}/participations/{participationIdentifier}/environment-mappings")
-    public List<SharedParticipationResponse.EnvironmentMapping> mappings(
-        AuthorizationContext context,
-        @PathVariable String workspaceIdentifier,
-        @PathVariable String applicationIdentifier,
-        @PathVariable String contractIdentifier,
-        @PathVariable String participationIdentifier
-    ) {
-        return facade
-            .participation(
-                context,
-                workspaceIdentifier,
-                applicationIdentifier,
-                contractIdentifier,
-                participationIdentifier
-            )
-            .mappings()
-            .stream()
-            .map(m ->
-                new SharedParticipationResponse.EnvironmentMapping(
-                    m.sourceEnvironmentIdentifier(),
-                    m.destinationEnvironmentIdentifier()
-                )
-            )
-            .toList();
-    }
-
-    @GetMapping("/{contractIdentifier}/participations/{participationIdentifier}/source-environments")
-    public List<EnvironmentResponse> sourceEnvironments(
-        AuthorizationContext context,
-        @PathVariable String workspaceIdentifier,
-        @PathVariable String applicationIdentifier,
-        @PathVariable String contractIdentifier,
-        @PathVariable String participationIdentifier
-    ) {
-        return facade
-            .sourceEnvironments(
-                context,
-                workspaceIdentifier,
-                applicationIdentifier,
-                contractIdentifier,
-                participationIdentifier
-            )
-            .stream()
-            .map(EnvironmentResponse::from)
-            .toList();
-    }
-
-    @PutMapping("/{contractIdentifier}/participations/{participationIdentifier}/environment-mappings")
-    public SharedParticipationResponse mappings(
-        AuthorizationContext context,
-        @PathVariable String workspaceIdentifier,
-        @PathVariable String applicationIdentifier,
-        @PathVariable String contractIdentifier,
-        @PathVariable String participationIdentifier,
-        @RequestBody EnvironmentMappingRequest input
-    ) {
-        return SharedParticipationResponse.from(
-            facade.mappings(
+            facade.updateConfiguration(
                 context,
                 workspaceIdentifier,
                 applicationIdentifier,

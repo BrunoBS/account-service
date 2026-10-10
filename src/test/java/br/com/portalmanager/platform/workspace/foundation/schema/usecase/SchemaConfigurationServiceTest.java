@@ -8,6 +8,8 @@ import br.com.portalmanager.platform.library.messaging.exception.ResourceVersion
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.*;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.configuration.SchemaConfiguration;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.*;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaConfigurationInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaConfigurationInput;

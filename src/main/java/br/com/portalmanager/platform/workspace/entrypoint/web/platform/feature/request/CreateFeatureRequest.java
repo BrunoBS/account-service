@@ -8,7 +8,8 @@ public record CreateFeatureRequest(
     String name,
     String description,
     String microserviceIdentifier,
-    JsonNode settings
+    JsonNode settings,
+    boolean shareable
 ) {
     public CreateFeatureInput toInput() {
         return new CreateFeatureInput(
@@ -16,7 +17,8 @@ public record CreateFeatureRequest(
             name,
             description,
             microserviceIdentifier,
-            settings == null ? null : settings.toString()
+            settings == null ? null : settings.toString(),
+            shareable
         );
     }
 }

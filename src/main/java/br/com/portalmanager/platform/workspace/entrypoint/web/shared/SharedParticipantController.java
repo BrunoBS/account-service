@@ -1,11 +1,11 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.shared;
 
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.workspace.entrypoint.web.shared.response.SharedContractPageResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.web.shared.response.SharedContractResponse;
+import br.com.portalmanager.platform.workspace.entrypoint.web.shared.response.SharedParticipationPageResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.web.shared.response.SharedParticipationResponse;
 import br.com.portalmanager.platform.workspace.feature.shared.facade.SharedParticipantFacade;
-import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.SharedContractOutput;
-import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,101 +20,115 @@ public class SharedParticipantController {
         this.facade = facade;
     }
 
-    @PostMapping(
-        "/shared-contracts/{contractIdentifier}/participations/destinations/{ownerWorkspaceIdentifier}/applications/{ownerApplicationIdentifier}"
-    )
-    public ResponseEntity<SharedParticipationResponse> request(
+    @PostMapping("/shared-contracts/{contractIdentifier}/participations")
+    public ResponseEntity<SharedParticipationResponse> requestParticipation(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
         @PathVariable String applicationIdentifier,
-        @PathVariable String contractIdentifier,
-        @PathVariable String ownerWorkspaceIdentifier,
-        @PathVariable String ownerApplicationIdentifier
+        @PathVariable String contractIdentifier
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
             SharedParticipationResponse.from(
-                facade.request(
-                    context,
-                    workspaceIdentifier,
-                    applicationIdentifier,
-                    contractIdentifier,
-                    ownerWorkspaceIdentifier,
-                    ownerApplicationIdentifier
-                )
+                facade.requestParticipation(context, workspaceIdentifier, applicationIdentifier, contractIdentifier)
             )
         );
     }
 
-    @GetMapping("/participations")
-    public List<SharedParticipationResponse> list(
+    @GetMapping("/shared-participations")
+    public SharedParticipationPageResponse listParticipations(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
-        @PathVariable String applicationIdentifier
+        @PathVariable String applicationIdentifier,
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) String contractIdentifier,
+        @RequestParam(defaultValue = "0") String page,
+        @RequestParam(defaultValue = "20") String size
     ) {
-        return facade
-            .list(context, workspaceIdentifier, applicationIdentifier)
-            .stream()
-            .map(SharedParticipationResponse::from)
-            .toList();
+        return SharedParticipationPageResponse.from(
+            facade.listParticipations(
+                context,
+                workspaceIdentifier,
+                applicationIdentifier,
+                status,
+                contractIdentifier,
+                page,
+                size
+            )
+        );
     }
 
-    @GetMapping("/participations/{participationIdentifier}")
-    public SharedParticipationResponse find(
+    @GetMapping("/shared-participations/{participationIdentifier}")
+    public SharedParticipationResponse findParticipation(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
         @PathVariable String applicationIdentifier,
         @PathVariable String participationIdentifier
     ) {
         return SharedParticipationResponse.from(
-            facade.find(context, workspaceIdentifier, applicationIdentifier, participationIdentifier)
+            facade.findParticipation(context, workspaceIdentifier, applicationIdentifier, participationIdentifier)
         );
     }
 
-    @PostMapping("/participations/{participationIdentifier}/resubmission")
-    public SharedParticipationResponse resubmit(
+    @PostMapping("/shared-participations/{participationIdentifier}/request")
+    public SharedParticipationResponse requestParticipationAgain(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
         @PathVariable String applicationIdentifier,
         @PathVariable String participationIdentifier
     ) {
         return SharedParticipationResponse.from(
-            facade.resubmit(context, workspaceIdentifier, applicationIdentifier, participationIdentifier)
+            facade.requestParticipationAgain(
+                context,
+                workspaceIdentifier,
+                applicationIdentifier,
+                participationIdentifier
+            )
         );
     }
 
-    @DeleteMapping("/participations/{participationIdentifier}")
-    public ResponseEntity<Void> leave(
+    @DeleteMapping("/shared-participations/{participationIdentifier}")
+    public ResponseEntity<Void> deleteParticipation(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
         @PathVariable String applicationIdentifier,
         @PathVariable String participationIdentifier
     ) {
-        facade.leave(context, workspaceIdentifier, applicationIdentifier, participationIdentifier);
+        facade.deleteParticipation(context, workspaceIdentifier, applicationIdentifier, participationIdentifier);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/shared-contracts/available")
-    public List<SharedContractResponse> available(
+    public SharedContractPageResponse listContracts(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
-        @PathVariable String applicationIdentifier
+        @PathVariable String applicationIdentifier,
+        @RequestParam(defaultValue = "0") String page,
+        @RequestParam(defaultValue = "20") String size,
+        @RequestParam(required = false) String ownerWorkspaceIdentifier,
+        @RequestParam(required = false) String ownerApplicationIdentifier
     ) {
-        return facade
-            .available(context, workspaceIdentifier, applicationIdentifier)
-            .stream()
-            .map(SharedContractResponse::from)
-            .toList();
+        return SharedContractPageResponse.from(
+            facade.listContracts(
+                context,
+                workspaceIdentifier,
+                applicationIdentifier,
+                page,
+                size,
+                ownerWorkspaceIdentifier,
+                ownerApplicationIdentifier
+            )
+        );
     }
 
-    @GetMapping("/shared-contracts/{contractIdentifier}")
-    public SharedContractResponse available(
+    @GetMapping("/shared-contracts/available/{contractIdentifier}")
+    public SharedContractResponse findContract(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
         @PathVariable String applicationIdentifier,
         @PathVariable String contractIdentifier
     ) {
         return SharedContractResponse.from(
-            facade.available(context, workspaceIdentifier, applicationIdentifier, contractIdentifier)
+            facade.findContract(context, workspaceIdentifier, applicationIdentifier, contractIdentifier)
         );
     }
 }

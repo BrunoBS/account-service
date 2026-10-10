@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.environment.usecase.model;
 
-import br.com.portalmanager.platform.workspace.core.environment.domain.Environment;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environment.Environment;
 import java.time.LocalDateTime;
 
 public record EnvironmentOutput(

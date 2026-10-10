@@ -13,5 +13,7 @@ public final class ApplicationMessageKeys {
     public static final String SCOPE_INVALID = "application.scope.invalid";
     public static final String VERSION_REQUIRED = "application.version.required";
 
+    public static final String HAS_SHARED_CONTRACTS = "application.has-shared-contracts";
+
     private ApplicationMessageKeys() {}
 }

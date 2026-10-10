@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.model;
 
-import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice;
 import java.time.LocalDateTime;
 
 public record MicroserviceOutput(

@@ -3,11 +3,11 @@ package br.com.portalmanager.platform.workspace.feature.platform.usecase.operati
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.PlatformMessageKeys;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.MicroserviceRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateMicroserviceInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.MicroserviceOutput;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateMicroserviceInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.validation.MicroserviceValidator;
 import java.time.LocalDateTime;

@@ -1,9 +1,9 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice;
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.MicroserviceRepository;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.MicroserviceOutput;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import java.util.List;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +43,7 @@ public class MicroserviceQueryService {
     public Long findInternalIdByIdentifier(String identifier) {
         return repository
             .findByIdentifier(identifier)
-            .map(br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice::getId)
+            .map(br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice::getId)
             .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.MICROSERVICE_NOT_FOUND));
     }
 
@@ -52,7 +52,7 @@ public class MicroserviceQueryService {
         return repository
             .findByIdentifier(identifier)
             .filter(microservice -> LifecycleTypeCode.active().equals(microservice.getLifecycle()))
-            .map(br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice::getId)
+            .map(br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice::getId)
             .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.ACTIVE_MICROSERVICE_NOT_FOUND));
     }
 
@@ -60,7 +60,9 @@ public class MicroserviceQueryService {
     public String findIdentifierByInternalId(Long id) {
         return repository
             .findById(id)
-            .map(br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice::getIdentifier)
+            .map(
+                br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice::getIdentifier
+            )
             .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.MICROSERVICE_NOT_FOUND));
     }
 

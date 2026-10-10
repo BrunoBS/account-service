@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.environment.usecase.model;
 
-import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentType;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentType;
 
 public record EnvironmentTypeOutput(
     Long version,

@@ -2,9 +2,9 @@ package br.com.portalmanager.platform.workspace.feature.platform.usecase.validat
 
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.PlatformMessageKeys;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateMicroserviceInput;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateMicroserviceInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
 import org.springframework.beans.factory.annotation.Autowired;

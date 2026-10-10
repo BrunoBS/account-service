@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.model;
 
-import br.com.portalmanager.platform.workspace.feature.platform.domain.Feature;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.feature.Feature;
 import java.time.LocalDateTime;
 
 public record FeatureOutput(
@@ -12,6 +12,7 @@ public record FeatureOutput(
     String microserviceIdentifier,
     String microserviceCode,
     String lifecycle,
+    boolean shareable,
     String settings,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
@@ -26,6 +27,7 @@ public record FeatureOutput(
             feature.getMicroservice().getIdentifier(),
             feature.getMicroservice().getCode(),
             feature.getLifecycle().toString(),
+            feature.isShareable(),
             feature.getSettings(),
             feature.getCreatedAt(),
             feature.getUpdatedAt()

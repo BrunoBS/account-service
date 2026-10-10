@@ -8,12 +8,13 @@ import static org.mockito.Mockito.*;
 import br.com.portalmanager.platform.library.messaging.exception.ConflictException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaDefinitionValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.version.SchemaVersionCommandService;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaVersionOperationValidator;
 import java.time.LocalDateTime;
@@ -53,7 +54,7 @@ class SchemaVersionCommandServiceTest {
         );
         when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(draft));
 
-        var output = service.createPlatformDraft(
+        SchemaVersionOutput output = service.createPlatformDraft(
             "schema-1",
             new CreateSchemaVersionInput(
                 "v1-edit",
@@ -79,7 +80,7 @@ class SchemaVersionCommandServiceTest {
         when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(published));
         when(versionRepository.save(any(SchemaVersion.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var output = service.createPlatformDraft(
+        SchemaVersionOutput output = service.createPlatformDraft(
             "schema-1",
             new CreateSchemaVersionInput("v2", new ObjectMapper().readTree("{\"type\":\"object\"}"))
         );
@@ -101,7 +102,7 @@ class SchemaVersionCommandServiceTest {
         when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(published));
         when(versionRepository.save(any(SchemaVersion.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var output = service.createPlatformDraft(
+        SchemaVersionOutput output = service.createPlatformDraft(
             "schema-1",
             new CreateSchemaVersionInput(
                 "v2",
@@ -125,7 +126,7 @@ class SchemaVersionCommandServiceTest {
         when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(published));
         when(versionRepository.save(any(SchemaVersion.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var output = service.createPlatformDraft(
+        SchemaVersionOutput output = service.createPlatformDraft(
             "schema-1",
             new CreateSchemaVersionInput(
                 "v2-recreated",
@@ -155,7 +156,7 @@ class SchemaVersionCommandServiceTest {
         when(versionRepository.findAllForUpdate(42L)).thenReturn(List.of(draft));
         when(versionRepository.findByIdentifierAndSchema_Id(draft.getIdentifier(), 42L)).thenReturn(Optional.of(draft));
 
-        var output = service.publishPlatform("schema-1", draft.getIdentifier());
+        SchemaVersionOutput output = service.publishPlatform("schema-1", draft.getIdentifier());
 
         assertThat(output.status()).isEqualTo("PUBLISHED");
         assertThat(draft.isPublished()).isTrue();

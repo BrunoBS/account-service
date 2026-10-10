@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environmenttype;
 
 import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
-import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentType;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentType;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeCompatibilityRepository;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeRepository;

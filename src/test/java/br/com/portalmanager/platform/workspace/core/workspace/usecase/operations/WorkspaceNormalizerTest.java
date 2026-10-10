@@ -14,7 +14,7 @@ class WorkspaceNormalizerTest {
 
     @Test
     void shouldNormalizeBusinessFieldsAndPreserveNullAuthorizerGroup() {
-        var normalized = normalizer.normalize(
+        CreateWorkspaceInput normalized = normalizer.normalize(
             new CreateWorkspaceInput(
                 " manager ",
                 "  Workspace Normalizado  ",
@@ -42,7 +42,7 @@ class WorkspaceNormalizerTest {
 
     @Test
     void shouldNormalizeAuthorizerGroupToUppercaseOnCreate() {
-        var normalized = normalizer.normalize(
+        CreateWorkspaceInput normalized = normalizer.normalize(
             new CreateWorkspaceInput(
                 "MANAGER",
                 "Workspace",
@@ -62,7 +62,7 @@ class WorkspaceNormalizerTest {
 
     @Test
     void shouldNormalizeAuthorizerGroupToUppercaseOnUpdate() {
-        var normalized = normalizer.normalize(
+        UpdateWorkspaceInput normalized = normalizer.normalize(
             new UpdateWorkspaceInput(
                 1L,
                 "MANAGER",

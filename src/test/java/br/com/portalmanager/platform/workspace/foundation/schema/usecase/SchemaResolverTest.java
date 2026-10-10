@@ -6,6 +6,9 @@ import static org.mockito.Mockito.*;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.*;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.configuration.SchemaConfiguration;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.*;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaResolver;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
@@ -74,7 +77,7 @@ class SchemaResolverTest {
     void noPublicationFallsBackWithoutRejectingConsumer() {
         bindDefault("PUBLISHER");
         Schema schema = schema("publisher", SchemaScopeTypeCode.platform());
-        var binding = new SchemaConfiguration("PUBLISHER", "WEB_SOCKET", schema, LocalDateTime.now());
+        SchemaConfiguration binding = new SchemaConfiguration("PUBLISHER", "WEB_SOCKET", schema, LocalDateTime.now());
         when(configurations.findByResourceTypeAndResourceCode("PUBLISHER", "WEB_SOCKET")).thenReturn(
             Optional.of(binding)
         );
@@ -85,7 +88,7 @@ class SchemaResolverTest {
     void inactiveConfigurationFallsBack() {
         bindDefault("PUBLISHER");
         Schema schema = schema("publisher", SchemaScopeTypeCode.platform());
-        var binding = new SchemaConfiguration("PUBLISHER", "KAAS", schema, LocalDateTime.now());
+        SchemaConfiguration binding = new SchemaConfiguration("PUBLISHER", "KAAS", schema, LocalDateTime.now());
         binding.inactivate(LocalDateTime.now());
         when(configurations.findByResourceTypeAndResourceCode("PUBLISHER", "KAAS")).thenReturn(Optional.of(binding));
         assertThat(resolver.resolve("PUBLISHER", "KAAS")).isEqualTo("{\"type\":\"object\"}");
@@ -177,15 +180,15 @@ class SchemaResolverTest {
         Schema kaas = mock(Schema.class);
         when(kaas.isActive()).thenReturn(true);
         when(kaas.getId()).thenReturn(10L);
-        var webBinding = new SchemaConfiguration("PUBLISHER", "WEB_SOCKET", web, LocalDateTime.now());
-        var kaasBinding = new SchemaConfiguration("PUBLISHER", "KAAS", kaas, LocalDateTime.now());
+        SchemaConfiguration webBinding = new SchemaConfiguration("PUBLISHER", "WEB_SOCKET", web, LocalDateTime.now());
+        SchemaConfiguration kaasBinding = new SchemaConfiguration("PUBLISHER", "KAAS", kaas, LocalDateTime.now());
         when(configurations.findByResourceTypeAndResourceCode("PUBLISHER", "WEB_SOCKET")).thenReturn(
             Optional.of(webBinding)
         );
         when(configurations.findByResourceTypeAndResourceCode("PUBLISHER", "KAAS")).thenReturn(
             Optional.of(kaasBinding)
         );
-        var webVersion = new SchemaVersion(
+        SchemaVersion webVersion = new SchemaVersion(
             web,
             1,
             "v1",
@@ -193,7 +196,7 @@ class SchemaResolverTest {
             SchemaVersionStatusTypeCode.published(),
             LocalDateTime.now()
         );
-        var kaasVersion = new SchemaVersion(
+        SchemaVersion kaasVersion = new SchemaVersion(
             kaas,
             1,
             "v1",

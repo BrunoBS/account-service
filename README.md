@@ -51,6 +51,35 @@ Feature e Message e remove os catálogos de linguagem e infraestrutura. Consulte
 [`MICROSERVICE-MIGRATION-V19.md`](docs/refinamentos/foundation/MICROSERVICE-MIGRATION-V19.md)
 para os contratos de atualização.
 
+### Organização interna do domínio
+
+Módulos com mais de uma responsabilidade de domínio agrupam suas classes em
+`domain/<responsabilidade>`. Entidades dependentes e objetos de valor permanecem
+junto ao agregado ao qual pertencem; ter várias classes não exige criar subpacotes.
+
+| Módulo              | Subpacotes de domínio                                      |
+| ------------------- | ---------------------------------------------------------- |
+| `feature.platform`  | `feature`, `microservice`, `featurecontext`                |
+| `feature.shared`    | `contract`, `participation` (inclui os mapeamentos)        |
+| `core.environment`  | `environment`, `environmenttype` (inclui compatibilidades) |
+| `foundation.schema` | `schema`, `version`, `configuration`                       |
+
+Módulos com um único agregado mantêm as classes diretamente em `domain`.
+As chaves de mensagens compartilhadas entre responsabilidades permanecem na raiz
+`<modulo>.domain`.
+
+### Chaves de mensagens
+
+As classes `*MessageKeys` devem ficar em `<modulo>.domain`, junto ao domínio que
+possui os erros. Esse padrão vale para módulos de `core`, `feature` e `foundation`.
+Cada classe contém apenas constantes com as chaves; a resolução e a tradução das
+mensagens permanecem no mecanismo de messaging.
+
+O pacote `usecase.model` concentra contratos de entrada e saída (`Input` e `Output`).
+Validadores, use cases e integrações utilizam as chaves do domínio do próprio módulo.
+A localização é verificada pelo teste de arquitetura
+`GoldenArchitectureTest.messageKeysMustResideInModuleDomain`.
+
 ### Ponto único de validação
 
 Para Workspace, Message, Platform e Schema, as decisões de validade pertencem a
