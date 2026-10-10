@@ -51,6 +51,14 @@ class SharedApiIT {
                 .statusCode(201).body("status", equalTo("PENDING")).extract().path("identifier");
 
         post(owner.contractPath(contract) + "/participations/" + participation + "/approval",
+                Map.of("publicationModeCode", "UNKNOWN", "environmentMappings", Map.of("mappings", List.of())))
+                .statusCode(400);
+        Map<String, Object> invalidMappings = new LinkedHashMap<>();
+        invalidMappings.put("mappings", null);
+        post(owner.contractPath(contract) + "/participations/" + participation + "/approval",
+                Map.of("publicationModeCode", "AUTOMATIC", "environmentMappings", invalidMappings))
+                .statusCode(400);
+        post(owner.contractPath(contract) + "/participations/" + participation + "/approval",
                 Map.of("publicationModeCode", "AUTOMATIC", "environmentMappings", Map.of("mappings", List.of())))
                 .statusCode(200).body("status", equalTo("APPROVED"));
         String sourceEnvironment = UUID.randomUUID().toString();
