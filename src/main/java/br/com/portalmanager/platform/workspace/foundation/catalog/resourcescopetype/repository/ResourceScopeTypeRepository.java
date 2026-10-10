@@ -5,5 +5,4 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopet
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ResourceScopeTypeRepository extends CatalogRepository<ResourceScopeType> {
-}
+public interface ResourceScopeTypeRepository extends CatalogRepository<ResourceScopeType> {}

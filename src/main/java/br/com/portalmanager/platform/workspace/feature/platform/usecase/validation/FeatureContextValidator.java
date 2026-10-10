@@ -8,16 +8,37 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class FeatureContextValidator {
+
     public void validateCreate(CreateFeatureContextInput input, boolean codeDuplicate, boolean nameDuplicate) {
         PlatformValidation.requireInput(input);
-        PlatformValidation.validate(input.code(), true, input.name(), input.description(), codeDuplicate,
-                nameDuplicate, null, false, null, false);
+        PlatformValidation.validate(
+            input.code(),
+            true,
+            input.name(),
+            input.description(),
+            codeDuplicate,
+            nameDuplicate,
+            null,
+            false,
+            null,
+            false
+        );
     }
 
     public void validateUpdate(UpdateFeatureContextInput input, boolean nameDuplicate) {
         PlatformValidation.requireInput(input);
-        PlatformValidation.validate(null, false, input.name(), input.description(), false,
-                nameDuplicate, null, false, null, false);
+        PlatformValidation.validate(
+            null,
+            false,
+            input.name(),
+            input.description(),
+            false,
+            nameDuplicate,
+            null,
+            false,
+            null,
+            false
+        );
     }
 
     public void validateDelete(FeatureContext context) {

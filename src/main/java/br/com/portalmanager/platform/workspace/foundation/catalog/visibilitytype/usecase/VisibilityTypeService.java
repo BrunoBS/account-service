@@ -14,16 +14,17 @@ public class VisibilityTypeService extends EnumCatalogService<VisibilityType, Vi
     private static final String SCHEMA_RESOURCE_CODE = "visibility-type";
 
     public VisibilityTypeService(
-            VisibilityTypeRepository repository,
-            ObjectMapper objectMapper,
-            SchemaValidator schemaValidator) {
+        VisibilityTypeRepository repository,
+        ObjectMapper objectMapper,
+        SchemaValidator schemaValidator
+    ) {
         super(
-                repository,
-                objectMapper,
-                VisibilityType.class,
-                VisibilityTypeEnum.class,
-                SCHEMA_RESOURCE_CODE,
-                schemaValidator
+            repository,
+            objectMapper,
+            VisibilityType.class,
+            VisibilityTypeEnum.class,
+            SCHEMA_RESOURCE_CODE,
+            schemaValidator
         );
     }
 }

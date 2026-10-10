@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SchemaVersionOperationValidator {
-    public void validateCreate(Schema schema, Integer number, String definition,
-                               SchemaVersionStatusTypeCode status) {
+
+    public void validateCreate(Schema schema, Integer number, String definition, SchemaVersionStatusTypeCode status) {
         if (schema == null) throw invalid("schema", SchemaMessageKeys.REQUEST_INVALID);
         if (number == null || number < 1) throw invalid("version", SchemaMessageKeys.VERSION_INVALID);
         validateDefinition(definition);

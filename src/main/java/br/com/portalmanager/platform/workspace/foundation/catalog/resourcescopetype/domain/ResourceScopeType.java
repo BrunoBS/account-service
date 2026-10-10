@@ -6,5 +6,4 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "type_resource_scopes")
-public class ResourceScopeType extends CatalogEntity {
-}
+public class ResourceScopeType extends CatalogEntity {}

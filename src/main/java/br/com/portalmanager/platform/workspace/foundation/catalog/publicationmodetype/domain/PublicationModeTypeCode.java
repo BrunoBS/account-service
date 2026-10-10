@@ -5,11 +5,17 @@ import jakarta.persistence.Embeddable;
 
 @Embeddable
 public class PublicationModeTypeCode extends AbstractCatalogCode {
+
     protected PublicationModeTypeCode() {}
-    private PublicationModeTypeCode(String value) { super(value); }
+
+    private PublicationModeTypeCode(String value) {
+        super(value);
+    }
+
     public static PublicationModeTypeCode of(String value) {
         return of(requireEnumValue(value, PublicationModeTypeEnum.class));
     }
+
     public static PublicationModeTypeCode of(PublicationModeTypeEnum value) {
         return new PublicationModeTypeCode(value == null ? null : value.name());
     }

@@ -2,7 +2,6 @@ package br.com.portalmanager.platform.workspace.feature.platform.usecase.operati
 
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
-
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
 import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureContextRepository;
@@ -11,10 +10,9 @@ import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.Fe
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateFeatureContextInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.validation.FeatureContextValidator;
+import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @org.springframework.stereotype.Service
 public class FeatureContextCommandService {
@@ -35,19 +33,24 @@ public class FeatureContextCommandService {
     @Transactional
     @Auditable(action = AuditAction.CREATE, event = "FEATURE_CONTEXT_CREATED", resourceType = "FEATURE_CONTEXT")
     public FeatureContextOutput create(CreateFeatureContextInput input) {
-        validator.validateCreate(input, input != null && repository.existsByCode(input.code()),
-                input != null && repository.existsByName(input.name()));
-        return FeatureContextOutput.from(repository.save(
-                new FeatureContext(input.code(), input.name(), input.description(), now())
-        ));
+        validator.validateCreate(
+            input,
+            input != null && repository.existsByCode(input.code()),
+            input != null && repository.existsByName(input.name())
+        );
+        return FeatureContextOutput.from(
+            repository.save(new FeatureContext(input.code(), input.name(), input.description(), now()))
+        );
     }
 
     @Transactional
     @Auditable(action = AuditAction.UPDATE, event = "FEATURE_CONTEXT_UPDATED", resourceType = "FEATURE_CONTEXT")
     public FeatureContextOutput update(String identifier, UpdateFeatureContextInput input) {
         FeatureContext context = required(identifier);
-        validator.validateUpdate(input, input != null && !context.getName().equals(input.name())
-                && repository.existsByName(input.name()));
+        validator.validateUpdate(
+            input,
+            input != null && !context.getName().equals(input.name()) && repository.existsByName(input.name())
+        );
         context.update(input.name(), input.description(), now());
         return FeatureContextOutput.from(context);
     }
@@ -78,8 +81,9 @@ public class FeatureContextCommandService {
     }
 
     private FeatureContext required(String identifier) {
-        return repository.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.CONTEXT_NOT_FOUND));
+        return repository
+            .findByIdentifier(identifier)
+            .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.CONTEXT_NOT_FOUND));
     }
 
     private LocalDateTime now() {

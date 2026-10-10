@@ -6,23 +6,26 @@ import br.com.portalmanager.platform.workspace.foundation.schema.integration.Sch
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaConfigurationRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Component
 public class SchemaResolver implements SchemaResolutionPort {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(SchemaResolver.class);
     private static final String DEFAULT_CODE = "DEFAULT";
     private final SchemaConfigurationRepository configurations;
     private final SchemaVersionRepository versions;
     private final SchemaOperationValidator validator;
 
-    public SchemaResolver(SchemaConfigurationRepository configurations, SchemaVersionRepository versions,
-                          SchemaOperationValidator validator) {
+    public SchemaResolver(
+        SchemaConfigurationRepository configurations,
+        SchemaVersionRepository versions,
+        SchemaOperationValidator validator
+    ) {
         this.configurations = configurations;
         this.versions = versions;
         this.validator = validator;
@@ -57,13 +60,13 @@ public class SchemaResolver implements SchemaResolutionPort {
             return Optional.empty();
         }
         var published = versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(
-                schema.getId(), SchemaVersionStatusTypeCode.published());
+            schema.getId(),
+            SchemaVersionStatusTypeCode.published()
+        );
         if (published.isEmpty()) {
-            LOGGER.warn("No published schema version: type={}, code={}, schema={}",
-                    type, code, schema.getIdentifier());
+            LOGGER.warn("No published schema version: type={}, code={}, schema={}", type, code, schema.getIdentifier());
             return Optional.empty();
         }
         return Optional.of(published.get().getDefinition());
     }
-
 }

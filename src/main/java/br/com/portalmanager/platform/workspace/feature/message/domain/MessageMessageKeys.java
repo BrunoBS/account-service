@@ -5,8 +5,7 @@ public final class MessageMessageKeys {
     public static final String NOT_FOUND = "message.not-found";
     public static final String DELETE_INVALID = "message.delete.invalid";
     public static final String TRANSLATION_NOT_FOUND = "message.translation.not-found";
-    public static final String TRANSLATION_DELETE_INVALID =
-            "message.translation.delete.invalid";
+    public static final String TRANSLATION_DELETE_INVALID = "message.translation.delete.invalid";
 
     public static final String MICROSERVICE_REQUIRED = "validation.message.microservice.required";
     public static final String MICROSERVICE_INVALID = "validation.message.microservice.invalid";
@@ -23,9 +22,7 @@ public final class MessageMessageKeys {
     public static final String LOCALE_DUPLICATE = "validation.message.translation.locale.duplicate";
     public static final String TITLE_REQUIRED = "validation.message.translation.title.required";
     public static final String DETAIL_REQUIRED = "validation.message.translation.detail.required";
-    public static final String SUGGESTION_REQUIRED =
-            "validation.message.translation.suggestion.required";
+    public static final String SUGGESTION_REQUIRED = "validation.message.translation.suggestion.required";
 
-    private MessageMessageKeys() {
-    }
+    private MessageMessageKeys() {}
 }

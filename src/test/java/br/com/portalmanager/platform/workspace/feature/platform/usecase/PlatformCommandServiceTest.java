@@ -1,5 +1,9 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.Feature;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
@@ -13,14 +17,9 @@ import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.Cr
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context.FeatureContextCommandService;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature.FeatureCommandService;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceCommandService;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
 
 class PlatformCommandServiceTest {
 
@@ -29,8 +28,9 @@ class PlatformCommandServiceTest {
         MicroserviceRepository services = mock(MicroserviceRepository.class);
         MicroserviceCommandService command = new MicroserviceCommandService(services);
 
-        assertThatThrownBy(() -> command.create(new CreateMicroserviceInput("AUDIT_SERVICE", "Audit Service", null)))
-                .isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() ->
+            command.create(new CreateMicroserviceInput("AUDIT_SERVICE", "Audit Service", null))
+        ).isInstanceOf(ValidationException.class);
         verify(services, never()).save(any(Microservice.class));
     }
 
@@ -39,9 +39,9 @@ class PlatformCommandServiceTest {
         FeatureContextRepository contexts = mock(FeatureContextRepository.class);
         FeatureContextCommandService command = new FeatureContextCommandService(contexts);
 
-        assertThatThrownBy(() -> command.create(
-                new CreateFeatureContextInput("MANAGER_ACCOUNT", "Manager Account", null)))
-                .isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() ->
+            command.create(new CreateFeatureContextInput("MANAGER_ACCOUNT", "Manager Account", null))
+        ).isInstanceOf(ValidationException.class);
         verify(contexts, never()).save(any(FeatureContext.class));
     }
 
@@ -55,9 +55,9 @@ class PlatformCommandServiceTest {
         when(services.findByIdentifier(microservice.getIdentifier())).thenReturn(Optional.of(microservice));
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
-        assertThatThrownBy(() -> command.create(
-                new CreateFeatureInput("audit", "Audit", null, microservice.getIdentifier(), "{}")))
-                .isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() ->
+            command.create(new CreateFeatureInput("audit", "Audit", null, microservice.getIdentifier(), "{}"))
+        ).isInstanceOf(ValidationException.class);
         verify(features, never()).save(any(Feature.class));
     }
 
@@ -73,8 +73,7 @@ class PlatformCommandServiceTest {
         when(features.findByIdentifier(feature.getIdentifier())).thenReturn(Optional.of(feature));
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
-        assertThatThrownBy(() -> command.activate(feature.getIdentifier()))
-                .isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() -> command.activate(feature.getIdentifier())).isInstanceOf(ValidationException.class);
         verify(features, never()).save(any(Feature.class));
     }
 
@@ -84,8 +83,9 @@ class PlatformCommandServiceTest {
         when(repository.existsByCode("audit-service")).thenReturn(true);
         MicroserviceCommandService command = new MicroserviceCommandService(repository);
 
-        assertThatThrownBy(() -> command.create(new CreateMicroserviceInput("audit-service", "Audit Service", null)))
-                .isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() ->
+            command.create(new CreateMicroserviceInput("audit-service", "Audit Service", null))
+        ).isInstanceOf(ValidationException.class);
     }
 
     @Test
@@ -94,8 +94,9 @@ class PlatformCommandServiceTest {
         when(repository.existsByName("Audit Service")).thenReturn(true);
         MicroserviceCommandService command = new MicroserviceCommandService(repository);
 
-        assertThatThrownBy(() -> command.create(new CreateMicroserviceInput("audit-service", "Audit Service", null)))
-                .isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() ->
+            command.create(new CreateMicroserviceInput("audit-service", "Audit Service", null))
+        ).isInstanceOf(ValidationException.class);
     }
 
     @Test
@@ -106,8 +107,9 @@ class PlatformCommandServiceTest {
         when(features.existsByName("Audit")).thenReturn(true);
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
-        assertThatThrownBy(() -> command.create(new CreateFeatureInput("audit", "Audit", null, "microservice-id", "{}")))
-                .isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() ->
+            command.create(new CreateFeatureInput("audit", "Audit", null, "microservice-id", "{}"))
+        ).isInstanceOf(ValidationException.class);
     }
 
     @Test
@@ -116,10 +118,9 @@ class PlatformCommandServiceTest {
         when(contexts.existsByName("Manager Account")).thenReturn(true);
         FeatureContextCommandService command = new FeatureContextCommandService(contexts);
 
-        assertThatThrownBy(() -> command.create(
-                new CreateFeatureContextInput("manager-account", "Manager Account", null)
-        ))
-                .isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() ->
+            command.create(new CreateFeatureContextInput("manager-account", "Manager Account", null))
+        ).isInstanceOf(ValidationException.class);
     }
 
     @Test
@@ -133,8 +134,7 @@ class PlatformCommandServiceTest {
         when(contexts.findByIdentifier(context.getIdentifier())).thenReturn(Optional.of(context));
         FeatureContextCommandService command = new FeatureContextCommandService(contexts);
 
-        assertThatThrownBy(() -> command.delete(context.getIdentifier()))
-                .isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() -> command.delete(context.getIdentifier())).isInstanceOf(ValidationException.class);
     }
 
     @Test
@@ -151,8 +151,9 @@ class PlatformCommandServiceTest {
         when(contexts.findByIdentifier(context.getIdentifier())).thenReturn(Optional.of(context));
         FeatureCommandService command = new FeatureCommandService(features, services, contexts);
 
-        assertThatThrownBy(() -> command.associateContext(feature.getIdentifier(), context.getIdentifier()))
-                .isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() ->
+            command.associateContext(feature.getIdentifier(), context.getIdentifier())
+        ).isInstanceOf(ValidationException.class);
     }
 
     @Test
@@ -178,7 +179,6 @@ class PlatformCommandServiceTest {
         when(repository.findByIdentifier(microservice.getIdentifier())).thenReturn(Optional.of(microservice));
         MicroserviceCommandService command = new MicroserviceCommandService(repository);
 
-        assertThatThrownBy(() -> command.delete(microservice.getIdentifier()))
-                .isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() -> command.delete(microservice.getIdentifier())).isInstanceOf(ValidationException.class);
     }
 }

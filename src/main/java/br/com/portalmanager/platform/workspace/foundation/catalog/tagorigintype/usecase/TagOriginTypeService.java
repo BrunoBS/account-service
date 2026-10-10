@@ -14,16 +14,17 @@ public class TagOriginTypeService extends EnumCatalogService<TagOriginType, TagO
     private static final String SCHEMA_RESOURCE_CODE = "tag-origin-type";
 
     public TagOriginTypeService(
-            TagOriginTypeRepository repository,
-            ObjectMapper objectMapper,
-            SchemaValidator schemaValidator) {
+        TagOriginTypeRepository repository,
+        ObjectMapper objectMapper,
+        SchemaValidator schemaValidator
+    ) {
         super(
-                repository,
-                objectMapper,
-                TagOriginType.class,
-                TagOriginTypeEnum.class,
-                SCHEMA_RESOURCE_CODE,
-                schemaValidator
+            repository,
+            objectMapper,
+            TagOriginType.class,
+            TagOriginTypeEnum.class,
+            SCHEMA_RESOURCE_CODE,
+            schemaValidator
         );
     }
 }

@@ -2,7 +2,6 @@ package br.com.portalmanager.platform.workspace.feature.platform.usecase.operati
 
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
-
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.Feature;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.FeatureContext;
@@ -15,32 +14,32 @@ import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.Fe
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateFeatureInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.validation.FeatureValidator;
+import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
 @org.springframework.stereotype.Service
 public class FeatureCommandService {
+
     private final FeatureRepository features;
     private final MicroserviceRepository microservices;
     private final FeatureContextRepository contexts;
     private final FeatureValidator validator;
 
     public FeatureCommandService(
-            FeatureRepository features,
-            MicroserviceRepository microservices,
-            FeatureContextRepository contexts
+        FeatureRepository features,
+        MicroserviceRepository microservices,
+        FeatureContextRepository contexts
     ) {
         this(features, microservices, contexts, new FeatureValidator());
     }
 
     @Autowired
     public FeatureCommandService(
-            FeatureRepository features,
-            MicroserviceRepository microservices,
-            FeatureContextRepository contexts,
-            FeatureValidator validator
+        FeatureRepository features,
+        MicroserviceRepository microservices,
+        FeatureContextRepository contexts,
+        FeatureValidator validator
     ) {
         this.features = features;
         this.microservices = microservices;
@@ -51,27 +50,29 @@ public class FeatureCommandService {
     @Transactional
     @Auditable(action = AuditAction.CREATE, event = "FEATURE_CREATED", resourceType = "FEATURE")
     public FeatureOutput create(CreateFeatureInput input) {
-        validator.validateCreate(input, input != null && features.existsByCode(input.code()),
-                input != null && features.existsByName(input.name()));
+        validator.validateCreate(
+            input,
+            input != null && features.existsByCode(input.code()),
+            input != null && features.existsByName(input.name())
+        );
         validator.validateSettings(input.code(), input.settings());
         Microservice microservice = requiredMicroservice(input.microserviceIdentifier());
         validator.validateMicroservice(microservice);
-        return FeatureOutput.from(features.save(new Feature(
-                input.code(),
-                input.name(),
-                input.description(),
-                microservice,
-                input.settings(),
-                now()
-        )));
+        return FeatureOutput.from(
+            features.save(
+                new Feature(input.code(), input.name(), input.description(), microservice, input.settings(), now())
+            )
+        );
     }
 
     @Transactional
     @Auditable(action = AuditAction.UPDATE, event = "FEATURE_UPDATED", resourceType = "FEATURE")
     public FeatureOutput update(String identifier, UpdateFeatureInput input) {
         Feature feature = requiredFeature(identifier);
-        validator.validateUpdate(input, input != null && !feature.getName().equals(input.name())
-                && features.existsByName(input.name()));
+        validator.validateUpdate(
+            input,
+            input != null && !feature.getName().equals(input.name()) && features.existsByName(input.name())
+        );
         validator.validateSettings(feature.getCode(), input.settings());
         Microservice microservice = requiredMicroservice(input.microserviceIdentifier());
         validator.validateMicroservice(microservice);
@@ -111,8 +112,9 @@ public class FeatureCommandService {
     @Auditable(action = AuditAction.UPDATE, event = "FEATURE_CONTEXT_ASSOCIATED", resourceType = "FEATURE")
     public FeatureOutput associateContext(String identifier, String contextIdentifier) {
         Feature feature = requiredFeature(identifier);
-        FeatureContext context = contexts.findByIdentifier(contextIdentifier)
-                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.CONTEXT_NOT_FOUND));
+        FeatureContext context = contexts
+            .findByIdentifier(contextIdentifier)
+            .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.CONTEXT_NOT_FOUND));
         validator.validateContext(context);
         feature.addContext(context);
         return FeatureOutput.from(feature);
@@ -122,20 +124,23 @@ public class FeatureCommandService {
     @Auditable(action = AuditAction.UPDATE, event = "FEATURE_CONTEXT_REMOVED", resourceType = "FEATURE")
     public FeatureOutput removeContext(String identifier, String contextIdentifier) {
         Feature feature = requiredFeature(identifier);
-        FeatureContext context = contexts.findByIdentifier(contextIdentifier)
-                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.CONTEXT_NOT_FOUND));
+        FeatureContext context = contexts
+            .findByIdentifier(contextIdentifier)
+            .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.CONTEXT_NOT_FOUND));
         feature.removeContext(context);
         return FeatureOutput.from(feature);
     }
 
     private Feature requiredFeature(String identifier) {
-        return features.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND));
+        return features
+            .findByIdentifier(identifier)
+            .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND));
     }
 
     private Microservice requiredMicroservice(String identifier) {
-        return microservices.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.MICROSERVICE_NOT_FOUND));
+        return microservices
+            .findByIdentifier(identifier)
+            .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.MICROSERVICE_NOT_FOUND));
     }
 
     private LocalDateTime now() {

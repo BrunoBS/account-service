@@ -1,15 +1,16 @@
 package br.com.portalmanager.platform.workspace.feature.shared.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import br.com.portalmanager.platform.workspace.foundation.catalog.publicationmodetype.domain.PublicationModeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publicationmodetype.domain.PublicationModeTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain.ShareStatusTypeEnum;
-import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class SharedParticipationTest {
+
     @Test
     void resubmissionReusesTheLinkButClearsApprovalConfiguration() {
         LocalDateTime now = LocalDateTime.now();

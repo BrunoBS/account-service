@@ -15,9 +15,9 @@ CREATE TABLE applications (
     CONSTRAINT pk_applications PRIMARY KEY (id),
     CONSTRAINT uk_applications_identifier UNIQUE (identifier),
     CONSTRAINT uk_applications_workspace_name UNIQUE (workspace_id, name),
-    CONSTRAINT fk_applications_workspace FOREIGN KEY (workspace_id) REFERENCES workspaces(id),
-    CONSTRAINT fk_applications_scope FOREIGN KEY (application_scope_code) REFERENCES type_application_scopes(code),
-    CONSTRAINT fk_applications_lifecycle FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle(code)
+    CONSTRAINT fk_applications_workspace FOREIGN KEY (workspace_id) REFERENCES workspaces (id),
+    CONSTRAINT fk_applications_scope FOREIGN KEY (application_scope_code) REFERENCES type_application_scopes (code),
+    CONSTRAINT fk_applications_lifecycle FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle (code)
 );
 
-CREATE INDEX idx_applications_workspace_lifecycle ON applications(workspace_id, lifecycle_code);
+CREATE INDEX idx_applications_workspace_lifecycle ON applications (workspace_id, lifecycle_code);

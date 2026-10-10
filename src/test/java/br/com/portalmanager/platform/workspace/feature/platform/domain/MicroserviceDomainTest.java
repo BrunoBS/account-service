@@ -1,13 +1,13 @@
 package br.com.portalmanager.platform.workspace.feature.platform.domain;
 
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import java.time.LocalDateTime;
+import org.junit.jupiter.api.Test;
+
 class MicroserviceDomainTest {
+
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 9, 25, 13, 45);
 
     @Test

@@ -6,5 +6,4 @@ import br.com.portalmanager.platform.workspace.core.application.domain.Applicati
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ApplicationTagRepository extends TagRepository<ApplicationTag, Application> {
-}
+public interface ApplicationTagRepository extends TagRepository<ApplicationTag, Application> {}

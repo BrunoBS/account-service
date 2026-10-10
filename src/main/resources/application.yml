@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: local
   application:
     name: workspace-service
   main:
@@ -21,17 +23,17 @@ platform:
         br.com.portalmanager.platform.workspace: DEBUG
         br.com.portalmanager.platform: DEBUG
   authorization:
-    mode: ${PLATFORM_AUTHORIZATION_MODE:REAL}
+    mode: ${PLATFORM_AUTHORIZATION_MODE:MOCK}
     service-url: ${AUTHORIZATION_SERVICE_URL:http://localhost:2020}
     mock:
       user-name: bbs
       email: bruno.barbosa@empresa.com.br
 
-      account-id: '-'
-      application-id: '-'
-      environment-id: '-'
+      account-id: "-"
+      application-id: "-"
+      environment-id: "-"
 
-      trace-id: '81f3503a-8153-4b80-9ee8-5ef41e611b31'
+      trace-id: "81f3503a-8153-4b80-9ee8-5ef41e611b31"
 
       groups:
         - PM5_OWNER

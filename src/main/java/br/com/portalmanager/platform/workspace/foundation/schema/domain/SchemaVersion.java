@@ -2,20 +2,23 @@ package br.com.portalmanager.platform.workspace.foundation.schema.domain;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(
-        name = "schema_versions",
-        uniqueConstraints = @UniqueConstraint(name = "uk_schema_versions_schema_version", columnNames = {"schema_id", "schema_version"})
+    name = "schema_versions",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_schema_versions_schema_version",
+        columnNames = { "schema_id", "schema_version" }
+    )
 )
 public class SchemaVersion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false, unique = true, length = 36, updatable = false)
     private String identifier;
 
@@ -39,16 +42,15 @@ public class SchemaVersion {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    protected SchemaVersion() {
-    }
+    protected SchemaVersion() {}
 
     public SchemaVersion(
-            Schema schema,
-            Integer schemaVersion,
-            String versionName,
-            String definition,
-            SchemaVersionStatusTypeCode status,
-            LocalDateTime now
+        Schema schema,
+        Integer schemaVersion,
+        String versionName,
+        String definition,
+        SchemaVersionStatusTypeCode status,
+        LocalDateTime now
     ) {
         this.identifier = UUID.randomUUID().toString();
         this.schema = schema;

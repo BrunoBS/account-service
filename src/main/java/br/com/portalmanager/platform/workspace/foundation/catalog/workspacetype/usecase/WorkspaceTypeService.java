@@ -14,16 +14,17 @@ public class WorkspaceTypeService extends EnumCatalogService<WorkspaceType, Work
     private static final String SCHEMA_RESOURCE_CODE = "workspace-type";
 
     public WorkspaceTypeService(
-            WorkspaceTypeRepository repository,
-            ObjectMapper objectMapper,
-            SchemaValidator schemaValidator) {
+        WorkspaceTypeRepository repository,
+        ObjectMapper objectMapper,
+        SchemaValidator schemaValidator
+    ) {
         super(
-                repository,
-                objectMapper,
-                WorkspaceType.class,
-                WorkspaceTypeEnum.class,
-                SCHEMA_RESOURCE_CODE,
-                schemaValidator
+            repository,
+            objectMapper,
+            WorkspaceType.class,
+            WorkspaceTypeEnum.class,
+            SCHEMA_RESOURCE_CODE,
+            schemaValidator
         );
     }
 }

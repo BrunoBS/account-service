@@ -1,10 +1,10 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.usecase;
 
 import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
+import br.com.portalmanager.platform.library.schemavalidation.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.repository.ApplicationScopeTypeRepository;
-import br.com.portalmanager.platform.library.schemavalidation.validation.SchemaValidator;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
@@ -14,16 +14,17 @@ public class ApplicationScopeTypeService extends EnumCatalogService<ApplicationS
     private static final String SCHEMA_RESOURCE_CODE = "application-scope-type";
 
     public ApplicationScopeTypeService(
-            ApplicationScopeTypeRepository repository,
-            ObjectMapper objectMapper,
-            SchemaValidator schemaValidator) {
+        ApplicationScopeTypeRepository repository,
+        ObjectMapper objectMapper,
+        SchemaValidator schemaValidator
+    ) {
         super(
-                repository,
-                objectMapper,
-                ApplicationScopeType.class,
-                ApplicationScopeTypeEnum.class,
-                SCHEMA_RESOURCE_CODE,
-                schemaValidator
+            repository,
+            objectMapper,
+            ApplicationScopeType.class,
+            ApplicationScopeTypeEnum.class,
+            SCHEMA_RESOURCE_CODE,
+            schemaValidator
         );
     }
 }

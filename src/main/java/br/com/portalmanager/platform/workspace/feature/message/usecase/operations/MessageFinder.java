@@ -14,22 +14,20 @@ public class MessageFinder {
     private final MessageRepository messageRepository;
     private final MessageTranslationRepository translationRepository;
 
-    public MessageFinder(
-            MessageRepository messageRepository,
-            MessageTranslationRepository translationRepository
-    ) {
+    public MessageFinder(MessageRepository messageRepository, MessageTranslationRepository translationRepository) {
         this.messageRepository = messageRepository;
         this.translationRepository = translationRepository;
     }
 
     public Message findMessage(String identifier) {
-        return messageRepository.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundException(MessageMessageKeys.NOT_FOUND));
+        return messageRepository
+            .findByIdentifier(identifier)
+            .orElseThrow(() -> new NotFoundException(MessageMessageKeys.NOT_FOUND));
     }
 
     public MessageTranslation findTranslation(Message message, String translationIdentifier) {
         return translationRepository
-                .findByIdentifierAndMessageId(translationIdentifier, message.getId())
-                .orElseThrow(() -> new NotFoundException(MessageMessageKeys.TRANSLATION_NOT_FOUND));
+            .findByIdentifierAndMessageId(translationIdentifier, message.getId())
+            .orElseThrow(() -> new NotFoundException(MessageMessageKeys.TRANSLATION_NOT_FOUND));
     }
 }

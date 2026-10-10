@@ -14,4 +14,4 @@ CREATE TABLE audit_outbox (
     CONSTRAINT UK_AUDIT_OUTBOX_IDENTIFIER UNIQUE (identifier),
     INDEX IDX_AUDIT_OUTBOX_STATUS_CREATED (status, created_at, id),
     INDEX IDX_AUDIT_OUTBOX_RETRY (status, next_attempt_at)
-) ENGINE=InnoDB;
+) ENGINE = InnoDB;

@@ -4,6 +4,9 @@ import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.Part
 
 public record ParticipationApprovalRequest(String publicationModeCode, EnvironmentMappingRequest environmentMappings) {
     public ParticipationApprovalInput toInput() {
-        return new ParticipationApprovalInput(publicationModeCode, environmentMappings == null ? null : environmentMappings.toInput());
+        return new ParticipationApprovalInput(
+            publicationModeCode,
+            environmentMappings == null ? null : environmentMappings.toInput()
+        );
     }
 }

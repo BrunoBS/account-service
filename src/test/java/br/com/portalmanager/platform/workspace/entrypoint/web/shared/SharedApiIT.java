@@ -1,5 +1,13 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.shared;
 
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
 import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
@@ -7,32 +15,29 @@ import br.com.portalmanager.platform.library.testing.lifecycle.annotation.Platfo
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.is;
-
 @PlatformIntegrationTest
 @WithMySql
 @WithMockAuthorization
 class SharedApiIT {
-    @LocalServerPort private int port;
-    @Autowired private JdbcTemplate jdbc;
-    @Autowired private AuthorizationMock authorization;
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private JdbcTemplate jdbc;
+
+    @Autowired
+    private AuthorizationMock authorization;
 
     @BeforeEach
     void prepare() {
@@ -48,45 +53,74 @@ class SharedApiIT {
         Scope participant = createScope("Participant");
         String contract = createContract(owner);
         String participation = requestParticipation(participant, owner, contract)
-                .statusCode(201).body("status", equalTo("PENDING")).extract().path("identifier");
+            .statusCode(201)
+            .body("status", equalTo("PENDING"))
+            .extract()
+            .path("identifier");
         requestParticipation(participant, owner, contract).statusCode(409);
 
-        post(owner.contractPath(contract) + "/participations/" + participation + "/approval",
-                Map.of("publicationModeCode", "UNKNOWN", "environmentMappings", Map.of("mappings", List.of())))
-                .statusCode(400);
+        post(
+            owner.contractPath(contract) + "/participations/" + participation + "/approval",
+            Map.of("publicationModeCode", "UNKNOWN", "environmentMappings", Map.of("mappings", List.of()))
+        ).statusCode(400);
         Map<String, Object> invalidMappings = new LinkedHashMap<>();
         invalidMappings.put("mappings", null);
-        post(owner.contractPath(contract) + "/participations/" + participation + "/approval",
-                Map.of("publicationModeCode", "AUTOMATIC", "environmentMappings", invalidMappings))
-                .statusCode(400);
+        post(
+            owner.contractPath(contract) + "/participations/" + participation + "/approval",
+            Map.of("publicationModeCode", "AUTOMATIC", "environmentMappings", invalidMappings)
+        ).statusCode(400);
         Map<String, Object> blankSourceMapping = new LinkedHashMap<>();
         blankSourceMapping.put("sourceEnvironmentIdentifier", " ");
         blankSourceMapping.put("destinationEnvironmentIdentifiers", List.of(UUID.randomUUID().toString()));
-        post(owner.contractPath(contract) + "/participations/" + participation + "/approval",
-                Map.of("publicationModeCode", "AUTOMATIC",
-                        "environmentMappings", Map.of("mappings", List.of(blankSourceMapping))))
-                .statusCode(400);
-        post(owner.contractPath(contract) + "/participations/" + participation + "/approval",
-                Map.of("publicationModeCode", "AUTOMATIC", "environmentMappings", Map.of("mappings", List.of())))
-                .statusCode(200).body("status", equalTo("APPROVED"));
+        post(
+            owner.contractPath(contract) + "/participations/" + participation + "/approval",
+            Map.of(
+                "publicationModeCode",
+                "AUTOMATIC",
+                "environmentMappings",
+                Map.of("mappings", List.of(blankSourceMapping))
+            )
+        ).statusCode(400);
+        post(
+            owner.contractPath(contract) + "/participations/" + participation + "/approval",
+            Map.of("publicationModeCode", "AUTOMATIC", "environmentMappings", Map.of("mappings", List.of()))
+        )
+            .statusCode(200)
+            .body("status", equalTo("APPROVED"));
         String sourceEnvironment = UUID.randomUUID().toString();
         insertMapping(participation, sourceEnvironment, UUID.randomUUID().toString());
         insertMapping(participation, sourceEnvironment, UUID.randomUUID().toString());
-        assertThat(jdbc.queryForObject("select count(*) from shared_environment_mappings m join shared_participations p on p.id = m.participation_id where p.identifier = ? and m.source_environment_identifier = ?",
-                Integer.class, participation, sourceEnvironment)).isEqualTo(2);
-        jdbc.update("delete from shared_environment_mappings where participation_id = (select id from shared_participations where identifier = ?)",
-                participation);
+        assertThat(
+            jdbc.queryForObject(
+                "select count(*) from shared_environment_mappings m join shared_participations p on p.id = m.participation_id where p.identifier = ? and m.source_environment_identifier = ?",
+                Integer.class,
+                participation,
+                sourceEnvironment
+            )
+        ).isEqualTo(2);
+        jdbc.update(
+            "delete from shared_environment_mappings where participation_id = (select id from shared_participations where identifier = ?)",
+            participation
+        );
         post(owner.contractPath(contract) + "/participations/" + participation + "/revocation", null)
-                .statusCode(200).body("status", equalTo("REVOKED"));
+            .statusCode(200)
+            .body("status", equalTo("REVOKED"));
 
         post(participant.basePath() + "/participations/" + participation + "/resubmission", null)
-                .statusCode(200).body("status", equalTo("PENDING"));
+            .statusCode(200)
+            .body("status", equalTo("PENDING"));
         post(owner.contractPath(contract) + "/participations/" + participation + "/rejection", null)
-                .statusCode(200).body("status", equalTo("REJECTED"));
+            .statusCode(200)
+            .body("status", equalTo("REJECTED"));
 
         delete(participant.basePath() + "/participations/" + participation).statusCode(204);
-        assertThat(jdbc.queryForObject("select count(*) from shared_participations where identifier = ?",
-                Integer.class, participation)).isZero();
+        assertThat(
+            jdbc.queryForObject(
+                "select count(*) from shared_participations where identifier = ?",
+                Integer.class,
+                participation
+            )
+        ).isZero();
     }
 
     @Test
@@ -96,19 +130,36 @@ class SharedApiIT {
         Scope participant = createScope("Participant");
         String contract = createContract(owner);
 
-        post(participant.basePath() + "/shared-contracts/" + contract + "/participations/destinations/"
-                + otherOwner.workspace() + "/applications/" + otherOwner.application(), null)
-                .statusCode(404);
+        post(
+            participant.basePath() +
+                "/shared-contracts/" +
+                contract +
+                "/participations/destinations/" +
+                otherOwner.workspace() +
+                "/applications/" +
+                otherOwner.application(),
+            null
+        ).statusCode(404);
 
         String participation = requestParticipation(participant, owner, contract)
-                .statusCode(201).extract().path("identifier");
-        post(owner.contractPath(contract) + "/participations/" + participation + "/approval",
-                Map.of("publicationModeCode", "MANUAL", "environmentMappings", Map.of("mappings", List.of())))
-                .statusCode(200).body("status", equalTo("APPROVED"));
+            .statusCode(201)
+            .extract()
+            .path("identifier");
+        post(
+            owner.contractPath(contract) + "/participations/" + participation + "/approval",
+            Map.of("publicationModeCode", "MANUAL", "environmentMappings", Map.of("mappings", List.of()))
+        )
+            .statusCode(200)
+            .body("status", equalTo("APPROVED"));
 
         delete(participant.basePath() + "/participations/" + participation).statusCode(204);
-        assertThat(jdbc.queryForObject("select count(*) from shared_participations where identifier = ?",
-                Integer.class, participation)).isZero();
+        assertThat(
+            jdbc.queryForObject(
+                "select count(*) from shared_participations where identifier = ?",
+                Integer.class,
+                participation
+            )
+        ).isZero();
         get(owner.contractPath(contract)).statusCode(200);
     }
 
@@ -118,26 +169,39 @@ class SharedApiIT {
         Scope participant = createScope("Participant");
         String contract = createContract(owner);
         String participation = requestParticipation(participant, owner, contract)
-                .statusCode(201).body("status", equalTo("PENDING")).extract().path("identifier");
+            .statusCode(201)
+            .body("status", equalTo("PENDING"))
+            .extract()
+            .path("identifier");
 
-        patch(owner.contractPath(contract) + "/inactivate").statusCode(200)
-                .body("lifecycle", equalTo("INACTIVE"));
+        patch(owner.contractPath(contract) + "/inactivate")
+            .statusCode(200)
+            .body("lifecycle", equalTo("INACTIVE"));
         get(owner.contractPath(contract)).statusCode(200).body("identifier", equalTo(contract));
-        get(participant.basePath() + "/shared-contracts/available").statusCode(200)
-                .body("identifier", not(hasItem(contract)));
+        get(participant.basePath() + "/shared-contracts/available")
+            .statusCode(200)
+            .body("identifier", not(hasItem(contract)));
         get(participant.basePath() + "/participations/" + participation).statusCode(404);
 
-        patch(owner.contractPath(contract) + "/activate").statusCode(200)
-                .body("lifecycle", equalTo("ACTIVE"));
-        get(participant.basePath() + "/participations/" + participation).statusCode(200)
-                .body("status", equalTo("PENDING"));
+        patch(owner.contractPath(contract) + "/activate")
+            .statusCode(200)
+            .body("lifecycle", equalTo("ACTIVE"));
+        get(participant.basePath() + "/participations/" + participation)
+            .statusCode(200)
+            .body("status", equalTo("PENDING"));
 
         patch(owner.contractPath(contract) + "/inactivate").statusCode(200);
         delete(owner.contractPath(contract)).statusCode(204);
-        assertThat(jdbc.queryForObject("select count(*) from shared_participations where identifier = ?",
-                Integer.class, participation)).isZero();
-        assertThat(jdbc.queryForObject("select count(*) from shared_contracts where identifier = ?",
-                Integer.class, contract)).isZero();
+        assertThat(
+            jdbc.queryForObject(
+                "select count(*) from shared_participations where identifier = ?",
+                Integer.class,
+                participation
+            )
+        ).isZero();
+        assertThat(
+            jdbc.queryForObject("select count(*) from shared_contracts where identifier = ?", Integer.class, contract)
+        ).isZero();
     }
 
     @Test
@@ -149,28 +213,42 @@ class SharedApiIT {
         String otherContract = createContract(other);
 
         authorization.reset();
-        authorization.allow(session -> session.groups("USER")
+        authorization.allow(session ->
+            session
+                .groups("USER")
                 .addAuthorizerGroup("GRP_WORKSPACE_DEV_OWNER_SPACE", "DEV", "DEV", "OWNER_SPACE")
-                .addAuthorizerGroup("GRP_APPLICATION_DEV_OWNER_APP", "DEV", "DEV", "A-OWNER_APP"));
+                .addAuthorizerGroup("GRP_APPLICATION_DEV_OWNER_APP", "DEV", "DEV", "A-OWNER_APP")
+        );
 
         get(owner.contractPath(ownerContract)).statusCode(200);
         get(other.contractPath(otherContract)).statusCode(anyOf(is(403), is(404)));
         authorization.verifyCalledWithPolicy("DEV");
 
         authorization.reset();
-        authorization.allow(session -> session.groups("USER")
+        authorization.allow(session ->
+            session
+                .groups("USER")
                 .addAuthorizerGroup("GRP_WORKSPACE_DEV_PART_SPACE", "DEV", "DEV", "PART_SPACE")
-                .addAuthorizerGroup("GRP_APPLICATION_DEV_PART_APP", "DEV", "DEV", "A-PART_APP"));
+                .addAuthorizerGroup("GRP_APPLICATION_DEV_PART_APP", "DEV", "DEV", "A-PART_APP")
+        );
         get(participant.basePath() + "/participations").statusCode(200);
         get(owner.basePath() + "/participations").statusCode(anyOf(is(403), is(404)));
         authorization.verifyCalledWithPolicy("DEV");
     }
 
     private void seedCatalogs() {
-        jdbc.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('MANAGER', 'Manager', 'Management workspace', 2, true, '{}')");
-        jdbc.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')");
-        jdbc.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle', 3, true, '{}')");
-        jdbc.update("INSERT IGNORE INTO type_application_scopes (code, label, description, sort_order, is_active, settings) VALUES ('BACKEND', 'Backend', 'Backend application', 1, true, '{}')");
+        jdbc.update(
+            "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('MANAGER', 'Manager', 'Management workspace', 2, true, '{}')"
+        );
+        jdbc.update(
+            "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')"
+        );
+        jdbc.update(
+            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle', 3, true, '{}')"
+        );
+        jdbc.update(
+            "INSERT IGNORE INTO type_application_scopes (code, label, description, sort_order, is_active, settings) VALUES ('BACKEND', 'Backend', 'Backend application', 1, true, '{}')"
+        );
     }
 
     private Scope createScope(String prefix) {
@@ -179,30 +257,54 @@ class SharedApiIT {
 
     private Scope createScope(String prefix, String workspaceAuthorizer, String applicationAuthorizer) {
         String workspace = post("/api/v1/workspaces", workspaceRequest(prefix, workspaceAuthorizer))
-                .statusCode(201).extract().path("identifier");
-        String application = post("/api/v1/workspaces/" + workspace + "/applications",
-                applicationRequest(prefix, applicationAuthorizer))
-                .statusCode(201).extract().path("identifier");
+            .statusCode(201)
+            .extract()
+            .path("identifier");
+        String application = post(
+            "/api/v1/workspaces/" + workspace + "/applications",
+            applicationRequest(prefix, applicationAuthorizer)
+        )
+            .statusCode(201)
+            .extract()
+            .path("identifier");
         return new Scope(workspace, application);
     }
 
     private String createContract(Scope owner) {
-        return post(owner.contractsPath(), Map.of("name", "Shared " + UUID.randomUUID(), "description", "Contrato de teste"))
-                .statusCode(201).extract().path("identifier");
+        return post(
+            owner.contractsPath(),
+            Map.of("name", "Shared " + UUID.randomUUID(), "description", "Contrato de teste")
+        )
+            .statusCode(201)
+            .extract()
+            .path("identifier");
     }
 
     private void insertMapping(String participation, String source, String destination) {
-        jdbc.update("""
-                insert into shared_environment_mappings
-                    (participation_id, source_environment_identifier, destination_environment_identifier, created_at, updated_at)
-                select id, ?, ?, current_timestamp(6), current_timestamp(6)
-                from shared_participations where identifier = ?
-                """, source, destination, participation);
+        jdbc.update(
+            """
+            insert into shared_environment_mappings
+                (participation_id, source_environment_identifier, destination_environment_identifier, created_at, updated_at)
+            select id, ?, ?, current_timestamp(6), current_timestamp(6)
+            from shared_participations where identifier = ?
+            """,
+            source,
+            destination,
+            participation
+        );
     }
 
     private ValidatableResponse requestParticipation(Scope participant, Scope owner, String contract) {
-        return post(participant.basePath() + "/shared-contracts/" + contract + "/participations/destinations/"
-                + owner.workspace() + "/applications/" + owner.application(), null);
+        return post(
+            participant.basePath() +
+                "/shared-contracts/" +
+                contract +
+                "/participations/destinations/" +
+                owner.workspace() +
+                "/applications/" +
+                owner.application(),
+            null
+        );
     }
 
     private Map<String, Object> workspaceRequest(String prefix, String authorizerGroup) {
@@ -250,13 +352,24 @@ class SharedApiIT {
     }
 
     private io.restassured.specification.RequestSpecification authorized() {
-        return given().port(port).header("correlation-id", "shared-api-it")
-                .header("Authorization", "Bearer shared-api-it").accept(ContentType.JSON);
+        return given()
+            .port(port)
+            .header("correlation-id", "shared-api-it")
+            .header("Authorization", "Bearer shared-api-it")
+            .accept(ContentType.JSON);
     }
 
     private record Scope(String workspace, String application) {
-        String basePath() { return "/api/v1/workspaces/" + workspace + "/applications/" + application; }
-        String contractsPath() { return basePath() + "/shared/contracts"; }
-        String contractPath(String contract) { return contractsPath() + "/" + contract; }
+        String basePath() {
+            return "/api/v1/workspaces/" + workspace + "/applications/" + application;
+        }
+
+        String contractsPath() {
+            return basePath() + "/shared/contracts";
+        }
+
+        String contractPath(String contract) {
+            return contractsPath() + "/" + contract;
+        }
     }
 }

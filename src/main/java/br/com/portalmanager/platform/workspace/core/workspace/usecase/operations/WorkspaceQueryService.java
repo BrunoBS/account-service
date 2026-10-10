@@ -9,23 +9,27 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.Find
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOutput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-
 @Service
 public class WorkspaceQueryService {
+
     private final WorkspaceRepository repository;
     private final WorkspaceFinder finder;
     private final WorkspaceNormalizer normalizer;
     private final WorkspaceValidator validator;
     private final TagManager<WorkspaceTag, Workspace> tags;
 
-    public WorkspaceQueryService(WorkspaceRepository repository, WorkspaceFinder finder, WorkspaceNormalizer normalizer,
-                                 WorkspaceValidator validator,
-                                 TagManager<WorkspaceTag, Workspace> tags) {
+    public WorkspaceQueryService(
+        WorkspaceRepository repository,
+        WorkspaceFinder finder,
+        WorkspaceNormalizer normalizer,
+        WorkspaceValidator validator,
+        TagManager<WorkspaceTag, Workspace> tags
+    ) {
         this.repository = repository;
         this.finder = finder;
         this.normalizer = normalizer;
@@ -53,8 +57,10 @@ public class WorkspaceQueryService {
     @ResourceVisibility(Workspace.class)
     @Transactional(readOnly = true)
     public List<WorkspaceOutput> findAll(FindAllWorkspacesInput input) {
-        String lifecycleCode = input != null && Boolean.FALSE.equals(input.active())
-                ? LifecycleTypeCode.inactive().value() : LifecycleTypeCode.active().value();
+        String lifecycleCode =
+            input != null && Boolean.FALSE.equals(input.active())
+                ? LifecycleTypeCode.inactive().value()
+                : LifecycleTypeCode.active().value();
         String normalizedType = normalizer.normalizeTypeFilter(input == null ? null : input.typeName());
         String normalizedTag = normalizer.normalizeTagFilter(input == null ? null : input.tagName());
         validator.validateTypeFilter(normalizedType);
@@ -65,7 +71,12 @@ public class WorkspaceQueryService {
             if (identifiers.isEmpty()) return List.of();
             workspaces = repository.findFilteredByIdentifiers(lifecycleCode, normalizedType, identifiers);
         }
-        Map<String, List<String>> manualTags = tags.findManualByOwnerKeys(workspaces.stream().map(Workspace::getIdentifier).toList());
-        return workspaces.stream().map(w -> WorkspaceOutput.from(w, manualTags.getOrDefault(w.getIdentifier(), List.of()))).toList();
+        Map<String, List<String>> manualTags = tags.findManualByOwnerKeys(
+            workspaces.stream().map(Workspace::getIdentifier).toList()
+        );
+        return workspaces
+            .stream()
+            .map(w -> WorkspaceOutput.from(w, manualTags.getOrDefault(w.getIdentifier(), List.of())))
+            .toList();
     }
 }

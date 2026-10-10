@@ -5,5 +5,5 @@ import br.com.portalmanager.platform.library.catalog.model.CatalogEnum;
 public enum LifecycleTypeEnum implements CatalogEnum<LifecycleTypeEnum> {
     ACTIVE,
     INACTIVE,
-    QUARANTINED
+    QUARANTINED,
 }

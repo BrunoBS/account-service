@@ -14,16 +14,17 @@ public class LifecycleTypeService extends EnumCatalogService<LifecycleType, Life
     private static final String SCHEMA_RESOURCE_CODE = "lifecycle-type";
 
     public LifecycleTypeService(
-            LifecycleTypeRepository repository,
-            ObjectMapper objectMapper,
-            SchemaValidator schemaValidator) {
+        LifecycleTypeRepository repository,
+        ObjectMapper objectMapper,
+        SchemaValidator schemaValidator
+    ) {
         super(
-                repository,
-                objectMapper,
-                LifecycleType.class,
-                LifecycleTypeEnum.class,
-                SCHEMA_RESOURCE_CODE,
-                schemaValidator
+            repository,
+            objectMapper,
+            LifecycleType.class,
+            LifecycleTypeEnum.class,
+            SCHEMA_RESOURCE_CODE,
+            schemaValidator
         );
     }
 }

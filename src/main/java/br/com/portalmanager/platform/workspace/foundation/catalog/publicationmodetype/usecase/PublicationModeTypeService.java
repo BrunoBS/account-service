@@ -10,9 +10,19 @@ import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class PublicationModeTypeService extends EnumCatalogService<PublicationModeType, PublicationModeTypeEnum> {
-    public PublicationModeTypeService(PublicationModeTypeRepository repository, ObjectMapper objectMapper,
-                                      SchemaValidator schemaValidator) {
-        super(repository, objectMapper, PublicationModeType.class, PublicationModeTypeEnum.class,
-                "publication-mode-type", schemaValidator);
+
+    public PublicationModeTypeService(
+        PublicationModeTypeRepository repository,
+        ObjectMapper objectMapper,
+        SchemaValidator schemaValidator
+    ) {
+        super(
+            repository,
+            objectMapper,
+            PublicationModeType.class,
+            PublicationModeTypeEnum.class,
+            "publication-mode-type",
+            schemaValidator
+        );
     }
 }

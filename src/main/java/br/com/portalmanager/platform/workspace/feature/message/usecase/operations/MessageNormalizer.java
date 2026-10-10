@@ -4,9 +4,8 @@ import br.com.portalmanager.platform.workspace.feature.message.usecase.model.Cre
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageTranslationInput;
-import org.springframework.stereotype.Component;
-
 import java.util.Locale;
+import org.springframework.stereotype.Component;
 
 @Component
 public class MessageNormalizer {
@@ -16,14 +15,12 @@ public class MessageNormalizer {
             return null;
         }
         return new CreateMessageInput(
-                normalizeMicroserviceIdentifier(input.microserviceIdentifier()),
-                trim(input.messageKey()),
-                upper(input.code()),
-                input.httpStatus(),
-                trimOptional(input.observation()),
-                input.translations() == null ? null : input.translations().stream()
-                        .map(this::normalize)
-                        .toList()
+            normalizeMicroserviceIdentifier(input.microserviceIdentifier()),
+            trim(input.messageKey()),
+            upper(input.code()),
+            input.httpStatus(),
+            trimOptional(input.observation()),
+            input.translations() == null ? null : input.translations().stream().map(this::normalize).toList()
         );
     }
 
@@ -32,12 +29,12 @@ public class MessageNormalizer {
             return null;
         }
         return new UpdateMessageInput(
-                input.version(),
-                normalizeMicroserviceIdentifier(input.microserviceIdentifier()),
-                trim(input.messageKey()),
-                upper(input.code()),
-                input.httpStatus(),
-                trimOptional(input.observation())
+            input.version(),
+            normalizeMicroserviceIdentifier(input.microserviceIdentifier()),
+            trim(input.messageKey()),
+            upper(input.code()),
+            input.httpStatus(),
+            trimOptional(input.observation())
         );
     }
 
@@ -46,10 +43,10 @@ public class MessageNormalizer {
             return null;
         }
         return new CreateMessageTranslationInput(
-                normalizeLocale(input.locale()),
-                trim(input.title()),
-                trim(input.detail()),
-                trim(input.suggestion())
+            normalizeLocale(input.locale()),
+            trim(input.title()),
+            trim(input.detail()),
+            trim(input.suggestion())
         );
     }
 
@@ -58,11 +55,11 @@ public class MessageNormalizer {
             return null;
         }
         return new UpdateMessageTranslationInput(
-                input.version(),
-                normalizeLocale(input.locale()),
-                trim(input.title()),
-                trim(input.detail()),
-                trim(input.suggestion())
+            input.version(),
+            normalizeLocale(input.locale()),
+            trim(input.title()),
+            trim(input.detail()),
+            trim(input.suggestion())
         );
     }
 

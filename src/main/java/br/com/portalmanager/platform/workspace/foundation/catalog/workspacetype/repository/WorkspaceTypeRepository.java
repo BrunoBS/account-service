@@ -5,5 +5,4 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface WorkspaceTypeRepository extends CatalogRepository<WorkspaceType> {
-}
+public interface WorkspaceTypeRepository extends CatalogRepository<WorkspaceType> {}

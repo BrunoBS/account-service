@@ -5,7 +5,6 @@ import br.com.portalmanager.platform.library.tagging.model.TagOwner;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -15,13 +14,16 @@ import java.util.UUID;
 @Entity
 @Table(name = "workspaces")
 public class Workspace implements TagOwner {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
     @Version
     @Column(name = "version", nullable = false)
     private Long version;
+
     @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false)
     private String identifier;
 
@@ -31,19 +33,26 @@ public class Workspace implements TagOwner {
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
+
     @Column(name = "description", nullable = false, length = 500)
     private String description;
+
     @Column(name = "requester", nullable = false, length = 255)
     private String requester;
+
     @Column(name = "acronym", nullable = false, length = 5)
     private String acronym;
+
     @Column(name = "settings", columnDefinition = "TEXT")
     private String settings;
+
     @AuthorizerGroup
     @Column(name = "authorizer_group", length = 255)
     private String authorizerGroup;
+
     @Column(name = "email_group", nullable = false, length = 320)
     private String emailGroup;
+
     @Column(name = "onboarding", nullable = false)
     private boolean onboarding;
 
@@ -53,17 +62,26 @@ public class Workspace implements TagOwner {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<WorkspaceApprover> approvers = new LinkedHashSet<>();
 
-    protected Workspace() {
-    }
+    protected Workspace() {}
 
-    public Workspace(WorkspaceTypeCode workspaceType, String name, String description, String requester,
-                     String acronym, String settings, String authorizerGroup, String emailGroup, LocalDateTime now) {
+    public Workspace(
+        WorkspaceTypeCode workspaceType,
+        String name,
+        String description,
+        String requester,
+        String acronym,
+        String settings,
+        String authorizerGroup,
+        String emailGroup,
+        LocalDateTime now
+    ) {
         this.identifier = UUID.randomUUID().toString();
         this.workspaceType = workspaceType;
         this.name = name;
@@ -79,8 +97,17 @@ public class Workspace implements TagOwner {
         this.updatedAt = now;
     }
 
-    public void update(WorkspaceTypeCode workspaceType, String name, String description, String requester,
-                       String acronym, String settings, String authorizerGroup, String emailGroup, LocalDateTime now) {
+    public void update(
+        WorkspaceTypeCode workspaceType,
+        String name,
+        String description,
+        String requester,
+        String acronym,
+        String settings,
+        String authorizerGroup,
+        String emailGroup,
+        LocalDateTime now
+    ) {
         this.workspaceType = workspaceType;
         this.name = name;
         this.description = description;

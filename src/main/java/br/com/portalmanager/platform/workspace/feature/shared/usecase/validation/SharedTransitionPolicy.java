@@ -8,10 +8,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SharedTransitionPolicy {
+
     public void requireTransition(ShareStatusTypeCode current, ShareStatusTypeEnum next) {
         ShareStatusTypeEnum currentStatus;
-        try { currentStatus = ShareStatusTypeEnum.valueOf(current.value()); }
-        catch (IllegalArgumentException ex) { throw new ValidationException(SharedMessageKeys.STATE_INVALID); }
+        try {
+            currentStatus = ShareStatusTypeEnum.valueOf(current.value());
+        } catch (IllegalArgumentException ex) {
+            throw new ValidationException(SharedMessageKeys.STATE_INVALID);
+        }
         if (!currentStatus.canTransitionTo(next)) throw new ValidationException(SharedMessageKeys.STATE_INVALID);
     }
 }

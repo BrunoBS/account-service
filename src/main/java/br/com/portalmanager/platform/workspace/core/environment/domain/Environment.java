@@ -4,16 +4,17 @@ import br.com.portalmanager.platform.library.authorization.annotation.Authorizer
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "environments")
 public class Environment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Version
     @Column(nullable = false)
     private Long version;
@@ -31,7 +32,10 @@ public class Environment {
     private String description;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "authorization_type_code", nullable = false, length = 50))
+    @AttributeOverride(
+        name = "value",
+        column = @Column(name = "authorization_type_code", nullable = false, length = 50)
+    )
     private AuthorizationTypeCode authorizationType;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -62,12 +66,20 @@ public class Environment {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected Environment() {
-    }
+    protected Environment() {}
 
-    public Environment(Long workspaceId, EnvironmentType environmentType, Environment parent,
-                       String name, String description, AuthorizationTypeCode authorizationType,
-                       String authorizerGroup, String settings, Integer sortOrder, LocalDateTime now) {
+    public Environment(
+        Long workspaceId,
+        EnvironmentType environmentType,
+        Environment parent,
+        String name,
+        String description,
+        AuthorizationTypeCode authorizationType,
+        String authorizerGroup,
+        String settings,
+        Integer sortOrder,
+        LocalDateTime now
+    ) {
         this.identifier = UUID.randomUUID().toString();
         this.workspaceId = workspaceId;
         this.environmentType = environmentType;
@@ -77,8 +89,15 @@ public class Environment {
         this.createdAt = now;
     }
 
-    public void update(String name, String description, AuthorizationTypeCode authorizationType, String authorizerGroup,
-                       String settings, Integer sortOrder, LocalDateTime now) {
+    public void update(
+        String name,
+        String description,
+        AuthorizationTypeCode authorizationType,
+        String authorizerGroup,
+        String settings,
+        Integer sortOrder,
+        LocalDateTime now
+    ) {
         this.name = name;
         this.description = description;
         this.authorizationType = authorizationType;
@@ -135,7 +154,10 @@ public class Environment {
         return environmentType;
     }
 
-    public Environment getParent() { return parent; }
+    public Environment getParent() {
+        return parent;
+    }
+
     public void changeType(EnvironmentType type, LocalDateTime now) {
         environmentType = type;
         updatedAt = now;

@@ -16,6 +16,8 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.validati
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,11 +26,9 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 @Service
 public class ApplicationCommandService {
+
     private final ApplicationRepository repository;
     private final ApplicationFinder finder;
     private final WorkspaceReferenceResolver workspaces;
@@ -40,12 +40,17 @@ public class ApplicationCommandService {
     private final ObjectMapper json;
 
     @Autowired
-    public ApplicationCommandService(ApplicationRepository repository, ApplicationFinder finder,
-                                     WorkspaceReferenceResolver workspaces, ApplicationNormalizer normalizer,
-                                     ApplicationValidator validator,
-                                     TagManager<ApplicationTag, Application> tags,
-                                     ApplicationQueryService visibility, WorkspaceQueryService workspaceVisibility,
-                                     ObjectMapper json) {
+    public ApplicationCommandService(
+        ApplicationRepository repository,
+        ApplicationFinder finder,
+        WorkspaceReferenceResolver workspaces,
+        ApplicationNormalizer normalizer,
+        ApplicationValidator validator,
+        TagManager<ApplicationTag, Application> tags,
+        ApplicationQueryService visibility,
+        WorkspaceQueryService workspaceVisibility,
+        ObjectMapper json
+    ) {
         this.repository = repository;
         this.finder = finder;
         this.workspaces = workspaces;
@@ -57,28 +62,51 @@ public class ApplicationCommandService {
         this.json = json;
     }
 
-    public ApplicationCommandService(ApplicationRepository repository, ApplicationFinder finder,
-                                     WorkspaceReferenceResolver workspaces, ApplicationNormalizer normalizer,
-                                     ApplicationValidator validator,
-                                     TagManager<ApplicationTag, Application> tags,
-                                     ApplicationQueryService visibility, WorkspaceQueryService workspaceVisibility) {
-        this(repository, finder, workspaces, normalizer, validator, tags, visibility, workspaceVisibility,
-                JsonMapper.builder().build());
+    public ApplicationCommandService(
+        ApplicationRepository repository,
+        ApplicationFinder finder,
+        WorkspaceReferenceResolver workspaces,
+        ApplicationNormalizer normalizer,
+        ApplicationValidator validator,
+        TagManager<ApplicationTag, Application> tags,
+        ApplicationQueryService visibility,
+        WorkspaceQueryService workspaceVisibility
+    ) {
+        this(
+            repository,
+            finder,
+            workspaces,
+            normalizer,
+            validator,
+            tags,
+            visibility,
+            workspaceVisibility,
+            JsonMapper.builder().build()
+        );
     }
 
     @Transactional
     @ValidateResourceSchema(type = "APPLICATION", code = "application")
     @Auditable(action = AuditAction.CREATE, event = "APPLICATION_CREATED", resourceType = "APPLICATION")
-    public ApplicationOutput create(String workspaceIdentifier, @SchemaPayload JsonNode payload) throws JacksonException {
+    public ApplicationOutput create(String workspaceIdentifier, @SchemaPayload JsonNode payload)
+        throws JacksonException {
         CreateApplicationInput raw = json.treeToValue(payload, CreateApplicationInput.class);
         workspaceVisibility.findByIdentifier(workspaceIdentifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         CreateApplicationInput input = normalizer.normalize(raw);
-        boolean duplicate = input != null && input.name() != null &&
-                repository.existsByWorkspaceIdAndName(workspaceId, input.name());
+        boolean duplicate =
+            input != null && input.name() != null && repository.existsByWorkspaceIdAndName(workspaceId, input.name());
         validator.validateForCreate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
-        Application app = new Application(workspaceId, input.name(), input.alias(), input.acronym(),
-                ApplicationScopeTypeCode.of(input.applicationScope()), input.authorizerGroup(), settings(input.settings()), LocalDateTime.now());
+        Application app = new Application(
+            workspaceId,
+            input.name(),
+            input.alias(),
+            input.acronym(),
+            ApplicationScopeTypeCode.of(input.applicationScope()),
+            input.authorizerGroup(),
+            settings(input.settings()),
+            LocalDateTime.now()
+        );
         Application saved = repository.saveAndFlush(app);
         tags.reconcile(saved, input.tags(), ApplicationSystemTags.resolve(saved, workspaceIdentifier));
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
@@ -87,19 +115,28 @@ public class ApplicationCommandService {
     @Transactional
     @ValidateResourceSchema(type = "APPLICATION", code = "application")
     @Auditable(action = AuditAction.UPDATE, event = "APPLICATION_UPDATED", resourceType = "APPLICATION")
-    public ApplicationOutput update(String workspaceIdentifier, String identifier,
-                                    @SchemaPayload JsonNode payload) throws JacksonException {
+    public ApplicationOutput update(String workspaceIdentifier, String identifier, @SchemaPayload JsonNode payload)
+        throws JacksonException {
         UpdateApplicationInput raw = json.treeToValue(payload, UpdateApplicationInput.class);
         visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application app = finder.findActive(identifier, workspaceId);
         UpdateApplicationInput input = normalizer.normalize(raw);
-        boolean duplicate = input != null && input.name() != null &&
-                repository.existsByWorkspaceIdAndNameAndIdNot(workspaceId, input.name(), app.getId());
+        boolean duplicate =
+            input != null &&
+            input.name() != null &&
+            repository.existsByWorkspaceIdAndNameAndIdNot(workspaceId, input.name(), app.getId());
         validator.validateForUpdate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
         validator.requireVersion(app.getVersion(), input.version());
-        app.update(input.name(), input.alias(), input.acronym(), ApplicationScopeTypeCode.of(input.applicationScope()),
-                input.authorizerGroup(), settings(input.settings()), LocalDateTime.now());
+        app.update(
+            input.name(),
+            input.alias(),
+            input.acronym(),
+            ApplicationScopeTypeCode.of(input.applicationScope()),
+            input.authorizerGroup(),
+            settings(input.settings()),
+            LocalDateTime.now()
+        );
         Application saved = repository.saveAndFlush(app);
         tags.reconcile(saved, input.tags(), ApplicationSystemTags.resolve(saved, workspaceIdentifier));
         return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));

@@ -1,11 +1,66 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.environment;
+
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
-import br.com.portalmanager.platform.workspace.core.environment.facade.EnvironmentTypeFacade;import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.*;import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentTypeResponse;import org.springframework.http.*;import org.springframework.web.bind.annotation.*;import java.util.List;
-@RestController @RequestMapping("/api/v1/environment-types") public class EnvironmentTypeController {private final EnvironmentTypeFacade facade;public EnvironmentTypeController(EnvironmentTypeFacade f){facade=f;}
-@PostMapping public ResponseEntity<EnvironmentTypeResponse> create(AuthorizationContext context, @RequestBody CreateEnvironmentTypeRequest r){return ResponseEntity.status(HttpStatus.CREATED).body(EnvironmentTypeResponse.from(facade.create(context, r==null?null:r.toInput())));}
-@GetMapping public List<EnvironmentTypeResponse> list(AuthorizationContext context){return facade.list(context).stream().map(EnvironmentTypeResponse::from).toList();}
-@GetMapping("/{identifier}") public EnvironmentTypeResponse find(AuthorizationContext context, @PathVariable String identifier){return EnvironmentTypeResponse.from(facade.find(context, identifier));}
-@PutMapping("/{identifier}") public EnvironmentTypeResponse update(AuthorizationContext context, @PathVariable String identifier,@RequestBody UpdateEnvironmentTypeRequest r){return EnvironmentTypeResponse.from(facade.update(context, identifier,r==null?null:r.toInput()));}
-@PostMapping("/{identifier}/inactivate") public ResponseEntity<Void> inactivate(AuthorizationContext context, @PathVariable String identifier){facade.inactivate(context, identifier);return ResponseEntity.noContent().build();}
-@PostMapping("/{identifier}/restore") public EnvironmentTypeResponse restore(AuthorizationContext context, @PathVariable String identifier){return EnvironmentTypeResponse.from(facade.restore(context, identifier));}
-@DeleteMapping("/{identifier}") public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier){facade.delete(context, identifier);return ResponseEntity.noContent().build();}}
+import br.com.portalmanager.platform.workspace.core.environment.facade.EnvironmentTypeFacade;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.*;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentTypeResponse;
+import java.util.List;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/environment-types")
+public class EnvironmentTypeController {
+
+    private final EnvironmentTypeFacade facade;
+
+    public EnvironmentTypeController(EnvironmentTypeFacade f) {
+        facade = f;
+    }
+
+    @PostMapping
+    public ResponseEntity<EnvironmentTypeResponse> create(
+        AuthorizationContext context,
+        @RequestBody CreateEnvironmentTypeRequest r
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            EnvironmentTypeResponse.from(facade.create(context, r == null ? null : r.toInput()))
+        );
+    }
+
+    @GetMapping
+    public List<EnvironmentTypeResponse> list(AuthorizationContext context) {
+        return facade.list(context).stream().map(EnvironmentTypeResponse::from).toList();
+    }
+
+    @GetMapping("/{identifier}")
+    public EnvironmentTypeResponse find(AuthorizationContext context, @PathVariable String identifier) {
+        return EnvironmentTypeResponse.from(facade.find(context, identifier));
+    }
+
+    @PutMapping("/{identifier}")
+    public EnvironmentTypeResponse update(
+        AuthorizationContext context,
+        @PathVariable String identifier,
+        @RequestBody UpdateEnvironmentTypeRequest r
+    ) {
+        return EnvironmentTypeResponse.from(facade.update(context, identifier, r == null ? null : r.toInput()));
+    }
+
+    @PostMapping("/{identifier}/inactivate")
+    public ResponseEntity<Void> inactivate(AuthorizationContext context, @PathVariable String identifier) {
+        facade.inactivate(context, identifier);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{identifier}/restore")
+    public EnvironmentTypeResponse restore(AuthorizationContext context, @PathVariable String identifier) {
+        return EnvironmentTypeResponse.from(facade.restore(context, identifier));
+    }
+
+    @DeleteMapping("/{identifier}")
+    public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier) {
+        facade.delete(context, identifier);
+        return ResponseEntity.noContent().build();
+    }
+}

@@ -6,10 +6,9 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.Crea
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.ApproverData;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidationData;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Locale;
+import org.springframework.stereotype.Component;
 
 @Component
 public class WorkspaceNormalizer {
@@ -20,16 +19,16 @@ public class WorkspaceNormalizer {
         }
 
         return new CreateWorkspaceInput(
-                normalizeType(input.workspaceType()),
-                trim(input.name()),
-                trim(input.description()),
-                trim(input.requester()),
-                trim(input.acronym()),
-                normalizeAuthorizerGroup(input.authorizerGroup()),
-                input.settings(),
-                trim(input.emailGroup()),
-                normalizeApprovers(input.approvers()),
-                input.tags()
+            normalizeType(input.workspaceType()),
+            trim(input.name()),
+            trim(input.description()),
+            trim(input.requester()),
+            trim(input.acronym()),
+            normalizeAuthorizerGroup(input.authorizerGroup()),
+            input.settings(),
+            trim(input.emailGroup()),
+            normalizeApprovers(input.approvers()),
+            input.tags()
         );
     }
 
@@ -39,17 +38,17 @@ public class WorkspaceNormalizer {
         }
 
         return new UpdateWorkspaceInput(
-                input.version(),
-                normalizeType(input.workspaceType()),
-                trim(input.name()),
-                trim(input.description()),
-                trim(input.requester()),
-                trim(input.acronym()),
-                normalizeAuthorizerGroup(input.authorizerGroup()),
-                input.settings(),
-                trim(input.emailGroup()),
-                normalizeApprovers(input.approvers()),
-                input.tags()
+            input.version(),
+            normalizeType(input.workspaceType()),
+            trim(input.name()),
+            trim(input.description()),
+            trim(input.requester()),
+            trim(input.acronym()),
+            normalizeAuthorizerGroup(input.authorizerGroup()),
+            input.settings(),
+            trim(input.emailGroup()),
+            normalizeApprovers(input.approvers()),
+            input.tags()
         );
     }
 
@@ -66,15 +65,15 @@ public class WorkspaceNormalizer {
             return null;
         }
         return new WorkspaceValidationData(
-                null,
-                input.workspaceType(),
-                input.name(),
-                input.description(),
-                input.requester(),
-                input.acronym(),
-                input.settings(),
-                input.emailGroup(),
-                toApproverData(input.approvers())
+            null,
+            input.workspaceType(),
+            input.name(),
+            input.description(),
+            input.requester(),
+            input.acronym(),
+            input.settings(),
+            input.emailGroup(),
+            toApproverData(input.approvers())
         );
     }
 
@@ -83,15 +82,15 @@ public class WorkspaceNormalizer {
             return null;
         }
         return new WorkspaceValidationData(
-                input.version(),
-                input.workspaceType(),
-                input.name(),
-                input.description(),
-                input.requester(),
-                input.acronym(),
-                input.settings(),
-                input.emailGroup(),
-                toApproverData(input.approvers())
+            input.version(),
+            input.workspaceType(),
+            input.name(),
+            input.description(),
+            input.requester(),
+            input.acronym(),
+            input.settings(),
+            input.emailGroup(),
+            toApproverData(input.approvers())
         );
     }
 
@@ -100,9 +99,7 @@ public class WorkspaceNormalizer {
             return null;
         }
 
-        return approvers.stream()
-                .map(this::normalizeApprover)
-                .toList();
+        return approvers.stream().map(this::normalizeApprover).toList();
     }
 
     private ApproverInput normalizeApprover(ApproverInput approver) {
@@ -116,9 +113,10 @@ public class WorkspaceNormalizer {
         if (approvers == null) {
             return null;
         }
-        return approvers.stream()
-                .map(value -> value == null ? null : new ApproverData(value.functional(), value.email()))
-                .toList();
+        return approvers
+            .stream()
+            .map(value -> value == null ? null : new ApproverData(value.functional(), value.email()))
+            .toList();
     }
 
     private String normalizeType(String value) {

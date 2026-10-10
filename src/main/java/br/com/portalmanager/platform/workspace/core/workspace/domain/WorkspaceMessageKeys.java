@@ -15,15 +15,11 @@ public final class WorkspaceMessageKeys {
     public static final String ACRONYM_SIZE = "validation.acronym.size";
     public static final String EMAIL_INVALID = "validation.email.invalid";
     public static final String APPROVERS_REQUIRED = "validation.approvers.required";
-    public static final String APPROVER_FUNCTIONAL_REQUIRED =
-            "validation.approver.functional.required";
+    public static final String APPROVER_FUNCTIONAL_REQUIRED = "validation.approver.functional.required";
     public static final String VERSION_REQUIRED = "validation.version.required";
     public static final String TYPE_FILTER_INVALID = "validation.type-filter.invalid";
-    public static final String APPROVER_FUNCTIONAL_DUPLICATE =
-            "validation.approver.functional.duplicate";
-    public static final String APPROVER_EMAIL_DUPLICATE =
-            "validation.approver.email.duplicate";
+    public static final String APPROVER_FUNCTIONAL_DUPLICATE = "validation.approver.functional.duplicate";
+    public static final String APPROVER_EMAIL_DUPLICATE = "validation.approver.email.duplicate";
 
-    private WorkspaceMessageKeys() {
-    }
+    private WorkspaceMessageKeys() {}
 }

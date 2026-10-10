@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.shared.usecase.model;
+
 public final class SharedMessageKeys {
+
     public static final String NOT_FOUND = "shared.not-found";
     public static final String REQUEST_INVALID = "shared.request.invalid";
     public static final String DUPLICATE = "shared.contract.duplicate";
@@ -9,5 +11,6 @@ public final class SharedMessageKeys {
     public static final String MAPPING_INVALID = "shared.mapping.invalid";
     public static final String SCOPE_INVALID = "shared.scope.invalid";
     public static final String PUBLICATION_MODE_INVALID = "shared.publication-mode.invalid";
+
     private SharedMessageKeys() {}
 }

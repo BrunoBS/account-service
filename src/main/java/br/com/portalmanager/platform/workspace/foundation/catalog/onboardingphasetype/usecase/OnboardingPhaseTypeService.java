@@ -14,16 +14,17 @@ public class OnboardingPhaseTypeService extends EnumCatalogService<OnboardingPha
     private static final String SCHEMA_RESOURCE_CODE = "onboarding-phase-type";
 
     public OnboardingPhaseTypeService(
-            OnboardingPhaseTypeRepository repository,
-            ObjectMapper objectMapper,
-            SchemaValidator schemaValidator) {
+        OnboardingPhaseTypeRepository repository,
+        ObjectMapper objectMapper,
+        SchemaValidator schemaValidator
+    ) {
         super(
-                repository,
-                objectMapper,
-                OnboardingPhaseType.class,
-                OnboardingPhaseTypeEnum.class,
-                SCHEMA_RESOURCE_CODE,
-                schemaValidator
+            repository,
+            objectMapper,
+            OnboardingPhaseType.class,
+            OnboardingPhaseTypeEnum.class,
+            SCHEMA_RESOURCE_CODE,
+            schemaValidator
         );
     }
 }

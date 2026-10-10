@@ -2,7 +2,6 @@ package br.com.portalmanager.platform.workspace.feature.platform.domain;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -12,47 +11,63 @@ import java.util.UUID;
 @Entity
 @Table(name = "platform_features")
 public class Feature {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
     @Version
     @Column(name = "version", nullable = false)
     private Long version;
+
     @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false)
     private String identifier;
+
     @Column(name = "code", nullable = false, unique = true, length = 50)
     private String code;
+
     @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
+
     @Column(name = "description", length = 500)
     private String description;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "microservice_id", nullable = false)
     private Microservice microservice;
 
     @ManyToMany
     @JoinTable(
-            name = "platform_feature_context_relations",
-            joinColumns = @JoinColumn(name = "feature_id"),
-            inverseJoinColumns = @JoinColumn(name = "feature_context_id")
+        name = "platform_feature_context_relations",
+        joinColumns = @JoinColumn(name = "feature_id"),
+        inverseJoinColumns = @JoinColumn(name = "feature_context_id")
     )
     private Set<FeatureContext> contexts = new LinkedHashSet<>();
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
     private LifecycleTypeCode lifecycle;
+
     @Column(name = "settings", nullable = false, columnDefinition = "json")
     private String settings;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected Feature() {
-    }
+    protected Feature() {}
 
-    public Feature(String code, String name, String description, Microservice microservice, String settings, LocalDateTime now) {
+    public Feature(
+        String code,
+        String name,
+        String description,
+        Microservice microservice,
+        String settings,
+        LocalDateTime now
+    ) {
         this.identifier = UUID.randomUUID().toString();
         this.code = code;
         this.name = name;

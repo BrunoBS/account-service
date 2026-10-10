@@ -1,7 +1,3 @@
 package br.com.portalmanager.platform.workspace.feature.platform.usecase.model;
 
-public record UpdateFeatureContextInput(
-        String name,
-        String description
-) {
-}
+public record UpdateFeatureContextInput(String name, String description) {}

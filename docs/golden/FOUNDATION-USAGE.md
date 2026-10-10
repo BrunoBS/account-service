@@ -46,10 +46,10 @@ O serviço usa:
 
 ```xml
 <parent>
-    <groupId>br.com.portalmanager.platform.library</groupId>
-    <artifactId>platform-parent</artifactId>
-    <version>1.0.0</version>
-    <relativePath/>
+  <groupId>br.com.portalmanager.platform.library</groupId>
+  <artifactId>platform-parent</artifactId>
+  <version>1.0.0</version>
+  <relativePath />
 </parent>
 ```
 
@@ -72,15 +72,15 @@ A Golden importa explicitamente:
 
 ```xml
 <dependencyManagement>
-    <dependencies>
-        <dependency>
-            <groupId>br.com.portalmanager.platform.library</groupId>
-            <artifactId>platform-libraries-bom</artifactId>
-            <version>1.0.0</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
-    </dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>br.com.portalmanager.platform.library</groupId>
+      <artifactId>platform-libraries-bom</artifactId>
+      <version>1.0.0</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
 </dependencyManagement>
 ```
 
@@ -95,8 +95,8 @@ A Golden declara:
 
 ```xml
 <dependency>
-    <groupId>br.com.portalmanager.platform.library</groupId>
-    <artifactId>platform-starter</artifactId>
+  <groupId>br.com.portalmanager.platform.library</groupId>
+  <artifactId>platform-starter</artifactId>
 </dependency>
 ```
 
@@ -142,8 +142,8 @@ Dependência explícita a partir da migração dos catálogos legados:
 
 ```xml
 <dependency>
-    <groupId>br.com.portalmanager.platform.library</groupId>
-    <artifactId>platform-catalog</artifactId>
+  <groupId>br.com.portalmanager.platform.library</groupId>
+  <artifactId>platform-catalog</artifactId>
 </dependency>
 ```
 
@@ -288,8 +288,8 @@ Dependência explícita:
 
 ```xml
 <dependency>
-    <groupId>br.com.portalmanager.platform.library</groupId>
-    <artifactId>platform-tagging</artifactId>
+  <groupId>br.com.portalmanager.platform.library</groupId>
+  <artifactId>platform-tagging</artifactId>
 </dependency>
 ```
 
@@ -302,8 +302,8 @@ Dependência explícita:
 
 ```xml
 <dependency>
-    <groupId>br.com.portalmanager.platform.library</groupId>
-    <artifactId>platform-audit</artifactId>
+  <groupId>br.com.portalmanager.platform.library</groupId>
+  <artifactId>platform-audit</artifactId>
 </dependency>
 ```
 
@@ -330,7 +330,7 @@ Foram migrados 16 catálogos do `account-api`:
 
 A estrutura da aplicação é:
 
-```text
+````text
 foundation/catalog
 └── <catalogo>
     ├── domain
@@ -344,7 +344,7 @@ ApplicationScopeType -> applicationscopetype
 FeatureType          -> featuretype
 SchemaType           -> schematype
 WorkspaceType        -> workspacetype
-```
+````
 
 Todo catálogo concreto termina em `type`. Assim, mesmo a entidade histórica
 `OnboardingPhase` pertence ao módulo `onboardingphasetype`.
@@ -408,3 +408,4 @@ A aplicação mantém responsabilidades próprias que não foram transferidas pa
 
 Essas classes usam diretamente `com.networknt:json-schema-validator`; a dependência é declarada no POM do serviço e sua
 versão `3.0.7` é gerenciada por `platform-dependencies`.
+```

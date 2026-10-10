@@ -1,11 +1,65 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice;
+
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
-import br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice.request.*;import br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice.response.MicroserviceResponse;import br.com.portalmanager.platform.workspace.feature.platform.facade.MicroserviceFacade;import org.springframework.http.*;import org.springframework.web.bind.annotation.*;import java.util.List;
-@RestController @RequestMapping("/api/v1/platform/microservices") public class MicroserviceController {private final MicroserviceFacade facade;public MicroserviceController(MicroserviceFacade f){facade=f;}
-@PostMapping public ResponseEntity<MicroserviceResponse> create(AuthorizationContext context, @RequestBody CreateMicroserviceRequest r){return ResponseEntity.status(HttpStatus.CREATED).body(MicroserviceResponse.from(facade.create(context, r.toInput())));}
-@GetMapping("/{identifier}") public MicroserviceResponse findByIdentifier(AuthorizationContext context, @PathVariable String identifier){return MicroserviceResponse.from(facade.findByIdentifier(context, identifier));}
-@GetMapping public List<MicroserviceResponse> findAll(AuthorizationContext context){return facade.findAll(context).stream().map(MicroserviceResponse::from).toList();}
-@PutMapping("/{identifier}") public MicroserviceResponse update(AuthorizationContext context, @PathVariable String identifier,@RequestBody UpdateMicroserviceRequest r){return MicroserviceResponse.from(facade.update(context, identifier,r.toInput()));}
-@PatchMapping("/{identifier}/activate") public MicroserviceResponse activate(AuthorizationContext context, @PathVariable String identifier){return MicroserviceResponse.from(facade.activate(context, identifier));}
-@PatchMapping("/{identifier}/inactivate") public MicroserviceResponse inactivate(AuthorizationContext context, @PathVariable String identifier){return MicroserviceResponse.from(facade.inactivate(context, identifier));}
-@DeleteMapping("/{identifier}") public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier){facade.delete(context, identifier);return ResponseEntity.noContent().build();}}
+import br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice.request.*;
+import br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice.response.MicroserviceResponse;
+import br.com.portalmanager.platform.workspace.feature.platform.facade.MicroserviceFacade;
+import java.util.List;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/platform/microservices")
+public class MicroserviceController {
+
+    private final MicroserviceFacade facade;
+
+    public MicroserviceController(MicroserviceFacade f) {
+        facade = f;
+    }
+
+    @PostMapping
+    public ResponseEntity<MicroserviceResponse> create(
+        AuthorizationContext context,
+        @RequestBody CreateMicroserviceRequest r
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            MicroserviceResponse.from(facade.create(context, r.toInput()))
+        );
+    }
+
+    @GetMapping("/{identifier}")
+    public MicroserviceResponse findByIdentifier(AuthorizationContext context, @PathVariable String identifier) {
+        return MicroserviceResponse.from(facade.findByIdentifier(context, identifier));
+    }
+
+    @GetMapping
+    public List<MicroserviceResponse> findAll(AuthorizationContext context) {
+        return facade.findAll(context).stream().map(MicroserviceResponse::from).toList();
+    }
+
+    @PutMapping("/{identifier}")
+    public MicroserviceResponse update(
+        AuthorizationContext context,
+        @PathVariable String identifier,
+        @RequestBody UpdateMicroserviceRequest r
+    ) {
+        return MicroserviceResponse.from(facade.update(context, identifier, r.toInput()));
+    }
+
+    @PatchMapping("/{identifier}/activate")
+    public MicroserviceResponse activate(AuthorizationContext context, @PathVariable String identifier) {
+        return MicroserviceResponse.from(facade.activate(context, identifier));
+    }
+
+    @PatchMapping("/{identifier}/inactivate")
+    public MicroserviceResponse inactivate(AuthorizationContext context, @PathVariable String identifier) {
+        return MicroserviceResponse.from(facade.inactivate(context, identifier));
+    }
+
+    @DeleteMapping("/{identifier}")
+    public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier) {
+        facade.delete(context, identifier);
+        return ResponseEntity.noContent().build();
+    }
+}

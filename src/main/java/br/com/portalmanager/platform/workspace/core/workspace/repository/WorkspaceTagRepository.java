@@ -6,5 +6,4 @@ import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceTa
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface WorkspaceTagRepository extends TagRepository<WorkspaceTag, Workspace> {
-}
+public interface WorkspaceTagRepository extends TagRepository<WorkspaceTag, Workspace> {}

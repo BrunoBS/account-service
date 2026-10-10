@@ -11,8 +11,16 @@ CREATE TABLE shared_contracts (
     updated_at DATETIME(6) NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT uk_shared_contracts_identifier UNIQUE (identifier),
-    CONSTRAINT uk_shared_contracts_scope_name UNIQUE (owner_workspace_identifier, owner_application_identifier, name),
-    INDEX idx_shared_contracts_owner_scope (owner_workspace_identifier, owner_application_identifier, lifecycle_code)
+    CONSTRAINT uk_shared_contracts_scope_name UNIQUE (
+        owner_workspace_identifier,
+        owner_application_identifier,
+        name
+    ),
+    INDEX idx_shared_contracts_owner_scope (
+        owner_workspace_identifier,
+        owner_application_identifier,
+        lifecycle_code
+    )
 );
 
 CREATE TABLE shared_participations (
@@ -32,7 +40,11 @@ CREATE TABLE shared_participations (
     CONSTRAINT fk_shared_participations_contract FOREIGN KEY (contract_id) REFERENCES shared_contracts (id) ON DELETE CASCADE,
     CONSTRAINT fk_shared_participations_status FOREIGN KEY (status_code) REFERENCES type_sharing_statuses (code),
     CONSTRAINT fk_shared_participations_publication_mode FOREIGN KEY (publication_mode_code) REFERENCES type_publication_modes (code),
-    INDEX idx_shared_participations_participant (participant_workspace_identifier, participant_application_identifier, status_code)
+    INDEX idx_shared_participations_participant (
+        participant_workspace_identifier,
+        participant_application_identifier,
+        status_code
+    )
 );
 
 CREATE TABLE shared_environment_mappings (
@@ -43,6 +55,9 @@ CREATE TABLE shared_environment_mappings (
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
     PRIMARY KEY (id),
-    CONSTRAINT uk_shared_mapping_destination UNIQUE (participation_id, destination_environment_identifier),
+    CONSTRAINT uk_shared_mapping_destination UNIQUE (
+        participation_id,
+        destination_environment_identifier
+    ),
     CONSTRAINT fk_shared_mapping_participation FOREIGN KEY (participation_id) REFERENCES shared_participations (id) ON DELETE CASCADE
 );

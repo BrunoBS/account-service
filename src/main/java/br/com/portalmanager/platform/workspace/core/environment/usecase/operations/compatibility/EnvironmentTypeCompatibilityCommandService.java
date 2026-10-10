@@ -8,22 +8,24 @@ import br.com.portalmanager.platform.workspace.core.environment.repository.Envir
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentCompatibilityOutput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentTypeCompatibilityValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EnvironmentTypeCompatibilityCommandService {
+
     private final EnvironmentTypeCompatibilityRepository compatibilities;
     private final EnvironmentRepository environments;
     private final EnvironmentTypeCompatibilityValidator validator;
 
-    public EnvironmentTypeCompatibilityCommandService(EnvironmentTypeCompatibilityRepository compatibilities,
-                                                       EnvironmentRepository environments,
-                                                       EnvironmentTypeCompatibilityValidator validator) {
+    public EnvironmentTypeCompatibilityCommandService(
+        EnvironmentTypeCompatibilityRepository compatibilities,
+        EnvironmentRepository environments,
+        EnvironmentTypeCompatibilityValidator validator
+    ) {
         this.compatibilities = compatibilities;
         this.environments = environments;
         this.validator = validator;
@@ -42,16 +44,19 @@ public class EnvironmentTypeCompatibilityCommandService {
             existing.get().activate(LocalDateTime.now());
             return EnvironmentCompatibilityOutput.from(existing.get());
         }
-        return EnvironmentCompatibilityOutput.from(compatibilities.saveAndFlush(
-                new EnvironmentTypeCompatibility(parent, child, LocalDateTime.now())));
+        return EnvironmentCompatibilityOutput.from(
+            compatibilities.saveAndFlush(new EnvironmentTypeCompatibility(parent, child, LocalDateTime.now()))
+        );
     }
 
     private boolean reaches(Long current, Long target, Set<Long> visited) {
         if (current.equals(target)) return true;
         if (!visited.add(current)) return false;
-        return compatibilities.findByLifecycle(LifecycleTypeCode.active()).stream()
-                .filter(edge -> edge.getParentType().getId().equals(current))
-                .anyMatch(edge -> reaches(edge.getChildType().getId(), target, visited));
+        return compatibilities
+            .findByLifecycle(LifecycleTypeCode.active())
+            .stream()
+            .filter(edge -> edge.getParentType().getId().equals(current))
+            .anyMatch(edge -> reaches(edge.getChildType().getId(), target, visited));
     }
 
     @Transactional
@@ -64,14 +69,16 @@ public class EnvironmentTypeCompatibilityCommandService {
     public void delete(String identifier) {
         EnvironmentTypeCompatibility edge = find(identifier);
         validator.requireInactive(edge.getLifecycle());
-        validator.requireUnused(environments.existsByTypePair(
-                edge.getParentType().getId(), edge.getChildType().getId()));
+        validator.requireUnused(
+            environments.existsByTypePair(edge.getParentType().getId(), edge.getChildType().getId())
+        );
         compatibilities.delete(edge);
         compatibilities.flush();
     }
 
     private EnvironmentTypeCompatibility find(String identifier) {
-        return compatibilities.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.COMPATIBILITY_NOT_FOUND));
+        return compatibilities
+            .findByIdentifier(identifier)
+            .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.COMPATIBILITY_NOT_FOUND));
     }
 }

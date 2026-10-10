@@ -3,7 +3,6 @@ package br.com.portalmanager.platform.workspace.foundation.schema.domain;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -48,16 +47,15 @@ public class Schema {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected Schema() {
-    }
+    protected Schema() {}
 
     public Schema(
-            SchemaScopeTypeCode scope,
-            Long workspaceId,
-            String code,
-            String name,
-            String description,
-            LocalDateTime now
+        SchemaScopeTypeCode scope,
+        Long workspaceId,
+        String code,
+        String name,
+        String description,
+        LocalDateTime now
     ) {
         this.identifier = UUID.randomUUID().toString();
         this.scope = scope;

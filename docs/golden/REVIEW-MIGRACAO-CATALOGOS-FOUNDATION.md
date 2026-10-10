@@ -17,7 +17,7 @@ distribuir catálogos por Core/Feature.
 Foram encontrados e migrados 16 catálogos:
 
 | Catálogo                           | Estratégia            |
-|------------------------------------|-----------------------|
+| ---------------------------------- | --------------------- |
 | WorkspaceType (legado AccountType) | EnumCatalogService    |
 | ApplicationScopeType               | EnumCatalogService    |
 | AuthorizationType                  | EnumCatalogService    |

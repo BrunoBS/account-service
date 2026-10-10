@@ -51,7 +51,7 @@ contratos auxiliares do CRUD em `usecase`; controllers ficam exclusivamente em I
 ## 4. Inventário — 16 catálogos
 
 | Catálogo legado      | Destino              | Estratégia da lib     | Endpoint destino               |
-|----------------------|----------------------|-----------------------|--------------------------------|
+| -------------------- | -------------------- | --------------------- | ------------------------------ |
 | AccountType          | WorkspaceType        | EnumCatalogService    | /api/v1/workspace-type         |
 | ApplicationScopeType | ApplicationScopeType | EnumCatalogService    | /api/v1/application-scope-type |
 | AuthorizationType    | AuthorizationType    | EnumCatalogService    | /api/v1/authorization-type     |

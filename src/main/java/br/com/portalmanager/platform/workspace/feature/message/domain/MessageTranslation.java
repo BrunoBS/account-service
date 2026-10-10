@@ -2,30 +2,43 @@ package br.com.portalmanager.platform.workspace.feature.message.domain;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "message_translations", uniqueConstraints = @UniqueConstraint(name = "uk_message_translations_message_locale", columnNames = {"message_id", "locale"}))
+@Table(
+    name = "message_translations",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_message_translations_message_locale",
+        columnNames = { "message_id", "locale" }
+    )
+)
 public class MessageTranslation {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Version
     @Column(nullable = false)
     private Long version;
+
     @Column(nullable = false, unique = true, length = 36, updatable = false)
     private String identifier;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "message_id", nullable = false)
     private Message message;
+
     @Column(nullable = false, length = 35)
     private String locale;
+
     @Column(nullable = false, length = 150)
     private String title;
+
     @Column(nullable = false, length = 1000)
     private String detail;
+
     @Column(nullable = false, length = 1000)
     private String suggestion;
 
@@ -35,13 +48,20 @@ public class MessageTranslation {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected MessageTranslation() {
-    }
+    protected MessageTranslation() {}
 
-    public MessageTranslation(Message message, String locale, String title, String detail, String suggestion, LocalDateTime now) {
+    public MessageTranslation(
+        Message message,
+        String locale,
+        String title,
+        String detail,
+        String suggestion,
+        LocalDateTime now
+    ) {
         this.identifier = UUID.randomUUID().toString();
         this.message = message;
         this.locale = locale;

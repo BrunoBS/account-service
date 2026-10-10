@@ -17,8 +17,7 @@ public class ApplicationTag extends Tag<Application> {
     @JoinColumn(name = "application_id", nullable = false)
     private Application owner;
 
-    protected ApplicationTag() {
-    }
+    protected ApplicationTag() {}
 
     public ApplicationTag(Application owner, TagName name, TagOriginType originType) {
         super(name, originType);

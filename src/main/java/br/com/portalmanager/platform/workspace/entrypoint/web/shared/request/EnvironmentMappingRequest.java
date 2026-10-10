@@ -5,9 +5,22 @@ import java.util.List;
 
 public record EnvironmentMappingRequest(List<Mapping> mappings) {
     public record Mapping(String sourceEnvironmentIdentifier, List<String> destinationEnvironmentIdentifiers) {}
+
     public EnvironmentMappingInput toInput() {
-        return new EnvironmentMappingInput(mappings == null ? null : mappings.stream()
-                .map(m -> m == null ? null : new EnvironmentMappingInput.Mapping(
-                        m.sourceEnvironmentIdentifier(), m.destinationEnvironmentIdentifiers())).toList());
+        return new EnvironmentMappingInput(
+            mappings == null
+                ? null
+                : mappings
+                      .stream()
+                      .map(m ->
+                          m == null
+                              ? null
+                              : new EnvironmentMappingInput.Mapping(
+                                    m.sourceEnvironmentIdentifier(),
+                                    m.destinationEnvironmentIdentifiers()
+                                )
+                      )
+                      .toList()
+        );
     }
 }

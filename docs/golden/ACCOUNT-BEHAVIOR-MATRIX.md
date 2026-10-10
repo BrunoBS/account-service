@@ -11,7 +11,7 @@
 ## Legenda
 
 | Decisão    | Significado                                           |
-|------------|-------------------------------------------------------|
+| ---------- | ----------------------------------------------------- |
 | PRESERVAR  | O comportamento faz parte do slice Golden V1.         |
 | REDESENHAR | A intenção permanece, mas a implementação antiga não. |
 | ADIAR      | Comportamento conhecido, fora do slice Golden V1.     |
@@ -21,7 +21,7 @@
 ## Matriz
 
 | Área          | Comportamento observado                                                   | Classificação               | Decisão Golden V1     | Observação                                                                                           |
-|---------------|---------------------------------------------------------------------------|-----------------------------|-----------------------|------------------------------------------------------------------------------------------------------|
+| ------------- | ------------------------------------------------------------------------- | --------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------- |
 | Create        | Criar Account e gerar id técnico no servidor                              | COMPORTAMENTO OBSERVADO     | PRESERVAR             | O id enviado pelo cliente não deve controlar a identidade persistida.                                |
 | Create        | Gerar identifier único                                                    | COMPORTAMENTO OBSERVADO     | PRESERVAR             | Implementação pode usar UUID tipado em vez de String, conforme modelagem.                            |
 | Create        | Lifecycle inicial ACTIVE                                                  | REGRA/COMPORTAMENTO         | PRESERVAR             | Resolvido em G2: `AccountLifecycle.ACTIVE` explícito no domínio.                                     |

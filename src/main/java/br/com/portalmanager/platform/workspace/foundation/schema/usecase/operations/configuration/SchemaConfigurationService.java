@@ -2,7 +2,6 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operat
 
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
-
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaConfiguration;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaConfigurationRepository;
@@ -11,39 +10,51 @@ import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.C
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaConfigurationOutput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaConfigurationInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaConfigurationValidator;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 @Service
 public class SchemaConfigurationService {
+
     private final SchemaConfigurationRepository repository;
     private final SchemaRepository schemas;
     private final SchemaConfigurationValidator validator;
 
-    public SchemaConfigurationService(SchemaConfigurationRepository repository, SchemaRepository schemas,
-                                      SchemaConfigurationValidator validator) {
+    public SchemaConfigurationService(
+        SchemaConfigurationRepository repository,
+        SchemaRepository schemas,
+        SchemaConfigurationValidator validator
+    ) {
         this.repository = repository;
         this.schemas = schemas;
         this.validator = validator;
     }
 
     @Transactional
-    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_CONFIGURATION_CREATED", resourceType = "SCHEMA_CONFIGURATION")
+    @Auditable(
+        action = AuditAction.CREATE,
+        event = "SCHEMA_CONFIGURATION_CREATED",
+        resourceType = "SCHEMA_CONFIGURATION"
+    )
     public SchemaConfigurationOutput create(CreateSchemaConfigurationInput input) {
         validator.validateCreate(input);
         String type = input.resourceType();
         String code = input.resourceCode();
         validator.validateAvailable(repository.existsByResourceTypeAndResourceCode(type, code));
         Schema schema = platformSchema(input.schemaIdentifier());
-        return SchemaConfigurationOutput.from(repository.save(
-                new SchemaConfiguration(type, code, schema, LocalDateTime.now())));
+        return SchemaConfigurationOutput.from(
+            repository.save(new SchemaConfiguration(type, code, schema, LocalDateTime.now()))
+        );
     }
 
     @Transactional
-    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_CONFIGURATION_UPDATED", resourceType = "SCHEMA_CONFIGURATION")
+    @Auditable(
+        action = AuditAction.UPDATE,
+        event = "SCHEMA_CONFIGURATION_UPDATED",
+        resourceType = "SCHEMA_CONFIGURATION"
+    )
     public SchemaConfigurationOutput update(String identifier, UpdateSchemaConfigurationInput input) {
         SchemaConfiguration configuration = required(identifier);
         validator.validateUpdate(configuration, input);
@@ -66,7 +77,11 @@ public class SchemaConfigurationService {
     }
 
     @Transactional
-    @Auditable(action = AuditAction.DELETE, event = "SCHEMA_CONFIGURATION_DELETED", resourceType = "SCHEMA_CONFIGURATION")
+    @Auditable(
+        action = AuditAction.DELETE,
+        event = "SCHEMA_CONFIGURATION_DELETED",
+        resourceType = "SCHEMA_CONFIGURATION"
+    )
     public SchemaConfigurationOutput delete(String identifier) {
         SchemaConfiguration configuration = required(identifier);
         validator.validateDeletion(configuration);
@@ -85,14 +100,14 @@ public class SchemaConfigurationService {
     }
 
     private Schema platformSchema(String identifier) {
-        Schema schema = schemas.findByIdentifier(validator.requireSchemaIdentifier(identifier))
-                .orElseThrow(validator::schemaNotFound);
+        Schema schema = schemas
+            .findByIdentifier(validator.requireSchemaIdentifier(identifier))
+            .orElseThrow(validator::schemaNotFound);
         validator.validatePlatformSchema(schema);
         return schema;
     }
 
     private SchemaConfiguration required(String identifier) {
-        return repository.findByIdentifier(identifier)
-                .orElseThrow(validator::configurationNotFound);
+        return repository.findByIdentifier(identifier).orElseThrow(validator::configurationNotFound);
     }
 }

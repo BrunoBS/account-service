@@ -5,7 +5,9 @@ import java.util.List;
 
 public record EnvironmentTreeResponse(EnvironmentResponse environment, List<EnvironmentTreeResponse> children) {
     public static EnvironmentTreeResponse from(EnvironmentTreeOutput output) {
-        return new EnvironmentTreeResponse(EnvironmentResponse.from(output.environment()),
-                output.children().stream().map(EnvironmentTreeResponse::from).toList());
+        return new EnvironmentTreeResponse(
+            EnvironmentResponse.from(output.environment()),
+            output.children().stream().map(EnvironmentTreeResponse::from).toList()
+        );
     }
 }

@@ -5,8 +5,18 @@ import jakarta.persistence.Embeddable;
 
 @Embeddable
 public class TagOriginTypeCode extends AbstractCatalogCode {
+
     protected TagOriginTypeCode() {}
-    private TagOriginTypeCode(String value) { super(value); }
-    public static TagOriginTypeCode of(String value) { return of(requireEnumValue(value, TagOriginTypeEnum.class)); }
-    public static TagOriginTypeCode of(TagOriginTypeEnum value) { return new TagOriginTypeCode(value == null ? null : value.name()); }
+
+    private TagOriginTypeCode(String value) {
+        super(value);
+    }
+
+    public static TagOriginTypeCode of(String value) {
+        return of(requireEnumValue(value, TagOriginTypeEnum.class));
+    }
+
+    public static TagOriginTypeCode of(TagOriginTypeEnum value) {
+        return new TagOriginTypeCode(value == null ? null : value.name());
+    }
 }

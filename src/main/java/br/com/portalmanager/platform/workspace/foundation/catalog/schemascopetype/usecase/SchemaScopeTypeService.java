@@ -14,16 +14,17 @@ public class SchemaScopeTypeService extends EnumCatalogService<SchemaScopeType, 
     private static final String SCHEMA_RESOURCE_CODE = "schema-scope-type";
 
     public SchemaScopeTypeService(
-            SchemaScopeTypeRepository repository,
-            ObjectMapper objectMapper,
-            SchemaValidator schemaValidator) {
+        SchemaScopeTypeRepository repository,
+        ObjectMapper objectMapper,
+        SchemaValidator schemaValidator
+    ) {
         super(
-                repository,
-                objectMapper,
-                SchemaScopeType.class,
-                SchemaScopeTypeEnum.class,
-                SCHEMA_RESOURCE_CODE,
-                schemaValidator
+            repository,
+            objectMapper,
+            SchemaScopeType.class,
+            SchemaScopeTypeEnum.class,
+            SCHEMA_RESOURCE_CODE,
+            schemaValidator
         );
     }
 }

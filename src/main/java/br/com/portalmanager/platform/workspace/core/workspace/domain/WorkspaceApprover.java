@@ -1,7 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.workspace.domain;
 
 import jakarta.persistence.*;
-
 import java.util.UUID;
 
 @Entity
@@ -22,8 +21,7 @@ public class WorkspaceApprover {
     @JoinColumn(name = "workspace_id", nullable = false)
     private Workspace workspace;
 
-    protected WorkspaceApprover() {
-    }
+    protected WorkspaceApprover() {}
 
     WorkspaceApprover(String functional, String email, Workspace workspace) {
         this.id = UUID.randomUUID().toString();

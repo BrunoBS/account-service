@@ -5,12 +5,12 @@ import br.com.portalmanager.platform.workspace.feature.platform.repository.Featu
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.FeatureContextOutput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.FeatureOutput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @org.springframework.stereotype.Service
 public class FeatureQueryService {
+
     private final FeatureRepository repository;
 
     public FeatureQueryService(FeatureRepository repository) {
@@ -19,9 +19,10 @@ public class FeatureQueryService {
 
     @Transactional(readOnly = true)
     public FeatureOutput findByIdentifier(String identifier) {
-        return repository.findByIdentifier(identifier)
-                .map(FeatureOutput::from)
-                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND));
+        return repository
+            .findByIdentifier(identifier)
+            .map(FeatureOutput::from)
+            .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
@@ -36,11 +37,12 @@ public class FeatureQueryService {
 
     @Transactional(readOnly = true)
     public List<FeatureContextOutput> findContexts(String identifier) {
-        return repository.findByIdentifierWithContexts(identifier)
-                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND))
-                .getContexts()
-                .stream()
-                .map(FeatureContextOutput::from)
-                .toList();
+        return repository
+            .findByIdentifierWithContexts(identifier)
+            .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND))
+            .getContexts()
+            .stream()
+            .map(FeatureContextOutput::from)
+            .toList();
     }
 }

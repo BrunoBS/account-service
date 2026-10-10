@@ -3,21 +3,28 @@ package br.com.portalmanager.platform.workspace.feature.platform.usecase.validat
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
-
 import java.util.regex.Pattern;
 
 final class PlatformValidation {
+
     private static final Pattern CODE = Pattern.compile("^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$");
 
-    private PlatformValidation() {
-    }
+    private PlatformValidation() {}
 
-    static void validate(String code, boolean requireCode, String name, String description, boolean codeDuplicate,
-                         boolean nameDuplicate, String microserviceIdentifier, boolean requireMicroservice,
-                         String settings, boolean requireSettings) {
+    static void validate(
+        String code,
+        boolean requireCode,
+        String name,
+        String description,
+        boolean codeDuplicate,
+        boolean nameDuplicate,
+        String microserviceIdentifier,
+        boolean requireMicroservice,
+        String settings,
+        boolean requireSettings
+    ) {
         ValidationResult result = new ValidationResult();
-        if ((requireCode && code == null) || (code != null &&
-                (code.length() > 50 || !CODE.matcher(code).matches()))) {
+        if ((requireCode && code == null) || (code != null && (code.length() > 50 || !CODE.matcher(code).matches()))) {
             result.addError("code", PlatformMessageKeys.CODE_INVALID);
         } else if (codeDuplicate) {
             result.addError("code", PlatformMessageKeys.CODE_DUPLICATE);

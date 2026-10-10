@@ -10,21 +10,18 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.usecase.WorkspaceTypeService;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
-import org.springframework.stereotype.Component;
-
 import java.util.*;
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Component;
 
 @Component
 public class WorkspaceValidator {
 
-    private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private final WorkspaceTypeService workspaceTypeService;
     private final SchemaSettingsValidator settingsValidator;
 
-    public WorkspaceValidator(WorkspaceTypeService workspaceTypeService,
-                              SchemaSettingsValidator settingsValidator) {
+    public WorkspaceValidator(WorkspaceTypeService workspaceTypeService, SchemaSettingsValidator settingsValidator) {
         this.workspaceTypeService = workspaceTypeService;
         this.settingsValidator = settingsValidator;
     }
@@ -128,10 +125,7 @@ public class WorkspaceValidator {
     }
 
     private void validateDescription(String description, ValidationResult result) {
-        if (description == null
-                || description.isBlank()
-                || description.length() < 10
-                || description.length() > 500) {
+        if (description == null || description.isBlank() || description.length() < 10 || description.length() > 500) {
             result.addError("description", WorkspaceMessageKeys.DESCRIPTION_SIZE);
         }
     }
@@ -192,11 +186,11 @@ public class WorkspaceValidator {
     }
 
     private void validateApprover(
-            ApproverData approver,
-            int index,
-            Set<String> functionals,
-            Set<String> emails,
-            ValidationResult result
+        ApproverData approver,
+        int index,
+        Set<String> functionals,
+        Set<String> emails,
+        ValidationResult result
     ) {
         String path = "approvers[" + index + "]";
 
@@ -210,10 +204,10 @@ public class WorkspaceValidator {
     }
 
     private void validateApproverFunctional(
-            String functional,
-            String path,
-            Set<String> functionals,
-            ValidationResult result
+        String functional,
+        String path,
+        Set<String> functionals,
+        ValidationResult result
     ) {
         if (functional == null || functional.isBlank()) {
             result.addError(path + ".functional", WorkspaceMessageKeys.APPROVER_FUNCTIONAL_REQUIRED);
@@ -222,19 +216,11 @@ public class WorkspaceValidator {
 
         String normalizedFunctional = functional.toUpperCase(Locale.ROOT);
         if (!functionals.add(normalizedFunctional)) {
-            result.addError(
-                    path + ".functional",
-                    WorkspaceMessageKeys.APPROVER_FUNCTIONAL_DUPLICATE
-            );
+            result.addError(path + ".functional", WorkspaceMessageKeys.APPROVER_FUNCTIONAL_DUPLICATE);
         }
     }
 
-    private void validateApproverEmail(
-            String email,
-            String path,
-            Set<String> emails,
-            ValidationResult result
-    ) {
+    private void validateApproverEmail(String email, String path, Set<String> emails, ValidationResult result) {
         if (!isEmail(email)) {
             result.addError(path + ".email", WorkspaceMessageKeys.EMAIL_INVALID);
             return;
@@ -242,16 +228,12 @@ public class WorkspaceValidator {
 
         String normalizedEmail = email.toLowerCase(Locale.ROOT);
         if (!emails.add(normalizedEmail)) {
-            result.addError(
-                    path + ".email",
-                    WorkspaceMessageKeys.APPROVER_EMAIL_DUPLICATE
-            );
+            result.addError(path + ".email", WorkspaceMessageKeys.APPROVER_EMAIL_DUPLICATE);
         }
     }
 
     private boolean isValidWorkspaceType(String value) {
-        return WorkspaceTypeCode.isValidFormat(value)
-                && workspaceTypeService.existsActive(value);
+        return WorkspaceTypeCode.isValidFormat(value) && workspaceTypeService.existsActive(value);
     }
 
     private boolean isEmail(String value) {

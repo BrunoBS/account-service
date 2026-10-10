@@ -2,27 +2,27 @@ package br.com.portalmanager.platform.workspace.core.environment.usecase.operati
 
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
-
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.core.environment.domain.Environment;
-import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentType;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
+import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentType;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.CreateEnvironmentInput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentOutput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.UpdateEnvironmentInput;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentValidator;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentTopologyValidator;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environmenttype.EnvironmentTypeQueryService;
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentTopologyValidator;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentValidator;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDateTime;
 
 @Service
 public class EnvironmentCommandService {
+
     private final EnvironmentRepository repository;
     private final EnvironmentFinder finder;
     private final EnvironmentQueryService visibility;
@@ -33,10 +33,17 @@ public class EnvironmentCommandService {
     private final EnvironmentTopologyValidator topology;
     private final EnvironmentTypeQueryService types;
 
-    public EnvironmentCommandService(EnvironmentRepository repository, EnvironmentFinder finder, EnvironmentQueryService visibility,
-                                     WorkspaceQueryService workspaceVisibility, WorkspaceReferenceResolver workspaces,
-                                     EnvironmentNormalizer normalizer, EnvironmentValidator validator,
-                                     EnvironmentTopologyValidator topology, EnvironmentTypeQueryService types) {
+    public EnvironmentCommandService(
+        EnvironmentRepository repository,
+        EnvironmentFinder finder,
+        EnvironmentQueryService visibility,
+        WorkspaceQueryService workspaceVisibility,
+        WorkspaceReferenceResolver workspaces,
+        EnvironmentNormalizer normalizer,
+        EnvironmentValidator validator,
+        EnvironmentTopologyValidator topology,
+        EnvironmentTypeQueryService types
+    ) {
         this.repository = repository;
         this.finder = finder;
         this.visibility = visibility;
@@ -56,13 +63,19 @@ public class EnvironmentCommandService {
     }
 
     @Transactional
-    public EnvironmentOutput createDefault(CreateEnvironmentInput input) { return create(null, null, input); }
+    public EnvironmentOutput createDefault(CreateEnvironmentInput input) {
+        return create(null, null, input);
+    }
 
     private EnvironmentOutput create(Long workspaceId, String workspaceIdentifier, CreateEnvironmentInput raw) {
         CreateEnvironmentInput input = normalizer.normalize(raw);
         if (input == null) validator.validateForCreate(null, false);
-        String typeCode = input.environmentTypeCode() == null
-                ? workspaceId == null ? "DEFAULT" : "CUSTOM" : input.environmentTypeCode();
+        String typeCode =
+            input.environmentTypeCode() == null
+                ? workspaceId == null
+                    ? "DEFAULT"
+                    : "CUSTOM"
+                : input.environmentTypeCode();
         EnvironmentType type = types.active(typeCode);
         Environment parent = resolveParent(input.parentIdentifier(), workspaceId);
         Long parentId = parent == null ? null : parent.getId();
@@ -72,8 +85,18 @@ public class EnvironmentCommandService {
 
         int sortOrder = sortOrderForCreate(workspaceId, parentId, input.sortOrder());
         AuthorizationTypeCode authorizationType = AuthorizationTypeCode.of(input.authorizationType());
-        Environment environment = new Environment(workspaceId, type, parent, input.name(), input.description(),
-                authorizationType, input.authorizerGroup(), input.settings(), sortOrder, LocalDateTime.now());
+        Environment environment = new Environment(
+            workspaceId,
+            type,
+            parent,
+            input.name(),
+            input.description(),
+            authorizationType,
+            input.authorizerGroup(),
+            input.settings(),
+            sortOrder,
+            LocalDateTime.now()
+        );
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
 
@@ -90,23 +113,39 @@ public class EnvironmentCommandService {
         return update(null, null, identifier, raw);
     }
 
-    private EnvironmentOutput update(Long workspaceId, String workspaceIdentifier, String identifier, UpdateEnvironmentInput raw) {
+    private EnvironmentOutput update(
+        Long workspaceId,
+        String workspaceIdentifier,
+        String identifier,
+        UpdateEnvironmentInput raw
+    ) {
         Environment environment = finder.findActive(identifier, workspaceId);
         UpdateEnvironmentInput input = normalizer.normalize(raw);
-        boolean duplicateName = input != null && existsName(workspaceId, parentId(environment), input.name(), environment.getId());
+        boolean duplicateName =
+            input != null && existsName(workspaceId, parentId(environment), input.name(), environment.getId());
         validator.validateForUpdate(input, duplicateName);
         validator.requireVersion(environment.getVersion(), input.version());
 
-        EnvironmentType type = input.environmentTypeCode() == null
-                ? environment.getEnvironmentType() : types.active(input.environmentTypeCode());
+        EnvironmentType type =
+            input.environmentTypeCode() == null
+                ? environment.getEnvironmentType()
+                : types.active(input.environmentTypeCode());
         topology.validate(type, workspaceId, environment.getParent());
-        boolean changingTypeWithChildren = !type.getId().equals(environment.getEnvironmentType().getId())
-                && repository.existsByParentId(environment.getId());
+        boolean changingTypeWithChildren =
+            !type.getId().equals(environment.getEnvironmentType().getId()) &&
+            repository.existsByParentId(environment.getId());
         topology.requireTypeChangeWithoutChildren(changingTypeWithChildren);
         int sortOrder = input.sortOrder() == null ? environment.getSortOrder() : input.sortOrder();
         AuthorizationTypeCode authorizationType = AuthorizationTypeCode.of(input.authorizationType());
-        environment.update(input.name(), input.description(), authorizationType,
-                input.authorizerGroup(), input.settings(), sortOrder, LocalDateTime.now());
+        environment.update(
+            input.name(),
+            input.description(),
+            authorizationType,
+            input.authorizerGroup(),
+            input.settings(),
+            sortOrder,
+            LocalDateTime.now()
+        );
         environment.changeType(type, LocalDateTime.now());
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
@@ -119,7 +158,11 @@ public class EnvironmentCommandService {
     }
 
     @Transactional
-    public void inactivateDefault(String identifier) { visibility.findDefault(identifier); inactivate(null, null, identifier); }
+    public void inactivateDefault(String identifier) {
+        visibility.findDefault(identifier);
+        inactivate(null, null, identifier);
+    }
+
     private EnvironmentOutput inactivate(Long workspaceId, String workspaceIdentifier, String identifier) {
         Environment environment = finder.findActive(identifier, workspaceId);
         environment.inactivate(LocalDateTime.now());
@@ -141,14 +184,29 @@ public class EnvironmentCommandService {
 
     private EnvironmentOutput restore(Long workspaceId, String workspaceIdentifier, String identifier) {
         Environment environment = finder.findInactive(identifier, workspaceId);
-        CreateEnvironmentInput input = new CreateEnvironmentInput(environment.getName(), environment.getDescription(),
-                environment.getAuthorizationType().value(), environment.getSortOrder(), environment.getAuthorizerGroup(),
-                environment.getSettings(), environment.getEnvironmentType().getCode(),
-                environment.getParent() == null ? null : environment.getParent().getIdentifier());
-        boolean duplicateName = existsName(workspaceId, parentId(environment), environment.getName(), environment.getId());
+        CreateEnvironmentInput input = new CreateEnvironmentInput(
+            environment.getName(),
+            environment.getDescription(),
+            environment.getAuthorizationType().value(),
+            environment.getSortOrder(),
+            environment.getAuthorizerGroup(),
+            environment.getSettings(),
+            environment.getEnvironmentType().getCode(),
+            environment.getParent() == null ? null : environment.getParent().getIdentifier()
+        );
+        boolean duplicateName = existsName(
+            workspaceId,
+            parentId(environment),
+            environment.getName(),
+            environment.getId()
+        );
         validator.validateForCreate(input, duplicateName);
         topology.requireParentAccessible(environment.getParent() == null || finder.accessible(environment.getParent()));
-        topology.validate(types.active(environment.getEnvironmentType().getCode()), workspaceId, environment.getParent());
+        topology.validate(
+            types.active(environment.getEnvironmentType().getCode()),
+            workspaceId,
+            environment.getParent()
+        );
         environment.restore(LocalDateTime.now());
         return EnvironmentOutput.from(repository.saveAndFlush(environment), workspaceIdentifier);
     }
@@ -161,7 +219,11 @@ public class EnvironmentCommandService {
     }
 
     @Transactional
-    public void deleteDefault(String identifier) { visibility.findDefaultForDeletion(identifier); delete(null, null, identifier); }
+    public void deleteDefault(String identifier) {
+        visibility.findDefaultForDeletion(identifier);
+        delete(null, null, identifier);
+    }
+
     private EnvironmentOutput delete(Long workspaceId, String workspaceIdentifier, String identifier) {
         Environment environment = finder.findInactiveForDeletion(identifier, workspaceId);
         environment.quarantine(LocalDateTime.now());
@@ -170,12 +232,14 @@ public class EnvironmentCommandService {
 
     private Environment resolveParent(String identifier, Long workspaceId) {
         if (identifier == null) return null;
-        Environment parent = repository.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND));
-        if ((workspaceId == null && parent.getWorkspaceId() != null)
-                || (parent.getWorkspaceId() != null && !parent.getWorkspaceId().equals(workspaceId))
-                || !finder.accessible(parent))
-            throw new NotFoundException(EnvironmentMessageKeys.NOT_FOUND);
+        Environment parent = repository
+            .findByIdentifier(identifier)
+            .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND));
+        if (
+            (workspaceId == null && parent.getWorkspaceId() != null) ||
+            (parent.getWorkspaceId() != null && !parent.getWorkspaceId().equals(workspaceId)) ||
+            !finder.accessible(parent)
+        ) throw new NotFoundException(EnvironmentMessageKeys.NOT_FOUND);
         return parent;
     }
 

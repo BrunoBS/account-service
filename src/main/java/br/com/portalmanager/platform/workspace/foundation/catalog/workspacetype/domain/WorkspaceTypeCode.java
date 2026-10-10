@@ -6,8 +6,7 @@ import jakarta.persistence.Embeddable;
 @Embeddable
 public class WorkspaceTypeCode extends AbstractCatalogCode {
 
-    protected WorkspaceTypeCode() {
-    }
+    protected WorkspaceTypeCode() {}
 
     private WorkspaceTypeCode(String value) {
         super(value);

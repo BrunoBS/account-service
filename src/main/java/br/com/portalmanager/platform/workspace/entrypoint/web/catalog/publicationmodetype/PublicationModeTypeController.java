@@ -9,5 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/publication-mode-type")
 public class PublicationModeTypeController extends CatalogController<PublicationModeType> {
-    public PublicationModeTypeController(PublicationModeTypeFacade facade) { super(facade); }
+
+    public PublicationModeTypeController(PublicationModeTypeFacade facade) {
+        super(facade);
+    }
 }

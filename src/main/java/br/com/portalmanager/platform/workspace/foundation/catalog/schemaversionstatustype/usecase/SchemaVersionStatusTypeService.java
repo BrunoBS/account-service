@@ -9,21 +9,24 @@ import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
 @Service
-public class SchemaVersionStatusTypeService extends EnumCatalogService<SchemaVersionStatusType, SchemaVersionStatusTypeEnum> {
+public class SchemaVersionStatusTypeService
+    extends EnumCatalogService<SchemaVersionStatusType, SchemaVersionStatusTypeEnum>
+{
 
     private static final String SCHEMA_RESOURCE_CODE = "schema-version-status-type";
 
     public SchemaVersionStatusTypeService(
-            SchemaVersionStatusTypeRepository repository,
-            ObjectMapper objectMapper,
-            SchemaValidator schemaValidator) {
+        SchemaVersionStatusTypeRepository repository,
+        ObjectMapper objectMapper,
+        SchemaValidator schemaValidator
+    ) {
         super(
-                repository,
-                objectMapper,
-                SchemaVersionStatusType.class,
-                SchemaVersionStatusTypeEnum.class,
-                SCHEMA_RESOURCE_CODE,
-                schemaValidator
+            repository,
+            objectMapper,
+            SchemaVersionStatusType.class,
+            SchemaVersionStatusTypeEnum.class,
+            SCHEMA_RESOURCE_CODE,
+            schemaValidator
         );
     }
 }

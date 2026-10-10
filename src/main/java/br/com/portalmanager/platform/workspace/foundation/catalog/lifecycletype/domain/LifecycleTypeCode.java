@@ -6,8 +6,7 @@ import jakarta.persistence.Embeddable;
 @Embeddable
 public class LifecycleTypeCode extends AbstractCatalogCode {
 
-    protected LifecycleTypeCode() {
-    }
+    protected LifecycleTypeCode() {}
 
     private LifecycleTypeCode(String value) {
         super(value);
@@ -21,7 +20,15 @@ public class LifecycleTypeCode extends AbstractCatalogCode {
         return new LifecycleTypeCode(value == null ? null : value.name());
     }
 
-    public static LifecycleTypeCode active() { return of(LifecycleTypeEnum.ACTIVE); }
-    public static LifecycleTypeCode inactive() { return of(LifecycleTypeEnum.INACTIVE); }
-    public static LifecycleTypeCode quarantined() { return of(LifecycleTypeEnum.QUARANTINED); }
+    public static LifecycleTypeCode active() {
+        return of(LifecycleTypeEnum.ACTIVE);
+    }
+
+    public static LifecycleTypeCode inactive() {
+        return of(LifecycleTypeEnum.INACTIVE);
+    }
+
+    public static LifecycleTypeCode quarantined() {
+        return of(LifecycleTypeEnum.QUARANTINED);
+    }
 }

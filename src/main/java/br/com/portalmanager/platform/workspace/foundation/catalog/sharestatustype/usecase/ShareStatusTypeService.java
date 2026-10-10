@@ -14,16 +14,17 @@ public class ShareStatusTypeService extends EnumCatalogService<ShareStatusType, 
     private static final String SCHEMA_RESOURCE_CODE = "share-status-type";
 
     public ShareStatusTypeService(
-            ShareStatusTypeRepository repository,
-            ObjectMapper objectMapper,
-            SchemaValidator schemaValidator) {
+        ShareStatusTypeRepository repository,
+        ObjectMapper objectMapper,
+        SchemaValidator schemaValidator
+    ) {
         super(
-                repository,
-                objectMapper,
-                ShareStatusType.class,
-                ShareStatusTypeEnum.class,
-                SCHEMA_RESOURCE_CODE,
-                schemaValidator
+            repository,
+            objectMapper,
+            ShareStatusType.class,
+            ShareStatusTypeEnum.class,
+            SCHEMA_RESOURCE_CODE,
+            schemaValidator
         );
     }
 }

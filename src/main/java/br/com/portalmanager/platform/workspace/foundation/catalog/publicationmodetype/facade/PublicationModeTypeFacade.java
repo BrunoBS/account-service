@@ -7,5 +7,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PublicationModeTypeFacade extends AbstractCatalogFacade<PublicationModeType> {
-    public PublicationModeTypeFacade(PublicationModeTypeService service) { super(service); }
+
+    public PublicationModeTypeFacade(PublicationModeTypeService service) {
+        super(service);
+    }
 }

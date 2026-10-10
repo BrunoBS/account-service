@@ -17,8 +17,7 @@ public class WorkspaceTag extends Tag<Workspace> {
     @JoinColumn(name = "workspace_id", nullable = false)
     private Workspace owner;
 
-    protected WorkspaceTag() {
-    }
+    protected WorkspaceTag() {}
 
     public WorkspaceTag(Workspace owner, TagName name, TagOriginType originType) {
         super(name, originType);

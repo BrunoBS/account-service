@@ -8,6 +8,5 @@ import jakarta.persistence.Table;
 @Table(name = "audit_outbox")
 public class WorkspaceAuditOutboxEntity extends AuditOutboxEntity {
 
-    protected WorkspaceAuditOutboxEntity() {
-    }
+    protected WorkspaceAuditOutboxEntity() {}
 }
