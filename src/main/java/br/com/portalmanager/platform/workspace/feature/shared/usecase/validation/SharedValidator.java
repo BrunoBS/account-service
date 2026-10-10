@@ -13,9 +13,14 @@ public class SharedValidator {
             throw new ValidationException(SharedMessageKeys.REQUEST_INVALID);
     }
 
-    public void validateMappingNames(String source, String destination, boolean duplicateSource, boolean duplicateDestination) {
+    public void validateMappingNames(String source, String destination, boolean duplicateDestination) {
         if (source == null || source.isBlank() || destination == null || destination.isBlank()
-                || duplicateSource || duplicateDestination)
+                || duplicateDestination)
+            throw new ValidationException(SharedMessageKeys.MAPPING_INVALID);
+    }
+
+    public void validateSourceIdentifier(String source) {
+        if (source == null || source.isBlank())
             throw new ValidationException(SharedMessageKeys.MAPPING_INVALID);
     }
 }
