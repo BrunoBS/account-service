@@ -8,6 +8,20 @@ public final class SchemaDefaultFixture {
 
     public static void seed(JdbcTemplate jdbc) {
         jdbc.update("""
+                INSERT IGNORE INTO type_sharing_statuses
+                    (code, label, description, sort_order, is_active, settings)
+                VALUES ('PENDING', 'Pendente', 'Solicitação aguardando decisão do proprietário.', 1, true, '{}'),
+                       ('APPROVED', 'Aprovada', 'Participação autorizada enquanto contrato e mapeamento estiverem aptos.', 2, true, '{}'),
+                       ('REJECTED', 'Rejeitada', 'Solicitação rejeitada pelo proprietário.', 3, true, '{}'),
+                       ('REVOKED', 'Revogada', 'Participação aprovada e posteriormente revogada.', 4, true, '{}')
+                """);
+        jdbc.update("""
+                INSERT IGNORE INTO type_publication_modes
+                    (code, label, description, sort_order, is_active, settings)
+                VALUES ('AUTOMATIC', 'Automática', 'Propaga publicações para os destinos mapeados.', 1, true, '{}'),
+                       ('MANUAL', 'Manual', 'Permite publicação explícita pelo destino.', 2, true, '{}')
+                """);
+        jdbc.update("""
                 INSERT IGNORE INTO type_life_cycle
                     (code, label, description, sort_order, is_active, settings)
                 VALUES ('ACTIVE', 'Active', 'Active lifecycle', 1, true, '{}'),
