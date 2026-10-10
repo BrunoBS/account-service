@@ -123,9 +123,11 @@ class SharedApiIT {
         request.put("description", "Workspace usado nos testes Shared");
         request.put("requester", "requester");
         request.put("acronym", "SHR");
+        request.put("authorizerGroup", null);
         request.put("settings", Map.of());
         request.put("emailGroup", "shared@portalmanager.com");
         request.put("approvers", List.of(Map.of("functional", "F1234", "email", "approver@portalmanager.com")));
+        request.put("tags", List.of());
         return request;
     }
 
