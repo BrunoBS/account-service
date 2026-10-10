@@ -7,7 +7,8 @@ import br.com.portalmanager.platform.workspace.core.environment.usecase.operatio
 import br.com.portalmanager.platform.workspace.feature.shared.domain.SharedContract;
 import br.com.portalmanager.platform.workspace.feature.shared.repository.SharedContractRepository;
 import br.com.portalmanager.platform.workspace.feature.shared.repository.SharedParticipationRepository;
-import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.SharedEligibilityOutput;
+import br.com.portalmanager.platform.workspace.foundation.integration.SharedEligibilityPort;
+import br.com.portalmanager.platform.workspace.foundation.integration.SharedEligibilityResult;
 import br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain.ShareStatusTypeEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +17,7 @@ import java.util.Objects;
 
 /** Public Shared use case for a future Publisher integration; it does not publish data. */
 @Service
-public class SharedEligibilityQueryService {
+public class SharedEligibilityQueryService implements SharedEligibilityPort {
     private final SharedContractRepository contracts;
     private final SharedParticipationRepository participations;
     private final ApplicationQueryService applications;
@@ -28,8 +29,9 @@ public class SharedEligibilityQueryService {
         this.applications = applications; this.environments = environments;
     }
 
+    @Override
     @Transactional(readOnly = true)
-    public SharedEligibilityOutput resolve(String ownerWorkspace, String ownerApplication, String contractIdentifier,
+    public SharedEligibilityResult resolve(String ownerWorkspace, String ownerApplication, String contractIdentifier,
             String participantWorkspace, String participantApplication, String sourceEnvironmentIdentifier) {
         try {
             applications.findActiveForShared(ownerWorkspace, ownerApplication);
@@ -55,7 +57,7 @@ public class SharedEligibilityQueryService {
                 .map(EnvironmentOutput::identifier).distinct().toList();
         String mode = participation.getPublicationMode() == null ? null : participation.getPublicationMode().value();
         if (destinations.isEmpty() || mode == null) return ineligible();
-        return new SharedEligibilityOutput(true, mode, destinations);
+        return new SharedEligibilityResult(true, mode, destinations);
     }
 
     private EnvironmentOutput activeEnvironment(String workspace, String identifier) {
@@ -68,5 +70,5 @@ public class SharedEligibilityQueryService {
     private String base(EnvironmentOutput e) {
         return e.workspaceIdentifier() == null || e.parentIdentifier() == null ? e.identifier() : e.parentIdentifier();
     }
-    private SharedEligibilityOutput ineligible() { return new SharedEligibilityOutput(false, null, List.of()); }
+    private SharedEligibilityResult ineligible() { return new SharedEligibilityResult(false, null, List.of()); }
 }
