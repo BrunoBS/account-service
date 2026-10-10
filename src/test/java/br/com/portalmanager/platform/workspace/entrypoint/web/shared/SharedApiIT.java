@@ -90,6 +90,29 @@ class SharedApiIT {
     }
 
     @Test
+    void participantCanLeaveApprovedParticipationAndDestinationScopeMustMatchContractOwner() {
+        Scope owner = createScope("Owner");
+        Scope otherOwner = createScope("OtherOwner");
+        Scope participant = createScope("Participant");
+        String contract = createContract(owner);
+
+        post(participant.basePath() + "/shared-contracts/" + contract + "/participations/destinations/"
+                + otherOwner.workspace() + "/applications/" + otherOwner.application(), null)
+                .statusCode(404);
+
+        String participation = requestParticipation(participant, owner, contract)
+                .statusCode(201).extract().path("identifier");
+        post(owner.contractPath(contract) + "/participations/" + participation + "/approval",
+                Map.of("publicationModeCode", "MANUAL", "environmentMappings", Map.of("mappings", List.of())))
+                .statusCode(200).body("status", equalTo("APPROVED"));
+
+        delete(participant.basePath() + "/participations/" + participation).statusCode(204);
+        assertThat(jdbc.queryForObject("select count(*) from shared_participations where identifier = ?",
+                Integer.class, participation)).isZero();
+        get(owner.contractPath(contract)).statusCode(200);
+    }
+
+    @Test
     void inactiveContractIsHiddenFromParticipantsAndDeletionCascades() {
         Scope owner = createScope("Owner");
         Scope participant = createScope("Participant");
