@@ -50,8 +50,7 @@ class CatalogApiIT {
                 new CatalogCase("/api/v1/onboarding-type", "WORKSPACE_REGISTRATION"),
                 new CatalogCase("/api/v1/tag-origin-type", "MANUAL"),
                 new CatalogCase("/api/v1/visibility-type", "PRIVATE"),
-                new CatalogCase("/api/v1/resource-scope-type", "WORKSPACE"),
-                new CatalogCase("/api/v1/share-status-type", "NOT_REQUESTED")
+                new CatalogCase("/api/v1/resource-scope-type", "WORKSPACE")
         );
 
         int order = 1;
@@ -92,6 +91,14 @@ class CatalogApiIT {
                     .body("code", equalTo(code))
                     .body("code", equalTo(catalog.code()));
         }
+    }
+
+    @Test
+    void shouldExposeSharedWorkflowAndPublicationModeCatalogs() {
+        get("/api/v1/share-status-type").statusCode(200)
+                .body("code", hasItems("PENDING", "APPROVED", "REJECTED", "REVOKED"));
+        get("/api/v1/publication-mode-type").statusCode(200)
+                .body("code", hasItems("AUTOMATIC", "MANUAL"));
     }
 
     @Test

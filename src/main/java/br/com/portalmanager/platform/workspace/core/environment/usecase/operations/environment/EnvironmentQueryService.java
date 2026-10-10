@@ -52,6 +52,27 @@ public class EnvironmentQueryService {
                 .map(e -> EnvironmentOutput.from(e, workspaceIdentifier)).toList();
     }
 
+    /**
+     * Cross-application Shared read. Callers must first authorize the receiving application
+     * and verify an active contract/participation before exposing this result.
+     */
+    @Transactional(readOnly = true)
+    public List<EnvironmentOutput> listActiveForShared(String workspaceIdentifier) {
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        List<EnvironmentOutput> defaults = repository.findDefaultsByLifecycle(LifecycleTypeCode.active()).stream()
+                .map(e -> EnvironmentOutput.from(e, null)).toList();
+        List<EnvironmentOutput> custom = repository.findByWorkspaceAndLifecycle(workspaceId, LifecycleTypeCode.active()).stream()
+                .filter(finder::accessible).map(e -> EnvironmentOutput.from(e, workspaceIdentifier)).toList();
+        return java.util.stream.Stream.concat(defaults.stream(), custom.stream()).toList();
+    }
+
+    /** Cross-application Shared read after the owner contract and participant scope have been verified. */
+    @Transactional(readOnly = true)
+    public EnvironmentOutput findActiveForShared(String workspaceIdentifier, String identifier) {
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        return EnvironmentOutput.from(finder.findActive(identifier, workspaceId), workspaceIdentifier);
+    }
+
     @Transactional(readOnly = true)
     public EnvironmentOutput findDefault(String identifier) { return EnvironmentOutput.from(finder.findActive(identifier, null), null); }
     @Transactional(readOnly = true)

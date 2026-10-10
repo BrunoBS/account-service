@@ -42,6 +42,21 @@ public class ApplicationQueryService {
         return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
     }
 
+    /** Cross-application Shared read after the caller has validated the owning contract and participation. */
+    @Transactional(readOnly = true)
+    public ApplicationOutput findActiveForShared(String workspaceIdentifier, String identifier) {
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        Application app = finder.findActive(identifier, workspaceId);
+        return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
+    }
+
+    @Transactional(readOnly = true)
+    public ApplicationOutput findInactiveForShared(String workspaceIdentifier, String identifier) {
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        Application app = finder.findInactive(identifier, workspaceId);
+        return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
+    }
+
     @ResourceVisibility(Application.class)
     @Transactional(readOnly = true)
     public ApplicationOutput findInactiveByIdentifier(String workspaceIdentifier, String identifier) {
