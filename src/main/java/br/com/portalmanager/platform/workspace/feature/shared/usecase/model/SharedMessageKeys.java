@@ -8,5 +8,6 @@ public final class SharedMessageKeys {
     public static final String STATE_INVALID = "shared.participation.state-invalid";
     public static final String MAPPING_INVALID = "shared.mapping.invalid";
     public static final String SCOPE_INVALID = "shared.scope.invalid";
+    public static final String PUBLICATION_MODE_INVALID = "shared.publication-mode.invalid";
     private SharedMessageKeys() {}
 }
