@@ -206,9 +206,10 @@ public class SharedCommandService {
             if (mapping.destinationEnvironmentIdentifiers().isEmpty())
                 throw new ValidationException(SharedMessageKeys.MAPPING_INVALID);
             String sourceIdentifier = mapping.sourceEnvironmentIdentifier();
+            validator.validateSourceIdentifier(sourceIdentifier);
             EnvironmentOutput source = environment(participantWorkspace, sourceIdentifier);
             for (String destinationIdentifier : mapping.destinationEnvironmentIdentifiers()) {
-                validator.validateMappingNames(sourceIdentifier, destinationIdentifier, false,
+                validator.validateMappingNames(sourceIdentifier, destinationIdentifier,
                         !destinations.add(destinationIdentifier));
                 EnvironmentOutput destination = environment(ownerWorkspace, destinationIdentifier);
                 if (!Objects.equals(environmentBase(source), environmentBase(destination)))
