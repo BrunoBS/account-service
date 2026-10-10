@@ -23,6 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
 
 @PlatformIntegrationTest
 @WithMySql
@@ -99,6 +101,32 @@ class SharedApiIT {
                 Integer.class, contract)).isZero();
     }
 
+    @Test
+    void authorizationUsesTheWorkspaceAndApplicationFromEachControllerPath() {
+        Scope owner = createScope("Owner", "OWNER_SPACE", "OWNER_APP");
+        Scope other = createScope("Other", "OTHER_SPACE", "OTHER_APP");
+        Scope participant = createScope("Participant", "PART_SPACE", "PART_APP");
+        String ownerContract = createContract(owner);
+        String otherContract = createContract(other);
+
+        authorization.reset();
+        authorization.allow(session -> session.groups("USER")
+                .addAuthorizerGroup("GRP_WORKSPACE_DEV_OWNER_SPACE", "DEV", "DEV", "OWNER_SPACE")
+                .addAuthorizerGroup("GRP_APPLICATION_DEV_OWNER_APP", "DEV", "DEV", "A-OWNER_APP"));
+
+        get(owner.contractPath(ownerContract)).statusCode(200);
+        get(other.contractPath(otherContract)).statusCode(anyOf(is(403), is(404)));
+        authorization.verifyCalledWithPolicy("DEV");
+
+        authorization.reset();
+        authorization.allow(session -> session.groups("USER")
+                .addAuthorizerGroup("GRP_WORKSPACE_DEV_PART_SPACE", "DEV", "DEV", "PART_SPACE")
+                .addAuthorizerGroup("GRP_APPLICATION_DEV_PART_APP", "DEV", "DEV", "A-PART_APP"));
+        get(participant.basePath() + "/participations").statusCode(200);
+        get(owner.basePath() + "/participations").statusCode(anyOf(is(403), is(404)));
+        authorization.verifyCalledWithPolicy("DEV");
+    }
+
     private void seedCatalogs() {
         jdbc.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('MANAGER', 'Manager', 'Management workspace', 2, true, '{}')");
         jdbc.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')");
@@ -107,8 +135,14 @@ class SharedApiIT {
     }
 
     private Scope createScope(String prefix) {
-        String workspace = post("/api/v1/workspaces", workspaceRequest(prefix)).statusCode(201).extract().path("identifier");
-        String application = post("/api/v1/workspaces/" + workspace + "/applications", applicationRequest(prefix))
+        return createScope(prefix, null, null);
+    }
+
+    private Scope createScope(String prefix, String workspaceAuthorizer, String applicationAuthorizer) {
+        String workspace = post("/api/v1/workspaces", workspaceRequest(prefix, workspaceAuthorizer))
+                .statusCode(201).extract().path("identifier");
+        String application = post("/api/v1/workspaces/" + workspace + "/applications",
+                applicationRequest(prefix, applicationAuthorizer))
                 .statusCode(201).extract().path("identifier");
         return new Scope(workspace, application);
     }
@@ -132,14 +166,14 @@ class SharedApiIT {
                 + owner.workspace() + "/applications/" + owner.application(), null);
     }
 
-    private Map<String, Object> workspaceRequest(String prefix) {
+    private Map<String, Object> workspaceRequest(String prefix, String authorizerGroup) {
         Map<String, Object> request = new LinkedHashMap<>();
         request.put("workspaceType", "MANAGER");
         request.put("name", prefix + " Workspace " + UUID.randomUUID());
         request.put("description", "Workspace usado nos testes Shared");
         request.put("requester", "requester");
         request.put("acronym", "SHR");
-        request.put("authorizerGroup", null);
+        request.put("authorizerGroup", authorizerGroup);
         request.put("settings", Map.of());
         request.put("emailGroup", "shared@portalmanager.com");
         request.put("approvers", List.of(Map.of("functional", "F1234", "email", "approver@portalmanager.com")));
@@ -147,12 +181,13 @@ class SharedApiIT {
         return request;
     }
 
-    private Map<String, Object> applicationRequest(String prefix) {
+    private Map<String, Object> applicationRequest(String prefix, String authorizerGroup) {
         Map<String, Object> request = new LinkedHashMap<>();
         request.put("name", prefix + " Application " + UUID.randomUUID());
         request.put("alias", "shared-" + UUID.randomUUID().toString().substring(0, 8));
         request.put("acronym", "SHR");
         request.put("applicationScope", "BACKEND");
+        request.put("authorizerGroup", authorizerGroup);
         request.put("tags", List.of());
         return request;
     }
