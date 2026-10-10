@@ -51,6 +51,13 @@ class SharedApiIT {
         post(owner.contractPath(contract) + "/participations/" + participation + "/approval",
                 Map.of("publicationModeCode", "AUTOMATIC", "environmentMappings", Map.of("mappings", List.of())))
                 .statusCode(200).body("status", equalTo("APPROVED"));
+        String sourceEnvironment = UUID.randomUUID().toString();
+        insertMapping(participation, sourceEnvironment, UUID.randomUUID().toString());
+        insertMapping(participation, sourceEnvironment, UUID.randomUUID().toString());
+        assertThat(jdbc.queryForObject("select count(*) from shared_environment_mappings m join shared_participations p on p.id = m.participation_id where p.identifier = ? and m.source_environment_identifier = ?",
+                Integer.class, participation, sourceEnvironment)).isEqualTo(2);
+        jdbc.update("delete from shared_environment_mappings where participation_id = (select id from shared_participations where identifier = ?)",
+                participation);
         post(owner.contractPath(contract) + "/participations/" + participation + "/revocation", null)
                 .statusCode(200).body("status", equalTo("REVOKED"));
 
@@ -109,6 +116,15 @@ class SharedApiIT {
     private String createContract(Scope owner) {
         return post(owner.contractsPath(), Map.of("name", "Shared " + UUID.randomUUID(), "description", "Contrato de teste"))
                 .statusCode(201).extract().path("identifier");
+    }
+
+    private void insertMapping(String participation, String source, String destination) {
+        jdbc.update("""
+                insert into shared_environment_mappings
+                    (participation_id, source_environment_identifier, destination_environment_identifier, created_at, updated_at)
+                select id, ?, ?, current_timestamp(6), current_timestamp(6)
+                from shared_participations where identifier = ?
+                """, source, destination, participation);
     }
 
     private ValidatableResponse requestParticipation(Scope participant, Scope owner, String contract) {
