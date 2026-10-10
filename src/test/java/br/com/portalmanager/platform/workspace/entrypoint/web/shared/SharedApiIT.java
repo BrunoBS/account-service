@@ -187,7 +187,7 @@ class SharedApiIT {
         request.put("alias", "shared-" + UUID.randomUUID().toString().substring(0, 8));
         request.put("acronym", "SHR");
         request.put("applicationScope", "BACKEND");
-        request.put("authorizerGroup", authorizerGroup);
+        if (authorizerGroup != null) request.put("authorizerGroup", authorizerGroup);
         request.put("tags", List.of());
         return request;
     }
