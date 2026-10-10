@@ -43,7 +43,6 @@ CREATE TABLE shared_environment_mappings (
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
     PRIMARY KEY (id),
-    CONSTRAINT uk_shared_mapping_source UNIQUE (participation_id, source_environment_identifier),
     CONSTRAINT uk_shared_mapping_destination UNIQUE (participation_id, destination_environment_identifier),
     CONSTRAINT fk_shared_mapping_participation FOREIGN KEY (participation_id) REFERENCES shared_participations (id) ON DELETE CASCADE
 );
