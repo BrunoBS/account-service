@@ -1,113 +1,71 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.workspace;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceCommandService;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
-import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.CreateWorkspaceRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.UpdateWorkspaceRequest;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.workspace.core.workspace.facade.WorkspaceFacade;
+import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.*;
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.response.WorkspaceResponse;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/workspaces")
 public class WorkspaceController {
 
-    private final WorkspaceCommandService commandService;
-    private final WorkspaceQueryService queryService;
+    private final WorkspaceFacade facade;
 
-    public WorkspaceController(
-            WorkspaceCommandService commandService,
-            WorkspaceQueryService queryService
-    ) {
-        this.commandService = commandService;
-        this.queryService = queryService;
+    public WorkspaceController(WorkspaceFacade f) {
+        facade = f;
     }
 
     @PostMapping
-    @AuthorizationRequired(level = AuthorizationLevel.OPEN)
-    @Auditable(
-            resource = "WORKSPACE",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
-    public ResponseEntity<WorkspaceResponse> create(@RequestBody CreateWorkspaceRequest request) {
-        WorkspaceResponse response = WorkspaceResponse.from(commandService.create(request.toInput()));
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<WorkspaceResponse> create(
+        AuthorizationContext context,
+        @RequestBody CreateWorkspaceRequest r
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            WorkspaceResponse.from(facade.create(context, r.toInput()))
+        );
     }
 
     @GetMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.DEV)
-    public WorkspaceResponse findByIdentifier(@PathVariable String identifier) {
-        return WorkspaceResponse.from(queryService.findByIdentifier(identifier));
+    public WorkspaceResponse findByIdentifier(AuthorizationContext context, @PathVariable String identifier) {
+        return WorkspaceResponse.from(facade.findByIdentifier(context, identifier));
     }
 
     @GetMapping
-    @AuthorizationRequired(level = AuthorizationLevel.OPEN)
     public List<WorkspaceResponse> findAll(
-            @RequestParam(defaultValue = "true") Boolean active,
-            @RequestParam(required = false) String typeName,
-            @RequestParam(required = false) String tagName
+        AuthorizationContext context,
+        @RequestParam(defaultValue = "true") Boolean active,
+        @RequestParam(required = false) String typeName,
+        @RequestParam(required = false) String tagName
     ) {
-        return queryService.findAll(new FindAllWorkspacesInput(active, typeName, tagName)).stream()
-                .map(WorkspaceResponse::from)
-                .toList();
+        return facade.findAll(context, active, typeName, tagName).stream().map(WorkspaceResponse::from).toList();
     }
 
     @PutMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(
-            resource = "WORKSPACE",
-            action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public WorkspaceResponse update(
-            @PathVariable String identifier,
-            @RequestBody UpdateWorkspaceRequest request
+        AuthorizationContext context,
+        @PathVariable String identifier,
+        @RequestBody UpdateWorkspaceRequest r
     ) {
-        return WorkspaceResponse.from(commandService.update(identifier, request.toInput()));
+        return WorkspaceResponse.from(facade.update(context, identifier, r.toInput()));
     }
 
     @PostMapping("/{identifier}/inactivate")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(
-            resource = "WORKSPACE",
-            action = "INACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
-    public ResponseEntity<Void> inactivate(@PathVariable String identifier) {
-        commandService.inactivate(identifier);
+    public ResponseEntity<Void> inactivate(AuthorizationContext context, @PathVariable String identifier) {
+        facade.inactivate(context, identifier);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{identifier}/restore")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(
-            resource = "WORKSPACE",
-            action = "RESTORE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
-    public WorkspaceResponse restore(@PathVariable String identifier) {
-        return WorkspaceResponse.from(commandService.restore(identifier));
+    public WorkspaceResponse restore(AuthorizationContext context, @PathVariable String identifier) {
+        return WorkspaceResponse.from(facade.restore(context, identifier));
     }
 
     @DeleteMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(
-            resource = "WORKSPACE",
-            action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
-    public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        commandService.delete(identifier);
+    public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier) {
+        facade.delete(context, identifier);
         return ResponseEntity.noContent().build();
     }
 }

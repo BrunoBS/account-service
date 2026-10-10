@@ -5,8 +5,18 @@ import jakarta.persistence.Embeddable;
 
 @Embeddable
 public class AuthorizationTypeCode extends AbstractCatalogCode {
+
     protected AuthorizationTypeCode() {}
-    private AuthorizationTypeCode(String value) { super(value); }
-    public static AuthorizationTypeCode of(String value) { return of(requireEnumValue(value, AuthorizationTypeEnum.class)); }
-    public static AuthorizationTypeCode of(AuthorizationTypeEnum value) { return new AuthorizationTypeCode(value == null ? null : value.name()); }
+
+    private AuthorizationTypeCode(String value) {
+        super(value);
+    }
+
+    public static AuthorizationTypeCode of(String value) {
+        return of(requireEnumValue(value, AuthorizationTypeEnum.class));
+    }
+
+    public static AuthorizationTypeCode of(AuthorizationTypeEnum value) {
+        return new AuthorizationTypeCode(value == null ? null : value.name());
+    }
 }

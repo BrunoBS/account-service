@@ -7,9 +7,8 @@ import br.com.portalmanager.platform.workspace.core.application.domain.Applicati
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.usecase.ApplicationScopeTypeService;
-import org.springframework.stereotype.Component;
-
 import java.util.Objects;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ApplicationValidator {

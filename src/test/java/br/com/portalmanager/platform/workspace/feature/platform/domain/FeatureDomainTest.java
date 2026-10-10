@@ -1,29 +1,15 @@
 package br.com.portalmanager.platform.workspace.feature.platform.domain;
 
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import br.com.portalmanager.platform.workspace.feature.platform.domain.feature.Feature;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice;
+import java.time.LocalDateTime;
+import org.junit.jupiter.api.Test;
 
 class FeatureDomainTest {
 
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 9, 25, 13, 30);
-
-    @Test
-    void shouldAssociateAndRemoveActiveContext() {
-        Microservice microservice = new Microservice("audit-service", "Audit Service", null, NOW);
-        Feature feature = new Feature("audit", "audit", null, microservice, "{}", NOW);
-        FeatureContext context = new FeatureContext("administration", "administration", null, NOW);
-
-        feature.addContext(context);
-        assertThat(feature.getContexts()).containsExactly(context);
-        assertThat(context.getFeatures()).containsExactly(feature);
-
-        feature.removeContext(context);
-        assertThat(feature.getContexts()).isEmpty();
-        assertThat(context.getFeatures()).isEmpty();
-    }
 
     @Test
     void shouldMoveFeatureBetweenActiveServicesMaintainingBidirectionalRelation() {

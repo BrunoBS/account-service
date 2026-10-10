@@ -1,24 +1,23 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.workspace;
 
-import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
-import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
-import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
+import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
+import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
 
 @PlatformIntegrationTest
 @WithMySql
@@ -45,28 +44,54 @@ class WorkspaceAuthorizationIT {
     @Test
     void shouldRequireAuthenticationEvenForOpenPolicy() {
         given()
-                .port(port)
-                .accept(ContentType.JSON)
-                .when()
-                .get("/api/v1/workspaces")
-                .then()
-                .statusCode(401)
-                .body("code", equalTo("AUTH-401-001"));
+            .port(port)
+            .accept(ContentType.JSON)
+            .when()
+            .get("/api/v1/workspaces")
+            .then()
+            .statusCode(401)
+            .body("code", equalTo("AUTH-401-001"));
+    }
+
+    @Test
+    void shouldRejectMissingCorrelationIdEvenWithBearerToken() {
+        given()
+            .port(port)
+            .header("Authorization", "Bearer authorization-it")
+            .accept(ContentType.JSON)
+            .when()
+            .get("/api/v1/workspaces")
+            .then()
+            .statusCode(401)
+            .body("code", equalTo("AUTH-401-001"));
+    }
+
+    @Test
+    void shouldRejectMissingBearerTokenEvenWithCorrelationId() {
+        given()
+            .port(port)
+            .header("correlation-id", "authorization-it")
+            .accept(ContentType.JSON)
+            .when()
+            .get("/api/v1/workspaces")
+            .then()
+            .statusCode(401)
+            .body("code", equalTo("AUTH-401-002"));
     }
 
     @Test
     void shouldApplyOpenDevAndAdmPolicies() {
         String identifier = post(validCreate("Workspace Policy", "TEAM_POLICY"))
-                .statusCode(201)
-                .extract()
-                .path("identifier");
+            .statusCode(201)
+            .extract()
+            .path("identifier");
         authorizationMock.verifyCalledWithPolicy("OPEN");
 
         allowOwner();
         Integer version = get("/api/v1/workspaces/" + identifier)
-                .statusCode(200)
-                .extract()
-                .path("version");
+            .statusCode(200)
+            .extract()
+            .path("version");
         authorizationMock.verifyCalledWithPolicy("DEV");
 
         allowOwner();
@@ -80,37 +105,29 @@ class WorkspaceAuthorizationIT {
 
     @Test
     void shouldApplyResourceVisibilityForSingleAndCollectionReads() {
-        String teamA = post(validCreate("Workspace Team A", "TEAM_A"))
-                .statusCode(201)
-                .extract()
-                .path("identifier");
+        String teamA = post(validCreate("Workspace Team A", "TEAM_A")).statusCode(201).extract().path("identifier");
 
-        String teamB = post(validCreate("Workspace Team B", "TEAM_B"))
-                .statusCode(201)
-                .extract()
-                .path("identifier");
+        String teamB = post(validCreate("Workspace Team B", "TEAM_B")).statusCode(201).extract().path("identifier");
 
         authorizationMock.reset();
-        authorizationMock.allow(session -> session
-                .groups("USER")
-                .addAuthorizerGroup("GRP_WORKSPACE_DEV_TEAM_A", "DEV", "DEV", "TEAM_A"));
+        authorizationMock.allow(session ->
+            session.groups("USER").addAuthorizerGroup("GRP_WORKSPACE_DEV_TEAM_A", "DEV", "DEV", "TEAM_A")
+        );
 
         get("/api/v1/workspaces/" + teamA)
-                .statusCode(200)
-                .body("identifier", equalTo(teamA));
+            .statusCode(200)
+            .body("identifier", equalTo(teamA));
 
-        get("/api/v1/workspaces")
-                .statusCode(200)
-                .body("identifier", containsInAnyOrder(teamA));
+        get("/api/v1/workspaces").statusCode(200).body("identifier", containsInAnyOrder(teamA));
 
         get("/api/v1/workspaces/" + teamB)
-                .statusCode(404)
-                .body("code", equalTo("WORKSPACE-0001"));
+            .statusCode(404)
+            .body("code", equalTo("WORKSPACE-0001"));
 
         allowOwner();
         get("/api/v1/workspaces/" + teamB)
-                .statusCode(200)
-                .body("identifier", equalTo(teamB));
+            .statusCode(200)
+            .body("identifier", equalTo(teamB));
     }
 
     private void allowOwner() {
@@ -128,10 +145,7 @@ class WorkspaceAuthorizationIT {
         request.put("authorizerGroup", authorizerGroup);
         request.put("settings", Map.of("feature", true));
         request.put("emailGroup", "workspace@portalmanager.com");
-        request.put("approvers", List.of(Map.of(
-                "functional", "F1000",
-                "email", "approver@portalmanager.com"
-        )));
+        request.put("approvers", List.of(Map.of("functional", "F1000", "email", "approver@portalmanager.com")));
         request.put("tags", List.of());
         return request;
     }
@@ -141,41 +155,47 @@ class WorkspaceAuthorizationIT {
     }
 
     private io.restassured.response.ValidatableResponse post(Map<String, Object> body) {
-        return authorized()
-                .contentType(ContentType.JSON)
-                .body(body)
-                .when()
-                .post("/api/v1/workspaces")
-                .then();
+        return authorized().contentType(ContentType.JSON).body(body).when().post("/api/v1/workspaces").then();
     }
 
     private io.restassured.response.ValidatableResponse put(String identifier, Map<String, Object> body) {
         return authorized()
-                .contentType(ContentType.JSON)
-                .body(body)
-                .when()
-                .put("/api/v1/workspaces/" + identifier)
-                .then();
+            .contentType(ContentType.JSON)
+            .body(body)
+            .when()
+            .put("/api/v1/workspaces/" + identifier)
+            .then();
     }
 
     private io.restassured.specification.RequestSpecification authorized() {
         return given()
-                .port(port)
-                .header("X-Correlation-Id", "authorization-it")
-                .header("Authorization", "Bearer authorization-it")
-                .accept(ContentType.JSON);
+            .port(port)
+            .header("correlation-id", "authorization-it")
+            .header("Authorization", "Bearer authorization-it")
+            .accept(ContentType.JSON);
     }
 
     private void seedWorkspaceTypes() {
-        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')");
-        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('MANAGER', 'Manager', 'Management workspace', 2, true, '{}')");
-        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('CATALOG', 'Catalog', 'Catalog workspace', 3, true, '{}')");
+        jdbcTemplate.update(
+            "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')"
+        );
+        jdbcTemplate.update(
+            "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('MANAGER', 'Manager', 'Management workspace', 2, true, '{}')"
+        );
+        jdbcTemplate.update(
+            "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('CATALOG', 'Catalog', 'Catalog workspace', 3, true, '{}')"
+        );
     }
 
     private void seedLifecycleTypes() {
-        jdbcTemplate.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')");
-        jdbcTemplate.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}')");
-        jdbcTemplate.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')");
+        jdbcTemplate.update(
+            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')"
+        );
+        jdbcTemplate.update(
+            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}')"
+        );
+        jdbcTemplate.update(
+            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')"
+        );
     }
-
 }

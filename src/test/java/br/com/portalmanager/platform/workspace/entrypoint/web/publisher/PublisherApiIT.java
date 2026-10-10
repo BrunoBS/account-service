@@ -1,48 +1,59 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.publisher;
 
-import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
-import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
-import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
-import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.*;
+
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
+import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
+import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;
+import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.util.Map;
-import java.util.UUID;
-
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.*;
-
 @PlatformIntegrationTest
 @WithMySql
 @WithMockAuthorization
 class PublisherApiIT {
-    @LocalServerPort private int port;
-    @Autowired private JdbcTemplate jdbc;
-    @Autowired private AuthorizationMock authorization;
-    @Autowired private SchemaResolutionPort schemas;
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private JdbcTemplate jdbc;
+
+    @Autowired
+    private AuthorizationMock authorization;
+
+    @Autowired
+    private SchemaResolutionPort schemas;
 
     @BeforeEach
     void prepare() {
         SchemaDefaultFixture.seed(jdbc);
-        jdbc.update("""
-                INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings)
-                VALUES ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}'),
-                       ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}'),
-                       ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')
-                """);
-        jdbc.update("""
-                INSERT IGNORE INTO type_resource_scopes (code, label, description, sort_order, is_active, settings)
-                VALUES ('WORKSPACE', 'Workspace', 'Workspace resources', 1, true, '{}'),
-                       ('APPLICATION', 'Application', 'Application resources', 2, true, '{}')
-                """);
+        jdbc.update(
+            """
+            INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings)
+            VALUES ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}'),
+                   ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}'),
+                   ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')
+            """
+        );
+        jdbc.update(
+            """
+            INSERT IGNORE INTO type_resource_scopes (code, label, description, sort_order, is_active, settings)
+            VALUES ('WORKSPACE', 'Workspace', 'Workspace resources', 1, true, '{}'),
+                   ('APPLICATION', 'Application', 'Application resources', 2, true, '{}')
+            """
+        );
         authorization.reset();
         authorization.allow(session -> session.groups("PM5_OWNER"));
     }
@@ -50,37 +61,83 @@ class PublisherApiIT {
     @Test
     void createsPublisherWithJsonSettingsAndDefaultSchemaResolution() {
         String code = "P_" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        String identifier = given().port(port).header("X-Correlation-Id", "publisher-it")
-                .header("Authorization", "Bearer publisher-it")
-                .contentType(ContentType.JSON)
-                .body(Map.of("code", code, "name", "Test Publisher",
-                        "description", "Publisher for integration", "scope", "WORKSPACE", "settings", Map.of()))
-                .when().post("/api/v1/publishers").then()
-                .statusCode(201).body("code", equalTo(code)).body("lifecycle", equalTo("ACTIVE"))
-                .body("settings", anEmptyMap())
-                .extract().path("identifier");
-        given().port(port).header("X-Correlation-Id", "publisher-it")
-                .header("Authorization", "Bearer publisher-it")
-                .when().get("/api/v1/publishers/" + identifier).then().statusCode(200)
-                .body("settings", anEmptyMap());
-        assertThat(schemas.resolve("PUBLISHER", code))
-                .isEqualTo(jdbc.queryForObject("""
-                        select v.definition from schema_configuration c
-                        join schema_versions v on v.schema_id = c.schema_id
-                        where c.resource_type = 'PUBLISHER' and c.resource_code = 'DEFAULT'
-                          and v.status = 'PUBLISHED'
-                        order by v.schema_version desc limit 1
-                        """, String.class));
+        String identifier = given()
+            .port(port)
+            .header("correlation-id", "publisher-it")
+            .header("Authorization", "Bearer publisher-it")
+            .contentType(ContentType.JSON)
+            .body(
+                Map.of(
+                    "code",
+                    code,
+                    "name",
+                    "Test Publisher",
+                    "description",
+                    "Publisher for integration",
+                    "scope",
+                    "WORKSPACE",
+                    "settings",
+                    Map.of()
+                )
+            )
+            .when()
+            .post("/api/v1/publishers")
+            .then()
+            .statusCode(201)
+            .body("code", equalTo(code))
+            .body("lifecycle", equalTo("ACTIVE"))
+            .body("settings", anEmptyMap())
+            .extract()
+            .path("identifier");
+        given()
+            .port(port)
+            .header("correlation-id", "publisher-it")
+            .header("Authorization", "Bearer publisher-it")
+            .when()
+            .get("/api/v1/publishers/" + identifier)
+            .then()
+            .statusCode(200)
+            .body("settings", anEmptyMap());
+        assertThat(schemas.resolve("PUBLISHER", code)).isEqualTo(
+            jdbc.queryForObject(
+                """
+                select v.definition from schema_configuration c
+                join schema_versions v on v.schema_id = c.schema_id
+                where c.resource_type = 'PUBLISHER' and c.resource_code = 'DEFAULT'
+                  and v.status = 'PUBLISHED'
+                order by v.schema_version desc limit 1
+                """,
+                String.class
+            )
+        );
     }
 
     @Test
     void invalidPublisherScopeIsRejectedIndependentlyOfSchemaConfiguration() {
         String code = "P_" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        given().port(port).header("X-Correlation-Id", "publisher-it")
-                .header("Authorization", "Bearer publisher-it").contentType(ContentType.JSON)
-                .body(Map.of("code", code, "name", "Test Publisher",
-                        "description", "Publisher for integration", "scope", "INVALID", "settings", Map.of()))
-                .when().post("/api/v1/publishers").then().statusCode(400)
-                .body("details.field", hasItem("scope"));
+        given()
+            .port(port)
+            .header("correlation-id", "publisher-it")
+            .header("Authorization", "Bearer publisher-it")
+            .contentType(ContentType.JSON)
+            .body(
+                Map.of(
+                    "code",
+                    code,
+                    "name",
+                    "Test Publisher",
+                    "description",
+                    "Publisher for integration",
+                    "scope",
+                    "INVALID",
+                    "settings",
+                    Map.of()
+                )
+            )
+            .when()
+            .post("/api/v1/publishers")
+            .then()
+            .statusCode(400)
+            .body("details.field", hasItem("scope"));
     }
 }

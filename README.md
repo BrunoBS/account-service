@@ -18,7 +18,9 @@ Este repositório implementa a fase `GOLDEN-REFERENCE-V1` sobre o checkpoint `FO
 - `br.com.portalmanager.platform.library:platform-parent:1.0.0`
 - `br.com.portalmanager.platform.library:platform-libraries-bom:1.0.0`
 - `br.com.portalmanager.platform.library:platform-starter:1.0.0`
-- `br.com.portalmanager.platform.library:platform-testing:1.0.0`
+- `br.com.portalmanager.platform.library:platform-testing-http:1.0.0`;
+- `br.com.portalmanager.platform.library:platform-testing-database:1.0.0`;
+- `br.com.portalmanager.platform.library:platform-testing-authorization:1.0.0`
 - `br.com.portalmanager.platform.library:platform-catalog:1.0.0`
 
 ## Arquitetura
@@ -48,6 +50,35 @@ O cadastro administrativo de microserviços usa `feature/platform` e
 Feature e Message e remove os catálogos de linguagem e infraestrutura. Consulte
 [`MICROSERVICE-MIGRATION-V19.md`](docs/refinamentos/foundation/MICROSERVICE-MIGRATION-V19.md)
 para os contratos de atualização.
+
+### Organização interna do domínio
+
+Módulos com mais de uma responsabilidade de domínio agrupam suas classes em
+`domain/<responsabilidade>`. Entidades dependentes e objetos de valor permanecem
+junto ao agregado ao qual pertencem; ter várias classes não exige criar subpacotes.
+
+| Módulo              | Subpacotes de domínio                                      |
+| ------------------- | ---------------------------------------------------------- |
+| `feature.platform`  | `feature`, `microservice`, `featurecontext`                |
+| `feature.shared`    | `contract`, `participation` (inclui os mapeamentos)        |
+| `core.environment`  | `environment`, `environmenttype` (inclui compatibilidades) |
+| `foundation.schema` | `schema`, `version`, `configuration`                       |
+
+Módulos com um único agregado mantêm as classes diretamente em `domain`.
+As chaves de mensagens compartilhadas entre responsabilidades permanecem na raiz
+`<modulo>.domain`.
+
+### Chaves de mensagens
+
+As classes `*MessageKeys` devem ficar em `<modulo>.domain`, junto ao domínio que
+possui os erros. Esse padrão vale para módulos de `core`, `feature` e `foundation`.
+Cada classe contém apenas constantes com as chaves; a resolução e a tradução das
+mensagens permanecem no mecanismo de messaging.
+
+O pacote `usecase.model` concentra contratos de entrada e saída (`Input` e `Output`).
+Validadores, use cases e integrações utilizam as chaves do domínio do próprio módulo.
+A localização é verificada pelo teste de arquitetura
+`GoldenArchitectureTest.messageKeysMustResideInModuleDomain`.
 
 ### Ponto único de validação
 
@@ -79,9 +110,7 @@ Princípios principais:
 A Golden migrou os 16 CRUDs de catálogo da referência funcional histórica para a
 application Foundation, reutilizando `platform-catalog`:
 
-- 12 `EnumCatalogService`;
-- 1 `DynamicCatalogService`;
-- 3 `BaseCatalogService` para contratos avançados.
+Na estrutura atual da Golden, os catálogos concretos presentes em `foundation.catalog` usam `EnumCatalogService`; o modelo Included/Dynamic permanece disponível na Foundation para catálogos cujo banco governa novos códigos em runtime. A antiga referência a `BaseCatalogService` não representa mais a API pública atual da `platform-catalog`.
 
 A validação de `settings` utiliza
 `com.networknt:json-schema-validator:3.0.7`, organizada em

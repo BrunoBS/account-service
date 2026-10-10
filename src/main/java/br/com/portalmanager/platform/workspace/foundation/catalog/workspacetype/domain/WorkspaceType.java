@@ -6,5 +6,4 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "type_workspaces")
-public class WorkspaceType extends CatalogEntity {
-}
+public class WorkspaceType extends CatalogEntity {}

@@ -1,131 +1,96 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.message;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.entrypoint.web.message.request.CreateMessageTranslationRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.message.request.UpdateMessageTranslationRequest;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.workspace.entrypoint.web.message.request.*;
 import br.com.portalmanager.platform.workspace.entrypoint.web.message.response.MessageTranslationResponse;
-import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.translation.MessageTranslationCommandService;
-import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.translation.MessageTranslationQueryService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import br.com.portalmanager.platform.workspace.feature.message.facade.MessageTranslationFacade;
 import java.util.List;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/messages/{messageIdentifier}/translations")
-@AuthorizationRequired(level = AuthorizationLevel.ADM)
 public class MessageTranslationController {
 
-    private final MessageTranslationCommandService commandService;
-    private final MessageTranslationQueryService queryService;
+    private final MessageTranslationFacade facade;
 
-    public MessageTranslationController(
-            MessageTranslationCommandService commandService,
-            MessageTranslationQueryService queryService
-    ) {
-        this.commandService = commandService;
-        this.queryService = queryService;
+    public MessageTranslationController(MessageTranslationFacade f) {
+        facade = f;
     }
 
     @GetMapping
     public List<MessageTranslationResponse> findAll(
-            @PathVariable String messageIdentifier,
-            @RequestParam(required = false) String locale,
-            @RequestParam(required = false) Boolean active
+        AuthorizationContext context,
+        @PathVariable String messageIdentifier,
+        @RequestParam(required = false) String locale,
+        @RequestParam(required = false) Boolean active
     ) {
-        return queryService.findAll(messageIdentifier, locale, active).stream()
-                .map(MessageTranslationResponse::from)
-                .toList();
+        return facade
+            .findAll(context, messageIdentifier, locale, active)
+            .stream()
+            .map(MessageTranslationResponse::from)
+            .toList();
     }
 
     @GetMapping("/{translationIdentifier}")
     public MessageTranslationResponse findByIdentifier(
-            @PathVariable String messageIdentifier,
-            @PathVariable String translationIdentifier
+        AuthorizationContext context,
+        @PathVariable String messageIdentifier,
+        @PathVariable String translationIdentifier
     ) {
         return MessageTranslationResponse.from(
-                queryService.findByIdentifier(messageIdentifier, translationIdentifier)
+            facade.findByIdentifier(context, messageIdentifier, translationIdentifier)
         );
     }
 
     @PostMapping
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
     public ResponseEntity<MessageTranslationResponse> create(
-            @PathVariable String messageIdentifier,
-            @RequestBody CreateMessageTranslationRequest request
+        AuthorizationContext context,
+        @PathVariable String messageIdentifier,
+        @RequestBody CreateMessageTranslationRequest r
     ) {
-        MessageTranslationResponse response = MessageTranslationResponse.from(
-                commandService.create(messageIdentifier, request.toInput())
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            MessageTranslationResponse.from(facade.create(context, messageIdentifier, r.toInput()))
         );
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{translationIdentifier}")
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "translationIdentifier")
-    )
     public MessageTranslationResponse update(
-            @PathVariable String messageIdentifier,
-            @PathVariable String translationIdentifier,
-            @RequestBody UpdateMessageTranslationRequest request
+        AuthorizationContext context,
+        @PathVariable String messageIdentifier,
+        @PathVariable String translationIdentifier,
+        @RequestBody UpdateMessageTranslationRequest r
     ) {
         return MessageTranslationResponse.from(
-                commandService.update(messageIdentifier, translationIdentifier, request.toInput())
+            facade.update(context, messageIdentifier, translationIdentifier, r.toInput())
         );
     }
 
     @PatchMapping("/{translationIdentifier}/activate")
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "ACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "translationIdentifier")
-    )
     public MessageTranslationResponse activate(
-            @PathVariable String messageIdentifier,
-            @PathVariable String translationIdentifier
+        AuthorizationContext context,
+        @PathVariable String messageIdentifier,
+        @PathVariable String translationIdentifier
     ) {
-        return MessageTranslationResponse.from(
-                commandService.activate(messageIdentifier, translationIdentifier)
-        );
+        return MessageTranslationResponse.from(facade.activate(context, messageIdentifier, translationIdentifier));
     }
 
     @PatchMapping("/{translationIdentifier}/inactivate")
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "INACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "translationIdentifier")
-    )
     public MessageTranslationResponse inactivate(
-            @PathVariable String messageIdentifier,
-            @PathVariable String translationIdentifier
+        AuthorizationContext context,
+        @PathVariable String messageIdentifier,
+        @PathVariable String translationIdentifier
     ) {
-        return MessageTranslationResponse.from(
-                commandService.inactivate(messageIdentifier, translationIdentifier)
-        );
+        return MessageTranslationResponse.from(facade.inactivate(context, messageIdentifier, translationIdentifier));
     }
 
     @DeleteMapping("/{translationIdentifier}")
-    @Auditable(
-            resource = "MESSAGE_TRANSLATION",
-            action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "translationIdentifier")
-    )
     public ResponseEntity<Void> delete(
-            @PathVariable String messageIdentifier,
-            @PathVariable String translationIdentifier
+        AuthorizationContext context,
+        @PathVariable String messageIdentifier,
+        @PathVariable String translationIdentifier
     ) {
-        commandService.delete(messageIdentifier, translationIdentifier);
+        facade.delete(context, messageIdentifier, translationIdentifier);
         return ResponseEntity.noContent().build();
     }
 }

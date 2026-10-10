@@ -1,64 +1,66 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.environment;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationAccessPolicy;
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environmenttype.EnvironmentTypeCommandService;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environmenttype.EnvironmentTypeQueryService;
-import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.CreateEnvironmentTypeRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.UpdateEnvironmentTypeRequest;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.workspace.core.environment.facade.EnvironmentTypeFacade;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.*;
 import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentTypeResponse;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/environment-types")
-@AuthorizationAccessPolicy(read = AuthorizationLevel.OPEN, write = AuthorizationLevel.OWNER)
 public class EnvironmentTypeController {
-    private final EnvironmentTypeCommandService command;
-    private final EnvironmentTypeQueryService query;
-    public EnvironmentTypeController(EnvironmentTypeCommandService command, EnvironmentTypeQueryService query) {
-        this.command = command;
-        this.query = query;
+
+    private final EnvironmentTypeFacade facade;
+
+    public EnvironmentTypeController(EnvironmentTypeFacade f) {
+        facade = f;
     }
 
     @PostMapping
-    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public ResponseEntity<EnvironmentTypeResponse> create(@RequestBody CreateEnvironmentTypeRequest request) {
-        var input = request == null ? null : request.toInput();
-        return ResponseEntity.status(HttpStatus.CREATED).body(EnvironmentTypeResponse.from(command.create(input)));
+    public ResponseEntity<EnvironmentTypeResponse> create(
+        AuthorizationContext context,
+        @RequestBody CreateEnvironmentTypeRequest r
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            EnvironmentTypeResponse.from(facade.create(context, r == null ? null : r.toInput()))
+        );
     }
+
     @GetMapping
-    public List<EnvironmentTypeResponse> list() {
-        return query.list().stream().map(EnvironmentTypeResponse::from).toList();
+    public List<EnvironmentTypeResponse> list(AuthorizationContext context) {
+        return facade.list(context).stream().map(EnvironmentTypeResponse::from).toList();
     }
+
     @GetMapping("/{identifier}")
-    public EnvironmentTypeResponse find(@PathVariable String identifier) {
-        return EnvironmentTypeResponse.from(query.findOutput(identifier));
+    public EnvironmentTypeResponse find(AuthorizationContext context, @PathVariable String identifier) {
+        return EnvironmentTypeResponse.from(facade.find(context, identifier));
     }
+
     @PutMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public EnvironmentTypeResponse update(@PathVariable String identifier, @RequestBody UpdateEnvironmentTypeRequest request) {
-        var input = request == null ? null : request.toInput();
-        return EnvironmentTypeResponse.from(command.update(identifier, input));
+    public EnvironmentTypeResponse update(
+        AuthorizationContext context,
+        @PathVariable String identifier,
+        @RequestBody UpdateEnvironmentTypeRequest r
+    ) {
+        return EnvironmentTypeResponse.from(facade.update(context, identifier, r == null ? null : r.toInput()));
     }
+
     @PostMapping("/{identifier}/inactivate")
-    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public ResponseEntity<Void> inactivate(@PathVariable String identifier) {
-        command.inactivate(identifier);
+    public ResponseEntity<Void> inactivate(AuthorizationContext context, @PathVariable String identifier) {
+        facade.inactivate(context, identifier);
         return ResponseEntity.noContent().build();
     }
+
     @PostMapping("/{identifier}/restore")
-    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public EnvironmentTypeResponse restore(@PathVariable String identifier) {
-        return EnvironmentTypeResponse.from(command.restore(identifier));
+    public EnvironmentTypeResponse restore(AuthorizationContext context, @PathVariable String identifier) {
+        return EnvironmentTypeResponse.from(facade.restore(context, identifier));
     }
+
     @DeleteMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        command.delete(identifier);
+    public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier) {
+        facade.delete(context, identifier);
         return ResponseEntity.noContent().build();
     }
 }

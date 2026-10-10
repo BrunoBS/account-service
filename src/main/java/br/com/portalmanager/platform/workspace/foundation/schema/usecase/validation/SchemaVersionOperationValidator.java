@@ -4,15 +4,15 @@ import br.com.portalmanager.platform.library.messaging.exception.ConflictExcepti
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaVersion;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaMessageKeys;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SchemaVersionOperationValidator {
-    public void validateCreate(Schema schema, Integer number, String definition,
-                               SchemaVersionStatusTypeCode status) {
+
+    public void validateCreate(Schema schema, Integer number, String definition, SchemaVersionStatusTypeCode status) {
         if (schema == null) throw invalid("schema", SchemaMessageKeys.REQUEST_INVALID);
         if (number == null || number < 1) throw invalid("version", SchemaMessageKeys.VERSION_INVALID);
         validateDefinition(definition);

@@ -1,37 +1,30 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.workspace;
 
-import br.com.portalmanager.platform.library.audit.model.AuditEventRequest;
-import br.com.portalmanager.platform.library.audit.publisher.AuditPublisher;
-import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
-import br.com.portalmanager.platform.library.testing.annotation.WithMockAuthorization;
-import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
+import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
+import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;
+import io.restassured.response.ExtractableResponse;
+import io.restassured.response.Response;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-
 @PlatformIntegrationTest
 @WithMySql
 @WithMockAuthorization
-@Import(WorkspaceAuditIT.AuditCaptureConfiguration.class)
 class WorkspaceAuditIT {
 
     @LocalServerPort
@@ -39,9 +32,6 @@ class WorkspaceAuditIT {
 
     @Autowired
     private AuthorizationMock authorizationMock;
-
-    @Autowired
-    private CapturingAuditPublisher auditPublisher;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -55,26 +45,34 @@ class WorkspaceAuditIT {
     @BeforeEach
     void setUp() {
         SchemaDefaultFixture.seed(jdbcTemplate);
-        jdbcTemplate.update("INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')");
-        jdbcTemplate.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')");
-        jdbcTemplate.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}')");
-        jdbcTemplate.update("INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')");
+        jdbcTemplate.update(
+            "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')"
+        );
+        jdbcTemplate.update(
+            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')"
+        );
+        jdbcTemplate.update(
+            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}')"
+        );
+        jdbcTemplate.update(
+            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')"
+        );
         authorizationMock.reset();
-        authorizationMock.allow(session -> session
+        authorizationMock.allow(session ->
+            session
                 .groups("PM5_OWNER")
                 .userName("golden-auditor")
                 .accountId("audit-account")
                 .applicationId("audit-application")
                 .environmentId("audit-environment")
-                .traceId("audit-trace"));
-        auditPublisher.clear();
+                .traceId("audit-trace")
+        );
+        jdbcTemplate.update("DELETE FROM audit_outbox");
     }
 
     @Test
     void shouldAuditWorkspaceMutations() {
-        var created = post(validCreate("Workspace Audit"))
-                .statusCode(201)
-                .extract();
+        ExtractableResponse<Response> created = post(validCreate("Workspace Audit")).statusCode(201).extract();
 
         String identifier = created.path("identifier");
         Integer version = created.path("version");
@@ -89,27 +87,27 @@ class WorkspaceAuditIT {
         post("/api/v1/workspaces/" + identifier + "/inactivate").statusCode(204);
         delete(identifier).statusCode(204);
 
-        List<AuditEventRequest> events = new ArrayList<>(auditPublisher.events());
+        assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM audit_outbox", Integer.class)).isEqualTo(6);
+        assertThat(jsonValues("$.eventType")).containsExactly(
+            "WORKSPACE_CREATED",
+            "WORKSPACE_UPDATED",
+            "WORKSPACE_DEACTIVATED",
+            "WORKSPACE_RESTORED",
+            "WORKSPACE_DEACTIVATED",
+            "WORKSPACE_DELETED"
+        );
+        assertThat(jsonValues("$.resourceType")).containsOnly("WORKSPACE");
+        assertThat(jsonValues("$.resourceIdentifier")).containsOnly(identifier);
+        assertThat(jsonValues("$.service")).containsOnly("workspace-service");
+        assertThat(jsonValues("$.username")).containsOnly("golden-auditor");
+        assertThat(jsonValues("$.correlationId")).containsOnly("audit-trace");
+    }
 
-        assertThat(events).hasSize(6);
-        assertThat(events)
-                .extracting(AuditEventRequest::resource)
-                .containsOnly("WORKSPACE");
-        assertThat(events)
-                .extracting(AuditEventRequest::action)
-                .containsExactly("INSERT", "UPDATE", "INACTIVATE", "RESTORE", "INACTIVATE", "DELETE");
-        assertThat(events)
-                .extracting(AuditEventRequest::resourceId)
-                .containsOnly(identifier);
-        assertThat(events)
-                .extracting(AuditEventRequest::service)
-                .containsOnly("workspace-service");
-        assertThat(events)
-                .extracting(AuditEventRequest::actor)
-                .containsOnly("golden-auditor");
-        assertThat(events)
-                .extracting(AuditEventRequest::correlationId)
-                .containsOnly("audit-trace");
+    private List<String> jsonValues(String path) {
+        return jdbcTemplate.queryForList(
+            "SELECT JSON_UNQUOTE(JSON_EXTRACT(metadata, '" + path + "')) FROM audit_outbox ORDER BY id",
+            String.class
+        );
     }
 
     private Map<String, Object> validCreate(String name) {
@@ -122,21 +120,13 @@ class WorkspaceAuditIT {
         request.put("authorizerGroup", "AUDIT_TEAM");
         request.put("settings", Map.of("feature", true));
         request.put("emailGroup", "workspace@portalmanager.com");
-        request.put("approvers", List.of(Map.of(
-                "functional", "F1000",
-                "email", "approver@portalmanager.com"
-        )));
+        request.put("approvers", List.of(Map.of("functional", "F1000", "email", "approver@portalmanager.com")));
         request.put("tags", List.of("audit-manual"));
         return request;
     }
 
     private io.restassured.response.ValidatableResponse post(Map<String, Object> body) {
-        return authorized()
-                .contentType(ContentType.JSON)
-                .body(body)
-                .when()
-                .post("/api/v1/workspaces")
-                .then();
+        return authorized().contentType(ContentType.JSON).body(body).when().post("/api/v1/workspaces").then();
     }
 
     private io.restassured.response.ValidatableResponse post(String path) {
@@ -145,49 +135,25 @@ class WorkspaceAuditIT {
 
     private io.restassured.response.ValidatableResponse put(String identifier, Map<String, Object> body) {
         return authorized()
-                .contentType(ContentType.JSON)
-                .body(body)
-                .when()
-                .put("/api/v1/workspaces/" + identifier)
-                .then();
+            .contentType(ContentType.JSON)
+            .body(body)
+            .when()
+            .put("/api/v1/workspaces/" + identifier)
+            .then();
     }
 
     private io.restassured.response.ValidatableResponse delete(String identifier) {
-        return authorized().when().delete("/api/v1/workspaces/" + identifier).then();
+        return authorized()
+            .when()
+            .delete("/api/v1/workspaces/" + identifier)
+            .then();
     }
 
     private io.restassured.specification.RequestSpecification authorized() {
         return given()
-                .port(port)
-                .header("X-Correlation-Id", "workspace-audit-request")
-                .header("Authorization", "Bearer workspace-audit-it")
-                .accept(ContentType.JSON);
-    }
-
-    @TestConfiguration(proxyBeanMethods = false)
-    static class AuditCaptureConfiguration {
-
-        @Bean
-        CapturingAuditPublisher capturingAuditPublisher() {
-            return new CapturingAuditPublisher();
-        }
-    }
-
-    static final class CapturingAuditPublisher implements AuditPublisher {
-
-        private final List<AuditEventRequest> events = new CopyOnWriteArrayList<>();
-
-        @Override
-        public void publish(AuditEventRequest event) {
-            events.add(event);
-        }
-
-        List<AuditEventRequest> events() {
-            return List.copyOf(events);
-        }
-
-        void clear() {
-            events.clear();
-        }
+            .port(port)
+            .header("correlation-id", "workspace-audit-request")
+            .header("Authorization", "Bearer workspace-audit-it")
+            .accept(ContentType.JSON);
     }
 }

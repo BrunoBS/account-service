@@ -1,55 +1,70 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.publisher;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationAccessPolicy;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.core.publisher.usecase.operations.PublisherCommandService;
-import br.com.portalmanager.platform.workspace.core.publisher.usecase.operations.PublisherQueryService;
-import br.com.portalmanager.platform.workspace.entrypoint.web.publisher.request.CreatePublisherRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.publisher.request.UpdatePublisherRequest;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.workspace.core.publisher.facade.PublisherFacade;
+import br.com.portalmanager.platform.workspace.entrypoint.web.publisher.request.*;
 import br.com.portalmanager.platform.workspace.entrypoint.web.publisher.response.PublisherResponse;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/publishers")
-@AuthorizationAccessPolicy(read = AuthorizationLevel.OPEN, write = AuthorizationLevel.OWNER)
 public class PublisherController {
-    private final PublisherCommandService command;
-    private final PublisherQueryService query;
-    public PublisherController(PublisherCommandService command, PublisherQueryService query) {
-        this.command = command;
-        this.query = query;
+
+    private final PublisherFacade facade;
+
+    public PublisherController(PublisherFacade f) {
+        facade = f;
     }
+
     @PostMapping
-    public ResponseEntity<PublisherResponse> create(@RequestBody CreatePublisherRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(PublisherResponse.from(command.create(request.toInput())));
+    public ResponseEntity<PublisherResponse> create(
+        AuthorizationContext context,
+        @RequestBody CreatePublisherRequest r
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            PublisherResponse.from(facade.create(context, r.toInput()))
+        );
     }
+
     @GetMapping
-    public List<PublisherResponse> list(@RequestParam(defaultValue = "true") Boolean active,
-                                        @RequestParam(required = false) String scope) {
-        return query.list(active, scope).stream().map(PublisherResponse::from).toList();
+    public List<PublisherResponse> list(
+        AuthorizationContext context,
+        @RequestParam(defaultValue = "true") Boolean active,
+        @RequestParam(required = false) String scope
+    ) {
+        return facade.list(context, active, scope).stream().map(PublisherResponse::from).toList();
     }
+
     @GetMapping("/{identifier}")
-    public PublisherResponse find(@PathVariable String identifier) { return PublisherResponse.from(query.find(identifier)); }
-    @PutMapping("/{identifier}")
-    public PublisherResponse update(@PathVariable String identifier, @RequestBody UpdatePublisherRequest request) {
-        return PublisherResponse.from(command.update(identifier, request.toInput()));
+    public PublisherResponse find(AuthorizationContext context, @PathVariable String identifier) {
+        return PublisherResponse.from(facade.find(context, identifier));
     }
+
+    @PutMapping("/{identifier}")
+    public PublisherResponse update(
+        AuthorizationContext context,
+        @PathVariable String identifier,
+        @RequestBody UpdatePublisherRequest r
+    ) {
+        return PublisherResponse.from(facade.update(context, identifier, r.toInput()));
+    }
+
     @PostMapping("/{identifier}/inactivate")
-    public ResponseEntity<Void> inactivate(@PathVariable String identifier) {
-        command.inactivate(identifier);
+    public ResponseEntity<Void> inactivate(AuthorizationContext context, @PathVariable String identifier) {
+        facade.inactivate(context, identifier);
         return ResponseEntity.noContent().build();
     }
+
     @PostMapping("/{identifier}/restore")
-    public PublisherResponse restore(@PathVariable String identifier) {
-        return PublisherResponse.from(command.restore(identifier));
+    public PublisherResponse restore(AuthorizationContext context, @PathVariable String identifier) {
+        return PublisherResponse.from(facade.restore(context, identifier));
     }
+
     @DeleteMapping("/{identifier}")
-    public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        command.delete(identifier);
+    public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier) {
+        facade.delete(context, identifier);
         return ResponseEntity.noContent().build();
     }
 }

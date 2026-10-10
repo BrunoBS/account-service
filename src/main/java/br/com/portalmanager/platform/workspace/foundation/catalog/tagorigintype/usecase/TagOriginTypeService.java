@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.usecase;
 
 import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
-import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSettingsValidator;
+import br.com.portalmanager.platform.library.schemavalidation.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.domain.TagOriginType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.domain.TagOriginTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.repository.TagOriginTypeRepository;
@@ -14,15 +14,17 @@ public class TagOriginTypeService extends EnumCatalogService<TagOriginType, TagO
     private static final String SCHEMA_RESOURCE_CODE = "tag-origin-type";
 
     public TagOriginTypeService(
-            TagOriginTypeRepository repository,
-            ObjectMapper objectMapper,
-            CatalogSettingsValidator settingsValidator) {
+        TagOriginTypeRepository repository,
+        ObjectMapper objectMapper,
+        SchemaValidator schemaValidator
+    ) {
         super(
-                repository,
-                objectMapper,
-                TagOriginType.class,
-                TagOriginTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(SCHEMA_RESOURCE_CODE, dto.settings(), result)
+            repository,
+            objectMapper,
+            TagOriginType.class,
+            TagOriginTypeEnum.class,
+            SCHEMA_RESOURCE_CODE,
+            schemaValidator
         );
     }
 }

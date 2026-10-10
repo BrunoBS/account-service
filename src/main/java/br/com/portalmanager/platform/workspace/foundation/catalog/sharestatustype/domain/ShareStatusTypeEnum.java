@@ -1,12 +1,13 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain;
 
 import br.com.portalmanager.platform.library.catalog.model.CatalogEnum;
+import java.util.List;
 
 public enum ShareStatusTypeEnum implements CatalogEnum<ShareStatusTypeEnum> {
-    WAITING_DESTINATION_APPROVAL {
+    PENDING {
         @Override
-        public java.util.List<ShareStatusTypeEnum> nextStatus() {
-            return java.util.List.of(APPROVED, REJECTED);
+        public List<ShareStatusTypeEnum> nextStatus() {
+            return List.of(APPROVED, REJECTED);
         }
 
         @Override
@@ -14,10 +15,21 @@ public enum ShareStatusTypeEnum implements CatalogEnum<ShareStatusTypeEnum> {
             return ShareActor.DESTINATION;
         }
     },
-    WAITING_SOURCE_APPROVAL {
+    APPROVED {
         @Override
-        public java.util.List<ShareStatusTypeEnum> nextStatus() {
-            return java.util.List.of(APPROVED, REJECTED);
+        public List<ShareStatusTypeEnum> nextStatus() {
+            return List.of(REVOKED);
+        }
+
+        @Override
+        public ShareActor allowedActor() {
+            return ShareActor.DESTINATION;
+        }
+    },
+    REJECTED {
+        @Override
+        public List<ShareStatusTypeEnum> nextStatus() {
+            return List.of(PENDING);
         }
 
         @Override
@@ -25,37 +37,19 @@ public enum ShareStatusTypeEnum implements CatalogEnum<ShareStatusTypeEnum> {
             return ShareActor.ORIGIN;
         }
     },
-    APPROVED {
+    REVOKED {
         @Override
-        public java.util.List<ShareStatusTypeEnum> nextStatus() {
-            return java.util.List.of(CANCELLED);
+        public List<ShareStatusTypeEnum> nextStatus() {
+            return List.of(PENDING);
         }
 
         @Override
         public ShareActor allowedActor() {
-            return ShareActor.BOTH;
-        }
-    },
-    REJECTED {
-        @Override
-        public java.util.List<ShareStatusTypeEnum> nextStatus() {
-            return java.util.List.of();
-        }
-    },
-    CANCELLED {
-        @Override
-        public java.util.List<ShareStatusTypeEnum> nextStatus() {
-            return java.util.List.of();
-        }
-    },
-    NOT_REQUESTED {
-        @Override
-        public java.util.List<ShareStatusTypeEnum> nextStatus() {
-            return java.util.List.of();
+            return ShareActor.ORIGIN;
         }
     };
 
-    public abstract java.util.List<ShareStatusTypeEnum> nextStatus();
+    public abstract List<ShareStatusTypeEnum> nextStatus();
 
     public ShareActor allowedActor() {
         return null;
@@ -66,12 +60,12 @@ public enum ShareStatusTypeEnum implements CatalogEnum<ShareStatusTypeEnum> {
     }
 
     public boolean isWaiting() {
-        return this == WAITING_DESTINATION_APPROVAL || this == WAITING_SOURCE_APPROVAL;
+        return this == PENDING;
     }
 
     public enum ShareActor {
         ORIGIN,
         DESTINATION,
-        BOTH
+        BOTH,
     }
 }

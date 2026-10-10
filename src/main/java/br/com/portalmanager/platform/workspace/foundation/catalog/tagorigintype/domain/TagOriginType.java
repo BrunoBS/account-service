@@ -6,5 +6,4 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "type_tag_origins")
-public class TagOriginType extends CatalogEntity {
-}
+public class TagOriginType extends CatalogEntity {}

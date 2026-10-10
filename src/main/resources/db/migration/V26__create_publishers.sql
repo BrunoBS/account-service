@@ -13,14 +13,54 @@ CREATE TABLE publishers (
     CONSTRAINT pk_publishers PRIMARY KEY (id),
     CONSTRAINT uk_publishers_identifier UNIQUE (identifier),
     CONSTRAINT uk_publishers_code UNIQUE (code),
-    CONSTRAINT fk_publishers_lifecycle FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle(code),
+    CONSTRAINT fk_publishers_lifecycle FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle (code),
     CONSTRAINT ck_publishers_scope CHECK (publisher_scope IN ('WORKSPACE', 'APPLICATION')),
     CONSTRAINT ck_publishers_code CHECK (code REGEXP '^[A-Z][A-Z0-9_]{0,39}$')
 );
 
-INSERT INTO schema_types
-    (version, identifier, code, name, description, lifecycle_code, scope_code, created_at, updated_at)
+INSERT INTO
+    schema_types (
+        version,
+        identifier,
+        code,
+        name,
+        description,
+        lifecycle_code,
+        scope_code,
+        created_at,
+        updated_at
+    )
 VALUES
-    (0, UUID(), 'PUBLISHER_WEB_SOCKET', 'Web Socket publisher', 'Platform schema for Web Socket publishers', 'ACTIVE', 'PLATFORM', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    (0, UUID(), 'PUBLISHER_KAAS', 'KAAS publisher', 'Platform schema for KAAS publishers', 'ACTIVE', 'PLATFORM', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    (0, UUID(), 'PUBLISHER_APPCONFIG', 'AppConfig publisher', 'Platform schema for AppConfig publishers', 'ACTIVE', 'PLATFORM', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+    (
+        0,
+        UUID(),
+        'PUBLISHER_WEB_SOCKET',
+        'Web Socket publisher',
+        'Platform schema for Web Socket publishers',
+        'ACTIVE',
+        'PLATFORM',
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+    ),
+    (
+        0,
+        UUID(),
+        'PUBLISHER_KAAS',
+        'KAAS publisher',
+        'Platform schema for KAAS publishers',
+        'ACTIVE',
+        'PLATFORM',
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+    ),
+    (
+        0,
+        UUID(),
+        'PUBLISHER_APPCONFIG',
+        'AppConfig publisher',
+        'Platform schema for AppConfig publishers',
+        'ACTIVE',
+        'PLATFORM',
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+    );

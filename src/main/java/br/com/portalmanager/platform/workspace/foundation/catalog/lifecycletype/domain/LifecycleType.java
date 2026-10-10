@@ -6,5 +6,4 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "type_life_cycle")
-public class LifecycleType extends CatalogEntity {
-}
+public class LifecycleType extends CatalogEntity {}

@@ -8,13 +8,13 @@ import br.com.portalmanager.platform.workspace.core.environment.usecase.model.Cr
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.UpdateEnvironmentInput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
-import org.springframework.stereotype.Component;
-
 import java.util.Arrays;
 import java.util.Objects;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EnvironmentValidator {
+
     private final SchemaSettingsValidator settingsValidator;
 
     public EnvironmentValidator(SchemaSettingsValidator settingsValidator) {
@@ -26,8 +26,15 @@ public class EnvironmentValidator {
         if (input == null) {
             result.addError("request", EnvironmentMessageKeys.NAME_INVALID);
         } else {
-            common(input.name(), input.description(), input.authorizationType(), input.sortOrder(),
-                    input.settings(), duplicate, result);
+            common(
+                input.name(),
+                input.description(),
+                input.authorizationType(),
+                input.sortOrder(),
+                input.settings(),
+                duplicate,
+                result
+            );
         }
         reject(result);
     }
@@ -37,10 +44,19 @@ public class EnvironmentValidator {
         if (input == null) {
             result.addError("request", EnvironmentMessageKeys.NAME_INVALID);
         } else {
-            if (input.version() == null || input.version() < 0)
-                result.addError("version", EnvironmentMessageKeys.VERSION_REQUIRED);
-            common(input.name(), input.description(), input.authorizationType(), input.sortOrder(),
-                    input.settings(), duplicate, result);
+            if (input.version() == null || input.version() < 0) result.addError(
+                "version",
+                EnvironmentMessageKeys.VERSION_REQUIRED
+            );
+            common(
+                input.name(),
+                input.description(),
+                input.authorizationType(),
+                input.sortOrder(),
+                input.settings(),
+                duplicate,
+                result
+            );
         }
         reject(result);
     }
@@ -49,18 +65,30 @@ public class EnvironmentValidator {
         if (!Objects.equals(current, requested)) throw new ResourceVersionConflictException();
     }
 
-    private void common(String name, String description, String authorization, Integer sort, String settings,
-                        boolean duplicate, ValidationResult result) {
-        if (name == null || name.length() < 3 || name.length() > 50)
-            result.addError("name", EnvironmentMessageKeys.NAME_INVALID);
+    private void common(
+        String name,
+        String description,
+        String authorization,
+        Integer sort,
+        String settings,
+        boolean duplicate,
+        ValidationResult result
+    ) {
+        if (name == null || name.length() < 3 || name.length() > 50) result.addError(
+            "name",
+            EnvironmentMessageKeys.NAME_INVALID
+        );
         if (duplicate) result.addError("name", EnvironmentMessageKeys.NAME_DUPLICATE);
-        if (description == null || description.length() < 3 || description.length() > 250)
-            result.addError("description", EnvironmentMessageKeys.DESCRIPTION_INVALID);
-        if (authorization == null || Arrays.stream(AuthorizationTypeEnum.values()).noneMatch(e -> e.name().equals(authorization)))
-            result.addError("authorizationType", EnvironmentMessageKeys.AUTHORIZATION_INVALID);
+        if (description == null || description.length() < 3 || description.length() > 250) result.addError(
+            "description",
+            EnvironmentMessageKeys.DESCRIPTION_INVALID
+        );
+        if (
+            authorization == null ||
+            Arrays.stream(AuthorizationTypeEnum.values()).noneMatch(e -> e.name().equals(authorization))
+        ) result.addError("authorizationType", EnvironmentMessageKeys.AUTHORIZATION_INVALID);
         if (sort != null && sort < 1) result.addError("sortOrder", EnvironmentMessageKeys.SORT_INVALID);
-        if (settings != null)
-        settingsValidator.validate("ENVIRONMENT", "workspace", "settings", settings, result);
+        if (settings != null) settingsValidator.validate("ENVIRONMENT", "workspace", "settings", settings, result);
     }
 
     private void reject(ValidationResult result) {

@@ -1,68 +1,65 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.schema;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.configuration.SchemaConfigurationService;
-import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.CreateSchemaConfigurationRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.UpdateSchemaConfigurationRequest;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.*;
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.response.SchemaConfigurationResponse;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import br.com.portalmanager.platform.workspace.foundation.schema.facade.SchemaConfigurationFacade;
 import java.util.List;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/schema-configurations")
-@AuthorizationRequired(level = AuthorizationLevel.OWNER)
 public class SchemaConfigurationController {
-    private final SchemaConfigurationService service;
-    public SchemaConfigurationController(SchemaConfigurationService service) { this.service = service; }
+
+    private final SchemaConfigurationFacade facade;
+
+    public SchemaConfigurationController(SchemaConfigurationFacade f) {
+        facade = f;
+    }
 
     @PostMapping
-    @Auditable(resource = "SCHEMA_CONFIGURATION", action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier"))
-    public ResponseEntity<SchemaConfigurationResponse> create(@RequestBody CreateSchemaConfigurationRequest request) {
-        var input = request == null ? null : request.toInput();
-        return ResponseEntity.status(HttpStatus.CREATED).body(SchemaConfigurationResponse.from(service.create(input)));
+    public ResponseEntity<SchemaConfigurationResponse> create(
+        AuthorizationContext context,
+        @RequestBody CreateSchemaConfigurationRequest r
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            SchemaConfigurationResponse.from(facade.create(context, r == null ? null : r.toInput()))
+        );
     }
 
     @GetMapping
-    public List<SchemaConfigurationResponse> findAll() {
-        return service.findAll().stream().map(SchemaConfigurationResponse::from).toList();
+    public List<SchemaConfigurationResponse> findAll(AuthorizationContext context) {
+        return facade.findAll(context).stream().map(SchemaConfigurationResponse::from).toList();
     }
 
     @GetMapping("/{identifier}")
-    public SchemaConfigurationResponse find(@PathVariable String identifier) {
-        return SchemaConfigurationResponse.from(service.findByIdentifier(identifier));
+    public SchemaConfigurationResponse find(AuthorizationContext context, @PathVariable String identifier) {
+        return SchemaConfigurationResponse.from(facade.find(context, identifier));
     }
 
     @PutMapping("/{identifier}")
-    @Auditable(resource = "SCHEMA_CONFIGURATION", action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
-    public SchemaConfigurationResponse update(@PathVariable String identifier, @RequestBody UpdateSchemaConfigurationRequest request) {
-        var input = request == null ? null : request.toInput();
-        return SchemaConfigurationResponse.from(service.update(identifier, input));
+    public SchemaConfigurationResponse update(
+        AuthorizationContext context,
+        @PathVariable String identifier,
+        @RequestBody UpdateSchemaConfigurationRequest r
+    ) {
+        return SchemaConfigurationResponse.from(facade.update(context, identifier, r == null ? null : r.toInput()));
     }
 
     @PatchMapping("/{identifier}/activate")
-    public SchemaConfigurationResponse activate(@PathVariable String identifier) {
-        return SchemaConfigurationResponse.from(service.activate(identifier));
+    public SchemaConfigurationResponse activate(AuthorizationContext context, @PathVariable String identifier) {
+        return SchemaConfigurationResponse.from(facade.activate(context, identifier));
     }
 
     @PatchMapping("/{identifier}/inactivate")
-    public SchemaConfigurationResponse inactivate(@PathVariable String identifier) {
-        return SchemaConfigurationResponse.from(service.inactivate(identifier));
+    public SchemaConfigurationResponse inactivate(AuthorizationContext context, @PathVariable String identifier) {
+        return SchemaConfigurationResponse.from(facade.inactivate(context, identifier));
     }
 
     @DeleteMapping("/{identifier}")
-    @Auditable(resource = "SCHEMA_CONFIGURATION", action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
-    public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        service.delete(identifier);
+    public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier) {
+        facade.delete(context, identifier);
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,103 +1,72 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.message;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.entrypoint.web.message.request.CreateMessageRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.message.request.UpdateMessageRequest;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.workspace.entrypoint.web.message.request.*;
 import br.com.portalmanager.platform.workspace.entrypoint.web.message.response.MessageResponse;
-import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.message.MessageCommandService;
-import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.message.MessageQueryService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import br.com.portalmanager.platform.workspace.feature.message.facade.MessageFacade;
 import java.util.List;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/messages")
-@AuthorizationRequired(level = AuthorizationLevel.ADM)
 public class MessageController {
 
-    private final MessageCommandService commandService;
-    private final MessageQueryService queryService;
+    private final MessageFacade facade;
 
-    public MessageController(MessageCommandService commandService, MessageQueryService queryService) {
-        this.commandService = commandService;
-        this.queryService = queryService;
+    public MessageController(MessageFacade f) {
+        facade = f;
     }
 
     @PostMapping
-    @Auditable(
-            resource = "MESSAGE",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
-    public ResponseEntity<MessageResponse> create(@RequestBody CreateMessageRequest request) {
-        MessageResponse response = MessageResponse.from(commandService.create(request.toInput()));
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<MessageResponse> create(AuthorizationContext context, @RequestBody CreateMessageRequest r) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            MessageResponse.from(facade.create(context, r.toInput()))
+        );
     }
 
     @GetMapping("/{identifier}")
-    public MessageResponse findByIdentifier(@PathVariable String identifier) {
-        return MessageResponse.from(queryService.findByIdentifier(identifier));
+    public MessageResponse findByIdentifier(AuthorizationContext context, @PathVariable String identifier) {
+        return MessageResponse.from(facade.findByIdentifier(context, identifier));
     }
 
     @GetMapping
     public List<MessageResponse> findAll(
-            @RequestParam(required = false) String microserviceIdentifier,
-            @RequestParam(required = false) Boolean active,
-            @RequestParam(required = false) String code,
-            @RequestParam(required = false) String messageKey
+        AuthorizationContext context,
+        @RequestParam(required = false) String microserviceIdentifier,
+        @RequestParam(required = false) Boolean active,
+        @RequestParam(required = false) String code,
+        @RequestParam(required = false) String messageKey
     ) {
-        return queryService.findAll(microserviceIdentifier, active, code, messageKey).stream()
-                .map(MessageResponse::from)
-                .toList();
+        return facade
+            .findAll(context, microserviceIdentifier, active, code, messageKey)
+            .stream()
+            .map(MessageResponse::from)
+            .toList();
     }
 
     @PutMapping("/{identifier}")
-    @Auditable(
-            resource = "MESSAGE",
-            action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public MessageResponse update(
-            @PathVariable String identifier,
-            @RequestBody UpdateMessageRequest request
+        AuthorizationContext context,
+        @PathVariable String identifier,
+        @RequestBody UpdateMessageRequest r
     ) {
-        return MessageResponse.from(commandService.update(identifier, request.toInput()));
+        return MessageResponse.from(facade.update(context, identifier, r.toInput()));
     }
 
     @PatchMapping("/{identifier}/activate")
-    @Auditable(
-            resource = "MESSAGE",
-            action = "ACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
-    public MessageResponse activate(@PathVariable String identifier) {
-        return MessageResponse.from(commandService.activate(identifier));
+    public MessageResponse activate(AuthorizationContext context, @PathVariable String identifier) {
+        return MessageResponse.from(facade.activate(context, identifier));
     }
 
     @PatchMapping("/{identifier}/inactivate")
-    @Auditable(
-            resource = "MESSAGE",
-            action = "INACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
-    public MessageResponse inactivate(@PathVariable String identifier) {
-        return MessageResponse.from(commandService.inactivate(identifier));
+    public MessageResponse inactivate(AuthorizationContext context, @PathVariable String identifier) {
+        return MessageResponse.from(facade.inactivate(context, identifier));
     }
 
     @DeleteMapping("/{identifier}")
-    @Auditable(
-            resource = "MESSAGE",
-            action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
-    public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        commandService.delete(identifier);
+    public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier) {
+        facade.delete(context, identifier);
         return ResponseEntity.noContent().build();
     }
 }

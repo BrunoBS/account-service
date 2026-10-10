@@ -5,5 +5,4 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.visibilitytype
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface VisibilityTypeRepository extends CatalogRepository<VisibilityType> {
-}
+public interface VisibilityTypeRepository extends CatalogRepository<VisibilityType> {}

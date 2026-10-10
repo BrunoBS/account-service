@@ -4,13 +4,19 @@ import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.Up
 import tools.jackson.databind.JsonNode;
 
 public record UpdateFeatureRequest(
-        String name,
-        String description,
-        String microserviceIdentifier,
-        JsonNode settings
+    String name,
+    String description,
+    String microserviceIdentifier,
+    JsonNode settings,
+    boolean shareable
 ) {
     public UpdateFeatureInput toInput() {
-        return new UpdateFeatureInput(name, description, microserviceIdentifier,
-                settings == null ? null : settings.toString());
+        return new UpdateFeatureInput(
+            name,
+            description,
+            microserviceIdentifier,
+            settings == null ? null : settings.toString(),
+            shareable
+        );
     }
 }

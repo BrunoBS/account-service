@@ -120,7 +120,7 @@ Not found específico de Workspace usa `WORKSPACE-0001`.
 Todos os endpoints passam pela capability `platform-authorization`.
 
 | Operação   | Policy |
-|------------|--------|
+| ---------- | ------ |
 | create     | OPEN   |
 | list       | OPEN   |
 | get por id | DEV    |

@@ -5,8 +5,18 @@ import jakarta.persistence.Embeddable;
 
 @Embeddable
 public class ResourceScopeTypeCode extends AbstractCatalogCode {
+
     protected ResourceScopeTypeCode() {}
-    private ResourceScopeTypeCode(String value) { super(value); }
-    public static ResourceScopeTypeCode of(String value) { return of(requireEnumValue(value, ResourceScopeTypeEnum.class)); }
-    public static ResourceScopeTypeCode of(ResourceScopeTypeEnum value) { return new ResourceScopeTypeCode(value == null ? null : value.name()); }
+
+    private ResourceScopeTypeCode(String value) {
+        super(value);
+    }
+
+    public static ResourceScopeTypeCode of(String value) {
+        return of(requireEnumValue(value, ResourceScopeTypeEnum.class));
+    }
+
+    public static ResourceScopeTypeCode of(ResourceScopeTypeEnum value) {
+        return new ResourceScopeTypeCode(value == null ? null : value.name());
+    }
 }

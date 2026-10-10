@@ -5,5 +5,4 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversions
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SchemaVersionStatusTypeRepository extends CatalogRepository<SchemaVersionStatusType> {
-}
+public interface SchemaVersionStatusTypeRepository extends CatalogRepository<SchemaVersionStatusType> {}

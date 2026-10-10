@@ -5,5 +5,4 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface TagOriginTypeRepository extends CatalogRepository<TagOriginType> {
-}
+public interface TagOriginTypeRepository extends CatalogRepository<TagOriginType> {}

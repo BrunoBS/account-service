@@ -4,13 +4,7 @@ import br.com.portalmanager.platform.library.messaging.validation.ValidationResu
 import tools.jackson.databind.JsonNode;
 
 public interface JsonSchemaValidator {
-
-    void validateJson(
-            String schemaDefinition,
-            JsonNode jsonNode,
-            String attributeName,
-            ValidationResult result
-    );
+    void validateJson(String schemaDefinition, JsonNode jsonNode, String attributeName, ValidationResult result);
 
     JsonNode fromString(String json, String attributeName);
 }

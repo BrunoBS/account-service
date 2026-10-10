@@ -4,5 +4,5 @@ import br.com.portalmanager.platform.library.catalog.model.CatalogEnum;
 
 public enum SchemaVersionStatusTypeEnum implements CatalogEnum<SchemaVersionStatusTypeEnum> {
     DRAFT,
-    PUBLISHED
+    PUBLISHED,
 }

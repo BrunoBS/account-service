@@ -3,14 +3,13 @@ package br.com.portalmanager.platform.workspace.core.workspace.usecase.validatio
 import java.util.List;
 
 public record WorkspaceValidationData(
-        Long version,
-        String workspaceType,
-        String name,
-        String description,
-        String requester,
-        String acronym,
-        String settings,
-        String emailGroup,
-        List<ApproverData> approvers
-) {
-}
+    Long version,
+    String workspaceType,
+    String name,
+    String description,
+    String requester,
+    String acronym,
+    String settings,
+    String emailGroup,
+    List<ApproverData> approvers
+) {}

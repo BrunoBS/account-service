@@ -1,95 +1,103 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.application;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.library.schemavalidation.web.annotation.ValidateResourceSchema;
-import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationCommandService;
-import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
-import br.com.portalmanager.platform.workspace.entrypoint.web.application.request.CreateApplicationRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.application.request.UpdateApplicationRequest;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.workspace.core.application.facade.ApplicationFacade;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.response.ApplicationResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.web.application.response.ApplicationSummaryResponse;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import tools.jackson.databind.JsonNode;
 
 @RestController
 @RequestMapping("/api/v1/workspaces/{workspaceIdentifier}/applications")
 public class ApplicationController {
-    private final ApplicationCommandService command;
-    private final ApplicationQueryService query;
 
-    public ApplicationController(ApplicationCommandService command,
-                                 ApplicationQueryService query) {
-        this.command = command;
-        this.query = query;
+    private final ApplicationFacade facade;
+
+    public ApplicationController(ApplicationFacade facade) {
+        this.facade = facade;
     }
 
     @PostMapping
-    @ValidateResourceSchema(type = "APPLICATION", code = "application")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(resource = "APPLICATION", action = "INSERT", resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier"))
-    public ResponseEntity<ApplicationResponse> create(@PathVariable String workspaceIdentifier,
-                                                       @RequestBody CreateApplicationRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApplicationResponse.from(command.create(workspaceIdentifier, request.toInput())));
+    public ResponseEntity<ApplicationResponse> create(
+        AuthorizationContext context,
+        @PathVariable String workspaceIdentifier,
+        @RequestBody JsonNode payload
+    ) throws tools.jackson.core.JacksonException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            ApplicationResponse.from(facade.create(context, workspaceIdentifier, payload))
+        );
     }
 
     @GetMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.DEV)
-    public ApplicationResponse find(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
-        return ApplicationResponse.from(query.findByIdentifier(workspaceIdentifier, identifier));
+    public ApplicationResponse find(
+        AuthorizationContext context,
+        @PathVariable String workspaceIdentifier,
+        @PathVariable String identifier
+    ) {
+        return ApplicationResponse.from(facade.find(context, workspaceIdentifier, identifier));
     }
 
     @GetMapping
-    @AuthorizationRequired(level = AuthorizationLevel.DEV)
-    public List<ApplicationResponse> findAll(@PathVariable String workspaceIdentifier,
-                                              @RequestParam(defaultValue = "true") Boolean active,
-                                              @RequestParam(required = false) String tagName) {
-        return query.findAll(workspaceIdentifier, active, tagName).stream().map(ApplicationResponse::from).toList();
+    public List<ApplicationResponse> findAll(
+        AuthorizationContext context,
+        @PathVariable String workspaceIdentifier,
+        @RequestParam(defaultValue = "true") Boolean active,
+        @RequestParam(required = false) String tagName
+    ) {
+        return facade
+            .findAll(context, workspaceIdentifier, active, tagName)
+            .stream()
+            .map(ApplicationResponse::from)
+            .toList();
     }
 
     @GetMapping("/summary")
-    @AuthorizationRequired(level = AuthorizationLevel.DEV)
-    public List<ApplicationSummaryResponse> summary(@PathVariable String workspaceIdentifier) {
-        return query.summary(workspaceIdentifier).stream().map(ApplicationSummaryResponse::from).toList();
+    public List<ApplicationSummaryResponse> summary(
+        AuthorizationContext context,
+        @PathVariable String workspaceIdentifier
+    ) {
+        return facade.summary(context, workspaceIdentifier).stream().map(ApplicationSummaryResponse::from).toList();
     }
 
     @PutMapping("/{identifier}")
-    @ValidateResourceSchema(type = "APPLICATION", code = "application")
-    @AuthorizationRequired(level = AuthorizationLevel.DEV)
-    @Auditable(resource = "APPLICATION", action = "UPDATE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
-    public ApplicationResponse update(@PathVariable String workspaceIdentifier,
-                                      @PathVariable String identifier,
-                                      @RequestBody UpdateApplicationRequest request) {
-        return ApplicationResponse.from(command.update(workspaceIdentifier, identifier, request.toInput()));
+    public ApplicationResponse update(
+        AuthorizationContext context,
+        @PathVariable String workspaceIdentifier,
+        @PathVariable String identifier,
+        @RequestBody JsonNode payload
+    ) throws tools.jackson.core.JacksonException {
+        return ApplicationResponse.from(facade.update(context, workspaceIdentifier, identifier, payload));
     }
 
     @PostMapping("/{identifier}/inactivate")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(resource = "APPLICATION", action = "INACTIVATE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
-    public ResponseEntity<Void> inactivate(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
-        command.inactivate(workspaceIdentifier, identifier);
+    public ResponseEntity<Void> inactivate(
+        AuthorizationContext context,
+        @PathVariable String workspaceIdentifier,
+        @PathVariable String identifier
+    ) {
+        facade.inactivate(context, workspaceIdentifier, identifier);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{identifier}/restore")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(resource = "APPLICATION", action = "RESTORE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
-    public ApplicationResponse restore(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
-        return ApplicationResponse.from(command.restore(workspaceIdentifier, identifier));
+    public ApplicationResponse restore(
+        AuthorizationContext context,
+        @PathVariable String workspaceIdentifier,
+        @PathVariable String identifier
+    ) {
+        return ApplicationResponse.from(facade.restore(context, workspaceIdentifier, identifier));
     }
 
     @DeleteMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.ADM)
-    @Auditable(resource = "APPLICATION", action = "DELETE", resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier"))
-    public ResponseEntity<Void> delete(@PathVariable String workspaceIdentifier, @PathVariable String identifier) {
-        command.delete(workspaceIdentifier, identifier);
+    public ResponseEntity<Void> delete(
+        AuthorizationContext context,
+        @PathVariable String workspaceIdentifier,
+        @PathVariable String identifier
+    ) {
+        facade.delete(context, workspaceIdentifier, identifier);
         return ResponseEntity.noContent().build();
     }
 }

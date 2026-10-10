@@ -6,5 +6,4 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "type_authorizations")
-public class AuthorizationType extends CatalogEntity {
-}
+public class AuthorizationType extends CatalogEntity {}

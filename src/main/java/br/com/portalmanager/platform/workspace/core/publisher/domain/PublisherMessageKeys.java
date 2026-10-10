@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.publisher.domain;
 
 public final class PublisherMessageKeys {
+
     public static final String NOT_FOUND = "publisher.not-found";
     public static final String RESTORE_INVALID = "publisher.restore.invalid";
     public static final String DELETE_INVALID = "publisher.delete.invalid";
@@ -11,5 +12,6 @@ public final class PublisherMessageKeys {
     public static final String SCOPE_INVALID = "publisher.scope.invalid";
     public static final String SETTINGS_INVALID = "platform.settings.required";
     public static final String VERSION_REQUIRED = "publisher.version.required";
+
     private PublisherMessageKeys() {}
 }

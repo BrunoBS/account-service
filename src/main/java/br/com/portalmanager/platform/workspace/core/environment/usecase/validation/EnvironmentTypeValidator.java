@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class EnvironmentTypeValidator {
+
     public void validateForCreate(EnvironmentTypeInput input, boolean duplicateCode) {
         ValidationResult result = fields(input, false);
         if (duplicateCode) result.addError("code", EnvironmentMessageKeys.TYPE_DUPLICATE);
@@ -45,20 +46,33 @@ public class EnvironmentTypeValidator {
             result.addError("request", EnvironmentMessageKeys.TYPE_REQUEST_INVALID);
             return result;
         }
-        if (input.code() == null || input.code().isBlank() || input.code().length() > 50)
-            result.addError("code", EnvironmentMessageKeys.TYPE_CODE_INVALID);
-        if (input.name() == null || input.name().isBlank() || input.name().length() > 100)
-            result.addError("name", EnvironmentMessageKeys.TYPE_NAME_INVALID);
-        if (input.description() == null || input.description().isBlank() || input.description().length() > 250)
-            result.addError("description", EnvironmentMessageKeys.TYPE_DESCRIPTION_INVALID);
-        if (input.rootAllowed() == null)
-            result.addError("rootAllowed", EnvironmentMessageKeys.TYPE_ROOT_ALLOWED_REQUIRED);
-        if (input.workspaceRequired() == null)
-            result.addError("workspaceRequired", EnvironmentMessageKeys.TYPE_WORKSPACE_REQUIRED_REQUIRED);
-        if (input.displayOrder() == null || input.displayOrder() < 0)
-            result.addError("displayOrder", EnvironmentMessageKeys.TYPE_DISPLAY_ORDER_INVALID);
-        if (update && (input.version() == null || input.version() < 0))
-            result.addError("version", EnvironmentMessageKeys.TYPE_VERSION_REQUIRED);
+        if (input.code() == null || input.code().isBlank() || input.code().length() > 50) result.addError(
+            "code",
+            EnvironmentMessageKeys.TYPE_CODE_INVALID
+        );
+        if (input.name() == null || input.name().isBlank() || input.name().length() > 100) result.addError(
+            "name",
+            EnvironmentMessageKeys.TYPE_NAME_INVALID
+        );
+        if (
+            input.description() == null || input.description().isBlank() || input.description().length() > 250
+        ) result.addError("description", EnvironmentMessageKeys.TYPE_DESCRIPTION_INVALID);
+        if (input.rootAllowed() == null) result.addError(
+            "rootAllowed",
+            EnvironmentMessageKeys.TYPE_ROOT_ALLOWED_REQUIRED
+        );
+        if (input.workspaceRequired() == null) result.addError(
+            "workspaceRequired",
+            EnvironmentMessageKeys.TYPE_WORKSPACE_REQUIRED_REQUIRED
+        );
+        if (input.displayOrder() == null || input.displayOrder() < 0) result.addError(
+            "displayOrder",
+            EnvironmentMessageKeys.TYPE_DISPLAY_ORDER_INVALID
+        );
+        if (update && (input.version() == null || input.version() < 0)) result.addError(
+            "version",
+            EnvironmentMessageKeys.TYPE_VERSION_REQUIRED
+        );
         return result;
     }
 

@@ -24,7 +24,30 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: "25"
+
+      - name: Preload MySQL image from public mirrors
+        run: |
+          gcr_image=mirror.gcr.io/library/mysql:8.4.11
+          ecr_image=public.ecr.aws/docker/library/mysql:8.4.11
+
+          if docker pull "$gcr_image"; then
+            docker tag "$gcr_image" mysql:8.4.11
+            exit 0
+          fi
+
+          echo "Google mirror cache miss; retrying through Amazon ECR Public."
+          for delay in 5 15 30; do
+            if docker pull "$ecr_image"; then
+              docker tag "$ecr_image" mysql:8.4.11
+              exit 0
+            fi
+            echo "ECR Public pull was throttled or unavailable; waiting ${delay}s before retry."
+            sleep "$delay"
+          done
+
+          echo "Unable to preload MySQL 8.4.11 from the configured public mirrors."
+          exit 1
 
       - name: Verify with isolated Maven repository
         env:

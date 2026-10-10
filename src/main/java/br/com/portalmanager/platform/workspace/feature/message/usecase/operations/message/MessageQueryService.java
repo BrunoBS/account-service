@@ -7,10 +7,9 @@ import br.com.portalmanager.platform.workspace.feature.message.usecase.operation
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageNormalizer;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceQueryService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class MessageQueryService {
@@ -21,10 +20,10 @@ public class MessageQueryService {
     private final MicroserviceQueryService microserviceQueryService;
 
     public MessageQueryService(
-            MessageRepository repository,
-            MessageFinder finder,
-            MessageNormalizer normalizer,
-            MicroserviceQueryService microserviceQueryService
+        MessageRepository repository,
+        MessageFinder finder,
+        MessageNormalizer normalizer,
+        MicroserviceQueryService microserviceQueryService
     ) {
         this.repository = repository;
         this.finder = finder;
@@ -38,32 +37,31 @@ public class MessageQueryService {
     }
 
     @Transactional(readOnly = true)
-    public List<MessageOutput> findAll(
-            String microserviceIdentifier,
-            Boolean active,
-            String code,
-            String messageKey
-    ) {
-        String normalizedMicroserviceIdentifier =
-                normalizer.normalizeMicroserviceIdentifierFilter(microserviceIdentifier);
-        Long microserviceId = normalizedMicroserviceIdentifier == null
+    public List<MessageOutput> findAll(String microserviceIdentifier, Boolean active, String code, String messageKey) {
+        String normalizedMicroserviceIdentifier = normalizer.normalizeMicroserviceIdentifierFilter(
+            microserviceIdentifier
+        );
+        Long microserviceId =
+            normalizedMicroserviceIdentifier == null
                 ? null
                 : microserviceQueryService.findInternalIdByIdentifier(normalizedMicroserviceIdentifier);
 
-        return repository.findFiltered(
-                        microserviceId,
-                        lifecycle(active),
-                        normalizer.normalizeCodeFilter(code),
-                        normalizer.normalizeMessageKeyFilter(messageKey)
-                ).stream()
-                .map(this::output)
-                .toList();
+        return repository
+            .findFiltered(
+                microserviceId,
+                lifecycle(active),
+                normalizer.normalizeCodeFilter(code),
+                normalizer.normalizeMessageKeyFilter(messageKey)
+            )
+            .stream()
+            .map(this::output)
+            .toList();
     }
 
     private MessageOutput output(Message message) {
         return MessageOutput.from(
-                message,
-                microserviceQueryService.findIdentifierByInternalId(message.getMicroserviceId())
+            message,
+            microserviceQueryService.findIdentifierByInternalId(message.getMicroserviceId())
         );
     }
 
@@ -71,8 +69,6 @@ public class MessageQueryService {
         if (active == null) {
             return null;
         }
-        return active
-                ? LifecycleTypeCode.active().value()
-                : LifecycleTypeCode.inactive().value();
+        return active ? LifecycleTypeCode.active().value() : LifecycleTypeCode.inactive().value();
     }
 }

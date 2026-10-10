@@ -1,59 +1,52 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.environment;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationAccessPolicy;
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.compatibility.EnvironmentTypeCompatibilityCommandService;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.compatibility.EnvironmentTypeCompatibilityQueryService;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.workspace.core.environment.facade.EnvironmentTypeCompatibilityFacade;
 import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.CreateEnvironmentTypeCompatibilityRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentTypeCompatibilityResponse;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/environment-types/compatibilities")
-@AuthorizationAccessPolicy(read = AuthorizationLevel.OPEN, write = AuthorizationLevel.OWNER)
 public class EnvironmentTypeCompatibilityController {
-    private final EnvironmentTypeCompatibilityCommandService command;
-    private final EnvironmentTypeCompatibilityQueryService query;
 
-    public EnvironmentTypeCompatibilityController(EnvironmentTypeCompatibilityCommandService command,
-                                                   EnvironmentTypeCompatibilityQueryService query) {
-        this.command = command;
-        this.query = query;
+    private final EnvironmentTypeCompatibilityFacade facade;
+
+    public EnvironmentTypeCompatibilityController(EnvironmentTypeCompatibilityFacade f) {
+        facade = f;
     }
 
     @GetMapping
     public List<EnvironmentTypeCompatibilityResponse> list(
-            @RequestParam(required = false) String lifecycle) {
-        return query.list(lifecycle).stream()
-                .map(EnvironmentTypeCompatibilityResponse::from)
-                .toList();
+        AuthorizationContext context,
+        @RequestParam(required = false) String lifecycle
+    ) {
+        return facade.list(context, lifecycle).stream().map(EnvironmentTypeCompatibilityResponse::from).toList();
     }
 
     @PostMapping
-    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public ResponseEntity<EnvironmentTypeCompatibilityResponse> allow(@RequestBody CreateEnvironmentTypeCompatibilityRequest request) {
-        String parent = request == null ? null : request.parentTypeCode();
-        String child = request == null ? null : request.childTypeCode();
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(EnvironmentTypeCompatibilityResponse.from(command.allow(parent, child)));
+    public ResponseEntity<EnvironmentTypeCompatibilityResponse> allow(
+        AuthorizationContext context,
+        @RequestBody CreateEnvironmentTypeCompatibilityRequest r
+    ) {
+        String p = r == null ? null : r.parentTypeCode(),
+            c = r == null ? null : r.childTypeCode();
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            EnvironmentTypeCompatibilityResponse.from(facade.allow(context, p, c))
+        );
     }
 
     @PostMapping("/{identifier}/inactivate")
-    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public ResponseEntity<Void> disallow(@PathVariable String identifier) {
-        command.disallow(identifier);
+    public ResponseEntity<Void> disallow(AuthorizationContext context, @PathVariable String identifier) {
+        facade.disallow(context, identifier);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{identifier}")
-    @AuthorizationRequired(level = AuthorizationLevel.OWNER)
-    public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        command.delete(identifier);
+    public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier) {
+        facade.delete(context, identifier);
         return ResponseEntity.noContent().build();
     }
 }

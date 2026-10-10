@@ -1,0 +1,56 @@
+package br.com.portalmanager.platform.workspace.feature.platform.facade;
+
+import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.model.*;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.*;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context.*;
+import java.util.List;
+import org.springframework.stereotype.Service;
+
+@Service
+public class FeatureContextFacade {
+
+    private final FeatureContextCommandService commandService;
+    private final FeatureContextQueryService queryService;
+
+    public FeatureContextFacade(FeatureContextCommandService c, FeatureContextQueryService q) {
+        commandService = c;
+        queryService = q;
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.CREATE)
+    public FeatureContextOutput create(AuthorizationContext context, CreateFeatureContextInput i) {
+        return commandService.create(i);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.READ)
+    public FeatureContextOutput findByIdentifier(AuthorizationContext context, String i) {
+        return queryService.findByIdentifier(i);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.READ)
+    public List<FeatureContextOutput> findAll(AuthorizationContext context) {
+        return queryService.findAll();
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.UPDATE)
+    public FeatureContextOutput update(AuthorizationContext context, String i, UpdateFeatureContextInput in) {
+        return commandService.update(i, in);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.ACTIVATE)
+    public FeatureContextOutput activate(AuthorizationContext context, String i) {
+        return commandService.activate(i);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.DEACTIVATE)
+    public FeatureContextOutput inactivate(AuthorizationContext context, String i) {
+        return commandService.inactivate(i);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.DELETE)
+    public void delete(AuthorizationContext context, String i) {
+        commandService.delete(i);
+    }
+}

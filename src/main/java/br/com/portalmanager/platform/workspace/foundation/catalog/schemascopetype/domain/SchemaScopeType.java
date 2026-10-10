@@ -6,5 +6,4 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "type_schema_scopes")
-public class SchemaScopeType extends CatalogEntity {
-}
+public class SchemaScopeType extends CatalogEntity {}

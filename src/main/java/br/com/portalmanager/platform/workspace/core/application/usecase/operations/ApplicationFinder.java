@@ -10,30 +10,47 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ApplicationFinder {
+
     private final ApplicationRepository repository;
-    public ApplicationFinder(ApplicationRepository repository) { this.repository = repository; }
+
+    public ApplicationFinder(ApplicationRepository repository) {
+        this.repository = repository;
+    }
 
     public Application findActive(String identifier, Long workspaceId) {
-        Application app = repository.findByIdentifierAndWorkspaceId(identifier, workspaceId)
-                .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
-        if (!LifecycleTypeCode.active().equals(app.getLifecycle()))
-            throw new NotFoundException(ApplicationMessageKeys.NOT_FOUND);
+        Application app = repository
+            .findByIdentifierAndWorkspaceId(identifier, workspaceId)
+            .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
+        if (!LifecycleTypeCode.active().equals(app.getLifecycle())) throw new NotFoundException(
+            ApplicationMessageKeys.NOT_FOUND
+        );
         return app;
     }
 
+    public Application findActiveForUpdate(String identifier, Long workspaceId) {
+        return repository
+            .findByIdentifierAndWorkspaceIdForUpdate(identifier, workspaceId)
+            .filter(application -> LifecycleTypeCode.active().equals(application.getLifecycle()))
+            .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
+    }
+
     public Application findInactive(String identifier, Long workspaceId) {
-        Application app = repository.findByIdentifierAndWorkspaceId(identifier, workspaceId)
-                .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
-        if (!LifecycleTypeCode.inactive().equals(app.getLifecycle()))
-            throw new ValidationException(ApplicationMessageKeys.RESTORE_INVALID);
+        Application app = repository
+            .findByIdentifierAndWorkspaceId(identifier, workspaceId)
+            .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
+        if (!LifecycleTypeCode.inactive().equals(app.getLifecycle())) throw new ValidationException(
+            ApplicationMessageKeys.RESTORE_INVALID
+        );
         return app;
     }
 
     public Application findInactiveForDeletion(String identifier, Long workspaceId) {
-        Application app = repository.findByIdentifierAndWorkspaceId(identifier, workspaceId)
-                .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
-        if (!LifecycleTypeCode.inactive().equals(app.getLifecycle()))
-            throw new ValidationException(ApplicationMessageKeys.DELETE_INVALID);
+        Application app = repository
+            .findByIdentifierAndWorkspaceId(identifier, workspaceId)
+            .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
+        if (!LifecycleTypeCode.inactive().equals(app.getLifecycle())) throw new ValidationException(
+            ApplicationMessageKeys.DELETE_INVALID
+        );
         return app;
     }
 }

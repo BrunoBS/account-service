@@ -105,7 +105,7 @@ br.com.portalmanager.account
 ## 5. Gap analysis
 
 | Origem atual                           | Destino                                              | Ação              | Justificativa                                 | Risco/Dependências              |
-|----------------------------------------|------------------------------------------------------|-------------------|-----------------------------------------------|---------------------------------|
+| -------------------------------------- | ---------------------------------------------------- | ----------------- | --------------------------------------------- | ------------------------------- |
 | `br.com.portalmanager.account`         | `br.com.itau.portalmanager.workspace`                | mover/renomear    | namespace alvo aprovado                       | imports, component scan, testes |
 | `api`                                  | `input.web.workspace`                                | mover             | Web é porta de entrada                        | contratos HTTP                  |
 | `AccountController`                    | `WorkspaceController`                                | renomear/mover    | domínio Workspace                             | endpoint, audit                 |

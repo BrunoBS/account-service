@@ -14,7 +14,7 @@ documentação vigente e governança, sem reabrir a Golden Platform Foundation.
 ## Findings
 
 | Severidade | Finding                                                                   | Resultado                                          |
-|------------|---------------------------------------------------------------------------|----------------------------------------------------|
+| ---------- | ------------------------------------------------------------------------- | -------------------------------------------------- |
 | bloqueador | wiring de Messaging colocado em application Foundation sem base explícita | corrigido pelo ADR-006 e composition root          |
 | bloqueador | independência de Domain ficou menos protegida que no baseline             | fitness function restaurada e ampliada             |
 | alto       | V3 testada somente em banco vazio                                         | criado teste V2 populada -> V3                     |

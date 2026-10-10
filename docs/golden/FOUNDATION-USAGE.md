@@ -35,7 +35,7 @@ Não usar checkout local nem `mvn install` da Foundation como mecanismo de integ
 Coordenadas Maven e packages Java da Foundation usam:
 
 ```text
-br.com.portalmanager.platform
+br.com.portalmanager.platform.library
 ```
 
 A Golden não deve introduzir aliases ou compatibilidade com o namespace provisório anterior.
@@ -46,10 +46,10 @@ O serviço usa:
 
 ```xml
 <parent>
-    <groupId>br.com.portalmanager.platform</groupId>
-    <artifactId>platform-parent</artifactId>
-    <version>1.0.0</version>
-    <relativePath/>
+  <groupId>br.com.portalmanager.platform.library</groupId>
+  <artifactId>platform-parent</artifactId>
+  <version>1.0.0</version>
+  <relativePath />
 </parent>
 ```
 
@@ -72,15 +72,15 @@ A Golden importa explicitamente:
 
 ```xml
 <dependencyManagement>
-    <dependencies>
-        <dependency>
-            <groupId>br.com.portalmanager.platform</groupId>
-            <artifactId>platform-libraries-bom</artifactId>
-            <version>1.0.0</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
-    </dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>br.com.portalmanager.platform.library</groupId>
+      <artifactId>platform-libraries-bom</artifactId>
+      <version>1.0.0</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
 </dependencyManagement>
 ```
 
@@ -95,8 +95,8 @@ A Golden declara:
 
 ```xml
 <dependency>
-    <groupId>br.com.portalmanager.platform</groupId>
-    <artifactId>platform-starter</artifactId>
+  <groupId>br.com.portalmanager.platform.library</groupId>
+  <artifactId>platform-starter</artifactId>
 </dependency>
 ```
 
@@ -110,39 +110,25 @@ As capabilities opcionais continuam explícitas e entram somente quando houver c
 
 ## 6. platform-testing
 
-Dependência de teste:
+A Golden consome somente os módulos de teste que usa, todos em escopo `test`:
 
-```xml
-<dependency>
-    <groupId>br.com.portalmanager.platform</groupId>
-    <artifactId>platform-testing</artifactId>
-    <scope>test</scope>
-</dependency>
+- `platform-testing-http`: fornece `@PlatformIntegrationTest` e os utilitários de teste HTTP;
+- `platform-testing-database`: fornece `@WithMySql` e a fixture MySQL com Testcontainers;
+- `platform-testing-authorization`: fornece `@WithMockAuthorization` e `AuthorizationMock`.
+
+O `platform-testing-core` chega transitivamente por esses módulos. Não é declarado diretamente porque a Golden não usa
+nenhuma API exclusiva do Core.
+
+As dependências Testcontainers e o driver MySQL necessários à fixture vêm pelo módulo de database. Não duplicar
+`spring-boot-testcontainers` ou `org.testcontainers:testcontainers-mysql` no POM da aplicação.
+
+Os imports atuais são:
+
+```java
+br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest
+br.com.portalmanager.platform.library.testing.database.annotation.WithMySql
+br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization
 ```
-
-APIs relevantes incluem:
-
-- `@PlatformUnitTest`;
-- `@PlatformIntegrationTest`;
-- `@PlatformArchitectureTest`;
-- `@WithMySql`;
-- `@WithKafka`;
-- `@WithMockAuthorization`.
-
-Infraestrutura pesada permanece opt-in. Consumir `platform-testing` sozinho não deve forçar JDBC, MySQL, Kafka ou
-Testcontainers no classpath do consumidor.
-
-Quando a Golden realmente usar `@WithMySql` ou `@WithKafka`, deve declarar explicitamente as dependências de teste
-necessárias.
-
-Para MySQL com o baseline Testcontainers 2.x gerenciado pelo Spring Boot 4.1.1, a Golden declara:
-
-```text
-spring-boot-testcontainers
-org.testcontainers:testcontainers-mysql
-```
-
-A coordenada antiga `org.testcontainers:mysql` não deve ser usada no baseline atual.
 
 ## 7. Capabilities opcionais
 
@@ -156,8 +142,8 @@ Dependência explícita a partir da migração dos catálogos legados:
 
 ```xml
 <dependency>
-    <groupId>br.com.portalmanager.platform</groupId>
-    <artifactId>platform-catalog</artifactId>
+  <groupId>br.com.portalmanager.platform.library</groupId>
+  <artifactId>platform-catalog</artifactId>
 </dependency>
 ```
 
@@ -227,8 +213,8 @@ Conforme o slice aprovado, a Golden poderá declarar explicitamente:
 - MySQL;
 - ferramenta de migrations aprovada;
 - dependências de teste específicas exigidas por persistência;
-- `com.networknt:json-schema-validator:3.0.7`, necessária para preservar a validação
-  de `settings` dos catálogos migrados.
+- `com.networknt:json-schema-validator`, necessária para validar definições de schema da aplicação; a versão
+  `3.0.7` é gerenciada por `platform-dependencies`.
 
 Essas dependências entram porque o serviço precisa delas, não por transitividade implícita da Foundation.
 
@@ -252,7 +238,9 @@ checkout limpo
 → resolve platform-parent:1.0.0
 → resolve platform-libraries-bom:1.0.0
 → resolve platform-starter:1.0.0
-→ resolve platform-testing:1.0.0
+→ resolve platform-testing-http:1.0.0
+→ resolve platform-testing-database:1.0.0
+→ resolve platform-testing-authorization:1.0.0
 → compila
 → inicia contexto Spring Boot
 → Maven Enforcer
@@ -300,8 +288,8 @@ Dependência explícita:
 
 ```xml
 <dependency>
-    <groupId>br.com.portalmanager.platform</groupId>
-    <artifactId>platform-tagging</artifactId>
+  <groupId>br.com.portalmanager.platform.library</groupId>
+  <artifactId>platform-tagging</artifactId>
 </dependency>
 ```
 
@@ -314,8 +302,8 @@ Dependência explícita:
 
 ```xml
 <dependency>
-    <groupId>br.com.portalmanager.platform</groupId>
-    <artifactId>platform-audit</artifactId>
+  <groupId>br.com.portalmanager.platform.library</groupId>
+  <artifactId>platform-audit</artifactId>
 </dependency>
 ```
 
@@ -342,7 +330,7 @@ Foram migrados 16 catálogos do `account-api`:
 
 A estrutura da aplicação é:
 
-```text
+````text
 foundation/catalog
 └── <catalogo>
     ├── domain
@@ -356,7 +344,7 @@ ApplicationScopeType -> applicationscopetype
 FeatureType          -> featuretype
 SchemaType           -> schematype
 WorkspaceType        -> workspacetype
-```
+````
 
 Todo catálogo concreto termina em `type`. Assim, mesmo a entidade histórica
 `OnboardingPhase` pertence ao módulo `onboardingphasetype`.
@@ -403,36 +391,21 @@ alteração da Golden Platform Foundation nesta atividade.
 
 ## 15. Catalog -> Schema na Application Foundation
 
-A migração dos catálogos trouxe uma dependência funcional do legado: validação de
-`settings` com JSON Schema Draft 2020-12.
+A validação dos `settings` dos catálogos usa a capability publicada `platform-schema-validation`:
 
-A implementação foi organizada conforme a direção já definida na arquitetura:
+- os serviços de catálogo recebem `SchemaValidator`;
+- o serviço informa o código do recurso de schema;
+- a capability resolve e valida o payload usando o schema publicado.
 
-```text
-foundation.catalog
-        ↓
-foundation.schema
+O contrato compartilhado não deve ser duplicado em adapters locais como `CatalogSettingsValidator` ou
+`SchemaSettingsValidator`.
+
+A aplicação mantém responsabilidades próprias que não foram transferidas para a capability:
+
+- `SchemaResolver` e `SchemaResolutionPort` para resolução local dos schemas persistidos;
+- `SchemaDefinitionValidator` para validar definições armazenadas;
+- `JsonSchemaValidator` e `SchemaJsonValidator` para as operações locais de validação necessárias.
+
+Essas classes usam diretamente `com.networknt:json-schema-validator`; a dependência é declarada no POM do serviço e sua
+versão `3.0.7` é gerenciada por `platform-dependencies`.
 ```
-
-Componentes locais:
-
-```text
-foundation.schema.domain.SchemaDefaults
-foundation.schema.usecase.SchemaValidator
-foundation.catalog.support.CatalogSchemaValidationSupport
-```
-
-`SchemaValidator` não depende de Catalog.
-
-A dependência externa utilizada é:
-
-```text
-com.networknt:json-schema-validator:3.0.7
-```
-
-Ela permanece explicitamente no consumidor. Isso **não** constitui alteração da Golden
-Platform Foundation (`platform-build + platform-libraries`) e não autoriza promover a
-dependência para a Foundation da plataforma sem decisão própria.
-
-O review final da migração está documentado em
-`REVIEW-MIGRACAO-CATALOGOS-FOUNDATION.md`.

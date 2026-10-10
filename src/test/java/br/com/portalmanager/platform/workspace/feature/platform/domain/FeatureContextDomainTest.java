@@ -1,11 +1,11 @@
 package br.com.portalmanager.platform.workspace.feature.platform.domain;
 
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import br.com.portalmanager.platform.workspace.feature.platform.domain.featurecontext.FeatureContext;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import java.time.LocalDateTime;
+import org.junit.jupiter.api.Test;
 
 class FeatureContextDomainTest {
 
@@ -13,17 +13,10 @@ class FeatureContextDomainTest {
 
     @Test
     void shouldCreateActiveContextWithFriendlyNameAndValidateCode() {
-        FeatureContext context = new FeatureContext(
-                "manager-account",
-                "Manager Account",
-                "Manager account",
-                NOW
-        );
+        FeatureContext context = new FeatureContext("manager-account", "Manager Account", "Manager account", NOW);
 
         assertThat(context.isActive()).isTrue();
         assertThat(context.getLifecycle()).isEqualTo(LifecycleTypeCode.active());
-
-
     }
 
     @Test

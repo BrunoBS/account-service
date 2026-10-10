@@ -1,99 +1,65 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.platform.context;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.entrypoint.web.platform.context.request.CreateFeatureContextRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.platform.context.request.UpdateFeatureContextRequest;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.workspace.entrypoint.web.platform.context.request.*;
 import br.com.portalmanager.platform.workspace.entrypoint.web.platform.context.response.FeatureContextResponse;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context.FeatureContextCommandService;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context.FeatureContextQueryService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import br.com.portalmanager.platform.workspace.feature.platform.facade.FeatureContextFacade;
 import java.util.List;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/platform/contexts")
-@AuthorizationRequired(level = AuthorizationLevel.OWNER)
 public class FeatureContextController {
 
-    private final FeatureContextCommandService commandService;
-    private final FeatureContextQueryService queryService;
+    private final FeatureContextFacade facade;
 
-    public FeatureContextController(
-            FeatureContextCommandService commandService,
-            FeatureContextQueryService queryService
-    ) {
-        this.commandService = commandService;
-        this.queryService = queryService;
+    public FeatureContextController(FeatureContextFacade f) {
+        facade = f;
     }
 
     @PostMapping
-    @Auditable(
-            resource = "FEATURE_CONTEXT",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
-    public ResponseEntity<FeatureContextResponse> create(@RequestBody CreateFeatureContextRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(FeatureContextResponse.from(commandService.create(request.toInput())));
+    public ResponseEntity<FeatureContextResponse> create(
+        AuthorizationContext context,
+        @RequestBody CreateFeatureContextRequest r
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            FeatureContextResponse.from(facade.create(context, r.toInput()))
+        );
     }
 
     @GetMapping("/{identifier}")
-    public FeatureContextResponse findByIdentifier(@PathVariable String identifier) {
-        return FeatureContextResponse.from(queryService.findByIdentifier(identifier));
+    public FeatureContextResponse findByIdentifier(AuthorizationContext context, @PathVariable String identifier) {
+        return FeatureContextResponse.from(facade.findByIdentifier(context, identifier));
     }
 
     @GetMapping
-    public List<FeatureContextResponse> findAll() {
-        return queryService.findAll().stream().map(FeatureContextResponse::from).toList();
+    public List<FeatureContextResponse> findAll(AuthorizationContext context) {
+        return facade.findAll(context).stream().map(FeatureContextResponse::from).toList();
     }
 
     @PutMapping("/{identifier}")
-    @Auditable(
-            resource = "FEATURE_CONTEXT",
-            action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public FeatureContextResponse update(
-            @PathVariable String identifier,
-            @RequestBody UpdateFeatureContextRequest request
+        AuthorizationContext context,
+        @PathVariable String identifier,
+        @RequestBody UpdateFeatureContextRequest r
     ) {
-        return FeatureContextResponse.from(commandService.update(identifier, request.toInput()));
+        return FeatureContextResponse.from(facade.update(context, identifier, r.toInput()));
     }
 
     @PatchMapping("/{identifier}/activate")
-    @Auditable(
-            resource = "FEATURE_CONTEXT",
-            action = "ACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
-    public FeatureContextResponse activate(@PathVariable String identifier) {
-        return FeatureContextResponse.from(commandService.activate(identifier));
+    public FeatureContextResponse activate(AuthorizationContext context, @PathVariable String identifier) {
+        return FeatureContextResponse.from(facade.activate(context, identifier));
     }
 
     @PatchMapping("/{identifier}/inactivate")
-    @Auditable(
-            resource = "FEATURE_CONTEXT",
-            action = "INACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
-    public FeatureContextResponse inactivate(@PathVariable String identifier) {
-        return FeatureContextResponse.from(commandService.inactivate(identifier));
+    public FeatureContextResponse inactivate(AuthorizationContext context, @PathVariable String identifier) {
+        return FeatureContextResponse.from(facade.inactivate(context, identifier));
     }
 
     @DeleteMapping("/{identifier}")
-    @Auditable(
-            resource = "FEATURE_CONTEXT",
-            action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
-    public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        commandService.delete(identifier);
+    public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier) {
+        facade.delete(context, identifier);
         return ResponseEntity.noContent().build();
     }
 }

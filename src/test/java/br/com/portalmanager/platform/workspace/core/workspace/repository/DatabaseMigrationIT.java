@@ -1,12 +1,12 @@
 package br.com.portalmanager.platform.workspace.core.workspace.repository;
 
-import br.com.portalmanager.platform.library.testing.annotation.PlatformIntegrationTest;
-import br.com.portalmanager.platform.library.testing.annotation.WithMySql;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
+import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @PlatformIntegrationTest
 @WithMySql
@@ -39,29 +39,29 @@ class DatabaseMigrationIT {
 
     private Integer tableCount(String tableName) {
         return jdbcTemplate.queryForObject(
-                """
-                        select count(*)
-                          from information_schema.tables
-                         where table_schema = database()
-                           and table_name = ?
-                        """,
-                Integer.class,
-                tableName
+            """
+            select count(*)
+              from information_schema.tables
+             where table_schema = database()
+               and table_name = ?
+            """,
+            Integer.class,
+            tableName
         );
     }
 
     private Integer indexCount(String tableName, String indexName) {
         return jdbcTemplate.queryForObject(
-                """
-                        select count(*)
-                          from information_schema.statistics
-                         where table_schema = database()
-                           and table_name = ?
-                           and index_name = ?
-                        """,
-                Integer.class,
-                tableName,
-                indexName
+            """
+            select count(*)
+              from information_schema.statistics
+             where table_schema = database()
+               and table_name = ?
+               and index_name = ?
+            """,
+            Integer.class,
+            tableName,
+            indexName
         );
     }
 }

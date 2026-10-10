@@ -102,18 +102,18 @@ Não duplicar em Java regras já cobertas pelo JSON Schema.
 
 Cobertura mínima recomendada:
 
-| Cenário | Resultado esperado |
-| --- | --- |
-| required ausente | 400 |
-| opcional ausente | válido |
-| opcional = null sem null no schema | 400 |
-| tipo inválido | 400 |
-| propriedade extra não permitida | 400 |
-| enum estrutural inválido | 400 |
-| pattern inválido | 400 |
-| array duplicado com uniqueItems | 400 |
+| Cenário                                      | Resultado esperado      |
+| -------------------------------------------- | ----------------------- |
+| required ausente                             | 400                     |
+| opcional ausente                             | válido                  |
+| opcional = null sem null no schema           | 400                     |
+| tipo inválido                                | 400                     |
+| propriedade extra não permitida              | 400                     |
+| enum estrutural inválido                     | 400                     |
+| pattern inválido                             | 400                     |
+| array duplicado com uniqueItems              | 400                     |
 | estrutura válida + regra contextual inválida | 400 pelo Validator Java |
-| estrutura + contexto válidos | sucesso |
+| estrutura + contexto válidos                 | sucesso                 |
 
 ## Separação de responsabilidade
 

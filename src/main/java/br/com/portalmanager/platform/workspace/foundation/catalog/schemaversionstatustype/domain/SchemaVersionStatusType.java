@@ -6,5 +6,4 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "type_schema_version_status")
-public class SchemaVersionStatusType extends CatalogEntity {
-}
+public class SchemaVersionStatusType extends CatalogEntity {}

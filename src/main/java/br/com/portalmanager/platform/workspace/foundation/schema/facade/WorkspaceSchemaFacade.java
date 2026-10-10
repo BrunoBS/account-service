@@ -1,0 +1,84 @@
+package br.com.portalmanager.platform.workspace.foundation.schema.facade;
+
+import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.model.*;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.*;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.*;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.version.SchemaVersionCommandService;
+import java.util.List;
+import org.springframework.stereotype.Service;
+
+@Service
+public class WorkspaceSchemaFacade {
+
+    private final SchemaCommandService commandService;
+    private final SchemaQueryService queryService;
+    private final SchemaVersionCommandService versionCommandService;
+
+    public WorkspaceSchemaFacade(SchemaCommandService c, SchemaQueryService q, SchemaVersionCommandService v) {
+        commandService = c;
+        queryService = q;
+        versionCommandService = v;
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.CREATE)
+    public SchemaOutput create(AuthorizationContext context, CreateSchemaInput i) {
+        return commandService.createWorkspace(i);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.READ)
+    public List<SchemaOutput> findAll(AuthorizationContext context, String w) {
+        return queryService.findWorkspace(w);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.READ)
+    public SchemaOutput findByIdentifier(AuthorizationContext context, String w, String i) {
+        return queryService.findWorkspaceByIdentifier(w, i);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.UPDATE)
+    public SchemaOutput update(AuthorizationContext context, String w, String i, UpdateSchemaInput in) {
+        return commandService.updateWorkspace(w, i, in);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.ACTIVATE)
+    public SchemaOutput activate(AuthorizationContext context, String w, String i) {
+        return commandService.activateWorkspace(w, i);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.DEACTIVATE)
+    public SchemaOutput inactivate(AuthorizationContext context, String w, String i) {
+        return commandService.inactivateWorkspace(w, i);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.DELETE)
+    public void quarantine(AuthorizationContext context, String w, String i) {
+        commandService.quarantineWorkspace(w, i);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.CREATE)
+    public SchemaVersionOutput createVersion(
+        AuthorizationContext context,
+        String w,
+        String i,
+        CreateSchemaVersionInput in
+    ) {
+        return versionCommandService.createWorkspaceDraft(w, i, in);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.DELETE)
+    public void deleteDraft(AuthorizationContext context, String w, String i, String v) {
+        versionCommandService.deleteWorkspaceDraft(w, i, v);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.READ)
+    public List<SchemaVersionOutput> findVersions(AuthorizationContext context, String w, String i) {
+        return queryService.findWorkspaceVersions(w, i);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.UPDATE)
+    public SchemaVersionOutput publish(AuthorizationContext context, String w, String i, String v) {
+        return versionCommandService.publishWorkspace(w, i, v);
+    }
+}

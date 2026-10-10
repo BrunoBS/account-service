@@ -5,5 +5,4 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationt
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface AuthorizationTypeRepository extends CatalogRepository<AuthorizationType> {
-}
+public interface AuthorizationTypeRepository extends CatalogRepository<AuthorizationType> {}

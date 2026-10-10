@@ -6,5 +6,4 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "type_sharing_statuses")
-public class ShareStatusType extends CatalogEntity {
-}
+public class ShareStatusType extends CatalogEntity {}

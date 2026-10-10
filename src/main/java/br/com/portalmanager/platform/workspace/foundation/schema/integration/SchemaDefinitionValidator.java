@@ -2,17 +2,16 @@ package br.com.portalmanager.platform.workspace.foundation.schema.integration;
 
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaMessageKeys;
 import com.networknt.schema.Error;
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.SpecificationVersion;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-
-import java.util.Map;
 
 @Component
 public class SchemaDefinitionValidator {
@@ -26,10 +25,10 @@ public class SchemaDefinitionValidator {
     }
 
     public void validateJson(
-            String schemaDefinition,
-            JsonNode configNode,
-            String attributeName,
-            ValidationResult result
+        String schemaDefinition,
+        JsonNode configNode,
+        String attributeName,
+        ValidationResult result
     ) {
         if (schemaDefinition == null || schemaDefinition.isBlank()) {
             result.addError("schema", SchemaMessageKeys.UNDEFINED);
@@ -44,11 +43,7 @@ public class SchemaDefinitionValidator {
         if (schema != null) {
             schema.validate(configNode).forEach(error -> {
                 String field = resolveField(attributeName, error);
-                result.addError(
-                        field,
-                        SchemaMessageKeys.JSON_INVALID,
-                        Map.of("0", field, "1", error.getMessage())
-                );
+                result.addError(field, SchemaMessageKeys.JSON_INVALID, Map.of("0", field, "1", error.getMessage()));
             });
         }
     }
@@ -76,7 +71,7 @@ public class SchemaDefinitionValidator {
             return node != null ? objectMapper.writeValueAsString(node) : null;
         } catch (JacksonException exception) {
             throw new ValidationException(
-                    new ValidationResult(attributeName, SchemaMessageKeys.JSON_SERIALIZATION_INVALID)
+                new ValidationResult(attributeName, SchemaMessageKeys.JSON_SERIALIZATION_INVALID)
             );
         }
     }
@@ -89,7 +84,7 @@ public class SchemaDefinitionValidator {
             return objectMapper.readTree(json);
         } catch (JacksonException exception) {
             throw new ValidationException(
-                    new ValidationResult(attributeName, SchemaMessageKeys.PERSISTED_JSON_INVALID)
+                new ValidationResult(attributeName, SchemaMessageKeys.PERSISTED_JSON_INVALID)
             );
         }
     }
@@ -105,9 +100,7 @@ public class SchemaDefinitionValidator {
     }
 
     private String resolveField(String attributeName, Error error) {
-        String instanceLocation = error.getInstanceLocation() != null
-                ? error.getInstanceLocation().toString()
-                : "";
+        String instanceLocation = error.getInstanceLocation() != null ? error.getInstanceLocation().toString() : "";
 
         String field = appendJsonPointer(attributeName, instanceLocation);
         String property = error.getProperty();
@@ -142,14 +135,10 @@ public class SchemaDefinitionValidator {
     }
 
     private boolean fieldEndsWithProperty(String field, String property) {
-        return field.equals(property)
-                || field.endsWith("." + property)
-                || field.endsWith("[" + property + "]");
+        return field.equals(property) || field.endsWith("." + property) || field.endsWith("[" + property + "]");
     }
 
     private String appendProperty(String field, String property) {
-        return property.chars().allMatch(Character::isDigit)
-                ? field + "[" + property + "]"
-                : field + "." + property;
+        return property.chars().allMatch(Character::isDigit) ? field + "[" + property + "]" : field + "." + property;
     }
 }

@@ -1,96 +1,65 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice;
 
-import br.com.portalmanager.platform.library.audit.annotation.AuditField;
-import br.com.portalmanager.platform.library.audit.annotation.AuditFieldSource;
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice.request.CreateMicroserviceRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice.request.UpdateMicroserviceRequest;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice.request.*;
 import br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice.response.MicroserviceResponse;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceCommandService;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceQueryService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import br.com.portalmanager.platform.workspace.feature.platform.facade.MicroserviceFacade;
 import java.util.List;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/platform/microservices")
-@AuthorizationRequired(level = AuthorizationLevel.OWNER)
 public class MicroserviceController {
 
-    private final MicroserviceCommandService commandService;
-    private final MicroserviceQueryService queryService;
+    private final MicroserviceFacade facade;
 
-    public MicroserviceController(MicroserviceCommandService commandService, MicroserviceQueryService queryService) {
-        this.commandService = commandService;
-        this.queryService = queryService;
+    public MicroserviceController(MicroserviceFacade f) {
+        facade = f;
     }
 
     @PostMapping
-    @Auditable(
-            resource = "MICROSERVICE",
-            action = "INSERT",
-            resourceId = @AuditField(source = AuditFieldSource.RESPONSE, field = "identifier")
-    )
-    public ResponseEntity<MicroserviceResponse> create(@RequestBody CreateMicroserviceRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(MicroserviceResponse.from(commandService.create(request.toInput())));
+    public ResponseEntity<MicroserviceResponse> create(
+        AuthorizationContext context,
+        @RequestBody CreateMicroserviceRequest r
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            MicroserviceResponse.from(facade.create(context, r.toInput()))
+        );
     }
 
     @GetMapping("/{identifier}")
-    public MicroserviceResponse findByIdentifier(@PathVariable String identifier) {
-        return MicroserviceResponse.from(queryService.findByIdentifier(identifier));
+    public MicroserviceResponse findByIdentifier(AuthorizationContext context, @PathVariable String identifier) {
+        return MicroserviceResponse.from(facade.findByIdentifier(context, identifier));
     }
 
     @GetMapping
-    public List<MicroserviceResponse> findAll() {
-        return queryService.findAll().stream().map(MicroserviceResponse::from).toList();
+    public List<MicroserviceResponse> findAll(AuthorizationContext context) {
+        return facade.findAll(context).stream().map(MicroserviceResponse::from).toList();
     }
 
     @PutMapping("/{identifier}")
-    @Auditable(
-            resource = "MICROSERVICE",
-            action = "UPDATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
     public MicroserviceResponse update(
-            @PathVariable String identifier,
-            @RequestBody UpdateMicroserviceRequest request
+        AuthorizationContext context,
+        @PathVariable String identifier,
+        @RequestBody UpdateMicroserviceRequest r
     ) {
-        return MicroserviceResponse.from(commandService.update(identifier, request.toInput()));
+        return MicroserviceResponse.from(facade.update(context, identifier, r.toInput()));
     }
 
     @PatchMapping("/{identifier}/activate")
-    @Auditable(
-            resource = "MICROSERVICE",
-            action = "ACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
-    public MicroserviceResponse activate(@PathVariable String identifier) {
-        return MicroserviceResponse.from(commandService.activate(identifier));
+    public MicroserviceResponse activate(AuthorizationContext context, @PathVariable String identifier) {
+        return MicroserviceResponse.from(facade.activate(context, identifier));
     }
 
     @PatchMapping("/{identifier}/inactivate")
-    @Auditable(
-            resource = "MICROSERVICE",
-            action = "INACTIVATE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
-    public MicroserviceResponse inactivate(@PathVariable String identifier) {
-        return MicroserviceResponse.from(commandService.inactivate(identifier));
+    public MicroserviceResponse inactivate(AuthorizationContext context, @PathVariable String identifier) {
+        return MicroserviceResponse.from(facade.inactivate(context, identifier));
     }
 
     @DeleteMapping("/{identifier}")
-    @Auditable(
-            resource = "MICROSERVICE",
-            action = "DELETE",
-            resourceId = @AuditField(source = AuditFieldSource.PATH, field = "identifier")
-    )
-    public ResponseEntity<Void> delete(@PathVariable String identifier) {
-        commandService.delete(identifier);
+    public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier) {
+        facade.delete(context, identifier);
         return ResponseEntity.noContent().build();
     }
 }

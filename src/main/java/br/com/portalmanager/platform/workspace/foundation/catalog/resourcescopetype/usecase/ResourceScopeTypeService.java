@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.usecase;
 
 import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
-import br.com.portalmanager.platform.workspace.foundation.catalog.integration.CatalogSettingsValidator;
+import br.com.portalmanager.platform.library.schemavalidation.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.repository.ResourceScopeTypeRepository;
@@ -14,15 +14,17 @@ public class ResourceScopeTypeService extends EnumCatalogService<ResourceScopeTy
     private static final String SCHEMA_RESOURCE_CODE = "resource-scope-type";
 
     public ResourceScopeTypeService(
-            ResourceScopeTypeRepository repository,
-            ObjectMapper objectMapper,
-            CatalogSettingsValidator settingsValidator) {
+        ResourceScopeTypeRepository repository,
+        ObjectMapper objectMapper,
+        SchemaValidator schemaValidator
+    ) {
         super(
-                repository,
-                objectMapper,
-                ResourceScopeType.class,
-                ResourceScopeTypeEnum.class,
-                (dto, result) -> settingsValidator.validateSettings(SCHEMA_RESOURCE_CODE, dto.settings(), result)
+            repository,
+            objectMapper,
+            ResourceScopeType.class,
+            ResourceScopeTypeEnum.class,
+            SCHEMA_RESOURCE_CODE,
+            schemaValidator
         );
     }
 }

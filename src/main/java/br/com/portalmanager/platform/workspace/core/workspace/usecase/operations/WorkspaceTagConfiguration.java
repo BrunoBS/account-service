@@ -11,8 +11,7 @@ import org.springframework.context.annotation.Configuration;
 class WorkspaceTagConfiguration {
 
     @Bean
-    TagManager<WorkspaceTag, Workspace, Long, String> workspaceTagManager(
-            WorkspaceTagRepository repository) {
-        return new TagManager<>(repository);
+    TagManager<WorkspaceTag, Workspace> workspaceTagManager(WorkspaceTagRepository repository) {
+        return new TagManager<>(repository, WorkspaceTag::new);
     }
 }

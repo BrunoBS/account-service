@@ -11,21 +11,20 @@ import br.com.portalmanager.platform.workspace.feature.message.usecase.model.Cre
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageTranslationInput;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceQueryService;
-import org.springframework.stereotype.Component;
-
 import java.util.Objects;
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Component;
 
 @Component
 public class MessageValidator {
 
-    private static final Pattern MESSAGE_KEY_PATTERN =
-            Pattern.compile("^[a-z0-9][a-z0-9._-]{0,254}$");
-    private static final Pattern CODE_PATTERN =
-            Pattern.compile("^[A-Z][A-Z0-9-]{2,49}$");
-    private static final Pattern LOCALE_PATTERN =
-            Pattern.compile("^[a-z]{2,3}(?:-[A-Z]{2}|-[0-9]{3})?(?:-[A-Za-z0-9]{4,8})*$");
+    private static final Pattern MESSAGE_KEY_PATTERN = Pattern.compile("^[a-z0-9][a-z0-9._-]{0,254}$");
+    private static final Pattern CODE_PATTERN = Pattern.compile("^[A-Z][A-Z0-9-]{2,49}$");
+    private static final Pattern LOCALE_PATTERN = Pattern.compile(
+        "^[a-z]{2,3}(?:-[A-Z]{2}|-[0-9]{3})?(?:-[A-Za-z0-9]{4,8})*$"
+    );
     private final MicroserviceQueryService microserviceQueryService;
+
     public MessageValidator(MicroserviceQueryService microserviceQueryService) {
         this.microserviceQueryService = microserviceQueryService;
     }
@@ -46,56 +45,45 @@ public class MessageValidator {
         }
     }
 
-    public void validateForCreate(
-            CreateMessageInput input,
-            boolean keyDuplicate,
-            boolean codeDuplicate
-    ) {
+    public void validateForCreate(CreateMessageInput input, boolean keyDuplicate, boolean codeDuplicate) {
         ValidationResult result = new ValidationResult();
         validateMessage(
-                input == null ? null : input.microserviceIdentifier(),
-                input == null ? null : input.messageKey(),
-                input == null ? null : input.code(),
-                input == null ? null : input.httpStatus(),
-                input == null ? null : input.observation(),
-                result
+            input == null ? null : input.microserviceIdentifier(),
+            input == null ? null : input.messageKey(),
+            input == null ? null : input.code(),
+            input == null ? null : input.httpStatus(),
+            input == null ? null : input.observation(),
+            result
         );
         validateDuplicates(keyDuplicate, codeDuplicate, result);
         rejectIfInvalid(result);
     }
 
-    public void validateForUpdate(
-            UpdateMessageInput input,
-            boolean keyDuplicate,
-            boolean codeDuplicate
-    ) {
+    public void validateForUpdate(UpdateMessageInput input, boolean keyDuplicate, boolean codeDuplicate) {
         ValidationResult result = new ValidationResult();
         if (input == null || input.version() == null || input.version() < 0) {
             result.addError("version", MessageMessageKeys.VERSION_REQUIRED);
         }
         validateMessage(
-                input == null ? null : input.microserviceIdentifier(),
-                input == null ? null : input.messageKey(),
-                input == null ? null : input.code(),
-                input == null ? null : input.httpStatus(),
-                input == null ? null : input.observation(),
-                result
+            input == null ? null : input.microserviceIdentifier(),
+            input == null ? null : input.messageKey(),
+            input == null ? null : input.code(),
+            input == null ? null : input.httpStatus(),
+            input == null ? null : input.observation(),
+            result
         );
         validateDuplicates(keyDuplicate, codeDuplicate, result);
         rejectIfInvalid(result);
     }
 
-    public void validateTranslationForCreate(
-            CreateMessageTranslationInput input,
-            boolean localeDuplicate
-    ) {
+    public void validateTranslationForCreate(CreateMessageTranslationInput input, boolean localeDuplicate) {
         ValidationResult result = new ValidationResult();
         validateTranslation(
-                input == null ? null : input.locale(),
-                input == null ? null : input.title(),
-                input == null ? null : input.detail(),
-                input == null ? null : input.suggestion(),
-                result
+            input == null ? null : input.locale(),
+            input == null ? null : input.title(),
+            input == null ? null : input.detail(),
+            input == null ? null : input.suggestion(),
+            result
         );
         if (localeDuplicate) {
             result.addError("locale", MessageMessageKeys.LOCALE_DUPLICATE);
@@ -103,20 +91,17 @@ public class MessageValidator {
         rejectIfInvalid(result);
     }
 
-    public void validateTranslationForUpdate(
-            UpdateMessageTranslationInput input,
-            boolean localeDuplicate
-    ) {
+    public void validateTranslationForUpdate(UpdateMessageTranslationInput input, boolean localeDuplicate) {
         ValidationResult result = new ValidationResult();
         if (input == null || input.version() == null || input.version() < 0) {
             result.addError("version", MessageMessageKeys.VERSION_REQUIRED);
         }
         validateTranslation(
-                input == null ? null : input.locale(),
-                input == null ? null : input.title(),
-                input == null ? null : input.detail(),
-                input == null ? null : input.suggestion(),
-                result
+            input == null ? null : input.locale(),
+            input == null ? null : input.title(),
+            input == null ? null : input.detail(),
+            input == null ? null : input.suggestion(),
+            result
         );
         if (localeDuplicate) {
             result.addError("locale", MessageMessageKeys.LOCALE_DUPLICATE);
@@ -125,12 +110,12 @@ public class MessageValidator {
     }
 
     private void validateMessage(
-            String microserviceIdentifier,
-            String messageKey,
-            String code,
-            Integer httpStatus,
-            String observation,
-            ValidationResult result
+        String microserviceIdentifier,
+        String messageKey,
+        String code,
+        Integer httpStatus,
+        String observation,
+        ValidationResult result
     ) {
         if (microserviceIdentifier == null || microserviceIdentifier.isBlank()) {
             result.addError("microserviceIdentifier", MessageMessageKeys.MICROSERVICE_REQUIRED);
@@ -160,11 +145,11 @@ public class MessageValidator {
     }
 
     private void validateTranslation(
-            String locale,
-            String title,
-            String detail,
-            String suggestion,
-            ValidationResult result
+        String locale,
+        String title,
+        String detail,
+        String suggestion,
+        ValidationResult result
     ) {
         if (locale == null || !LOCALE_PATTERN.matcher(locale).matches()) {
             result.addError("locale", MessageMessageKeys.LOCALE_INVALID);
@@ -180,11 +165,7 @@ public class MessageValidator {
         }
     }
 
-    private void validateDuplicates(
-            boolean keyDuplicate,
-            boolean codeDuplicate,
-            ValidationResult result
-    ) {
+    private void validateDuplicates(boolean keyDuplicate, boolean codeDuplicate, ValidationResult result) {
         if (keyDuplicate) {
             result.addError("messageKey", MessageMessageKeys.KEY_DUPLICATE);
         }

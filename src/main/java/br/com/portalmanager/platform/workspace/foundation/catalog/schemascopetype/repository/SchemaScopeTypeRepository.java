@@ -5,5 +5,4 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetyp
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SchemaScopeTypeRepository extends CatalogRepository<SchemaScopeType> {
-}
+public interface SchemaScopeTypeRepository extends CatalogRepository<SchemaScopeType> {}

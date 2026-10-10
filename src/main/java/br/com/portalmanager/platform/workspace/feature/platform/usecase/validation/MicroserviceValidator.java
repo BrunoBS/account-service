@@ -2,9 +2,9 @@ package br.com.portalmanager.platform.workspace.feature.platform.usecase.validat
 
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.Microservice;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.PlatformMessageKeys;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.CreateMicroserviceInput;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateMicroserviceInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,11 +12,17 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class MicroserviceValidator {
+
     private final SchemaSettingsValidator settingsValidator;
 
-    public MicroserviceValidator() { this.settingsValidator = null; }
+    public MicroserviceValidator() {
+        this.settingsValidator = null;
+    }
+
     @Autowired
-    public MicroserviceValidator(SchemaSettingsValidator settingsValidator) { this.settingsValidator = settingsValidator; }
+    public MicroserviceValidator(SchemaSettingsValidator settingsValidator) {
+        this.settingsValidator = settingsValidator;
+    }
 
     public void validateSettings(String code, String settings) {
         if (settingsValidator == null) return;
@@ -27,14 +33,34 @@ public class MicroserviceValidator {
 
     public void validateCreate(CreateMicroserviceInput input, boolean codeDuplicate, boolean nameDuplicate) {
         PlatformValidation.requireInput(input);
-        PlatformValidation.validate(input.code(), true, input.name(), input.description(), codeDuplicate,
-                nameDuplicate, null, false, input.settings(), true);
+        PlatformValidation.validate(
+            input.code(),
+            true,
+            input.name(),
+            input.description(),
+            codeDuplicate,
+            nameDuplicate,
+            null,
+            false,
+            input.settings(),
+            true
+        );
     }
 
     public void validateUpdate(UpdateMicroserviceInput input, boolean nameDuplicate) {
         PlatformValidation.requireInput(input);
-        PlatformValidation.validate(null, false, input.name(), input.description(), false,
-                nameDuplicate, null, false, input.settings(), true);
+        PlatformValidation.validate(
+            null,
+            false,
+            input.name(),
+            input.description(),
+            false,
+            nameDuplicate,
+            null,
+            false,
+            input.settings(),
+            true
+        );
     }
 
     public void validateDelete(Microservice microservice) {

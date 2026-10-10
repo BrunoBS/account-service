@@ -5,21 +5,21 @@ import br.com.portalmanager.platform.library.messaging.exception.ResourceVersion
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.Schema;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaMessageKeys;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaInput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaInput;
-import org.springframework.stereotype.Component;
-
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Component;
 
 /**
  * Decisions about schema requests and state transitions belong to the use case.
  */
 @Component
 public class SchemaOperationValidator {
+
     private static final Pattern CODE = Pattern.compile("^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$");
 
     public void validateCreateInput(CreateSchemaInput input) {

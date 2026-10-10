@@ -5,5 +5,4 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustyp
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ShareStatusTypeRepository extends CatalogRepository<ShareStatusType> {
-}
+public interface ShareStatusTypeRepository extends CatalogRepository<ShareStatusType> {}

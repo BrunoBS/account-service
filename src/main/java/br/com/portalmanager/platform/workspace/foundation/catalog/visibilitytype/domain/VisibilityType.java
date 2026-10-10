@@ -6,5 +6,4 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "type_visibilities")
-public class VisibilityType extends CatalogEntity {
-}
+public class VisibilityType extends CatalogEntity {}
