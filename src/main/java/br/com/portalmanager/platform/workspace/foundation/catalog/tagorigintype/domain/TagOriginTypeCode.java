@@ -19,4 +19,8 @@ public class TagOriginTypeCode extends AbstractCatalogCode {
     public static TagOriginTypeCode of(TagOriginTypeEnum value) {
         return new TagOriginTypeCode(value == null ? null : value.name());
     }
+
+    public static TagOriginTypeCode manual() { return of(TagOriginTypeEnum.MANUAL); }
+
+    public static TagOriginTypeCode system() { return of(TagOriginTypeEnum.SYSTEM); }
 }

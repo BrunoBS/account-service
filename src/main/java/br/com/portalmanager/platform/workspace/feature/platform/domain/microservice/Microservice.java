@@ -1,12 +1,19 @@
 package br.com.portalmanager.platform.workspace.feature.platform.domain.microservice;
 
-import br.com.portalmanager.platform.workspace.feature.platform.domain.feature.Feature;
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import jakarta.persistence.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -25,7 +32,7 @@ public class Microservice {
     @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false)
     private String identifier;
 
-    @Column(name = "code", nullable = false, unique = true, length = 50)
+    @Column(name = "code", nullable = false, unique = true, length = 50, updatable = false)
     private String code;
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
@@ -47,9 +54,6 @@ public class Microservice {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "microservice")
-    private Set<Feature> features = new LinkedHashSet<>();
-
     protected Microservice() {}
 
     public Microservice(String code, String name, String description, LocalDateTime now) {
@@ -57,44 +61,42 @@ public class Microservice {
     }
 
     public Microservice(String code, String name, String description, String settings, LocalDateTime now) {
+        this(code, new MicroserviceDetails(name, description, settings), now);
+    }
+
+    public Microservice(String code, MicroserviceDetails details, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.code = code;
-        this.name = name;
-        this.description = description;
-        this.settings = settings;
+        this.name = details.name();
+        this.description = details.description();
+        this.settings = details.settings();
         this.lifecycle = LifecycleTypeCode.active();
         this.createdAt = now;
         this.updatedAt = now;
     }
 
-    public void update(String name, String description, String settings, LocalDateTime now) {
-        this.name = name;
-        this.description = description;
-        this.settings = settings;
+    public void update(MicroserviceDetails details, LocalDateTime now) {
+        requireActive();
+        this.name = details.name();
+        this.description = details.description();
+        this.settings = details.settings();
         this.updatedAt = now;
     }
 
     public void activate(LocalDateTime now) {
+        if (!LifecycleTypeCode.inactive().equals(lifecycle)) throw new ValidationException(PlatformMessageKeys.MICROSERVICE_ACTIVATE_INVALID);
         lifecycle = LifecycleTypeCode.active();
         updatedAt = now;
     }
 
     public void inactivate(LocalDateTime now) {
+        requireActive();
         lifecycle = LifecycleTypeCode.inactive();
         updatedAt = now;
     }
 
-    public void quarantine(LocalDateTime now) {
-        lifecycle = LifecycleTypeCode.quarantined();
-        updatedAt = now;
-    }
-
-    public void attach(Feature feature) {
-        features.add(feature);
-    }
-
-    public void detach(Feature feature) {
-        features.remove(feature);
+    public void requireActive() {
+        if (!isActive()) throw new NotFoundException(PlatformMessageKeys.MICROSERVICE_NOT_FOUND);
     }
 
     public boolean isActive() {
@@ -139,9 +141,5 @@ public class Microservice {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
-    }
-
-    public Set<Feature> getFeatures() {
-        return Collections.unmodifiableSet(features);
     }
 }

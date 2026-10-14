@@ -19,4 +19,8 @@ public class PublicationModeTypeCode extends AbstractCatalogCode {
     public static PublicationModeTypeCode of(PublicationModeTypeEnum value) {
         return new PublicationModeTypeCode(value == null ? null : value.name());
     }
+
+    public static PublicationModeTypeCode automatic() { return of(PublicationModeTypeEnum.AUTOMATIC); }
+
+    public static PublicationModeTypeCode manual() { return of(PublicationModeTypeEnum.MANUAL); }
 }

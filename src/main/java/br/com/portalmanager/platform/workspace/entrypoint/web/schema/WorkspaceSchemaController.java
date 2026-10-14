@@ -30,8 +30,12 @@ public class WorkspaceSchemaController {
     }
 
     @GetMapping
-    public List<SchemaResponse> findAll(AuthorizationContext context, @PathVariable String workspaceIdentifier) {
-        return facade.findAll(context, workspaceIdentifier).stream().map(SchemaResponse::from).toList();
+    public List<SchemaResponse> findAll(
+        AuthorizationContext context,
+        @PathVariable String workspaceIdentifier,
+        @RequestParam(required = false) String lifecycle
+    ) {
+        return facade.findAll(context, workspaceIdentifier, lifecycle).stream().map(SchemaResponse::from).toList();
     }
 
     @GetMapping("/{identifier}")

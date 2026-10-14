@@ -19,4 +19,12 @@ public class ShareStatusTypeCode extends AbstractCatalogCode {
     public static ShareStatusTypeCode of(ShareStatusTypeEnum value) {
         return new ShareStatusTypeCode(value == null ? null : value.name());
     }
+
+    public static ShareStatusTypeCode pending() { return of(ShareStatusTypeEnum.PENDING); }
+
+    public static ShareStatusTypeCode approved() { return of(ShareStatusTypeEnum.APPROVED); }
+
+    public static ShareStatusTypeCode rejected() { return of(ShareStatusTypeEnum.REJECTED); }
+
+    public static ShareStatusTypeCode revoked() { return of(ShareStatusTypeEnum.REVOKED); }
 }

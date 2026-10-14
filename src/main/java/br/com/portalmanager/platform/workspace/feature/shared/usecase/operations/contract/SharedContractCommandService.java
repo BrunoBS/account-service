@@ -7,27 +7,29 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.model.Ap
 import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
 import br.com.portalmanager.platform.workspace.feature.shared.domain.SharedMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.shared.domain.contract.SharedContract;
-import br.com.portalmanager.platform.workspace.feature.shared.integration.SharedReferenceResolver;
+import br.com.portalmanager.platform.workspace.feature.shared.integration.SharedReferenceAdapter;
 import br.com.portalmanager.platform.workspace.feature.shared.repository.SharedContractRepository;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.contract.SharedContractInput;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.contract.SharedContractOutput;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.validation.SharedValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import java.time.LocalDateTime;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SharedContractCommandService {
 
-    private final SharedReferenceResolver referenceResolver;
+    private final SharedReferenceAdapter referenceResolver;
     private final SharedContractRepository contractRepository;
     private final ApplicationQueryService applicationQueryService;
     private final SharedValidator sharedValidator;
     private final SharedContractAccessService contractAccessService;
 
     public SharedContractCommandService(
-        SharedReferenceResolver referenceResolver,
+        SharedReferenceAdapter referenceResolver,
         SharedContractRepository contractRepository,
         ApplicationQueryService applicationQueryService,
         SharedValidator sharedValidator,
@@ -53,15 +55,14 @@ public class SharedContractCommandService {
         );
         sharedValidator.validateContract(input);
         Long featureId = referenceResolver.shareableFeatureId(input.featureIdentifier());
-        if (
-            contractRepository
-                .findContractIdByOwnerAndFeatureForUpdate(
-                    ownerApplication.workspaceId(),
-                    ownerApplication.applicationId(),
-                    featureId
-                )
-                .isPresent()
-        ) throw new ValidationException(SharedMessageKeys.DUPLICATE);
+        Optional<Long> contractIdByOwnerAndFeatureForUpdate = contractRepository.findContractIdByOwnerAndFeatureForUpdate(
+                ownerApplication.workspaceId(),
+                ownerApplication.applicationId(),
+                featureId);
+
+        if (contractIdByOwnerAndFeatureForUpdate .isPresent()) {
+            throw new ValidationException(SharedMessageKeys.DUPLICATE);
+        }
         SharedContract contract = contractRepository.save(
             new SharedContract(
                 ownerApplication.workspaceId(),
@@ -94,7 +95,6 @@ public class SharedContractCommandService {
         }
 
         referenceResolver.shareableFeatureId(input.featureIdentifier());
-        // Keep write lock order consistent: application, feature, then contract.
         contract = contractAccessService.requiredContract(ownerApplication, contractIdentifier);
         contract.update(normalizeDescription(input.description()), LocalDateTime.now());
         return referenceResolver.contractOutput(contract, workspaceIdentifier, applicationIdentifier);

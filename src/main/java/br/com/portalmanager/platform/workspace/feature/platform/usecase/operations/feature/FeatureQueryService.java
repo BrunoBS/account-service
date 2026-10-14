@@ -4,112 +4,103 @@ import br.com.portalmanager.platform.library.messaging.exception.NotFoundExcepti
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.feature.Feature;
-import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureContextRelationRepository;
-import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureRepository;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.FeatureContextOutput;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.FeatureOutput;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.FeatureReferenceOutput;
+import br.com.portalmanager.platform.workspace.feature.platform.repository.context.ContextRepository;
+import br.com.portalmanager.platform.workspace.feature.platform.repository.feature.FeatureRepository.FeatureReference;
+import br.com.portalmanager.platform.workspace.feature.platform.repository.feature.FeatureRepository;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.feature.FeatureOutput;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.feature.FeatureReferenceOutput;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.validation.feature.FeatureValidator;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@org.springframework.stereotype.Service
+@Service
 public class FeatureQueryService {
-
     private final FeatureRepository repository;
-    private final FeatureContextRelationRepository relations;
+    private final ContextRepository contexts;
+    private final FeatureFinder finder;
+    private final FeatureMapper mapper;
+    private final FeatureValidator validator;
 
-    public FeatureQueryService(FeatureRepository repository, FeatureContextRelationRepository relations) {
+    public FeatureQueryService(FeatureRepository repository, ContextRepository contexts,
+        FeatureFinder finder, FeatureMapper mapper, FeatureValidator validator) {
         this.repository = repository;
-        this.relations = relations;
+        this.contexts = contexts;
+        this.finder = finder;
+        this.mapper = mapper;
+        this.validator = validator;
     }
 
-    /** Locks the feature until the enclosing contract transaction commits. */
+    /** Locks the parent and feature until the enclosing contract transaction commits. */
     @Transactional
-    public Long findShareableInternalId(String identifier) {
-        Feature feature = repository
-            .findByIdentifierForUpdate(identifier)
-            .filter(reference -> reference.isActive() && reference.getMicroservice().isActive())
-            .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND));
+    public Long findShareableInternalIdByIdentifier(String featureIdentifier) {
+        Feature feature;
+        try {
+            feature = finder.findActiveForReference(featureIdentifier);
+        } catch (ValidationException exception) {
+            // An unavailable parent makes the feature unavailable to the shared integration.
+            throw new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND);
+        }
         if (!feature.isShareable()) throw new ValidationException(PlatformMessageKeys.FEATURE_NOT_SHAREABLE);
         return feature.getId();
     }
 
     @Transactional(readOnly = true)
     public FeatureReferenceOutput findReferenceByInternalId(Long featureId) {
-        Feature feature = repository
-            .findById(featureId)
-            .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND));
-        return new FeatureReferenceOutput(feature.getIdentifier(), feature.getName());
+        FeatureReferenceOutput reference = findReferencesByInternalIds(List.of(featureId)).get(featureId);
+        if (reference == null) throw new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND);
+        return reference;
     }
 
     @Transactional(readOnly = true)
     public Map<Long, FeatureReferenceOutput> findReferencesByInternalIds(Collection<Long> featureIds) {
         if (featureIds.isEmpty()) return Map.of();
-        return repository
-            .findByIdIn(featureIds)
-            .stream()
-            .collect(
-                Collectors.toMap(Feature::getId, feature ->
-                    new FeatureReferenceOutput(feature.getIdentifier(), feature.getName())
-                )
-            );
+        return toReferences(repository.findReferences(featureIds));
     }
 
     @Transactional(readOnly = true)
     public Map<Long, FeatureReferenceOutput> findAvailableReferencesForShared(Collection<Long> featureIds) {
         if (featureIds.isEmpty()) return Map.of();
-        return repository
-            .findByIdIn(featureIds)
-            .stream()
-            .filter(feature -> feature.isActive() && feature.isShareable() && feature.getMicroservice().isActive())
-            .collect(
-                Collectors.toMap(Feature::getId, feature ->
-                    new FeatureReferenceOutput(feature.getIdentifier(), feature.getName())
-                )
-            );
+        return toReferences(repository.findAvailableReferencesForShared(featureIds));
     }
 
     @Transactional(readOnly = true)
     public String findIdentifierByInternalId(Long featureId) {
-        return repository
-            .findIdentifierById(featureId)
+        return repository.findIdentifierById(featureId)
             .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
     public Map<Long, String> findAvailableIdentifiersForShared(Collection<Long> featureIds) {
-        return findAvailableReferencesForShared(featureIds)
-            .entrySet()
-            .stream()
+        return findAvailableReferencesForShared(featureIds).entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().identifier()));
     }
 
     @Transactional(readOnly = true)
-    public FeatureOutput findByIdentifier(String identifier) {
-        return repository
-            .findByIdentifier(identifier)
-            .map(FeatureOutput::from)
-            .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND));
+    public FeatureOutput findByIdentifier(String featureIdentifier) {
+        return mapper.toOutput(finder.findActive(featureIdentifier));
     }
 
     @Transactional(readOnly = true)
-    public List<FeatureOutput> findAll() {
-        return repository.findAll().stream().map(FeatureOutput::from).toList();
+    public Page<FeatureOutput> findAll(String contextIdentifier, String lifecycle, Pageable pageable) {
+        validator.validateQuery(pageable);
+        String normalizedContextIdentifier = contextIdentifier == null || contextIdentifier.isBlank()
+            ? null : contextIdentifier.trim();
+        if (normalizedContextIdentifier != null && !contexts.existsByIdentifier(normalizedContextIdentifier)) {
+            throw new NotFoundException(PlatformMessageKeys.CONTEXT_NOT_FOUND);
+        }
+        return repository.findAll(normalizedContextIdentifier, LifecycleFilter.resolve(lifecycle).value(), pageable)
+            .map(mapper::toOutput);
     }
 
-    @Transactional(readOnly = true)
-    public List<FeatureOutput> findByContext(String contextCode) {
-        return relations.findFeaturesByContextCode(contextCode).stream().map(FeatureOutput::from).toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<FeatureContextOutput> findContexts(String identifier) {
-        repository
-            .findByIdentifier(identifier)
-            .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND));
-        return relations.findContextsByFeatureIdentifier(identifier).stream().map(FeatureContextOutput::from).toList();
+    private Map<Long, FeatureReferenceOutput> toReferences(List<FeatureReference> references) {
+        return references.stream().collect(Collectors.toMap(FeatureReference::getId,
+            reference -> new FeatureReferenceOutput(reference.getIdentifier(), reference.getName())));
     }
 }

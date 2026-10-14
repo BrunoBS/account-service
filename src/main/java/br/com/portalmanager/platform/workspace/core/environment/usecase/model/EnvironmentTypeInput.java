@@ -6,6 +6,7 @@ public record EnvironmentTypeInput(
     String name,
     String description,
     Boolean rootAllowed,
+    Boolean allowsChildren,
     Boolean workspaceRequired,
     Integer displayOrder
 ) {}

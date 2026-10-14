@@ -5,11 +5,11 @@ import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaDefinitionValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaDefinitionValidationAdapter;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaInput;
@@ -28,25 +28,25 @@ public class SchemaCommandService {
 
     private final SchemaRepository repository;
     private final SchemaVersionRepository versionRepository;
-    private final SchemaDefinitionValidator validator;
+    private final SchemaDefinitionValidationAdapter validator;
     private final SchemaOperationValidator operationValidator;
     private final SchemaVersionOperationValidator versionValidator;
-    private final WorkspaceReferenceResolver workspaceReferenceResolver;
+    private final WorkspaceReferencePort workspaceReferencePort;
 
     public SchemaCommandService(
         SchemaRepository repository,
         SchemaVersionRepository versionRepository,
-        SchemaDefinitionValidator validator,
+        SchemaDefinitionValidationAdapter validator,
         SchemaOperationValidator operationValidator,
         SchemaVersionOperationValidator versionValidator,
-        WorkspaceReferenceResolver workspaceReferenceResolver
+        WorkspaceReferencePort workspaceReferencePort
     ) {
         this.repository = repository;
         this.versionRepository = versionRepository;
         this.validator = validator;
         this.operationValidator = operationValidator;
         this.versionValidator = versionValidator;
-        this.workspaceReferenceResolver = workspaceReferenceResolver;
+        this.workspaceReferencePort = workspaceReferencePort;
     }
 
     @Transactional
@@ -61,7 +61,7 @@ public class SchemaCommandService {
     public SchemaOutput createWorkspace(CreateSchemaInput input) {
         operationValidator.validateCreateInput(input);
         operationValidator.validateWorkspaceIdentifier(input.workspaceIdentifier());
-        Long workspaceId = workspaceReferenceResolver.resolveInternalId(input.workspaceIdentifier().trim());
+        Long workspaceId = workspaceReferencePort.resolveInternalId(input.workspaceIdentifier().trim());
         return create(input, SchemaScopeTypeCode.workspace(), workspaceId);
     }
 
@@ -78,7 +78,7 @@ public class SchemaCommandService {
             requiredScoped(
                 identifier,
                 SchemaScopeTypeCode.workspace(),
-                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+                workspaceReferencePort.resolveInternalId(workspaceIdentifier)
             ),
             input
         );
@@ -95,7 +95,7 @@ public class SchemaCommandService {
             requiredScoped(
                 identifier,
                 SchemaScopeTypeCode.workspace(),
-                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+                workspaceReferencePort.resolveInternalId(workspaceIdentifier)
             )
         );
     }
@@ -111,7 +111,7 @@ public class SchemaCommandService {
             requiredScoped(
                 identifier,
                 SchemaScopeTypeCode.workspace(),
-                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+                workspaceReferencePort.resolveInternalId(workspaceIdentifier)
             )
         );
     }
@@ -128,7 +128,7 @@ public class SchemaCommandService {
             requiredScoped(
                 identifier,
                 SchemaScopeTypeCode.workspace(),
-                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+                workspaceReferencePort.resolveInternalId(workspaceIdentifier)
             )
         );
     }
@@ -185,7 +185,7 @@ public class SchemaCommandService {
         String workspaceIdentifier =
             schema.getWorkspaceId() == null
                 ? null
-                : workspaceReferenceResolver.resolveIdentifier(schema.getWorkspaceId());
+                : workspaceReferencePort.resolveIdentifier(schema.getWorkspaceId());
         return SchemaOutput.from(schema, workspaceIdentifier);
     }
 }

@@ -1,0 +1,70 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Application",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["name", "alias", "acronym", "applicationScope", "settings"],
+    "properties": {
+        "version": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        },
+        "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50,
+            "pattern": "\\S"
+        },
+        "alias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "pattern": "\\S"
+        },
+        "acronym": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5,
+            "pattern": "\\S"
+        },
+        "description": {
+            "type": ["string", "null"],
+            "maxLength": 200
+        },
+        "applicationScope": {
+            "type": "string",
+            "enum": ["BACKEND", "FRONTEND", "SHARED"],
+            "minLength": 1,
+            "maxLength": 20
+        },
+        "authorizerGroup": {
+            "type": ["string", "null"],
+            "maxLength": 10
+        },
+        "settings": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["language", "infrastructure"],
+            "properties": {
+                "language": {
+                    "type": "string",
+                    "enum": ["JAVA", "C#", "NODE", "GO"]
+                },
+                "infrastructure": {
+                    "type": "string",
+                    "enum": ["VM", "ECS", "EKS"]
+                }
+            }
+        },
+        "tags": {
+            "type": ["array", "null"],
+            "maxItems": 20,
+            "items": {
+                "type": "string",
+                "maxLength": 50
+            }
+        }
+
+    }
+}

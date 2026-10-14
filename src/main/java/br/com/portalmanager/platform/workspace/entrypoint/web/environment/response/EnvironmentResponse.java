@@ -3,7 +3,6 @@ package br.com.portalmanager.platform.workspace.entrypoint.web.environment.respo
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentOutput;
 import java.time.LocalDateTime;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 public record EnvironmentResponse(
     Long version,
@@ -12,7 +11,7 @@ public record EnvironmentResponse(
     String name,
     String description,
     String authorizationType,
-    String environmentType,
+    String environmentTypeCode,
     String parentIdentifier,
     Integer sortOrder,
     String authorizerGroup,
@@ -21,8 +20,6 @@ public record EnvironmentResponse(
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
-
     public static EnvironmentResponse from(EnvironmentOutput output) {
         return new EnvironmentResponse(
             output.version(),
@@ -31,21 +28,15 @@ public record EnvironmentResponse(
             output.name(),
             output.description(),
             output.authorizationType(),
-            output.environmentType(),
+            output.environmentTypeCode(),
             output.parentIdentifier(),
             output.sortOrder(),
             output.authorizerGroup(),
-            toJsonNode(output.settings()),
+            output.settings(),
             output.lifecycle(),
             output.createdAt(),
             output.updatedAt()
         );
     }
 
-    private static JsonNode toJsonNode(String settings) {
-        if (settings == null || settings.isBlank()) {
-            return null;
-        }
-        return JSON_MAPPER.readTree(settings);
-    }
 }

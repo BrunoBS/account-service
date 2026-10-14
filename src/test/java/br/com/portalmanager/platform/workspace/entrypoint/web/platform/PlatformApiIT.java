@@ -120,9 +120,7 @@ class PlatformApiIT {
                     "code",
                     "batch-context",
                     "name",
-                    "Batch context",
-                    "featureIdentifiers",
-                    List.of(featureIdentifier, featureIdentifier)
+                    "Batch context"
                 )
             )
             .post("/api/v1/platform/contexts")
@@ -130,68 +128,28 @@ class PlatformApiIT {
             .statusCode(201)
             .extract()
             .path("identifier");
-        authorized()
-            .contentType(ContentType.JSON)
-            .body(Map.of("name", "Batch updated"))
-            .put("/api/v1/platform/contexts/" + batchContextIdentifier)
-            .then()
-            .statusCode(200);
-        authorized()
-            .get("/api/v1/platform/features?contextCode=batch-context")
-            .then()
-            .statusCode(200)
-            .body("$", hasSize(1));
-        authorized()
-            .contentType(ContentType.JSON)
-            .body(Map.of("name", "Should rollback", "featureIdentifiers", List.of(UUID.randomUUID().toString())))
-            .put("/api/v1/platform/contexts/" + batchContextIdentifier)
-            .then()
-            .statusCode(404);
-        authorized()
-            .get("/api/v1/platform/contexts/" + batchContextIdentifier)
-            .then()
-            .statusCode(200)
-            .body("name", equalTo("Batch updated"));
-        authorized()
-            .get("/api/v1/platform/features?contextCode=batch-context")
-            .then()
-            .statusCode(200)
-            .body("$", hasSize(1));
-        authorized()
-            .contentType(ContentType.JSON)
-            .body(Map.of("name", "Batch updated", "featureIdentifiers", List.of()))
-            .put("/api/v1/platform/contexts/" + batchContextIdentifier)
-            .then()
-            .statusCode(200);
-        authorized()
-            .get("/api/v1/platform/features?contextCode=batch-context")
-            .then()
-            .statusCode(200)
-            .body("$", hasSize(0));
-        authorized()
-            .contentType(ContentType.JSON)
-            .body(Map.of("name", "Batch updated", "featureIdentifiers", List.of(featureIdentifier)))
-            .put("/api/v1/platform/contexts/" + batchContextIdentifier)
-            .then()
-            .statusCode(200);
-        authorized()
-            .contentType(ContentType.JSON)
-            .body(Map.of("name", "Batch updated", "featureIdentifiers", List.of()))
-            .put("/api/v1/platform/contexts/" + batchContextIdentifier)
-            .then()
-            .statusCode(200);
+        String link = "/api/v1/platform/contexts/" + batchContextIdentifier + "/features/" + featureIdentifier;
+        authorized().post(link).then().statusCode(200);
+        authorized().post(link).then().statusCode(200);
+        authorized().contentType(ContentType.JSON)
+            .body(contextUpdate(batchContextIdentifier, Map.of("name", "Updated context")))
+            .put("/api/v1/platform/contexts/" + batchContextIdentifier).then().statusCode(200);
+        authorized().queryParam("contextIdentifier", batchContextIdentifier).get("/api/v1/platform/features")
+            .then().statusCode(200).body("content", hasSize(1));
+        authorized().delete(link).then().statusCode(204);
+        authorized().patch("/api/v1/platform/contexts/" + batchContextIdentifier + "/inactivate").then().statusCode(200);
         authorized()
             .delete("/api/v1/platform/contexts/" + batchContextIdentifier)
             .then()
             .statusCode(204);
 
         authorized()
-            .post("/api/v1/platform/features/" + featureIdentifier + "/contexts/" + contextIdentifier)
+            .post("/api/v1/platform/contexts/" + contextIdentifier + "/features/" + featureIdentifier)
             .then()
             .statusCode(200);
 
         authorized()
-            .post("/api/v1/platform/features/" + featureIdentifier + "/contexts/" + contextIdentifier)
+            .post("/api/v1/platform/contexts/" + contextIdentifier + "/features/" + featureIdentifier)
             .then()
             .statusCode(200);
         assertThat(
@@ -208,18 +166,19 @@ class PlatformApiIT {
             .statusCode(400);
 
         authorized()
-            .get("/api/v1/platform/features/" + featureIdentifier + "/contexts")
+            .get("/api/v1/platform/contexts?featureIdentifier=" + featureIdentifier)
             .then()
             .statusCode(200)
-            .body("$", hasSize(1))
-            .body("[0].code", equalTo("manager-account"));
+            .body("content", hasSize(1))
+            .body("content[0].code", equalTo("manager-account"));
 
         authorized()
-            .get("/api/v1/platform/features?contextCode=manager-account")
+            .queryParam("contextIdentifier", contextIdentifier)
+            .get("/api/v1/platform/features")
             .then()
             .statusCode(200)
-            .body("$", hasSize(1))
-            .body("[0].code", equalTo("application"));
+            .body("content", hasSize(1))
+            .body("content[0].code", equalTo("application"));
 
         authorized()
             .patch("/api/v1/platform/contexts/" + contextIdentifier + "/inactivate")
@@ -234,9 +193,9 @@ class PlatformApiIT {
             .body("lifecycle", equalTo("ACTIVE"));
 
         authorized()
-            .delete("/api/v1/platform/features/" + featureIdentifier + "/contexts/" + contextIdentifier)
+            .delete("/api/v1/platform/contexts/" + contextIdentifier + "/features/" + featureIdentifier)
             .then()
-            .statusCode(200);
+            .statusCode(204);
 
         assertThat(
             jdbc.queryForObject(
@@ -246,11 +205,12 @@ class PlatformApiIT {
             )
         ).isZero();
         authorized()
-            .get("/api/v1/platform/features/" + featureIdentifier + "/contexts")
+            .get("/api/v1/platform/contexts?featureIdentifier=" + featureIdentifier)
             .then()
             .statusCode(200)
-            .body("size()", equalTo(0));
+            .body("content.size()", equalTo(0));
 
+        authorized().patch("/api/v1/platform/contexts/" + contextIdentifier + "/inactivate").then().statusCode(200);
         authorized()
             .delete("/api/v1/platform/contexts/" + contextIdentifier)
             .then()
@@ -304,5 +264,14 @@ class PlatformApiIT {
             .header("correlation-id", "platform-api-it")
             .header("Authorization", "Bearer platform-api-it")
             .accept(ContentType.JSON);
+    }
+
+    private Map<String, Object> contextUpdate(String contextIdentifier, Map<String, Object> changes) {
+        Map<String, Object> current = authorized().get("/api/v1/platform/contexts/" + contextIdentifier)
+            .then().statusCode(200).extract().as(new io.restassured.common.mapper.TypeRef<Map<String, Object>>() {});
+        Map<String, Object> body = new java.util.HashMap<>(changes);
+        body.put("version", current.get("version"));
+        body.put("code", current.get("code"));
+        return body;
     }
 }

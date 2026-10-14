@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.core.environment.usecase.model;
 
 import br.com.portalmanager.platform.workspace.core.environment.domain.environment.Environment;
 import java.time.LocalDateTime;
+import tools.jackson.databind.JsonNode;
 
 public record EnvironmentOutput(
     Long version,
@@ -10,31 +11,36 @@ public record EnvironmentOutput(
     String name,
     String description,
     String authorizationType,
-    String environmentType,
+    String environmentTypeCode,
     String parentIdentifier,
     Integer sortOrder,
     String authorizerGroup,
-    String settings,
+    JsonNode settings,
     String lifecycle,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
-    public static EnvironmentOutput from(Environment e, String workspaceIdentifier) {
+    public static EnvironmentOutput from(Environment environment, String workspaceIdentifier) {
+        String parentIdentifier = environment.getParent() == null ? null : environment.getParent().getIdentifier();
+        return from(environment, workspaceIdentifier, parentIdentifier);
+    }
+
+    public static EnvironmentOutput from(Environment environment, String workspaceIdentifier, String parentIdentifier) {
         return new EnvironmentOutput(
-            e.getVersion(),
-            e.getIdentifier(),
+            environment.getVersion(),
+            environment.getIdentifier(),
             workspaceIdentifier,
-            e.getName(),
-            e.getDescription(),
-            e.getAuthorizationType().value(),
-            e.getEnvironmentType().getCode(),
-            e.getParent() == null ? null : e.getParent().getIdentifier(),
-            e.getSortOrder(),
-            e.getAuthorizerGroup(),
-            e.getSettings(),
-            e.getLifecycle().value(),
-            e.getCreatedAt(),
-            e.getUpdatedAt()
+            environment.getName(),
+            environment.getDescription(),
+            environment.getAuthorizationType().value(),
+            environment.getEnvironmentType().getCode(),
+            parentIdentifier,
+            environment.getSortOrder(),
+            environment.getAuthorizerGroup(),
+            environment.getSettings(),
+            environment.getLifecycle().value(),
+            environment.getCreatedAt(),
+            environment.getUpdatedAt()
         );
     }
 }

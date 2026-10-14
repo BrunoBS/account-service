@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.core.publisher.usecase.model;
 
 import br.com.portalmanager.platform.workspace.core.publisher.domain.Publisher;
 import java.time.LocalDateTime;
+import tools.jackson.databind.JsonNode;
 
 public record PublisherOutput(
     Long version,
@@ -11,24 +12,24 @@ public record PublisherOutput(
     String description,
     String scope,
     boolean deprecated,
-    String settings,
+    JsonNode settings,
     String lifecycle,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
-    public static PublisherOutput from(Publisher p) {
+    public static PublisherOutput from(Publisher publisher) {
         return new PublisherOutput(
-            p.getVersion(),
-            p.getIdentifier(),
-            p.getCode(),
-            p.getName(),
-            p.getDescription(),
-            p.getScope().value(),
-            p.isDeprecated(),
-            p.getSettings(),
-            p.getLifecycle().value(),
-            p.getCreatedAt(),
-            p.getUpdatedAt()
+            publisher.getVersion(),
+            publisher.getIdentifier(),
+            publisher.getCode(),
+            publisher.getName(),
+            publisher.getDescription(),
+            publisher.getScope().value(),
+            publisher.isDeprecated(),
+            publisher.getSettings(),
+            publisher.getLifecycle().value(),
+            publisher.getCreatedAt(),
+            publisher.getUpdatedAt()
         );
     }
 }

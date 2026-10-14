@@ -43,13 +43,14 @@ public class SharedOwnerController {
     @GetMapping
     public SharedContractPageResponse list(
         AuthorizationContext context,
+        @RequestParam(required = false) String lifecycle,
         @PathVariable String workspaceIdentifier,
         @PathVariable String applicationIdentifier,
         @RequestParam(defaultValue = "0") String page,
         @RequestParam(defaultValue = "20") String size
     ) {
         return SharedContractPageResponse.from(
-            facade.list(context, workspaceIdentifier, applicationIdentifier, page, size)
+            facade.list(context, workspaceIdentifier, applicationIdentifier, lifecycle, page, size)
         );
     }
 

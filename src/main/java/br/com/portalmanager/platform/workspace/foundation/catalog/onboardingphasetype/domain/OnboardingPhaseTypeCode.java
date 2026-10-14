@@ -19,4 +19,20 @@ public class OnboardingPhaseTypeCode extends AbstractCatalogCode {
     public static OnboardingPhaseTypeCode of(OnboardingPhaseTypeEnum value) {
         return new OnboardingPhaseTypeCode(value == null ? null : value.name());
     }
+
+    public static OnboardingPhaseTypeCode workspaceRegistration() {
+        return of(OnboardingPhaseTypeEnum.WORKSPACE_REGISTRATION);
+    }
+
+    public static OnboardingPhaseTypeCode workspaceFirstEnvironment() {
+        return of(OnboardingPhaseTypeEnum.WORKSPACE_FIRST_ENVIRONMENT);
+    }
+
+    public static OnboardingPhaseTypeCode firstApplicationRegistration() {
+        return of(OnboardingPhaseTypeEnum.FIRST_APPLICATION_REGISTRATION);
+    }
+
+    public static OnboardingPhaseTypeCode applicationFirstEnvironment() {
+        return of(OnboardingPhaseTypeEnum.APPLICATION_FIRST_ENVIRONMENT);
+    }
 }

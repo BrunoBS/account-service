@@ -19,4 +19,8 @@ public class ResourceScopeTypeCode extends AbstractCatalogCode {
     public static ResourceScopeTypeCode of(ResourceScopeTypeEnum value) {
         return new ResourceScopeTypeCode(value == null ? null : value.name());
     }
+
+    public static ResourceScopeTypeCode workspace() { return of(ResourceScopeTypeEnum.WORKSPACE); }
+
+    public static ResourceScopeTypeCode application() { return of(ResourceScopeTypeEnum.APPLICATION); }
 }

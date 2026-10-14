@@ -4,11 +4,11 @@ import br.com.portalmanager.platform.workspace.core.environment.usecase.model.En
 
 public record EnvironmentTypeResponse(
     Long version,
-    String identifier,
     String code,
     String name,
     String description,
     boolean rootAllowed,
+    boolean allowsChildren,
     boolean workspaceRequired,
     int displayOrder,
     String lifecycle
@@ -16,11 +16,11 @@ public record EnvironmentTypeResponse(
     public static EnvironmentTypeResponse from(EnvironmentTypeOutput output) {
         return new EnvironmentTypeResponse(
             output.version(),
-            output.identifier(),
             output.code(),
             output.name(),
             output.description(),
             output.rootAllowed(),
+            output.allowsChildren(),
             output.workspaceRequired(),
             output.displayOrder(),
             output.lifecycle()

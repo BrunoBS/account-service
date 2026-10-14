@@ -66,9 +66,10 @@ public interface SharedContractRepository extends JpaRepository<SharedContract, 
         Pageable pageable
     );
 
-    Page<SharedContract> findByOwnerWorkspaceIdAndOwnerApplicationId(
+    Page<SharedContract> findByOwnerWorkspaceIdAndOwnerApplicationIdAndLifecycleValue(
         Long workspaceId,
         Long applicationId,
+        String lifecycle,
         Pageable pageable
     );
 

@@ -1,20 +1,55 @@
 package br.com.portalmanager.platform.workspace.feature.message.usecase.operations;
 
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.library.schemavalidation.normalization.SchemaPayloadNormalizer;
+import br.com.portalmanager.platform.workspace.feature.message.domain.MessageMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.CreateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageTranslationInput;
+import java.util.IllformedLocaleException;
+import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 @Component
-public class MessageNormalizer {
+public class MessageNormalizer implements SchemaPayloadNormalizer {
+
+    @Override
+    public JsonNode normalizePayload(JsonNode payload) {
+        if (!(payload instanceof ObjectNode object)) return payload;
+        ObjectNode normalized = object.deepCopy();
+        for (String field : List.of("microserviceIdentifier", "messageKey", "title", "detail", "suggestion")) {
+            JsonNode value = normalized.get(field);
+            if (value != null && value.isString()) normalized.put(field, trim(value.asString()));
+        }
+        JsonNode code = normalized.get("code");
+        if (code != null && code.isString()) normalized.put("code", upper(code.asString()));
+        JsonNode observation = normalized.get("observation");
+        if (observation != null && observation.isString()) {
+            normalized.put("observation", trimOptional(observation.asString()));
+        }
+        JsonNode locale = normalized.get("locale");
+        if (locale != null && locale.isString()) normalized.put("locale", normalizeLocale(locale.asString()));
+        JsonNode translations = normalized.get("translations");
+        if (translations instanceof ArrayNode array) {
+            for (int index = 0; index < array.size(); index++) {
+                array.set(index, normalizePayload(array.get(index)));
+            }
+        }
+        return normalized;
+    }
 
     public CreateMessageInput normalize(CreateMessageInput input) {
         if (input == null) {
             return null;
         }
         return new CreateMessageInput(
+            input.version(),
             normalizeMicroserviceIdentifier(input.microserviceIdentifier()),
             trim(input.messageKey()),
             upper(input.code()),
@@ -43,6 +78,7 @@ public class MessageNormalizer {
             return null;
         }
         return new CreateMessageTranslationInput(
+            input.version(),
             normalizeLocale(input.locale()),
             trim(input.title()),
             trim(input.detail()),
@@ -89,10 +125,13 @@ public class MessageNormalizer {
             return null;
         }
 
-        Locale locale = Locale.forLanguageTag(normalized.replace('_', '-'));
-        String languageTag = locale.toLanguageTag();
-
-        return "und".equals(languageTag) ? normalized : languageTag;
+        try {
+            return new Locale.Builder().setLanguageTag(normalized.replace('_', '-')).build().toLanguageTag();
+        } catch (IllformedLocaleException exception) {
+            ValidationResult result = new ValidationResult();
+            result.addError("locale", MessageMessageKeys.LOCALE_INVALID);
+            throw new ValidationException(result);
+        }
     }
 
     private String upper(String value) {

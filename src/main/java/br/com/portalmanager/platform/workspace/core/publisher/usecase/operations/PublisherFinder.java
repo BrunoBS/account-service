@@ -1,7 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.publisher.usecase.operations;
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.core.publisher.domain.Publisher;
 import br.com.portalmanager.platform.workspace.core.publisher.domain.PublisherMessageKeys;
 import br.com.portalmanager.platform.workspace.core.publisher.repository.PublisherRepository;
@@ -27,17 +26,13 @@ public class PublisherFinder {
 
     public Publisher findInactive(String identifier) {
         Publisher publisher = find(identifier);
-        if (!LifecycleTypeCode.inactive().equals(publisher.getLifecycle())) throw new ValidationException(
-            PublisherMessageKeys.RESTORE_INVALID
-        );
+        publisher.requireRestorable();
         return publisher;
     }
 
     public Publisher findInactiveForDeletion(String identifier) {
         Publisher publisher = find(identifier);
-        if (!LifecycleTypeCode.inactive().equals(publisher.getLifecycle())) throw new ValidationException(
-            PublisherMessageKeys.DELETE_INVALID
-        );
+        publisher.requireDeletable();
         return publisher;
     }
 

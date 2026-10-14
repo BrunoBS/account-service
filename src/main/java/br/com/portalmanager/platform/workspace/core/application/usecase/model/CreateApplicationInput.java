@@ -4,8 +4,10 @@ import java.util.List;
 import tools.jackson.databind.JsonNode;
 
 public record CreateApplicationInput(
+    Long version,
     String name,
     String alias,
+    String description,
     String acronym,
     String applicationScope,
     String authorizerGroup,

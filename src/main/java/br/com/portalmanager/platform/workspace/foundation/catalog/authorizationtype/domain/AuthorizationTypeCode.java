@@ -19,4 +19,10 @@ public class AuthorizationTypeCode extends AbstractCatalogCode {
     public static AuthorizationTypeCode of(AuthorizationTypeEnum value) {
         return new AuthorizationTypeCode(value == null ? null : value.name());
     }
+
+    public static AuthorizationTypeCode development() { return of(AuthorizationTypeEnum.DEV); }
+
+    public static AuthorizationTypeCode testing() { return of(AuthorizationTypeEnum.TST); }
+
+    public static AuthorizationTypeCode administration() { return of(AuthorizationTypeEnum.ADM); }
 }

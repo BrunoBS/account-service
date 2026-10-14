@@ -1,7 +1,10 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.message.request;
 
+import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
+import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageNormalizer;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageInput;
 
+@ValidateResourceSchemaRequest(type = "MESSAGE", code = "message", normalizer = MessageNormalizer.class)
 public record UpdateMessageRequest(
     Long version,
     String microserviceIdentifier,

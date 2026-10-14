@@ -38,6 +38,8 @@ class CatalogApiIT {
     @BeforeEach
     void authorizeAsOwner() {
         SchemaDefaultFixture.seed(jdbc);
+        // CRUD scenarios create their own phase rows; the shared fixture preloads them for domain flows.
+        jdbc.update("DELETE FROM type_onboardings");
         authorizationMock.reset();
         authorizationMock.allow(session -> session.groups("PM5_OWNER"));
     }
@@ -133,6 +135,22 @@ class CatalogApiIT {
         post("/api/v1/onboarding-type", onboarding)
             .statusCode(201)
             .body("settings.orientation", equalTo("Orientação inicial"));
+    }
+
+    @Test
+    void shouldValidateOnboardingOrientationOnCreateAndUpdate() {
+        Map<String, Object> body = standardBody("WORKSPACE_REGISTRATION", "Registration", "Cadastro de workspace", 1);
+        body.put("settings", Map.of("orientation", 123));
+        post("/api/v1/onboarding-type", body).statusCode(400)
+            .body("details.field", hasItem("settings.orientation"));
+
+        body.put("settings", Map.of("orientation", "Orientação válida"));
+        post("/api/v1/onboarding-type", body).statusCode(201);
+        body.put("settings", Map.of("orientation", true));
+        put("/api/v1/onboarding-type/WORKSPACE_REGISTRATION", body).statusCode(400)
+            .body("details.field", hasItem("settings.orientation"));
+        get("/api/v1/onboarding-type/WORKSPACE_REGISTRATION").statusCode(200)
+            .body("settings.orientation", equalTo("Orientação válida"));
     }
 
     @Test

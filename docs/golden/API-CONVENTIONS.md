@@ -49,13 +49,14 @@ Inexistente ou INACTIVE retorna `404` com código `WORKSPACE-0001`.
 ## List
 
 ```http
-GET /api/v1/workspaces?active=true&typeName=ADMIN
+GET /api/v1/workspaces?lifecycle=ACTIVE&typeName=ADMIN
 ```
 
 Regras:
 
-- `active` default = `true`;
-- `active=false` lista INACTIVE;
+- Recursos com lifecycle usam `lifecycle=ACTIVE|INACTIVE|QUARANTINED`, com padrão `ACTIVE`;
+- `lifecycle` aceita normalização de case e espaços; valor vazio ou desconhecido retorna 400;
+- Catálogos com campo booleano continuam usando `active=true|false`, com padrão `true`;
 - `typeName` é opcional;
 - `typeName` ignora case e whitespace;
 - tipo inválido retorna 400 com detalhe em `typeName`;

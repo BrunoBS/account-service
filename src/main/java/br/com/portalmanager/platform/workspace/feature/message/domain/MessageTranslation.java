@@ -1,7 +1,20 @@
 package br.com.portalmanager.platform.workspace.feature.message.domain;
 
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import jakarta.persistence.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -54,50 +67,56 @@ public class MessageTranslation {
 
     protected MessageTranslation() {}
 
-    public MessageTranslation(
-        Message message,
-        String locale,
-        String title,
-        String detail,
-        String suggestion,
-        LocalDateTime now
-    ) {
-        this.identifier = UUID.randomUUID().toString();
+    public MessageTranslation(Message message, MessageTranslationDetails details, LocalDateTime now) {
+        message.requireActiveForTranslation();
+        identifier = UUID.randomUUID().toString();
         this.message = message;
-        this.locale = locale;
-        this.title = title;
-        this.detail = detail;
-        this.suggestion = suggestion;
-        this.lifecycle = LifecycleTypeCode.active();
-        this.createdAt = now;
-        this.updatedAt = now;
+        applyDetails(details);
+        lifecycle = LifecycleTypeCode.active();
+        createdAt = now;
+        updatedAt = now;
     }
 
-    public void update(String locale, String title, String detail, String suggestion, LocalDateTime now) {
-        this.locale = locale;
-        this.title = title;
-        this.detail = detail;
-        this.suggestion = suggestion;
-        this.updatedAt = now;
+    public void update(MessageTranslationDetails details, LocalDateTime now) {
+        requireActiveForUpdate();
+        applyDetails(details);
+        updatedAt = now;
+    }
+
+    private void applyDetails(MessageTranslationDetails details) {
+        locale = details.locale();
+        title = details.title();
+        detail = details.detail();
+        suggestion = details.suggestion();
     }
 
     public void activate(LocalDateTime now) {
+        message.requireActiveForTranslation();
+        if (!isInactive()) throw new ValidationException(MessageMessageKeys.TRANSLATION_ACTIVATE_INVALID);
         lifecycle = LifecycleTypeCode.active();
         updatedAt = now;
     }
 
     public void inactivate(LocalDateTime now) {
+        if (!isActive()) throw new ValidationException(MessageMessageKeys.TRANSLATION_INACTIVATE_INVALID);
         lifecycle = LifecycleTypeCode.inactive();
         updatedAt = now;
     }
 
-    public void quarantine(LocalDateTime now) {
-        lifecycle = LifecycleTypeCode.quarantined();
-        updatedAt = now;
+    public void requireInactiveForDeletion() {
+        if (!isInactive()) throw new ValidationException(MessageMessageKeys.TRANSLATION_DELETE_INVALID);
     }
 
     public boolean isInactive() {
         return LifecycleTypeCode.inactive().equals(lifecycle);
+    }
+
+    public void requireActiveForUpdate() {
+        if (!isActive()) throw new ValidationException(MessageMessageKeys.TRANSLATION_UPDATE_INVALID);
+    }
+
+    private boolean isActive() {
+        return LifecycleTypeCode.active().equals(lifecycle);
     }
 
     public Long getId() {

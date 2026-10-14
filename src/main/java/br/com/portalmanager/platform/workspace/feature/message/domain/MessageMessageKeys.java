@@ -6,6 +6,16 @@ public final class MessageMessageKeys {
     public static final String DELETE_INVALID = "message.delete.invalid";
     public static final String TRANSLATION_NOT_FOUND = "message.translation.not-found";
     public static final String TRANSLATION_DELETE_INVALID = "message.translation.delete.invalid";
+    public static final String UPDATE_INVALID = "message.update.invalid";
+    public static final String ACTIVATE_INVALID = "message.activate.invalid";
+    public static final String INACTIVATE_INVALID = "message.inactivate.invalid";
+    public static final String TRANSLATION_UPDATE_INVALID = "message.translation.update.invalid";
+    public static final String TRANSLATION_ACTIVATE_INVALID = "message.translation.activate.invalid";
+    public static final String TRANSLATION_INACTIVATE_INVALID = "message.translation.inactivate.invalid";
+    public static final String TRANSLATION_PARENT_INACTIVE = "message.translation.parent.inactive";
+    public static final String INPUT_REQUIRED = "validation.message.input.required";
+    public static final String VERSION_NOT_ALLOWED_ON_CREATE = "validation.message.version.not-allowed-on-create";
+    public static final String PAGE_INVALID = "validation.message.page.invalid";
 
     public static final String MICROSERVICE_REQUIRED = "validation.message.microservice.required";
     public static final String MICROSERVICE_INVALID = "validation.message.microservice.invalid";

@@ -101,6 +101,40 @@ class WorkspaceAuditIT {
         assertThat(jsonValues("$.service")).containsOnly("workspace-service");
         assertThat(jsonValues("$.username")).containsOnly("golden-auditor");
         assertThat(jsonValues("$.correlationId")).containsOnly("audit-trace");
+        List<String> deactivationSnapshots = jdbcTemplate.queryForList(
+            "SELECT CAST(payload AS CHAR) FROM audit_outbox WHERE JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.eventType')) = 'WORKSPACE_DEACTIVATED' ORDER BY id",
+            String.class
+        );
+        assertThat(deactivationSnapshots).hasSize(2);
+        tools.jackson.databind.json.JsonMapper mapper = tools.jackson.databind.json.JsonMapper.builder().build();
+        for (String snapshot : deactivationSnapshots) {
+            tools.jackson.databind.JsonNode payload = mapper.readTree(snapshot);
+            assertThat(payload.get("identifier").asText()).isEqualTo(identifier);
+            assertThat(payload.get("lifecycle").asText()).isEqualTo("INACTIVE");
+            assertThat(payload.get("tags").get(0).asText()).isEqualTo("audit-manual");
+            assertThat(payload.get("settings").get("feature").asBoolean()).isTrue();
+            assertThat(payload.get("approvers").get(0).get("functional").asText()).isEqualTo("F1000");
+        }
+        String restorationSnapshot = jdbcTemplate.queryForObject(
+            "SELECT CAST(payload AS CHAR) FROM audit_outbox WHERE JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.eventType')) = 'WORKSPACE_RESTORED'",
+            String.class
+        );
+        tools.jackson.databind.JsonNode restoredPayload = mapper.readTree(restorationSnapshot);
+        assertThat(restoredPayload.get("lifecycle").asText()).isEqualTo("ACTIVE");
+        assertThat(restoredPayload.get("tags").get(0).asText()).isEqualTo("audit-manual");
+        String deletionSnapshot = jdbcTemplate.queryForObject(
+            "SELECT CAST(payload AS CHAR) FROM audit_outbox WHERE JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.eventType')) = 'WORKSPACE_DELETED'",
+            String.class
+        );
+        tools.jackson.databind.JsonNode deletedPayload = mapper.readTree(deletionSnapshot);
+        assertThat(deletedPayload.get("identifier").asText()).isEqualTo(identifier);
+        assertThat(deletedPayload.get("lifecycle").asText()).isEqualTo("QUARANTINED");
+        assertThat(deletedPayload.get("tags").get(0).asText()).isEqualTo("audit-manual");
+        assertThat(deletedPayload.get("settings").get("feature").asBoolean()).isTrue();
+        assertThat(deletedPayload.get("approvers").get(0).get("functional").asText()).isEqualTo("F1000");
+        post("/api/v1/workspaces/" + identifier + "/restore").statusCode(400);
+        delete(identifier).statusCode(400);
+        assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM audit_outbox", Integer.class)).isEqualTo(6);
     }
 
     private List<String> jsonValues(String path) {

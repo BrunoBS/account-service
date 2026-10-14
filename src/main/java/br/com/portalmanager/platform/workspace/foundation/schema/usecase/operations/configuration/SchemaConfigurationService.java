@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operat
 
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.configuration.SchemaConfiguration;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaConfigurationRepository;
@@ -95,8 +96,12 @@ public class SchemaConfigurationService {
     }
 
     @Transactional(readOnly = true)
-    public List<SchemaConfigurationOutput> findAll() {
-        return repository.findAll().stream().map(SchemaConfigurationOutput::from).toList();
+    public List<SchemaConfigurationOutput> findAll(String lifecycle) {
+        return repository
+            .findByLifecycleOrderByIdAsc(LifecycleFilter.resolve(lifecycle))
+            .stream()
+            .map(SchemaConfigurationOutput::from)
+            .toList();
     }
 
     private Schema platformSchema(String identifier) {

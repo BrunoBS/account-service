@@ -1,10 +1,18 @@
 package br.com.portalmanager.platform.workspace.feature.message.domain;
 
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import jakarta.persistence.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -56,63 +64,61 @@ public class Message {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<MessageTranslation> translations = new LinkedHashSet<>();
-
     protected Message() {}
 
-    public Message(
-        Long microserviceId,
-        String messageKey,
-        String code,
-        Integer httpStatus,
-        String observation,
-        LocalDateTime now
-    ) {
-        this.identifier = UUID.randomUUID().toString();
+    public Message(Long microserviceId, MessageDetails details, LocalDateTime now) {
+        identifier = UUID.randomUUID().toString();
         this.microserviceId = microserviceId;
-        this.messageKey = messageKey;
-        this.code = code;
-        this.httpStatus = httpStatus;
-        this.observation = observation;
-        this.lifecycle = LifecycleTypeCode.active();
-        this.createdAt = now;
-        this.updatedAt = now;
+        applyDetails(details);
+        lifecycle = LifecycleTypeCode.active();
+        createdAt = now;
+        updatedAt = now;
     }
 
-    public void update(
-        Long microserviceId,
-        String messageKey,
-        String code,
-        Integer httpStatus,
-        String observation,
-        LocalDateTime now
-    ) {
+    public void update(Long microserviceId, MessageDetails details, LocalDateTime now) {
+        requireActiveForUpdate();
         this.microserviceId = microserviceId;
-        this.messageKey = messageKey;
-        this.code = code;
-        this.httpStatus = httpStatus;
-        this.observation = observation;
-        this.updatedAt = now;
+        applyDetails(details);
+        updatedAt = now;
+    }
+
+    private void applyDetails(MessageDetails details) {
+        messageKey = details.messageKey();
+        code = details.code();
+        httpStatus = details.httpStatus();
+        observation = details.observation();
     }
 
     public void activate(LocalDateTime now) {
+        if (!isInactive()) throw new ValidationException(MessageMessageKeys.ACTIVATE_INVALID);
         lifecycle = LifecycleTypeCode.active();
         updatedAt = now;
     }
 
     public void inactivate(LocalDateTime now) {
+        if (!isActive()) throw new ValidationException(MessageMessageKeys.INACTIVATE_INVALID);
         lifecycle = LifecycleTypeCode.inactive();
         updatedAt = now;
     }
 
-    public void quarantine(LocalDateTime now) {
-        lifecycle = LifecycleTypeCode.quarantined();
-        updatedAt = now;
+    public void requireInactiveForDeletion() {
+        if (!isInactive()) throw new ValidationException(MessageMessageKeys.DELETE_INVALID);
     }
 
     public boolean isInactive() {
         return LifecycleTypeCode.inactive().equals(lifecycle);
+    }
+
+    public void requireActiveForUpdate() {
+        if (!isActive()) throw new ValidationException(MessageMessageKeys.UPDATE_INVALID);
+    }
+
+    public void requireActiveForTranslation() {
+        if (!isActive()) throw new ValidationException(MessageMessageKeys.TRANSLATION_PARENT_INACTIVE);
+    }
+
+    private boolean isActive() {
+        return LifecycleTypeCode.active().equals(lifecycle);
     }
 
     public Long getId() {

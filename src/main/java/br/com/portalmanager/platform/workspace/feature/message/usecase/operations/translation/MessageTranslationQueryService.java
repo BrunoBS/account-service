@@ -6,36 +6,55 @@ import br.com.portalmanager.platform.workspace.feature.message.repository.Messag
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.MessageTranslationOutput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageFinder;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageNormalizer;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import java.util.List;
+import br.com.portalmanager.platform.workspace.feature.message.usecase.validation.MessageValidator;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class MessageTranslationQueryService {
 
-    private final MessageTranslationRepository repository;
+    private final MessageTranslationRepository translationRepository;
     private final MessageFinder finder;
     private final MessageNormalizer normalizer;
+    private final MessageValidator validator;
 
     public MessageTranslationQueryService(
-        MessageTranslationRepository repository,
+        MessageTranslationRepository translationRepository,
         MessageFinder finder,
-        MessageNormalizer normalizer
+        MessageNormalizer normalizer,
+        MessageValidator validator
     ) {
-        this.repository = repository;
+        this.translationRepository = translationRepository;
         this.finder = finder;
         this.normalizer = normalizer;
+        this.validator = validator;
     }
 
     @Transactional(readOnly = true)
-    public List<MessageTranslationOutput> findAll(String messageIdentifier, String locale, Boolean active) {
+    public Page<MessageTranslationOutput> findAll(
+        String messageIdentifier,
+        String locale,
+        String lifecycle,
+        Pageable pageable
+    ) {
+        validator.validateTranslationPagination(pageable);
+        Sort requestedSort = pageable.getSort().isSorted() ? pageable.getSort() : Sort.by("locale");
+        Sort stableSort = requestedSort.getOrderFor("id") == null ? requestedSort.and(Sort.by("id")) : requestedSort;
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), stableSort);
         Message message = finder.findMessage(messageIdentifier);
-        return repository
-            .findFiltered(message.getId(), normalizer.normalizeLocaleFilter(locale), lifecycle(active))
-            .stream()
-            .map(MessageTranslationOutput::from)
-            .toList();
+        return translationRepository
+            .findFiltered(
+                message.getId(),
+                normalizer.normalizeLocaleFilter(locale),
+                LifecycleFilter.resolve(lifecycle).value(),
+                sortedPageable
+            )
+            .map(MessageTranslationOutput::from);
     }
 
     @Transactional(readOnly = true)
@@ -43,12 +62,5 @@ public class MessageTranslationQueryService {
         Message message = finder.findMessage(messageIdentifier);
         MessageTranslation translation = finder.findTranslation(message, translationIdentifier);
         return MessageTranslationOutput.from(translation);
-    }
-
-    private String lifecycle(Boolean active) {
-        if (active == null) {
-            return null;
-        }
-        return active ? LifecycleTypeCode.active().value() : LifecycleTypeCode.inactive().value();
     }
 }

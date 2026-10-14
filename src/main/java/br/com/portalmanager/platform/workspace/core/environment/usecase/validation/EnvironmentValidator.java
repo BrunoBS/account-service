@@ -4,91 +4,66 @@ import br.com.portalmanager.platform.library.messaging.exception.ResourceVersion
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environment.Environment;
+import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.CreateEnvironmentInput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.UpdateEnvironmentInput;
-import br.com.portalmanager.platform.workspace.foundation.catalog.authorizationtype.domain.AuthorizationTypeEnum;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidator;
-import java.util.Arrays;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
 public class EnvironmentValidator {
 
-    private final SchemaSettingsValidator settingsValidator;
+    private final EnvironmentRepository repository;
 
-    public EnvironmentValidator(SchemaSettingsValidator settingsValidator) {
-        this.settingsValidator = settingsValidator;
+    public EnvironmentValidator(EnvironmentRepository repository) {
+        this.repository = repository;
     }
 
-    public void validateForCreate(CreateEnvironmentInput input, boolean duplicate) {
+    public void validateForCreate(CreateEnvironmentInput input) {
         ValidationResult result = new ValidationResult();
         if (input == null) {
-            result.addError("request", EnvironmentMessageKeys.NAME_INVALID);
+            result.addError("request", EnvironmentMessageKeys.REQUEST_INVALID);
+        } else if (input.version() != null) {
+            result.addError("version", EnvironmentMessageKeys.VERSION_NOT_ALLOWED_ON_CREATE);
+        } else if (input.environmentTypeCode() == null || input.environmentTypeCode().isBlank()) {
+            result.addError("environmentTypeCode", EnvironmentMessageKeys.TYPE_CODE_INVALID);
+        }
+        reject(result);
+    }
+
+    public void validateForUpdate(UpdateEnvironmentInput input) {
+        ValidationResult result = new ValidationResult();
+        if (input == null) {
+            result.addError("request", EnvironmentMessageKeys.REQUEST_INVALID);
         } else {
-            common(
-                input.name(),
-                input.description(),
-                input.authorizationType(),
-                input.sortOrder(),
-                input.settings(),
-                duplicate,
-                result
+            if (input.version() == null) result.addError("version", EnvironmentMessageKeys.VERSION_REQUIRED);
+            if (input.environmentTypeCode() == null || input.environmentTypeCode().isBlank()) result.addError(
+                "environmentTypeCode", EnvironmentMessageKeys.TYPE_CODE_INVALID
+            );
+            if (input.parentIdentifier() != null) result.addError(
+                "parentIdentifier", EnvironmentMessageKeys.PARENT_UPDATE_NOT_ALLOWED
             );
         }
         reject(result);
     }
 
-    public void validateForUpdate(UpdateEnvironmentInput input, boolean duplicate) {
+    public void validateNameAvailable(String name, Long workspaceId, Long parentId, Long excludedId) {
+        if (name == null || !repository.existsSibling(name, workspaceId, parentId, excludedId)) return;
         ValidationResult result = new ValidationResult();
-        if (input == null) {
-            result.addError("request", EnvironmentMessageKeys.NAME_INVALID);
-        } else {
-            if (input.version() == null || input.version() < 0) result.addError(
-                "version",
-                EnvironmentMessageKeys.VERSION_REQUIRED
-            );
-            common(
-                input.name(),
-                input.description(),
-                input.authorizationType(),
-                input.sortOrder(),
-                input.settings(),
-                duplicate,
-                result
-            );
-        }
+        result.addError("name", EnvironmentMessageKeys.NAME_DUPLICATE);
         reject(result);
     }
 
-    public void requireVersion(Long current, Long requested) {
-        if (!Objects.equals(current, requested)) throw new ResourceVersionConflictException();
+    public void requireVersion(Long currentVersion, Long requestedVersion) {
+        if (!Objects.equals(currentVersion, requestedVersion)) throw new ResourceVersionConflictException();
     }
 
-    private void common(
-        String name,
-        String description,
-        String authorization,
-        Integer sort,
-        String settings,
-        boolean duplicate,
-        ValidationResult result
-    ) {
-        if (name == null || name.length() < 3 || name.length() > 50) result.addError(
-            "name",
-            EnvironmentMessageKeys.NAME_INVALID
-        );
-        if (duplicate) result.addError("name", EnvironmentMessageKeys.NAME_DUPLICATE);
-        if (description == null || description.length() < 3 || description.length() > 250) result.addError(
-            "description",
-            EnvironmentMessageKeys.DESCRIPTION_INVALID
-        );
-        if (
-            authorization == null ||
-            Arrays.stream(AuthorizationTypeEnum.values()).noneMatch(e -> e.name().equals(authorization))
-        ) result.addError("authorizationType", EnvironmentMessageKeys.AUTHORIZATION_INVALID);
-        if (sort != null && sort < 1) result.addError("sortOrder", EnvironmentMessageKeys.SORT_INVALID);
-        if (settings != null) settingsValidator.validate("ENVIRONMENT", "workspace", "settings", settings, result);
+    public void validateForDelete(Environment environment) {
+        environment.requireDeletable();
+        if (repository.findChildForEnvironmentValidation(environment.getId()).isPresent()) {
+            throw new ValidationException(EnvironmentMessageKeys.HAS_CHILDREN);
+        }
     }
 
     private void reject(ValidationResult result) {

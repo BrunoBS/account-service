@@ -122,3 +122,5 @@ Regras protegidas por ArchUnit:
 A G3 não adiciona authorization, audit, tagging, catalog ou onboarding.
 
 Essas capabilities permanecem nas ondas posteriores.
+
+Atualização de contrato (revisão de lifecycle): a listagem de workspaces substitui active=true|false por lifecycle=ACTIVE|INACTIVE|QUARANTINED, padrão ACTIVE. Catálogos com campo active booleano mantêm seu contrato. Ver [revisão transversal](../refinamentos/lifecycle/LIFECYCLE-LISTING-REVIEW.md).

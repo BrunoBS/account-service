@@ -1,8 +1,11 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.environment.request;
 
+import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.UpdateEnvironmentInput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environment.EnvironmentNormalizer;
 import tools.jackson.databind.JsonNode;
 
+@ValidateResourceSchemaRequest(type = "ENVIRONMENT", code = "environment", normalizer = EnvironmentNormalizer.class)
 public record UpdateEnvironmentRequest(
     Long version,
     String name,
@@ -11,7 +14,8 @@ public record UpdateEnvironmentRequest(
     Integer sortOrder,
     String authorizerGroup,
     JsonNode settings,
-    String environmentTypeCode
+    String environmentTypeCode,
+    String parentIdentifier
 ) {
     public UpdateEnvironmentInput toInput() {
         return new UpdateEnvironmentInput(
@@ -21,8 +25,9 @@ public record UpdateEnvironmentRequest(
             authorizationType,
             sortOrder,
             authorizerGroup,
-            settings == null ? null : settings.toString(),
-            environmentTypeCode
+            settings,
+            environmentTypeCode,
+            parentIdentifier
         );
     }
 }

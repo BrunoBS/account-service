@@ -1,6 +1,9 @@
 package br.com.portalmanager.platform.workspace.support;
 
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 
 /** Recreates the persisted schema fallback and Golden resource contracts after test database cleanup. */
 public final class SchemaDefaultFixture {
@@ -8,6 +11,24 @@ public final class SchemaDefaultFixture {
     private SchemaDefaultFixture() {}
 
     public static void seed(JdbcTemplate jdbc) {
+        jdbc.update(
+            """
+            INSERT IGNORE INTO type_onboardings
+                (code, label, description, sort_order, is_active, settings)
+            VALUES ('WORKSPACE_REGISTRATION', 'Cadastro do workspace',
+                    'Cadastro dos dados principais do workspace.', 1, true,
+                    '{"orientation":"Revise os dados principais do workspace."}'),
+                   ('WORKSPACE_FIRST_ENVIRONMENT', 'Configuração do ambiente do workspace',
+                    'Configuração do primeiro ambiente do workspace.', 2, true,
+                    '{"orientation":"Configure o ambiente padrão do workspace quando a configuração de ambientes estiver disponível."}'),
+                   ('FIRST_APPLICATION_REGISTRATION', 'Cadastro da primeira aplicação',
+                    'Cadastro da primeira aplicação vinculada ao workspace.', 3, true,
+                    '{"orientation":"Cadastre a primeira aplicação vinculada ao workspace."}'),
+                   ('APPLICATION_FIRST_ENVIRONMENT', 'Configuração do ambiente da aplicação',
+                    'Configuração do primeiro ambiente da aplicação.', 4, true,
+                    '{"orientation":"Configure o ambiente padrão da aplicação quando a configuração de ambientes estiver disponível."}')
+            """
+        );
         jdbc.update(
             """
             INSERT IGNORE INTO type_sharing_statuses
@@ -140,5 +161,99 @@ public final class SchemaDefaultFixture {
             WHERE sd.scope_code = 'PLATFORM' AND sd.code = 'application-resource'
             """
         );
+        jdbc.execute(
+            (ConnectionCallback<Void>) connection -> {
+                ScriptUtils.executeSqlScript(
+                    connection,
+                    new ClassPathResource("db/migration/V42__workspace_resource_schema.sql")
+                );
+                ScriptUtils.executeSqlScript(
+                    connection,
+                    new ClassPathResource("db/migration/V50__publisher_resource_schema_and_limits.sql")
+                );
+                ScriptUtils.executeSqlScript(
+                    connection,
+                    new ClassPathResource("db/migration/V52__environment_resource_schemas.sql")
+                );
+                ScriptUtils.executeSqlScript(
+                    connection,
+                    new ClassPathResource("db/migration/V55__environment_type_compatibility_identifiers.sql")
+                );
+                ScriptUtils.executeSqlScript(
+                    connection,
+                    new ClassPathResource("db/migration/V57__environment_type_code_schemas.sql")
+                );
+                ScriptUtils.executeSqlScript(
+                    connection,
+                    new ClassPathResource("db/migration/V58__message_resource_schemas.sql")
+                );
+                ScriptUtils.executeSqlScript(
+                    connection,
+                    new ClassPathResource("db/migration/V61__onboarding_phase_settings_schema.sql")
+                );
+                ScriptUtils.executeSqlScript(
+                    connection,
+                    new ClassPathResource("db/migration/V62__microservice_resource_schema.sql")
+                );
+                ScriptUtils.executeSqlScript(
+                    connection, new ClassPathResource("db/migration/V63__feature_resource_schema.sql")
+                );
+                ScriptUtils.executeSqlScript(
+                    connection, new ClassPathResource("db/migration/V64__context_resource_schema.sql")
+                );
+                ScriptUtils.executeSqlScript(
+                    connection, new ClassPathResource("db/migration/V65__separate_feature_context_resource_schema.sql")
+                );
+                return null;
+            }
+        );
+        try {
+            jdbc.update(
+                """
+                INSERT IGNORE INTO schema_versions
+                    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+                SELECT UUID(), id, 2, 'Publisher Resource v2', ?, 'PUBLISHED', CURRENT_TIMESTAMP
+                FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'publisher-resource'
+                """,
+                new ClassPathResource("schemas/publisher.json").getContentAsString(
+                    java.nio.charset.StandardCharsets.UTF_8
+                )
+            );
+            jdbc.update(
+                """
+                INSERT IGNORE INTO schema_versions
+                    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+                SELECT UUID(), id, 2, 'Environment Type Resource v2', ?, 'PUBLISHED', CURRENT_TIMESTAMP
+                FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'environment-type-resource'
+                """,
+                new ClassPathResource("schemas/environment-type.json").getContentAsString(
+                    java.nio.charset.StandardCharsets.UTF_8
+                )
+            );
+            jdbc.update(
+                """
+                INSERT IGNORE INTO schema_versions
+                    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+                SELECT UUID(), id, 4, 'Application Resource v4', ?, 'PUBLISHED', CURRENT_TIMESTAMP
+                FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'application-resource'
+                """,
+                new ClassPathResource("schemas/application.json").getContentAsString(
+                    java.nio.charset.StandardCharsets.UTF_8
+                )
+            );
+            jdbc.update(
+                """
+                INSERT IGNORE INTO schema_versions
+                    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+                SELECT UUID(), id, 2, 'Workspace Resource v2', ?, 'PUBLISHED', CURRENT_TIMESTAMP
+                FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'workspace-resource'
+                """,
+                new ClassPathResource("schemas/workspace.json").getContentAsString(
+                    java.nio.charset.StandardCharsets.UTF_8
+                )
+            );
+        } catch (java.io.IOException exception) {
+            throw new java.io.UncheckedIOException("Cannot load a reference resource schema", exception);
+        }
     }
 }

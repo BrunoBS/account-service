@@ -1,12 +1,24 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.message;
 
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
-import br.com.portalmanager.platform.workspace.entrypoint.web.message.request.*;
+import br.com.portalmanager.platform.workspace.entrypoint.web.message.request.CreateMessageRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.message.request.UpdateMessageRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.message.response.MessageResponse;
 import br.com.portalmanager.platform.workspace.feature.message.facade.MessageFacade;
-import java.util.List;
-import org.springframework.http.*;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/messages")
@@ -14,59 +26,59 @@ public class MessageController {
 
     private final MessageFacade facade;
 
-    public MessageController(MessageFacade f) {
-        facade = f;
+    public MessageController(MessageFacade facade) {
+        this.facade = facade;
     }
 
     @PostMapping
-    public ResponseEntity<MessageResponse> create(AuthorizationContext context, @RequestBody CreateMessageRequest r) {
+    public ResponseEntity<MessageResponse> create(AuthorizationContext context, @RequestBody CreateMessageRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
-            MessageResponse.from(facade.create(context, r.toInput()))
+            MessageResponse.from(facade.create(context, request.toInput()))
         );
     }
 
     @GetMapping("/{identifier}")
-    public MessageResponse findByIdentifier(AuthorizationContext context, @PathVariable String identifier) {
-        return MessageResponse.from(facade.findByIdentifier(context, identifier));
+    public MessageResponse findByIdentifier(AuthorizationContext context, @PathVariable("identifier") String messageIdentifier) {
+        return MessageResponse.from(facade.findByIdentifier(context, messageIdentifier));
     }
 
     @GetMapping
-    public List<MessageResponse> findAll(
+    public PagedModel<MessageResponse> findAll(
         AuthorizationContext context,
         @RequestParam(required = false) String microserviceIdentifier,
-        @RequestParam(required = false) Boolean active,
+        @RequestParam(required = false) String lifecycle,
         @RequestParam(required = false) String code,
-        @RequestParam(required = false) String messageKey
+        @RequestParam(required = false) String messageKey,
+        Pageable pageable
     ) {
-        return facade
-            .findAll(context, microserviceIdentifier, active, code, messageKey)
-            .stream()
-            .map(MessageResponse::from)
-            .toList();
+        return new PagedModel<>(
+            facade.findAll(context, microserviceIdentifier, lifecycle, code, messageKey, pageable)
+                .map(MessageResponse::from)
+        );
     }
 
     @PutMapping("/{identifier}")
     public MessageResponse update(
         AuthorizationContext context,
-        @PathVariable String identifier,
-        @RequestBody UpdateMessageRequest r
+        @PathVariable("identifier") String messageIdentifier,
+        @RequestBody UpdateMessageRequest request
     ) {
-        return MessageResponse.from(facade.update(context, identifier, r.toInput()));
+        return MessageResponse.from(facade.update(context, messageIdentifier, request.toInput()));
     }
 
     @PatchMapping("/{identifier}/activate")
-    public MessageResponse activate(AuthorizationContext context, @PathVariable String identifier) {
-        return MessageResponse.from(facade.activate(context, identifier));
+    public MessageResponse activate(AuthorizationContext context, @PathVariable("identifier") String messageIdentifier) {
+        return MessageResponse.from(facade.activate(context, messageIdentifier));
     }
 
     @PatchMapping("/{identifier}/inactivate")
-    public MessageResponse inactivate(AuthorizationContext context, @PathVariable String identifier) {
-        return MessageResponse.from(facade.inactivate(context, identifier));
+    public MessageResponse inactivate(AuthorizationContext context, @PathVariable("identifier") String messageIdentifier) {
+        return MessageResponse.from(facade.inactivate(context, messageIdentifier));
     }
 
     @DeleteMapping("/{identifier}")
-    public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier) {
-        facade.delete(context, identifier);
+    public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable("identifier") String messageIdentifier) {
+        facade.delete(context, messageIdentifier);
         return ResponseEntity.noContent().build();
     }
 }

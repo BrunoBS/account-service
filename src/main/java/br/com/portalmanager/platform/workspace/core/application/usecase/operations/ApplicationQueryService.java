@@ -3,23 +3,30 @@ package br.com.portalmanager.platform.workspace.core.application.usecase.operati
 import br.com.portalmanager.platform.library.authorization.annotation.ResourceVisibility;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.library.tagging.TagManager;
+import br.com.portalmanager.platform.library.tagging.model.TagName;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationMessageKeys;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationTag;
 import br.com.portalmanager.platform.workspace.core.application.repository.ApplicationRepository;
+import br.com.portalmanager.platform.workspace.core.application.repository.projection.ApplicationReference;
+import br.com.portalmanager.platform.workspace.core.application.repository.projection.ApplicationScopeReference;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationOutput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationReferenceOutput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationScopeReferenceOutput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationSummary;
+import br.com.portalmanager.platform.workspace.core.application.usecase.validation.ApplicationValidator;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,19 +36,19 @@ public class ApplicationQueryService {
     private final WorkspaceQueryService workspaceQueries;
     private final ApplicationRepository repository;
     private final ApplicationFinder finder;
-    private final WorkspaceReferenceResolver workspaces;
+    private final WorkspaceReferencePort workspaces;
     private final TagManager<ApplicationTag, Application> tags;
     private final ApplicationNormalizer normalizer;
-    private final EntityManager entityManager;
+    private final ApplicationValidator validator;
 
     public ApplicationQueryService(
         WorkspaceQueryService workspaceQueries,
         ApplicationRepository repository,
         ApplicationFinder finder,
-        WorkspaceReferenceResolver workspaces,
+        WorkspaceReferencePort workspaces,
         TagManager<ApplicationTag, Application> tags,
         ApplicationNormalizer normalizer,
-        EntityManager entityManager
+        ApplicationValidator validator
     ) {
         this.workspaceQueries = workspaceQueries;
         this.repository = repository;
@@ -49,15 +56,7 @@ public class ApplicationQueryService {
         this.workspaces = workspaces;
         this.tags = tags;
         this.normalizer = normalizer;
-        this.entityManager = entityManager;
-    }
-
-    @Transactional(readOnly = true)
-    public Long findInternalIdByIdentifier(String workspaceIdentifier, String identifier) {
-        return repository
-            .findByIdentifierAndWorkspaceId(identifier, workspaces.resolveInternalId(workspaceIdentifier))
-            .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND))
-            .getId();
+        this.validator = validator;
     }
 
     @ResourceVisibility(Application.class)
@@ -75,37 +74,20 @@ public class ApplicationQueryService {
     /** Cross-application access only after Shared has verified the contract or participation scope. */
     @Transactional(readOnly = true)
     public ApplicationScopeReferenceOutput findActiveScopeForShared(Long workspaceId, Long applicationId) {
-        Application application = repository
-            .findById(applicationId)
-            .filter(
-                reference ->
-                    reference.getWorkspaceId().equals(workspaceId) &&
-                    LifecycleTypeCode.active().equals(reference.getLifecycle())
-            )
+        ApplicationScopeReference application = repository
+            .findActiveScope(workspaceId, applicationId)
             .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
-        if (workspaceQueries.findActiveIdentifiersByInternalIds(List.of(workspaceId)).isEmpty()) {
+        if (workspaceQueries.findActiveIdentifiersForShared(List.of(workspaceId)).isEmpty()) {
             throw new NotFoundException(ApplicationMessageKeys.NOT_FOUND);
         }
-        return new ApplicationScopeReferenceOutput(
-            workspaceId,
-            applicationId,
-            application.getApplicationScope().value()
-        );
+        return new ApplicationScopeReferenceOutput(workspaceId, applicationId, application.getApplicationScope());
     }
 
     @ResourceVisibility(Application.class)
     @Transactional
     public ApplicationScopeReferenceOutput findActiveScopeForUpdate(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application application = repository
-            .findByIdentifierAndWorkspaceIdForUpdate(identifier, workspaceId)
-            .filter(reference -> LifecycleTypeCode.active().equals(reference.getLifecycle()))
-            .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
-        // Refresh under the lock: visibility checks may have loaded this entity before waiting for another transaction.
-        entityManager.refresh(application, LockModeType.PESSIMISTIC_WRITE);
-        if (!LifecycleTypeCode.active().equals(application.getLifecycle())) {
-            throw new NotFoundException(ApplicationMessageKeys.NOT_FOUND);
-        }
+        Application application = finder.findActiveForUpdate(identifier, workspaceId);
         return new ApplicationScopeReferenceOutput(
             workspaceId,
             application.getId(),
@@ -116,24 +98,22 @@ public class ApplicationQueryService {
     @Transactional(readOnly = true)
     public String findIdentifierByInternalId(Long workspaceId, Long applicationId) {
         return repository
-            .findById(applicationId)
-            .filter(application -> application.getWorkspaceId().equals(workspaceId))
-            .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND))
-            .getIdentifier();
+            .findIdentifier(workspaceId, applicationId)
+            .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
     }
 
     /** Resolves persisted Shared references, including inactive applications and workspaces. */
     @Transactional(readOnly = true)
     public Map<Long, ApplicationReferenceOutput> findReferencesForShared(Collection<Long> applicationIds) {
         if (applicationIds.isEmpty()) return Map.of();
-        List<Application> referencedApplications = repository.findAllById(applicationIds);
-        Map<Long, String> workspaceIdentifiers = workspaceQueries.findReferenceIdentifiersByInternalIds(
-            referencedApplications.stream().map(Application::getWorkspaceId).distinct().toList()
+        List<ApplicationReference> referencedApplications = repository.findReferences(applicationIds, null);
+        Map<Long, String> workspaceIdentifiers = workspaceQueries.findReferenceIdentifiersForShared(
+            referencedApplications.stream().map(ApplicationReference::getWorkspaceId).distinct().toList()
         );
         return referencedApplications
             .stream()
             .collect(
-                Collectors.toMap(Application::getId, application ->
+                Collectors.toMap(ApplicationReference::getId, application ->
                     new ApplicationReferenceOutput(
                         application.getId(),
                         application.getWorkspaceId(),
@@ -149,12 +129,12 @@ public class ApplicationQueryService {
     @Transactional(readOnly = true)
     public List<ApplicationReferenceOutput> findActiveReferencesForShared(Collection<Long> applicationIds) {
         if (applicationIds.isEmpty()) return List.of();
-        List<Application> activeApplications = repository.findByIdInAndLifecycleValue(
+        List<ApplicationReference> activeApplications = repository.findReferences(
             applicationIds,
             LifecycleTypeCode.active().value()
         );
-        Map<Long, String> activeWorkspaces = workspaceQueries.findActiveIdentifiersByInternalIds(
-            activeApplications.stream().map(Application::getWorkspaceId).distinct().toList()
+        Map<Long, String> activeWorkspaces = workspaceQueries.findActiveIdentifiersForShared(
+            activeApplications.stream().map(ApplicationReference::getWorkspaceId).distinct().toList()
         );
         return activeApplications
             .stream()
@@ -175,65 +155,40 @@ public class ApplicationQueryService {
     @Transactional(readOnly = true)
     public ApplicationOutput findByIdentifier(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findActive(identifier, workspaceId);
-        return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
-    }
-
-    /** Cross-application Shared read after the caller has validated the owning contract and participation. */
-    @Transactional(readOnly = true)
-    public ApplicationOutput findActiveForShared(String workspaceIdentifier, String identifier) {
-        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findActive(identifier, workspaceId);
-        return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
-    }
-
-    @Transactional(readOnly = true)
-    public ApplicationOutput findInactiveForShared(String workspaceIdentifier, String identifier) {
-        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findInactive(identifier, workspaceId);
-        return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
+        Application application = finder.findActive(identifier, workspaceId);
+        return ApplicationOutput.from(application, workspaceIdentifier, tags.findManual(application));
     }
 
     @ResourceVisibility(Application.class)
     @Transactional(readOnly = true)
-    public ApplicationOutput findInactiveByIdentifier(String workspaceIdentifier, String identifier) {
+    public Page<ApplicationOutput> findAll(
+        String workspaceIdentifier,
+        String lifecycle,
+        String tagName,
+        Pageable pageable
+    ) {
+        validator.validatePagination(pageable);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findInactive(identifier, workspaceId);
-        return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
-    }
-
-    @ResourceVisibility(Application.class)
-    @Transactional(readOnly = true)
-    public ApplicationOutput findInactiveForDeletion(String workspaceIdentifier, String identifier) {
-        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findInactiveForDeletion(identifier, workspaceId);
-        return ApplicationOutput.from(app, workspaceIdentifier, tags.findManual(app));
-    }
-
-    @ResourceVisibility(Application.class)
-    @Transactional(readOnly = true)
-    public List<ApplicationOutput> findAll(String workspaceIdentifier, Boolean active, String tagName) {
-        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        String lifecycle = Boolean.FALSE.equals(active)
-            ? LifecycleTypeCode.inactive().value()
-            : LifecycleTypeCode.active().value();
-        String tag = normalizer.normalizeTag(tagName);
-        List<Application> applications;
-        if (tag == null || tag.isBlank()) applications = repository.findByWorkspaceAndLifecycle(workspaceId, lifecycle);
-        else {
-            List<String> identifiers = tags.findOwnerKeysByTag(tag);
-            if (identifiers.isEmpty()) return List.of();
-            applications = repository.findByWorkspaceLifecycleAndIdentifiers(workspaceId, lifecycle, identifiers);
-        }
-        Map<String, List<String>> manual = tags.findManualByOwnerKeys(
-            applications.stream().map(Application::getIdentifier).toList()
+        String lifecycleCode = LifecycleFilter.resolve(lifecycle).value();
+        String normalizedTag = normalizer.normalizeTag(tagName);
+        Sort sort =
+            pageable.getSort().getOrderFor("id") == null ? pageable.getSort().and(Sort.by("id")) : pageable.getSort();
+        Page<Application> applications = repository.findFiltered(
+            workspaceId,
+            lifecycleCode,
+            normalizedTag == null ? null : TagName.of(normalizedTag),
+            PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort)
         );
-        return applications
-            .stream()
-            .map(app ->
-                ApplicationOutput.from(app, workspaceIdentifier, manual.getOrDefault(app.getIdentifier(), List.of()))
+        Map<String, List<String>> manualTags = tags.findManualByOwnerKeys(
+            applications.getContent().stream().map(Application::getIdentifier).toList()
+        );
+        return applications.map(application ->
+            ApplicationOutput.from(
+                application,
+                workspaceIdentifier,
+                manualTags.getOrDefault(application.getIdentifier(), List.of())
             )
-            .toList();
+        );
     }
 
     @ResourceVisibility(Application.class)
@@ -241,9 +196,18 @@ public class ApplicationQueryService {
     public List<ApplicationSummary> summary(String workspaceIdentifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         return repository
-            .findByWorkspaceAndLifecycle(workspaceId, LifecycleTypeCode.active().value())
+            .findActiveSummaries(workspaceId)
             .stream()
-            .map(ApplicationSummary::from)
+            .map(reference ->
+                new ApplicationSummary(
+                    reference.getIdentifier(),
+                    reference.getName(),
+                    reference.getAlias(),
+                    reference.getAcronym(),
+                    reference.getApplicationScope(),
+                    reference.getAuthorizerGroup()
+                )
+            )
             .toList();
     }
 }

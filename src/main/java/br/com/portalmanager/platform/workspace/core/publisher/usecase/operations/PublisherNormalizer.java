@@ -1,46 +1,33 @@
 package br.com.portalmanager.platform.workspace.core.publisher.usecase.operations;
 
-import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.CreatePublisherInput;
-import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.UpdatePublisherInput;
+import br.com.portalmanager.platform.library.schemavalidation.normalization.SchemaPayloadNormalizer;
+import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 @Component
-public class PublisherNormalizer {
+public class PublisherNormalizer implements SchemaPayloadNormalizer {
 
-    public CreatePublisherInput normalize(CreatePublisherInput input) {
-        if (input == null) return null;
-        return new CreatePublisherInput(
-            code(input.code()),
-            trim(input.name()),
-            trim(input.description()),
-            code(input.scope()),
-            input.deprecated(),
-            input.settings()
-        );
-    }
-
-    public UpdatePublisherInput normalize(UpdatePublisherInput input) {
-        if (input == null) return null;
-        return new UpdatePublisherInput(
-            input.version(),
-            trim(input.name()),
-            trim(input.description()),
-            code(input.scope()),
-            input.deprecated(),
-            input.settings()
-        );
+    @Override
+    public JsonNode normalizePayload(JsonNode payload) {
+        if (!(payload instanceof ObjectNode object)) return payload;
+        ObjectNode normalized = object.deepCopy();
+        for (String field : List.of("name", "description", "code", "scope")) {
+            JsonNode value = normalized.get(field);
+            if (value != null && value.isString()) {
+                String text = value.asString().trim();
+                normalized.put(
+                    field,
+                    field.equals("code") || field.equals("scope") ? text.toUpperCase(Locale.ROOT) : text
+                );
+            }
+        }
+        return normalized;
     }
 
     public String normalizeScope(String scope) {
-        return code(scope);
-    }
-
-    private String code(String value) {
-        return value == null ? null : value.trim().toUpperCase(Locale.ROOT);
-    }
-
-    private String trim(String value) {
-        return value == null ? null : value.trim();
+        return scope == null ? null : scope.trim().toUpperCase(Locale.ROOT);
     }
 }

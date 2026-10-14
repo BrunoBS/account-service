@@ -4,6 +4,7 @@ import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import tools.jackson.databind.JsonNode;
 
 public record WorkspaceOutput(
     Long version,
@@ -14,7 +15,7 @@ public record WorkspaceOutput(
     String requester,
     String acronym,
     String authorizerGroup,
-    String settings,
+    JsonNode settings,
     String emailGroup,
     boolean onboarding,
     String lifecycle,
@@ -27,7 +28,7 @@ public record WorkspaceOutput(
         List<ApproverOutput> approvers = workspace
             .getApprovers()
             .stream()
-            .map(value -> new ApproverOutput(value.getFunctional(), value.getEmail()))
+            .map(approver -> new ApproverOutput(approver.getFunctional(), approver.getEmail()))
             .sorted(Comparator.comparing(ApproverOutput::functional).thenComparing(ApproverOutput::email))
             .toList();
 

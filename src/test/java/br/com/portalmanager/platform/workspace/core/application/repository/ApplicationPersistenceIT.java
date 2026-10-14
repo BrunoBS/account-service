@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
+import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationDetails;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
+import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceDetails;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
@@ -54,11 +56,20 @@ class ApplicationPersistenceIT {
         first.inactivate(LocalDateTime.now());
         applications.saveAndFlush(first);
 
-        assertThat(applications.findByWorkspaceAndLifecycle(workspace.getId(), LifecycleTypeCode.inactive().value()))
+        assertThat(
+            applications
+                .findFiltered(
+                    workspace.getId(),
+                    LifecycleTypeCode.inactive().value(),
+                    null,
+                    org.springframework.data.domain.PageRequest.of(0, 20)
+                )
+                .getContent()
+        )
             .extracting(Application::getIdentifier)
             .contains(first.getIdentifier());
         assertThrows(DataIntegrityViolationException.class, () ->
-            applications.saveAndFlush(application(workspace, "Portal App"))
+            applications.saveAndFlush(application(workspace, "portal app"))
         );
     }
 
@@ -72,14 +83,16 @@ class ApplicationPersistenceIT {
     private Workspace workspace(String name) {
         return workspaces.saveAndFlush(
             new Workspace(
-                WorkspaceTypeCode.of("MANAGER"),
-                name,
-                "Workspace for applications",
-                "requester",
-                "MA",
-                "{}",
-                null,
-                "workspace@portalmanager.com",
+                new WorkspaceDetails(
+                    WorkspaceTypeCode.of("MANAGER"),
+                    name,
+                    "Workspace for applications",
+                    "requester",
+                    "MA",
+                    tools.jackson.databind.json.JsonMapper.builder().build().createObjectNode(),
+                    null,
+                    "workspace@portalmanager.com"
+                ),
                 LocalDateTime.now()
             )
         );
@@ -88,12 +101,15 @@ class ApplicationPersistenceIT {
     private Application application(Workspace workspace, String name) {
         return new Application(
             workspace.getId(),
-            name,
-            "alias",
-            "APP",
-            ApplicationScopeTypeCode.of("BACKEND"),
-            "A-APP",
-            "{}",
+            new ApplicationDetails(
+                name,
+                "alias",
+                null,
+                "APP",
+                ApplicationScopeTypeCode.of("BACKEND"),
+                "A-APP",
+                tools.jackson.databind.json.JsonMapper.builder().build().createObjectNode()
+            ),
             LocalDateTime.now()
         );
     }

@@ -38,6 +38,12 @@ public interface SchemaRepository extends JpaRepository<Schema, Long> {
     )
     List<Schema> findAllByScope(@Param("scopeCode") String scopeCode, @Param("workspaceId") Long workspaceId);
 
+    @Query("select schema from Schema schema where schema.scope.value = :scopeCode " +
+        "and ((:workspaceId is null and schema.workspaceId is null) or schema.workspaceId = :workspaceId) " +
+        "and schema.lifecycle.value = :lifecycle order by schema.code")
+    List<Schema> findAllByScopeAndLifecycle(@Param("scopeCode") String scopeCode,
+        @Param("workspaceId") Long workspaceId, @Param("lifecycle") String lifecycle);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from Schema s where s.identifier = :identifier")
     Optional<Schema> findByIdentifierForUpdate(@Param("identifier") String identifier);

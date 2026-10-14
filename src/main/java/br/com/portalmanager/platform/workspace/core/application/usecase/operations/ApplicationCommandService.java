@@ -2,196 +2,122 @@ package br.com.portalmanager.platform.workspace.core.application.usecase.operati
 
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.schemavalidation.annotation.SchemaPayload;
-import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchema;
 import br.com.portalmanager.platform.library.tagging.TagManager;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
-import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationMessageKeys;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationSystemTags;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationTag;
 import br.com.portalmanager.platform.workspace.core.application.repository.ApplicationRepository;
+import br.com.portalmanager.platform.workspace.core.application.usecase.mapping.ApplicationMapper;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationOutput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.validation.ApplicationValidator;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
-import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeEnum;
-import br.com.portalmanager.platform.workspace.foundation.integration.ApplicationSharingReferenceGuard;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.integration.OnboardingPhaseCompletionPort;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort.ResolvedWorkspace;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 
 @Service
 public class ApplicationCommandService {
 
     private final ApplicationRepository repository;
     private final ApplicationFinder finder;
-    private final WorkspaceReferenceResolver workspaces;
-    private final ApplicationNormalizer normalizer;
+    private final WorkspaceReferencePort workspaces;
+    private final ApplicationMapper mapper;
     private final ApplicationValidator validator;
     private final TagManager<ApplicationTag, Application> tags;
-    private final ApplicationQueryService visibility;
-    private final WorkspaceQueryService workspaceVisibility;
-    private final ObjectMapper json;
-    private final ApplicationSharingReferenceGuard sharingReferences;
+    private final OnboardingPhaseCompletionPort onboardingPhaseCompletionPort;
 
-    @Autowired
     public ApplicationCommandService(
         ApplicationRepository repository,
         ApplicationFinder finder,
-        WorkspaceReferenceResolver workspaces,
-        ApplicationNormalizer normalizer,
+        WorkspaceReferencePort workspaces,
+        ApplicationMapper mapper,
         ApplicationValidator validator,
         TagManager<ApplicationTag, Application> tags,
-        ApplicationQueryService visibility,
-        WorkspaceQueryService workspaceVisibility,
-        ObjectMapper json,
-        ApplicationSharingReferenceGuard sharingReferences
+        OnboardingPhaseCompletionPort onboardingPhaseCompletionPort
     ) {
         this.repository = repository;
         this.finder = finder;
         this.workspaces = workspaces;
-        this.normalizer = normalizer;
+        this.mapper = mapper;
         this.validator = validator;
         this.tags = tags;
-        this.visibility = visibility;
-        this.workspaceVisibility = workspaceVisibility;
-        this.json = json;
-        this.sharingReferences = sharingReferences;
-    }
-
-    public ApplicationCommandService(
-        ApplicationRepository repository,
-        ApplicationFinder finder,
-        WorkspaceReferenceResolver workspaces,
-        ApplicationNormalizer normalizer,
-        ApplicationValidator validator,
-        TagManager<ApplicationTag, Application> tags,
-        ApplicationQueryService visibility,
-        WorkspaceQueryService workspaceVisibility
-    ) {
-        this(
-            repository,
-            finder,
-            workspaces,
-            normalizer,
-            validator,
-            tags,
-            visibility,
-            workspaceVisibility,
-            JsonMapper.builder().build(),
-            applicationId -> false
-        );
+        this.onboardingPhaseCompletionPort = onboardingPhaseCompletionPort;
     }
 
     @Transactional
-    @ValidateResourceSchema(type = "APPLICATION", code = "application")
     @Auditable(action = AuditAction.CREATE, event = "APPLICATION_CREATED", resourceType = "APPLICATION")
-    public ApplicationOutput create(String workspaceIdentifier, @SchemaPayload JsonNode payload)
-        throws JacksonException {
-        CreateApplicationInput raw = json.treeToValue(payload, CreateApplicationInput.class);
-        workspaceVisibility.findByIdentifier(workspaceIdentifier);
-        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        CreateApplicationInput input = normalizer.normalize(raw);
-        boolean duplicate =
-            input != null && input.name() != null && repository.existsByWorkspaceIdAndName(workspaceId, input.name());
-        validator.validateForCreate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
-        Application app = new Application(
-            workspaceId,
-            input.name(),
-            input.alias(),
-            input.acronym(),
-            ApplicationScopeTypeCode.of(input.applicationScope()),
-            input.authorizerGroup(),
-            settings(input.settings()),
-            LocalDateTime.now()
+    public ApplicationOutput create(String workspaceIdentifier, CreateApplicationInput input) {
+        ResolvedWorkspace workspace = workspaces.resolveActiveForUpdate(workspaceIdentifier);
+        Long workspaceId = workspace.id();
+        validator.validateForCreate(workspace.workspaceType(), workspaceId, input);
+
+        boolean firstApplication = !repository.existsByWorkspaceId(workspaceId);
+        Application application = new Application(workspaceId, mapper.toDetails(input), LocalDateTime.now());
+        Application savedApplication = repository.saveAndFlush(application);
+        List<String> manualTags = tags.createInitialTags(
+            savedApplication,
+            input.tags(),
+            ApplicationSystemTags.resolve(savedApplication, workspaceIdentifier)
         );
-        Application saved = repository.saveAndFlush(app);
-        tags.reconcile(saved, input.tags(), ApplicationSystemTags.resolve(saved, workspaceIdentifier));
-        return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
+
+        if (firstApplication) {
+            onboardingPhaseCompletionPort.registerPhaseCompletion(workspaceId, OnboardingPhaseTypeCode.firstApplicationRegistration());
+        }
+        return ApplicationOutput.from(savedApplication, workspaceIdentifier, manualTags);
     }
 
     @Transactional
-    @ValidateResourceSchema(type = "APPLICATION", code = "application")
     @Auditable(action = AuditAction.UPDATE, event = "APPLICATION_UPDATED", resourceType = "APPLICATION")
-    public ApplicationOutput update(String workspaceIdentifier, String identifier, @SchemaPayload JsonNode payload)
-        throws JacksonException {
-        UpdateApplicationInput raw = json.treeToValue(payload, UpdateApplicationInput.class);
-        visibility.findByIdentifier(workspaceIdentifier, identifier);
-        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findActiveForUpdate(identifier, workspaceId);
-        UpdateApplicationInput input = normalizer.normalize(raw);
-        boolean duplicate =
-            input != null &&
-            input.name() != null &&
-            repository.existsByWorkspaceIdAndNameAndIdNot(workspaceId, input.name(), app.getId());
-        validator.validateForUpdate(workspaces.resolveWorkspaceType(workspaceIdentifier), input, duplicate);
-        validator.requireVersion(app.getVersion(), input.version());
-        if (
-            !ApplicationScopeTypeEnum.SHARED.name().equals(input.applicationScope()) &&
-            sharingReferences.hasSharedContracts(app.getId())
-        ) {
-            throw new ValidationException(ApplicationMessageKeys.HAS_SHARED_CONTRACTS);
-        }
-        app.update(
-            input.name(),
-            input.alias(),
-            input.acronym(),
-            ApplicationScopeTypeCode.of(input.applicationScope()),
-            input.authorizerGroup(),
-            settings(input.settings()),
-            LocalDateTime.now()
+    public ApplicationOutput update(String workspaceIdentifier, String identifier, UpdateApplicationInput input) {
+        ResolvedWorkspace workspace = workspaces.resolveActive(workspaceIdentifier);
+        Long workspaceId = workspace.id();
+        Application application = finder.findActiveForUpdate(identifier, workspaceId);
+        validator.validateForUpdate(workspace.workspaceType(), application, input);
+        application.update(mapper.toDetails(input), LocalDateTime.now());
+        Application savedApplication = repository.saveAndFlush(application);
+        List<String> manualTags = tags.reconcileAndReturnManualTags(
+            savedApplication,
+            input.tags(),
+            ApplicationSystemTags.resolve(savedApplication, workspaceIdentifier)
         );
-        Application saved = repository.saveAndFlush(app);
-        tags.reconcile(saved, input.tags(), ApplicationSystemTags.resolve(saved, workspaceIdentifier));
-        return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
+        return ApplicationOutput.from(savedApplication, workspaceIdentifier, manualTags);
     }
 
     @Transactional
     @Auditable(action = AuditAction.DEACTIVATE, event = "APPLICATION_DEACTIVATED", resourceType = "APPLICATION")
     public ApplicationOutput inactivate(String workspaceIdentifier, String identifier) {
-        visibility.findByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findActive(identifier, workspaceId);
-        app.inactivate(LocalDateTime.now());
-        Application saved = repository.saveAndFlush(app);
-        return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
+        Application application = finder.findActive(identifier, workspaceId);
+        List<String> manualTags = tags.findManual(application);
+        application.inactivate(LocalDateTime.now());
+        Application savedApplication = repository.saveAndFlush(application);
+        return ApplicationOutput.from(savedApplication, workspaceIdentifier, manualTags);
     }
 
     @Transactional
     @Auditable(action = AuditAction.RESTORE, event = "APPLICATION_RESTORED", resourceType = "APPLICATION")
     public ApplicationOutput restore(String workspaceIdentifier, String identifier) {
-        visibility.findInactiveByIdentifier(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findInactive(identifier, workspaceId);
-        List<String> manualTags = tags.findManual(app);
-        app.restore(LocalDateTime.now());
-        Application saved = repository.saveAndFlush(app);
-        tags.reconcile(saved, manualTags, ApplicationSystemTags.resolve(saved, workspaceIdentifier));
-        return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
+        Application application = finder.findInactiveForRestore(identifier, workspaceId);
+        List<String> manualTags = tags.findManual(application);
+        application.restore(LocalDateTime.now());
+        Application savedApplication = repository.saveAndFlush(application);
+        return ApplicationOutput.from(savedApplication, workspaceIdentifier, manualTags);
     }
 
     @Transactional
     @Auditable(action = AuditAction.DELETE, event = "APPLICATION_DELETED", resourceType = "APPLICATION")
     public ApplicationOutput delete(String workspaceIdentifier, String identifier) {
-        visibility.findInactiveForDeletion(workspaceIdentifier, identifier);
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        Application app = finder.findInactiveForDeletion(identifier, workspaceId);
-        app.quarantine(LocalDateTime.now());
-        Application saved = repository.saveAndFlush(app);
-        return ApplicationOutput.from(saved, workspaceIdentifier, tags.findManual(saved));
-    }
-
-    private String settings(JsonNode value) {
-        return value == null ? "{}" : value.toString();
+        Application application = finder.findInactiveForDeletion(identifier, workspaceId);
+        application.quarantine(LocalDateTime.now());
+        Application savedApplication = repository.saveAndFlush(application);
+        return ApplicationOutput.from(savedApplication, workspaceIdentifier, tags.findManual(savedApplication));
     }
 }

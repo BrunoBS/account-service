@@ -201,6 +201,10 @@ contrato. A referência pública também aparece no resumo `contract` das partic
 inativo. A alteração só fica disponível depois de inativar e excluir todos os
 contratos da feature. O vínculo é protegido por FK e a edição/criação adquirem
 lock na mesma linha da feature para evitar a corrida entre validação e associação.
+O PUT exige também a `version` atual e o `code` registrado, que é imutável.
+Ao criar contrato, o microservice é protegido antes da feature; os locks
+permanecem até o commit do contrato. Inativação preserva contratos existentes,
+mas a disponibilidade exige feature e microservice ativos.
 
 A migração V40 pressupõe que não existam contratos legados, conforme a decisão
 para este serviço ainda não produtivo; não associa registros a uma feature arbitrária.

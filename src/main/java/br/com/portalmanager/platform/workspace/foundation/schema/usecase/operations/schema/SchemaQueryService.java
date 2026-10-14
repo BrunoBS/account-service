@@ -1,8 +1,9 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema;
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
@@ -18,16 +19,16 @@ public class SchemaQueryService {
 
     private final SchemaRepository schemaRepository;
     private final SchemaVersionRepository versionRepository;
-    private final WorkspaceReferenceResolver workspaceReferenceResolver;
+    private final WorkspaceReferencePort workspaceReferencePort;
 
     public SchemaQueryService(
         SchemaRepository schemaRepository,
         SchemaVersionRepository versionRepository,
-        WorkspaceReferenceResolver workspaceReferenceResolver
+        WorkspaceReferencePort workspaceReferencePort
     ) {
         this.schemaRepository = schemaRepository;
         this.versionRepository = versionRepository;
-        this.workspaceReferenceResolver = workspaceReferenceResolver;
+        this.workspaceReferencePort = workspaceReferencePort;
     }
 
     @Transactional(readOnly = true)
@@ -41,26 +42,27 @@ public class SchemaQueryService {
             requiredScoped(
                 identifier,
                 SchemaScopeTypeCode.workspace(),
-                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+                workspaceReferencePort.resolveInternalId(workspaceIdentifier)
             )
         );
     }
 
     @Transactional(readOnly = true)
-    public List<SchemaOutput> findPlatform() {
+    public List<SchemaOutput> findPlatform(String lifecycle) {
         return schemaRepository
-            .findAllByScope(SchemaScopeTypeCode.platform().value(), null)
+            .findAllByScopeAndLifecycle(SchemaScopeTypeCode.platform().value(), null, LifecycleFilter.resolve(lifecycle).value())
             .stream()
             .map(this::output)
             .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<SchemaOutput> findWorkspace(String workspaceIdentifier) {
+    public List<SchemaOutput> findWorkspace(String workspaceIdentifier, String lifecycle) {
         return schemaRepository
-            .findAllByScope(
+            .findAllByScopeAndLifecycle(
                 SchemaScopeTypeCode.workspace().value(),
-                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+                workspaceReferencePort.resolveInternalId(workspaceIdentifier),
+                LifecycleFilter.resolve(lifecycle).value()
             )
             .stream()
             .map(this::output)
@@ -75,7 +77,7 @@ public class SchemaQueryService {
 
     @Transactional(readOnly = true)
     public List<SchemaVersionOutput> findWorkspaceVersions(String workspaceIdentifier, String schemaIdentifier) {
-        Long workspaceId = workspaceReferenceResolver.resolveInternalId(workspaceIdentifier);
+        Long workspaceId = workspaceReferencePort.resolveInternalId(workspaceIdentifier);
         Schema schema = requiredScoped(schemaIdentifier, SchemaScopeTypeCode.workspace(), workspaceId);
         return versions(schema);
     }
@@ -98,7 +100,7 @@ public class SchemaQueryService {
         String workspaceIdentifier =
             schema.getWorkspaceId() == null
                 ? null
-                : workspaceReferenceResolver.resolveIdentifier(schema.getWorkspaceId());
+                : workspaceReferencePort.resolveIdentifier(schema.getWorkspaceId());
         return SchemaOutput.from(schema, workspaceIdentifier);
     }
 }

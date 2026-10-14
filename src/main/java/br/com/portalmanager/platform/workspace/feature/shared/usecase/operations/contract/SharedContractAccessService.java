@@ -1,11 +1,12 @@
 package br.com.portalmanager.platform.workspace.feature.shared.usecase.operations.contract;
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationScopeReferenceOutput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
 import br.com.portalmanager.platform.workspace.feature.shared.domain.SharedMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.shared.domain.contract.SharedContract;
-import br.com.portalmanager.platform.workspace.feature.shared.integration.SharedReferenceResolver;
+import br.com.portalmanager.platform.workspace.feature.shared.integration.SharedReferenceAdapter;
 import br.com.portalmanager.platform.workspace.feature.shared.repository.SharedContractRepository;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.validation.SharedValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
@@ -15,13 +16,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class SharedContractAccessService {
 
-    private final SharedReferenceResolver referenceResolver;
+    private final SharedReferenceAdapter referenceResolver;
     private final SharedContractRepository contractRepository;
     private final ApplicationQueryService applicationQueryService;
     private final SharedValidator sharedValidator;
 
     public SharedContractAccessService(
-        SharedReferenceResolver referenceResolver,
+        SharedReferenceAdapter referenceResolver,
         SharedContractRepository contractRepository,
         ApplicationQueryService applicationQueryService,
         SharedValidator sharedValidator
@@ -77,6 +78,12 @@ public class SharedContractAccessService {
 
     public void requireAvailableFeature(SharedContract contract) {
         if (!referenceResolver.isFeatureAvailable(contract)) throw new NotFoundException(SharedMessageKeys.NOT_FOUND);
+    }
+
+    public void requireFeatureForDetails(SharedContract contract) {
+        if (!referenceResolver.isFeatureAvailable(contract)) {
+            throw new ValidationException(SharedMessageKeys.FEATURE_UNAVAILABLE);
+        }
     }
 
     public void requireActiveContractOwner(SharedContract contract) {

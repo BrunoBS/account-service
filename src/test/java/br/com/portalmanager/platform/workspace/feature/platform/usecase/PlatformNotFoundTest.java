@@ -7,36 +7,49 @@ import static org.mockito.Mockito.when;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice;
-import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureContextRelationRepository;
-import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureContextRepository;
-import br.com.portalmanager.platform.workspace.feature.platform.repository.FeatureRepository;
-import br.com.portalmanager.platform.workspace.feature.platform.repository.MicroserviceRepository;
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context.FeatureContextQueryService;
+import br.com.portalmanager.platform.workspace.feature.platform.repository.featurecontext.FeatureContextRelationRepository;
+import br.com.portalmanager.platform.workspace.feature.platform.repository.context.ContextRepository;
+import br.com.portalmanager.platform.workspace.feature.platform.repository.feature.FeatureRepository;
+import br.com.portalmanager.platform.workspace.feature.platform.repository.microservice.MicroserviceRepository;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context.ContextQueryService;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature.FeatureFinder;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature.FeatureMapper;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.feature.FeatureQueryService;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceFinder;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceMapper;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceQueryService;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.validation.feature.FeatureValidator;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.validation.microservice.MicroserviceValidator;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.context.ContextFinder;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.validation.context.ContextValidator;
+import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 class PlatformNotFoundTest {
 
     @Test
     void missingResourcesUseTheirOwnNotFoundMessageKeys() {
         assertThatThrownBy(() ->
-            new MicroserviceQueryService(mock(MicroserviceRepository.class)).findByIdentifier("missing")
+            microserviceQuery(mock(MicroserviceRepository.class)).findByIdentifier("missing")
         )
             .isInstanceOf(NotFoundException.class)
             .hasMessage(PlatformMessageKeys.MICROSERVICE_NOT_FOUND);
         assertThatThrownBy(() ->
             new FeatureQueryService(
-                mock(FeatureRepository.class),
-                mock(FeatureContextRelationRepository.class)
+                mock(FeatureRepository.class), mock(ContextRepository.class),
+                new FeatureFinder(mock(FeatureRepository.class), mock(MicroserviceRepository.class), mock(EntityManager.class)),
+                new FeatureMapper(JsonMapper.builder().build()),
+                mock(FeatureValidator.class)
             ).findByIdentifier("missing")
         )
             .isInstanceOf(NotFoundException.class)
             .hasMessage(PlatformMessageKeys.FEATURE_NOT_FOUND);
         assertThatThrownBy(() ->
-            new FeatureContextQueryService(mock(FeatureContextRepository.class)).findByIdentifier("missing")
+            new ContextQueryService(mock(ContextRepository.class), mock(FeatureRepository.class),
+                new ContextFinder(mock(ContextRepository.class), mock(EntityManager.class)), mock(ContextValidator.class)).findByIdentifier("missing")
         )
             .isInstanceOf(NotFoundException.class)
             .hasMessage(PlatformMessageKeys.CONTEXT_NOT_FOUND);
@@ -47,12 +60,22 @@ class PlatformNotFoundTest {
         MicroserviceRepository repository = mock(MicroserviceRepository.class);
         Microservice inactive = new Microservice("microservice", "Microservice", null, LocalDateTime.now());
         inactive.inactivate(LocalDateTime.now());
-        when(repository.findByIdentifier(inactive.getIdentifier())).thenReturn(Optional.of(inactive));
+        when(repository.findActiveInternalIdByIdentifier(inactive.getIdentifier())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-            new MicroserviceQueryService(repository).findActiveInternalIdByIdentifier(inactive.getIdentifier())
+            microserviceQuery(repository).findActiveInternalIdByIdentifier(inactive.getIdentifier())
         )
             .isInstanceOf(NotFoundException.class)
             .hasMessage(PlatformMessageKeys.ACTIVE_MICROSERVICE_NOT_FOUND);
+    }
+    private static MicroserviceQueryService microserviceQuery(MicroserviceRepository repository) {
+        return new MicroserviceQueryService(
+            repository,
+            new MicroserviceFinder(
+                repository, mock(EntityManager.class)),
+            new MicroserviceMapper(
+                JsonMapper.builder().build()),
+            mock(MicroserviceValidator.class)
+        );
     }
 }

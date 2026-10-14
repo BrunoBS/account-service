@@ -3,7 +3,6 @@ package br.com.portalmanager.platform.workspace.entrypoint.web.publisher.respons
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.PublisherOutput;
 import java.time.LocalDateTime;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 public record PublisherResponse(
     Long version,
@@ -18,8 +17,6 @@ public record PublisherResponse(
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
-
     public static PublisherResponse from(PublisherOutput output) {
         return new PublisherResponse(
             output.version(),
@@ -29,15 +26,10 @@ public record PublisherResponse(
             output.description(),
             output.scope(),
             output.deprecated(),
-            toJsonNode(output.settings()),
+            output.settings(),
             output.lifecycle(),
             output.createdAt(),
             output.updatedAt()
         );
-    }
-
-    private static JsonNode toJsonNode(String settings) {
-        if (settings == null || settings.isBlank()) return null;
-        return JSON_MAPPER.readTree(settings);
     }
 }

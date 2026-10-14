@@ -3,20 +3,19 @@ package br.com.portalmanager.platform.workspace.feature.message.usecase.operatio
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.workspace.feature.message.domain.Message;
-import br.com.portalmanager.platform.workspace.feature.message.domain.MessageTranslation;
 import br.com.portalmanager.platform.workspace.feature.message.repository.MessageRepository;
-import br.com.portalmanager.platform.workspace.feature.message.repository.MessageTranslationRepository;
+import br.com.portalmanager.platform.workspace.feature.message.repository.MessageTranslationRepository.DeletionSnapshot;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.CreateMessageInput;
-import br.com.portalmanager.platform.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.MessageOutput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageFinder;
+import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageMapper;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageNormalizer;
+import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.translation.MessageTranslationCommandService;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.validation.MessageValidator;
 import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceQueryService;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,24 +23,27 @@ import org.springframework.transaction.annotation.Transactional;
 public class MessageCommandService {
 
     private final MessageRepository messageRepository;
-    private final MessageTranslationRepository translationRepository;
+    private final MessageTranslationCommandService translationCommandService;
     private final MessageFinder finder;
     private final MessageNormalizer normalizer;
+    private final MessageMapper mapper;
     private final MessageValidator validator;
     private final MicroserviceQueryService microserviceQueryService;
 
     public MessageCommandService(
         MessageRepository messageRepository,
-        MessageTranslationRepository translationRepository,
+        MessageTranslationCommandService translationCommandService,
         MessageFinder finder,
         MessageNormalizer normalizer,
+        MessageMapper mapper,
         MessageValidator validator,
         MicroserviceQueryService microserviceQueryService
     ) {
         this.messageRepository = messageRepository;
-        this.translationRepository = translationRepository;
+        this.translationCommandService = translationCommandService;
         this.finder = finder;
         this.normalizer = normalizer;
+        this.mapper = mapper;
         this.validator = validator;
         this.microserviceQueryService = microserviceQueryService;
     }
@@ -51,127 +53,68 @@ public class MessageCommandService {
     public MessageOutput create(CreateMessageInput rawInput) {
         CreateMessageInput input = normalizer.normalize(rawInput);
 
-        validator.validateForCreate(input, false, false);
-        Long microserviceId = microserviceQueryService.findActiveInternalIdByIdentifier(input.microserviceIdentifier());
-
-        boolean keyDuplicate =
-            input.messageKey() != null &&
-            messageRepository.existsByMicroserviceIdAndMessageKey(microserviceId, input.messageKey());
-        boolean codeDuplicate =
-            input.code() != null && messageRepository.existsByMicroserviceIdAndCode(microserviceId, input.code());
-
-        validator.validateForCreate(input, keyDuplicate, codeDuplicate);
-        validateTranslationsForCreate(input);
+        Long microserviceId = validator.validateForCreate(input);
 
         LocalDateTime now = LocalDateTime.now();
-        Message message = new Message(
-            microserviceId,
-            input.messageKey(),
-            input.code(),
-            input.httpStatus(),
-            input.observation(),
-            now
-        );
-        Message saved = messageRepository.saveAndFlush(message);
+        Message message = new Message(microserviceId, mapper.toDetails(input), now);
+        Message savedMessage = messageRepository.saveAndFlush(message);
 
         if (input.translations() != null && !input.translations().isEmpty()) {
-            input
-                .translations()
-                .forEach(translation ->
-                    translationRepository.save(
-                        new MessageTranslation(
-                            saved,
-                            translation.locale(),
-                            translation.title(),
-                            translation.detail(),
-                            translation.suggestion(),
-                            now
-                        )
-                    )
-                );
-            translationRepository.flush();
+            translationCommandService.createAllForNewMessage(savedMessage, input.translations(), now);
         }
-
-        return output(saved);
+        return MessageOutput.from(savedMessage, input.microserviceIdentifier());
     }
 
     @Transactional
     @Auditable(action = AuditAction.UPDATE, event = "MESSAGE_UPDATED", resourceType = "MESSAGE")
-    public MessageOutput update(String identifier, UpdateMessageInput rawInput) {
-        Message message = finder.findMessage(identifier);
+    public MessageOutput update(String messageIdentifier, UpdateMessageInput rawInput) {
+        Message message = finder.findMessageForUpdate(messageIdentifier);
         UpdateMessageInput input = normalizer.normalize(rawInput);
 
-        validator.validateForUpdate(input, false, false);
-        Long microserviceId = microserviceQueryService.findActiveInternalIdByIdentifier(input.microserviceIdentifier());
+        Long microserviceId = validator.validateForUpdate(message, input);
 
-        boolean keyDuplicate =
-            input.messageKey() != null &&
-            messageRepository.existsByMicroserviceIdAndMessageKeyAndIdNot(
-                microserviceId,
-                input.messageKey(),
-                message.getId()
-            );
-        boolean codeDuplicate =
-            input.code() != null &&
-            messageRepository.existsByMicroserviceIdAndCodeAndIdNot(microserviceId, input.code(), message.getId());
-
-        validator.validateForUpdate(input, keyDuplicate, codeDuplicate);
-        validator.validateVersion(message.getVersion(), input.version());
-
-        message.update(
-            microserviceId,
-            input.messageKey(),
-            input.code(),
-            input.httpStatus(),
-            input.observation(),
-            LocalDateTime.now()
-        );
-        return output(messageRepository.saveAndFlush(message));
+        message.update(microserviceId, mapper.toDetails(input), LocalDateTime.now());
+        messageRepository.flush();
+        return MessageOutput.from(message, input.microserviceIdentifier());
     }
 
     @Transactional
     @Auditable(action = AuditAction.ACTIVATE, event = "MESSAGE_ACTIVATED", resourceType = "MESSAGE")
-    public MessageOutput activate(String identifier) {
-        Message message = finder.findMessage(identifier);
+    public MessageOutput activate(String messageIdentifier) {
+        Message message = finder.findMessageForUpdate(messageIdentifier);
         message.activate(LocalDateTime.now());
-        return output(messageRepository.saveAndFlush(message));
+        messageRepository.flush();
+        return toOutput(message);
     }
 
     @Transactional
     @Auditable(action = AuditAction.DEACTIVATE, event = "MESSAGE_DEACTIVATED", resourceType = "MESSAGE")
-    public MessageOutput inactivate(String identifier) {
-        Message message = finder.findMessage(identifier);
+    public MessageOutput inactivate(String messageIdentifier) {
+        Message message = finder.findMessageForUpdate(messageIdentifier);
         message.inactivate(LocalDateTime.now());
-        return output(messageRepository.saveAndFlush(message));
+        messageRepository.flush();
+        return toOutput(message);
     }
 
     @Transactional
-    @Auditable(action = AuditAction.DELETE, event = "MESSAGE_DELETED", resourceType = "MESSAGE")
-    public MessageOutput delete(String identifier) {
-        Message message = finder.findMessage(identifier);
-        validator.validateDeletion(message);
-        message.quarantine(LocalDateTime.now());
-        messageRepository.saveAndFlush(message);
-        return output(message);
+    @Auditable(action = AuditAction.PURGE, event = "MESSAGE_PURGED", resourceType = "MESSAGE")
+    public MessageOutput delete(String messageIdentifier) {
+        Message message = finder.findMessageForUpdate(messageIdentifier);
+        message.requireInactiveForDeletion();
+        MessageOutput removedMessage = toOutput(message);
+        List<DeletionSnapshot> translationSnapshots = finder.findTranslationSnapshotsForDeletion(message);
+        if (!translationSnapshots.isEmpty()) {
+            translationCommandService.deleteAllForMessage(message, translationSnapshots);
+        }
+        messageRepository.delete(message);
+        messageRepository.flush();
+        return removedMessage;
     }
 
-    private MessageOutput output(Message message) {
+    private MessageOutput toOutput(Message message) {
         return MessageOutput.from(
             message,
             microserviceQueryService.findIdentifierByInternalId(message.getMicroserviceId())
         );
-    }
-
-    private void validateTranslationsForCreate(CreateMessageInput input) {
-        if (input == null || input.translations() == null || input.translations().isEmpty()) {
-            return;
-        }
-
-        Set<String> locales = new HashSet<>();
-        for (CreateMessageTranslationInput translation : input.translations()) {
-            boolean duplicateLocale =
-                translation != null && translation.locale() != null && !locales.add(translation.locale());
-            validator.validateTranslationForCreate(translation, duplicateLocale);
-        }
     }
 }

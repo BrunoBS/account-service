@@ -1,0 +1,92 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["workspaceType", "name", "description", "requester", "acronym", "emailGroup", "approvers"],
+    "properties": {
+        "workspaceType": {
+            "type": "string",
+            "minLength": 1,
+            "enum": ["ADMIN", "MANAGER"],
+            "maxLength": 20
+        },
+        "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50,
+            "pattern": "\\S"
+        },
+        "description": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 200,
+            "pattern": "\\S"
+        },
+        "requester": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 10,
+            "pattern": "\\S"
+        },
+        "acronym": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5,
+            "pattern": "\\S"
+        },
+        "authorizerGroup": {
+            "type": ["string", "null"],
+            "maxLength": 10
+        },
+        "settings": {
+            "type": ["object", "null"],
+            "additionalProperties": true
+        },
+        "emailGroup": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+            "format": "email"
+        },
+        "approvers": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["functional", "email"],
+                "properties": {
+                    "functional": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 10,
+                        "pattern": "\\S"
+                    },
+                    "email": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100,
+                        "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+                        "format": "email"
+                    }
+                }
+            },
+            "maxItems": 5
+        },
+        "tags": {
+            "type": ["array", "null"],
+            "items": {
+                "type": "string",
+                "maxLength": 50
+            },
+            "maxItems": 20
+        },
+        "version": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        }
+    },
+    "title": "Workspace",
+    "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

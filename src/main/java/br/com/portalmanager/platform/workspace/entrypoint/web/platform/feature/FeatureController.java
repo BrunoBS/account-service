@@ -1,12 +1,15 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.platform.feature;
 
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
-import br.com.portalmanager.platform.workspace.entrypoint.web.platform.context.response.FeatureContextResponse;
-import br.com.portalmanager.platform.workspace.entrypoint.web.platform.feature.request.*;
+import br.com.portalmanager.platform.workspace.entrypoint.web.platform.feature.request.CreateFeatureRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.platform.feature.request.UpdateFeatureRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.platform.feature.response.FeatureResponse;
-import br.com.portalmanager.platform.workspace.feature.platform.facade.FeatureFacade;
-import java.util.List;
-import org.springframework.http.*;
+import br.com.portalmanager.platform.workspace.feature.platform.facade.feature.FeatureFacade;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,75 +18,49 @@ public class FeatureController {
 
     private final FeatureFacade facade;
 
-    public FeatureController(FeatureFacade f) {
-        facade = f;
+    public FeatureController(FeatureFacade facade) {
+        this.facade = facade;
     }
 
     @PostMapping
-    public ResponseEntity<FeatureResponse> create(AuthorizationContext context, @RequestBody CreateFeatureRequest r) {
+    public ResponseEntity<FeatureResponse> create(AuthorizationContext authorizationContext, @RequestBody CreateFeatureRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
-            FeatureResponse.from(facade.create(context, r.toInput()))
+                FeatureResponse.from(facade.create(authorizationContext, request.toInput()))
         );
     }
 
-    @GetMapping("/{identifier}")
-    public FeatureResponse findByIdentifier(AuthorizationContext context, @PathVariable String identifier) {
-        return FeatureResponse.from(facade.findByIdentifier(context, identifier));
+    @GetMapping("/{featureIdentifier}")
+    public FeatureResponse findByIdentifier(AuthorizationContext authorizationContext, @PathVariable String featureIdentifier) {
+        return FeatureResponse.from(facade.findByIdentifier(authorizationContext, featureIdentifier));
     }
 
     @GetMapping
-    public List<FeatureResponse> findAll(
-        AuthorizationContext context,
-        @RequestParam(required = false) String contextCode
+    public Page<FeatureResponse> findAll(
+            AuthorizationContext authorizationContext,
+            @RequestParam(required = false) String lifecycle,
+            @RequestParam(required = false) String contextIdentifier,
+            @PageableDefault(size = 20, sort = "id") Pageable pageable
     ) {
-        return facade.findAll(context, contextCode).stream().map(FeatureResponse::from).toList();
+        return facade.findAll(authorizationContext, contextIdentifier, lifecycle, pageable)
+                .map(FeatureResponse::from);
     }
 
-    @GetMapping("/{identifier}/contexts")
-    public List<FeatureContextResponse> findContexts(AuthorizationContext context, @PathVariable String identifier) {
-        return facade.findContexts(context, identifier).stream().map(FeatureContextResponse::from).toList();
-    }
-
-    @PutMapping("/{identifier}")
+    @PutMapping("/{featureIdentifier}")
     public FeatureResponse update(
-        AuthorizationContext context,
-        @PathVariable String identifier,
-        @RequestBody UpdateFeatureRequest r
+            AuthorizationContext authorizationContext,
+            @PathVariable String featureIdentifier,
+            @RequestBody UpdateFeatureRequest request
     ) {
-        return FeatureResponse.from(facade.update(context, identifier, r.toInput()));
+        return FeatureResponse.from(facade.update(authorizationContext, featureIdentifier, request.toInput()));
     }
 
-    @PatchMapping("/{identifier}/activate")
-    public FeatureResponse activate(AuthorizationContext context, @PathVariable String identifier) {
-        return FeatureResponse.from(facade.activate(context, identifier));
+    @PatchMapping("/{featureIdentifier}/activate")
+    public FeatureResponse activate(AuthorizationContext authorizationContext, @PathVariable String featureIdentifier) {
+        return FeatureResponse.from(facade.activate(authorizationContext, featureIdentifier));
     }
 
-    @PatchMapping("/{identifier}/inactivate")
-    public FeatureResponse inactivate(AuthorizationContext context, @PathVariable String identifier) {
-        return FeatureResponse.from(facade.inactivate(context, identifier));
-    }
-
-    @PostMapping("/{identifier}/contexts/{contextIdentifier}")
-    public FeatureResponse associateContext(
-        AuthorizationContext context,
-        @PathVariable String identifier,
-        @PathVariable String contextIdentifier
-    ) {
-        return FeatureResponse.from(facade.associateContext(context, identifier, contextIdentifier));
-    }
-
-    @DeleteMapping("/{identifier}/contexts/{contextIdentifier}")
-    public FeatureResponse removeContext(
-        AuthorizationContext context,
-        @PathVariable String identifier,
-        @PathVariable String contextIdentifier
-    ) {
-        return FeatureResponse.from(facade.removeContext(context, identifier, contextIdentifier));
-    }
-
-    @DeleteMapping("/{identifier}")
-    public ResponseEntity<Void> delete(AuthorizationContext context, @PathVariable String identifier) {
-        facade.delete(context, identifier);
-        return ResponseEntity.noContent().build();
+    @PatchMapping("/{featureIdentifier}/inactivate")
+    public FeatureResponse inactivate(AuthorizationContext authorizationContext, @PathVariable String featureIdentifier) {
+        return FeatureResponse.from(facade.inactivate(authorizationContext, featureIdentifier));
     }
 }

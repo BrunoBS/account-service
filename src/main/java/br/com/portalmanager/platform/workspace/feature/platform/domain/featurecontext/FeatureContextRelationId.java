@@ -12,21 +12,21 @@ public class FeatureContextRelationId implements Serializable {
     private Long featureId;
 
     @Column(name = "feature_context_id", nullable = false)
-    private Long featureContextId;
+    private Long contextId;
 
     protected FeatureContextRelationId() {}
 
-    public FeatureContextRelationId(Long featureId, Long featureContextId) {
+    public FeatureContextRelationId(Long featureId, Long contextId) {
         this.featureId = Objects.requireNonNull(featureId);
-        this.featureContextId = Objects.requireNonNull(featureContextId);
+        this.contextId = Objects.requireNonNull(contextId);
     }
 
     public Long getFeatureId() {
         return featureId;
     }
 
-    public Long getFeatureContextId() {
-        return featureContextId;
+    public Long getContextId() {
+        return contextId;
     }
 
     @Override
@@ -35,12 +35,12 @@ public class FeatureContextRelationId implements Serializable {
         if (!(other instanceof FeatureContextRelationId relationId)) return false;
         return (
             Objects.equals(featureId, relationId.featureId) &&
-            Objects.equals(featureContextId, relationId.featureContextId)
+            Objects.equals(contextId, relationId.contextId)
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(featureId, featureContextId);
+        return Objects.hash(featureId, contextId);
     }
 }

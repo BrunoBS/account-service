@@ -19,4 +19,8 @@ public class WorkspaceTypeCode extends AbstractCatalogCode {
     public static WorkspaceTypeCode of(WorkspaceTypeEnum value) {
         return new WorkspaceTypeCode(value == null ? null : value.name());
     }
+
+    public static WorkspaceTypeCode admin() { return of(WorkspaceTypeEnum.ADMIN); }
+
+    public static WorkspaceTypeCode manager() { return of(WorkspaceTypeEnum.MANAGER); }
 }

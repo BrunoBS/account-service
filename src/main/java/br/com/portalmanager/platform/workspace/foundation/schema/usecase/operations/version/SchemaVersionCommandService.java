@@ -5,11 +5,11 @@ import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaDefinitionValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaDefinitionValidationAdapter;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
@@ -28,22 +28,22 @@ public class SchemaVersionCommandService {
 
     private final SchemaRepository schemaRepository;
     private final SchemaVersionRepository versionRepository;
-    private final SchemaDefinitionValidator validator;
+    private final SchemaDefinitionValidationAdapter validator;
     private final SchemaVersionOperationValidator operationValidator;
-    private final WorkspaceReferenceResolver workspaceReferenceResolver;
+    private final WorkspaceReferencePort workspaceReferencePort;
 
     public SchemaVersionCommandService(
         SchemaRepository schemaRepository,
         SchemaVersionRepository versionRepository,
-        SchemaDefinitionValidator validator,
+        SchemaDefinitionValidationAdapter validator,
         SchemaVersionOperationValidator operationValidator,
-        WorkspaceReferenceResolver workspaceReferenceResolver
+        WorkspaceReferencePort workspaceReferencePort
     ) {
         this.schemaRepository = schemaRepository;
         this.versionRepository = versionRepository;
         this.validator = validator;
         this.operationValidator = operationValidator;
-        this.workspaceReferenceResolver = workspaceReferenceResolver;
+        this.workspaceReferencePort = workspaceReferencePort;
     }
 
     @Transactional
@@ -63,7 +63,7 @@ public class SchemaVersionCommandService {
             requiredScoped(
                 schemaIdentifier,
                 SchemaScopeTypeCode.workspace(),
-                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+                workspaceReferencePort.resolveInternalId(workspaceIdentifier)
             ),
             input
         );
@@ -86,7 +86,7 @@ public class SchemaVersionCommandService {
             requiredScoped(
                 schemaIdentifier,
                 SchemaScopeTypeCode.workspace(),
-                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+                workspaceReferencePort.resolveInternalId(workspaceIdentifier)
             ),
             versionIdentifier
         );
@@ -103,7 +103,7 @@ public class SchemaVersionCommandService {
             requiredScoped(
                 schemaIdentifier,
                 SchemaScopeTypeCode.workspace(),
-                workspaceReferenceResolver.resolveInternalId(workspaceIdentifier)
+                workspaceReferencePort.resolveInternalId(workspaceIdentifier)
             ),
             versionIdentifier
         );

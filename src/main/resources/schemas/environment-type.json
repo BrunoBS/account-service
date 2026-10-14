@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Environment type request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "code",
+    "name",
+    "description",
+    "rootAllowed",
+    "allowsChildren",
+    "workspaceRequired",
+    "displayOrder"
+  ],
+  "properties": {
+    "version": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 9223372036854775807
+    },
+    "code": {
+      "type": "string",
+      "enum": ["DEFAULT", "CUSTOM", "SHARD", "CELL"],
+      "minLength": 1,
+      "maxLength": 50,
+      "pattern": "\\S"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "\\S"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 250,
+      "pattern": "\\S"
+    },
+    "rootAllowed": {
+      "type": "boolean"
+    },
+    "allowsChildren": {
+      "type": "boolean"
+    },
+    "workspaceRequired": {
+      "type": "boolean"
+    },
+    "displayOrder": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    }
+  }
+}

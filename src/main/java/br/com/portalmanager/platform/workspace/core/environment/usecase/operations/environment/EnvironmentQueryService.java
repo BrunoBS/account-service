@@ -5,15 +5,21 @@ import br.com.portalmanager.platform.library.messaging.exception.NotFoundExcepti
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
 import br.com.portalmanager.platform.workspace.core.environment.domain.environment.Environment;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
+import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository.HierarchyReference;
+import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository.IdentifierReference;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentOutput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentReferenceOutput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTreeOutput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,37 +28,21 @@ public class EnvironmentQueryService {
 
     private final EnvironmentRepository repository;
     private final EnvironmentFinder finder;
-    private final WorkspaceReferenceResolver workspaces;
+    private final WorkspaceReferencePort workspaces;
 
     public EnvironmentQueryService(
         EnvironmentRepository repository,
         EnvironmentFinder finder,
-        WorkspaceReferenceResolver workspaces
+        WorkspaceReferencePort workspaces
     ) {
         this.repository = repository;
         this.finder = finder;
         this.workspaces = workspaces;
     }
 
-    @Transactional(readOnly = true)
-    public Long findInternalIdByIdentifier(String identifier) {
-        return repository
-            .findByIdentifier(identifier)
-            .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND))
-            .getId();
-    }
-
-    @Transactional(readOnly = true)
-    public String findIdentifierByInternalId(Long environmentId) {
-        return repository
-            .findById(environmentId)
-            .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND))
-            .getIdentifier();
-    }
-
     @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
-    public EnvironmentOutput findCustom(String workspaceIdentifier, String identifier) {
+    public EnvironmentOutput findWorkspace(String workspaceIdentifier, String identifier) {
         return EnvironmentOutput.from(
             finder.findActive(identifier, workspaces.resolveInternalId(workspaceIdentifier)),
             workspaceIdentifier
@@ -61,7 +51,7 @@ public class EnvironmentQueryService {
 
     @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
-    public EnvironmentOutput findCustomInactive(String workspaceIdentifier, String identifier) {
+    public EnvironmentOutput findWorkspaceInactive(String workspaceIdentifier, String identifier) {
         return EnvironmentOutput.from(
             finder.findInactive(identifier, workspaces.resolveInternalId(workspaceIdentifier)),
             workspaceIdentifier
@@ -70,7 +60,7 @@ public class EnvironmentQueryService {
 
     @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
-    public EnvironmentOutput findCustomForDeletion(String workspaceIdentifier, String identifier) {
+    public EnvironmentOutput findWorkspaceForDeletion(String workspaceIdentifier, String identifier) {
         return EnvironmentOutput.from(
             finder.findInactiveForDeletion(identifier, workspaces.resolveInternalId(workspaceIdentifier)),
             workspaceIdentifier
@@ -79,14 +69,17 @@ public class EnvironmentQueryService {
 
     @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
-    public List<EnvironmentOutput> listCustom(String workspaceIdentifier, Boolean active) {
-        Long id = workspaces.resolveInternalId(workspaceIdentifier);
-        return repository
-            .findByWorkspaceAndLifecycle(id, lifecycle(active))
+    public List<EnvironmentOutput> listWorkspace(String workspaceIdentifier, String lifecycle) {
+        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        LifecycleTypeCode lifecycleCode = LifecycleFilter.resolve(lifecycle);
+        Map<Long, HierarchyReference> hierarchy = repository.findVisibleHierarchyInWorkspace(workspaceId).stream()
+            .collect(Collectors.toMap(HierarchyReference::getId, reference -> reference));
+        List<Environment> environments = repository
+            .findByWorkspaceAndLifecycle(workspaceId, lifecycleCode)
             .stream()
-            .filter(e -> !Boolean.TRUE.equals(active) || finder.accessible(e))
-            .map(e -> EnvironmentOutput.from(e, workspaceIdentifier))
+            .filter(environment -> hasVisibleAncestors(environment.getId(), hierarchy, LifecycleTypeCode.active().equals(lifecycleCode)))
             .toList();
+        return toOutputs(environments, workspaceIdentifier);
     }
 
     /** Resolves environment references in bulk, retaining inactive environments in Shared history. */
@@ -94,9 +87,9 @@ public class EnvironmentQueryService {
     public Map<Long, String> findIdentifiersByInternalIds(Collection<Long> environmentIds) {
         if (environmentIds.isEmpty()) return Map.of();
         return repository
-            .findAllById(environmentIds)
+            .findIdentifierReferences(environmentIds)
             .stream()
-            .collect(Collectors.toMap(Environment::getId, Environment::getIdentifier));
+            .collect(Collectors.toMap(IdentifierReference::getId, IdentifierReference::getIdentifier));
     }
 
     /**
@@ -106,26 +99,13 @@ public class EnvironmentQueryService {
     @Transactional(readOnly = true)
     public List<EnvironmentOutput> listActiveForShared(String workspaceIdentifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        List<EnvironmentOutput> defaults = repository
-            .findDefaultsByLifecycle(LifecycleTypeCode.active())
-            .stream()
-            .filter(finder::accessible)
-            .map(e -> EnvironmentOutput.from(e, null))
+        List<Environment> environments = repository.findVisibleInWorkspace(workspaceId, LifecycleTypeCode.active());
+        Map<Long, Environment> hierarchy = environments.stream().collect(Collectors.toMap(Environment::getId, environment -> environment));
+        return environments.stream()
+            .sorted(Comparator.comparing(environment -> environment.getWorkspaceId() != null))
+            .filter(environment -> hasActiveAncestors(environment, hierarchy))
+            .map(environment -> EnvironmentOutput.from(environment, environment.getWorkspaceId() == null ? null : workspaceIdentifier))
             .toList();
-        List<EnvironmentOutput> custom = repository
-            .findByWorkspaceAndLifecycle(workspaceId, LifecycleTypeCode.active())
-            .stream()
-            .filter(finder::accessible)
-            .map(e -> EnvironmentOutput.from(e, workspaceIdentifier))
-            .toList();
-        return java.util.stream.Stream.concat(defaults.stream(), custom.stream()).toList();
-    }
-
-    /** Cross-application Shared read after the owner contract and participant scope have been verified. */
-    @Transactional(readOnly = true)
-    public EnvironmentOutput findActiveForShared(String workspaceIdentifier, String identifier) {
-        Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        return EnvironmentOutput.from(finder.findActive(identifier, workspaceId), workspaceIdentifier);
     }
 
     /** Resolves only the requested environments, retaining workspace and ancestor activity checks. */
@@ -136,10 +116,12 @@ public class EnvironmentQueryService {
     ) {
         if (identifiers.isEmpty()) return Map.of();
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
+        Map<Long, HierarchyReference> hierarchy = repository.findHierarchyForSharedReferences(workspaceId, identifiers).stream()
+            .collect(Collectors.toMap(HierarchyReference::getId, reference -> reference));
         Map<String, EnvironmentReferenceOutput> available = repository
             .findSharedReferences(workspaceId, identifiers)
             .stream()
-            .filter(finder::accessible)
+            .filter(environment -> hasVisibleAncestors(environment.getId(), hierarchy, true))
             .collect(
                 Collectors.toMap(Environment::getIdentifier, environment ->
                     new EnvironmentReferenceOutput(
@@ -164,7 +146,7 @@ public class EnvironmentQueryService {
         Environment environment = repository
             .findByIdentifierAndWorkspaceId(environmentIdentifier, workspaceId)
             .or(() -> repository.findByIdentifierAndWorkspaceIdIsNull(environmentIdentifier))
-            .filter(finder::accessible)
+            .filter(finder::isAccessible)
             .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND));
         return EnvironmentOutput.from(environment, environment.getWorkspaceId() == null ? null : workspaceIdentifier);
     }
@@ -185,77 +167,116 @@ public class EnvironmentQueryService {
     }
 
     @Transactional(readOnly = true)
-    public List<EnvironmentOutput> listDefaults(Boolean active) {
-        return repository
-            .findDefaultsByLifecycle(lifecycle(active))
-            .stream()
-            .map(e -> EnvironmentOutput.from(e, null))
+    public List<EnvironmentOutput> listDefaults(String lifecycle) {
+        LifecycleTypeCode lifecycleCode = LifecycleFilter.resolve(lifecycle);
+        List<Environment> environments = repository.findDefaultsByLifecycle(lifecycleCode);
+        Map<Long, Environment> hierarchy = environments.stream().collect(Collectors.toMap(Environment::getId, environment -> environment));
+        List<Environment> accessibleEnvironments = environments.stream()
+            .filter(environment -> !LifecycleTypeCode.active().equals(lifecycleCode) || hasActiveAncestors(environment, hierarchy))
             .toList();
+        return toOutputs(accessibleEnvironments, null);
     }
 
     @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
-    public List<EnvironmentOutput> roots(String workspaceIdentifier) {
+    public List<EnvironmentOutput> findRoots(String workspaceIdentifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        List<Environment> global = repository
-            .findDefaultsByLifecycle(LifecycleTypeCode.active())
-            .stream()
-            .filter(e -> e.getParent() == null)
-            .toList();
-        return java.util.stream.Stream.concat(
-            global.stream(),
+        List<Environment> defaultRoots = repository.findDefaultRoots(LifecycleTypeCode.active());
+        return Stream.concat(
+            defaultRoots.stream(),
             repository.findWorkspaceRoots(workspaceId, LifecycleTypeCode.active()).stream()
         )
-            .map(e -> EnvironmentOutput.from(e, e.getWorkspaceId() == null ? null : workspaceIdentifier))
+            .map(environment -> EnvironmentOutput.from(
+                environment, environment.getWorkspaceId() == null ? null : workspaceIdentifier
+            ))
             .toList();
     }
 
     @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
-    public List<EnvironmentOutput> children(String workspaceIdentifier, String parentIdentifier) {
+    public List<EnvironmentOutput> findChildren(String workspaceIdentifier, String parentIdentifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Environment parent = repository
             .findByIdentifier(parentIdentifier)
             .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND));
         if (
             (parent.getWorkspaceId() != null && !parent.getWorkspaceId().equals(workspaceId)) ||
-            !finder.accessible(parent)
+            !finder.isAccessible(parent)
         ) throw new NotFoundException(EnvironmentMessageKeys.NOT_FOUND);
         return repository
             .findChildren(parent.getId(), workspaceId, LifecycleTypeCode.active())
             .stream()
-            .map(e -> EnvironmentOutput.from(e, workspaceIdentifier))
+            .map(environment -> EnvironmentOutput.from(environment, workspaceIdentifier))
             .toList();
     }
 
     @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
-    public List<EnvironmentTreeOutput> tree(String workspaceIdentifier) {
+    public List<EnvironmentTreeOutput> findTree(String workspaceIdentifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
-        List<Environment> globalRoots = repository
-            .findDefaultsByLifecycle(LifecycleTypeCode.active())
+        List<Environment> visibleEnvironments = repository
+            .findVisibleInWorkspace(workspaceId, LifecycleTypeCode.active());
+        Map<Long, List<Environment>> childrenByParentId = visibleEnvironments
             .stream()
-            .filter(e -> e.getParent() == null)
-            .toList();
-        List<Environment> workspaceRoots = repository.findWorkspaceRoots(workspaceId, LifecycleTypeCode.active());
-        return java.util.stream.Stream.concat(globalRoots.stream(), workspaceRoots.stream())
-            .map(e -> buildTree(e, workspaceId, workspaceIdentifier))
+            .filter(environment -> environment.getParent() != null)
+            .collect(Collectors.groupingBy(environment -> environment.getParent().getId()));
+        return visibleEnvironments
+            .stream()
+            .filter(environment -> environment.getParent() == null)
+            .map(environment -> buildTree(environment, childrenByParentId, workspaceIdentifier))
             .toList();
     }
 
-    private EnvironmentTreeOutput buildTree(Environment environment, Long workspaceId, String workspaceIdentifier) {
-        List<EnvironmentTreeOutput> children = repository
-            .findChildren(environment.getId(), workspaceId, LifecycleTypeCode.active())
+    private List<EnvironmentOutput> toOutputs(List<Environment> environments, String workspaceIdentifier) {
+        Set<Long> parentIds = environments.stream()
+            .filter(environment -> environment.getParent() != null)
+            .map(environment -> environment.getParent().getId())
+            .collect(Collectors.toSet());
+        Map<Long, String> parentIdentifiers = findIdentifiersByInternalIds(parentIds);
+        return environments.stream()
+            .map(environment -> {
+                String parentIdentifier = null;
+                if (environment.getParent() != null) {
+                    parentIdentifier = parentIdentifiers.get(environment.getParent().getId());
+                    if (parentIdentifier == null) throw new NotFoundException(EnvironmentMessageKeys.NOT_FOUND);
+                }
+                return EnvironmentOutput.from(environment, workspaceIdentifier, parentIdentifier);
+            })
+            .toList();
+    }
+
+    private boolean hasActiveAncestors(Environment environment, Map<Long, Environment> hierarchy) {
+        for (Environment current = environment; current != null;) {
+            if (!LifecycleTypeCode.active().equals(current.getLifecycle())) return false;
+            if (current.getParent() == null) return true;
+            current = hierarchy.get(current.getParent().getId());
+            if (current == null) return false;
+        }
+        return true;
+    }
+
+    private boolean hasVisibleAncestors(Long environmentId, Map<Long, HierarchyReference> hierarchy, boolean requireActive) {
+        for (Long currentId = environmentId; currentId != null;) {
+            HierarchyReference current = hierarchy.get(currentId);
+            if (current == null || requireActive && !LifecycleTypeCode.active().value().equals(current.getLifecycle())) return false;
+            currentId = current.getParentId();
+        }
+        return true;
+    }
+
+    private EnvironmentTreeOutput buildTree(
+        Environment environment,
+        Map<Long, List<Environment>> childrenByParentId,
+        String workspaceIdentifier
+    ) {
+        List<EnvironmentTreeOutput> children = childrenByParentId
+            .getOrDefault(environment.getId(), List.of())
             .stream()
-            .map(e -> buildTree(e, workspaceId, workspaceIdentifier))
+            .map(child -> buildTree(child, childrenByParentId, workspaceIdentifier))
             .toList();
         return new EnvironmentTreeOutput(
             EnvironmentOutput.from(environment, environment.getWorkspaceId() == null ? null : workspaceIdentifier),
             children
         );
-    }
-
-    private LifecycleTypeCode lifecycle(Boolean active) {
-        return Boolean.FALSE.equals(active) ? LifecycleTypeCode.inactive() : LifecycleTypeCode.active();
     }
 }

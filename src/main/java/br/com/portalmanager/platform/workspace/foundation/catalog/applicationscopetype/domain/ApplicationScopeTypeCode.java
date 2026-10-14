@@ -19,4 +19,10 @@ public class ApplicationScopeTypeCode extends AbstractCatalogCode {
     public static ApplicationScopeTypeCode of(ApplicationScopeTypeEnum value) {
         return new ApplicationScopeTypeCode(value == null ? null : value.name());
     }
+
+    public static ApplicationScopeTypeCode backend() { return of(ApplicationScopeTypeEnum.BACKEND); }
+
+    public static ApplicationScopeTypeCode frontend() { return of(ApplicationScopeTypeEnum.FRONTEND); }
+
+    public static ApplicationScopeTypeCode shared() { return of(ApplicationScopeTypeEnum.SHARED); }
 }
