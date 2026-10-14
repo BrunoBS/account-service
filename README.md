@@ -320,3 +320,11 @@ Migrations versionadas já aplicadas são imutáveis, incluindo espaços e forma
 Não executar formatadores em `src/main/resources/db/migration`. Mudanças de
 estrutura ou de dados devem ser adicionadas em uma nova migration. Não desabilitar
 a validação do Flyway nem executar repair automaticamente na inicialização.
+
+`PublishedMigrationChecksumTest` protege os 44 scripts do histórico aplicado
+anterior à revisão. A [recuperação da verificação local](docs/refinamentos/platform/LOCAL-VERIFY-RECOVERY.md)
+registra a restauração dos arquivos anteriores à reformatação de `32ac504f`.
+
+O cache de contextos Spring dos testes fica limitado a oito em
+`src/test/resources/spring.properties`, liberando os containers MySQL dos
+contextos descartados para que o `mvn verify` completo respeite os recursos locais.

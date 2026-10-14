@@ -2,6 +2,10 @@
 
 Data: 14/10/2026. Critérios: [padrão de revisão](../../REVIEW-STANDARD.md).
 
+Após o merge, o diagnóstico local identificou que HEAD já continha reformatação
+de migrations aplicadas. A referência histórica usada nesta rodada foi corrigida
+conforme a [recuperação da verificação local](LOCAL-VERIFY-RECOVERY.md).
+
 ## Escopo e comportamento vigente
 
 A revisão percorreu controller, fachada, use cases, validação, entidades,
@@ -38,7 +42,7 @@ dos registros preservados. Ações de limpeza continuam disponíveis.
 | Local | Severidade | Evidência e impacto | Correção | Verificação |
 | --- | --- | --- | --- | --- |
 | ContextController → ContextFacade → ContextQueryService → ContextRepository | Média | A busca inversa tinha métodos distintos para coleção geral e por feature; UUID com espaços não era normalizado como na busca de features. | Um único `findAll(featureIdentifier, lifecycle, pageable)`, com filtro opcional, normalização no use case e existência validada quando preenchido. Página e contagem usam o mesmo predicado SQL. | FeatureContextApiIT cobre filtro ausente, branco, preenchido, com espaços e referência inexistente; FeatureContextQueryIT valida DTO fora da transação. |
-| Migrations publicadas, V1–V36, em 35 arquivos alterados | Alta | Formatação mudava o conteúdo físico das migrations e poderia impedir upgrade por checksum do Flyway. Comparação dos tokens SQL confirmou ausência de alteração funcional nos 35 arquivos. | Preservados os bytes originais de HEAD; evoluções funcionais permanecem nas novas migrations V42–V65. A formatação anterior foi guardada em `/private/tmp/workspace-precommit-migration-format-backup`. | Diff das migrations já versionadas vazio; regressão inclui banco limpo, upgrade e migrations específicas. |
+| Migrations publicadas, V1–V36, em 35 arquivos alterados | Alta | A reformatação de `32ac504f` alterou checksums; a comparação com HEAD na revisão inicial não detectou que essa referência já havia sido reformatada. O diagnóstico posterior confirmou 35 divergências no banco local. | Recuperados os arquivos anteriores a `32ac504f`, sem alteração dos tokens SQL. As evoluções funcionais permanecem nas migrations V42–V65. | Os 44 checksums aplicados correspondem aos arquivos recuperados; PublishedMigrationChecksumTest protege esse histórico. Detalhes no relatório de recuperação local. |
 | platform-messaging / ApiExceptionHandler | Alta | Método HTTP removido era tratado pelo handler genérico de erro 500. A correção existia somente no artefato instalado localmente. | Handler de HTTP 405 preserva Allow e usa mensagem localizada. Correção comitada na main da biblioteca: `917aa7b0`. | 73 testes da biblioteca aprovados, incluindo dois MockMvc para 405/localização; PlatformEndpointContractIT cobre os endpoints removidos. |
 | WorkspaceFacade.findByIdentifier, identificado na regressão geral do commit | Alta | O detalhe exigia OPEN, divergindo do contrato DEV documentado e de WorkspaceAuthorizationIT. | Restaurada a política DEV para leitura individual, mantendo criação/listagem OPEN e mutações ADM. | WorkspaceAuthorizationIT verifica o header de policy e os cenários de acesso/visibilidade. |
 
