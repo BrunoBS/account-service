@@ -44,8 +44,69 @@ Validação final: suíte unitária/arquitetura, `SharedApiIT` com auditoria hab
 
 ## Reutilização de referências internas
 
-- Comandos e consultas resolvem os IDs de workspace e aplicação juntos por meio de `SharedReferenceResolver.applicationReference` e reutilizam a referência local nas buscas e gravações.
+- Comandos e consultas usam `SharedReferenceAdapter` para resolver referências e montar as saídas da feature.
 - A resolução conjunta faz uma única busca do workspace e uma busca da aplicação no workspace, mantendo as validações de atividade e visibilidade existentes.
 - Ao editar um contrato já carregado, a validação de nome duplicado usa os IDs do proprietário persistidos no contrato.
 - As consultas de contrato e participação do proprietário compartilham a busca do contrato pelo escopo; ativação e exclusão também reutilizam a busca existente nos comandos.
 - A construção de mapeamentos resolve o ID do ambiente de origem uma vez por origem, reutilizando-o para todos os destinos da entrada.
+
+## Detalhe de participação e disponibilidade da feature — etapa intermediária, 13/10/2026
+
+A visão do proprietário devolve sourceEnvironments no endpoint:
+
+```http
+GET /api/v1/workspaces/{workspaceIdentifier}/applications/{applicationIdentifier}/shared-contracts/{contractIdentifier}/participations/{participationIdentifier}
+```
+
+O fluxo é SharedOwnerController.findParticipation → SharedOwnerFacade.participation
+→ SharedParticipationQueryService.findOwnerParticipationDetails. A oferta de
+ambientes considera contrato ativo, disponibilidade da feature/microservice e
+aplicação/workspace participante ativos. A feature deve continuar compartilhável.
+A consulta reutiliza SharedReferenceAdapter.isFeatureAvailable, sem duplicar a
+regra ou modificar o contrato público da resposta.
+
+Feature ou microservice inativo produz sourceEnvironments vazio, preservando a
+participação, o lifecycle do contrato e os mappings históricos. Reativação restaura
+a lista se as demais referências permanecerem elegíveis. Listagens e a visão do
+participante continuam preservando histórico, sem incluir sourceEnvironments.
+
+Verificação específica: 107 testes unitários/arquitetura e 52 testes da API Shared
+aprovados, sem falhas, erros ou skips. O novo cenário usa inativação/reativação
+reais da feature e do microservice, mantém o contrato ativo e a participação aprovada,
+preserva mappings e confirma sourceEnvironments vazio/restaurado. A regressão
+inclui contratos/participantes inativos, histórico, autorização, ambientes e
+concorrência existentes. `git diff --check` aprovado.
+
+```text
+mvn --offline --batch-mode --no-transfer-progress -Dit.test=SharedApiIT verify
+```
+
+Log: `/private/tmp/shared-feature-availability-verify.log`.
+
+## Erro de negócio nos detalhes com feature indisponível — 13/10/2026
+
+A regra final de leitura individual substitui a etapa intermediária acima. Buscar
+um contrato ou sua participação com feature indisponível retorna HTTP 409 pelo
+messaging da plataforma: shared.contract.feature-unavailable (SHARED-0013), com
+mensagem e solução localizadas. A condição abrange feature inativa, microservice
+inativo e feature não compartilhável.
+
+O guard fica em SharedContractAccessService.requireFeatureForDetails e é chamado
+pelas consultas individuais após conferir recurso/escopo. O erro não devolve
+histórico ou mappings no detalhe; os dados permanecem persistidos. Campos
+availability não foram adicionados aos DTOs. Listagens administrativas e comandos
+de inativação/exclusão mantêm sua finalidade de gestão, permitindo limpar os dados
+mesmo com feature inativa. Reativação permite voltar a consultar o detalhe.
+
+Verificação específica: 107 testes unitários/arquitetura e 52 testes de Shared
+aprovados, sem falhas, erros ou skips. Cobrem erro 409 com código/mensagem do
+messaging e ausência de histórico/mappings/sourceEnvironments no corpo de erro,
+inativação da feature e do microservice, reativação, escopo incorreto (404),
+autorização (403), ausência de eventos de auditoria nas leituras e limpeza por
+inativação/exclusão do contrato com a feature inativa. `git diff --check` aprovado.
+
+```text
+mvn --offline --batch-mode --no-transfer-progress -Dit.test=SharedApiIT verify
+```
+
+Log: `/private/tmp/shared-feature-business-error-verify.log`.

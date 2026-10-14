@@ -6,13 +6,14 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.model.Ap
 import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
 import br.com.portalmanager.platform.workspace.feature.shared.domain.SharedMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.shared.domain.contract.SharedContract;
-import br.com.portalmanager.platform.workspace.feature.shared.integration.SharedReferenceResolver;
+import br.com.portalmanager.platform.workspace.feature.shared.integration.SharedReferenceAdapter;
 import br.com.portalmanager.platform.workspace.feature.shared.repository.SharedContractRepository;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.contract.SharedContractOutput;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.contract.SharedContractPageOutput;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.pagination.SharedPageInput;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.validation.SharedValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,14 +25,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class SharedContractQueryService {
 
     private final SharedValidator sharedValidator;
-    private final SharedReferenceResolver referenceResolver;
+    private final SharedReferenceAdapter referenceResolver;
     private final SharedContractRepository contractRepository;
     private final ApplicationQueryService applicationQueryService;
     private final SharedContractAccessService contractAccessService;
 
     public SharedContractQueryService(
         SharedValidator sharedValidator,
-        SharedReferenceResolver referenceResolver,
+        SharedReferenceAdapter referenceResolver,
         SharedContractRepository contractRepository,
         ApplicationQueryService applicationQueryService,
         SharedContractAccessService contractAccessService
@@ -49,15 +50,16 @@ public class SharedContractQueryService {
         String applicationIdentifier,
         String identifier
     ) {
-        return referenceResolver.contractOutput(
-            contractAccessService.findOwnedContract(workspaceIdentifier, applicationIdentifier, identifier)
-        );
+        SharedContract contract = contractAccessService.findOwnedContract(workspaceIdentifier, applicationIdentifier, identifier);
+        contractAccessService.requireFeatureForDetails(contract);
+        return referenceResolver.contractOutput(contract);
     }
 
     @Transactional(readOnly = true)
     public SharedContractPageOutput listContracts(
         String workspaceIdentifier,
         String applicationIdentifier,
+        String lifecycle,
         String page,
         String size
     ) {
@@ -66,9 +68,10 @@ public class SharedContractQueryService {
             workspaceIdentifier,
             applicationIdentifier
         );
-        Page<SharedContract> contractsPage = contractRepository.findByOwnerWorkspaceIdAndOwnerApplicationId(
+        Page<SharedContract> contractsPage = contractRepository.findByOwnerWorkspaceIdAndOwnerApplicationIdAndLifecycleValue(
             applicationReference.workspaceId(),
             applicationReference.applicationId(),
+            LifecycleFilter.resolve(lifecycle).value(),
             PageRequest.of(pagination.page(), pagination.size(), Sort.by("id"))
         );
         return contractPageOutput(contractsPage);
@@ -127,8 +130,8 @@ public class SharedContractQueryService {
                     !availableContract.getOwnerApplicationId().equals(participantApplicationReference.applicationId())
             )
             .filter(this::hasActiveOwnerApplication)
-            .filter(referenceResolver::isFeatureAvailable)
             .orElseThrow(() -> new NotFoundException(SharedMessageKeys.NOT_FOUND));
+        contractAccessService.requireFeatureForDetails(contract);
         return referenceResolver.contractOutput(contract);
     }
 

@@ -1,140 +1,66 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
+import br.com.portalmanager.platform.library.schemavalidation.normalization.SchemaPayloadNormalizer;
 import br.com.portalmanager.platform.library.tagging.model.TagName;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.ApproverData;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidationData;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 @Component
-public class WorkspaceNormalizer {
+public class WorkspaceNormalizer implements SchemaPayloadNormalizer {
 
-    public CreateWorkspaceInput normalize(CreateWorkspaceInput input) {
-        if (input == null) {
-            return null;
+    private static final List<String> TEXT_FIELDS = List.of(
+        "name",
+        "description",
+        "requester",
+        "acronym",
+        "emailGroup"
+    );
+
+    @Override
+    public JsonNode normalizePayload(JsonNode payload) {
+        if (!(payload instanceof ObjectNode payloadObject)) return payload;
+        ObjectNode normalizedPayload = payloadObject.deepCopy();
+        TEXT_FIELDS.forEach(field -> trimText(normalizedPayload, field));
+        normalizeCode(normalizedPayload, "workspaceType");
+        normalizeCode(normalizedPayload, "authorizerGroup");
+        JsonNode approvers = normalizedPayload.get("approvers");
+        if (approvers != null && approvers.isArray()) {
+            for (JsonNode approver : approvers) {
+                if (approver instanceof ObjectNode approverObject) {
+                    trimText(approverObject, "functional");
+                    trimText(approverObject, "email");
+                }
+            }
         }
-
-        return new CreateWorkspaceInput(
-            normalizeType(input.workspaceType()),
-            trim(input.name()),
-            trim(input.description()),
-            trim(input.requester()),
-            trim(input.acronym()),
-            normalizeAuthorizerGroup(input.authorizerGroup()),
-            input.settings(),
-            trim(input.emailGroup()),
-            normalizeApprovers(input.approvers()),
-            input.tags()
-        );
-    }
-
-    public UpdateWorkspaceInput normalize(UpdateWorkspaceInput input) {
-        if (input == null) {
-            return null;
-        }
-
-        return new UpdateWorkspaceInput(
-            input.version(),
-            normalizeType(input.workspaceType()),
-            trim(input.name()),
-            trim(input.description()),
-            trim(input.requester()),
-            trim(input.acronym()),
-            normalizeAuthorizerGroup(input.authorizerGroup()),
-            input.settings(),
-            trim(input.emailGroup()),
-            normalizeApprovers(input.approvers()),
-            input.tags()
-        );
+        return normalizedPayload;
     }
 
     public String normalizeTypeFilter(String value) {
-        return normalizeType(value);
+        return normalizeCode(value);
     }
 
     public String normalizeTagFilter(String value) {
         return value == null || value.isBlank() ? null : TagName.of(value).value();
     }
 
-    public WorkspaceValidationData toValidationData(CreateWorkspaceInput input) {
-        if (input == null) {
-            return null;
-        }
-        return new WorkspaceValidationData(
-            null,
-            input.workspaceType(),
-            input.name(),
-            input.description(),
-            input.requester(),
-            input.acronym(),
-            input.settings(),
-            input.emailGroup(),
-            toApproverData(input.approvers())
-        );
+    private void trimText(ObjectNode object, String field) {
+        JsonNode value = object.get(field);
+        if (value != null && value.isString()) object.put(field, value.asString().trim());
     }
 
-    public WorkspaceValidationData toValidationData(UpdateWorkspaceInput input) {
-        if (input == null) {
-            return null;
-        }
-        return new WorkspaceValidationData(
-            input.version(),
-            input.workspaceType(),
-            input.name(),
-            input.description(),
-            input.requester(),
-            input.acronym(),
-            input.settings(),
-            input.emailGroup(),
-            toApproverData(input.approvers())
-        );
+    private void normalizeCode(ObjectNode object, String field) {
+        JsonNode value = object.get(field);
+        if (value == null || !value.isString()) return;
+        String normalized = normalizeCode(value.asString());
+        if (normalized == null) object.putNull(field);
+        else object.put(field, normalized);
     }
 
-    private List<ApproverInput> normalizeApprovers(List<ApproverInput> approvers) {
-        if (approvers == null) {
-            return null;
-        }
-
-        return approvers.stream().map(this::normalizeApprover).toList();
-    }
-
-    private ApproverInput normalizeApprover(ApproverInput approver) {
-        if (approver == null) {
-            return null;
-        }
-        return new ApproverInput(trim(approver.functional()), trim(approver.email()));
-    }
-
-    private List<ApproverData> toApproverData(List<ApproverInput> approvers) {
-        if (approvers == null) {
-            return null;
-        }
-        return approvers
-            .stream()
-            .map(value -> value == null ? null : new ApproverData(value.functional(), value.email()))
-            .toList();
-    }
-
-    private String normalizeType(String value) {
-        String normalized = trimOptional(value);
-        return normalized == null ? null : normalized.toUpperCase(Locale.ROOT);
-    }
-
-    private String normalizeAuthorizerGroup(String value) {
-        String normalized = trimOptional(value);
-        return normalized == null ? null : normalized.toUpperCase(Locale.ROOT);
-    }
-
-    private String trimOptional(String value) {
-        String normalized = trim(value);
-        return normalized == null || normalized.isBlank() ? null : normalized;
-    }
-
-    private String trim(String value) {
-        return value == null ? null : value.trim();
+    private String normalizeCode(String value) {
+        if (value == null || value.isBlank()) return null;
+        return value.trim().toUpperCase(Locale.ROOT);
     }
 }

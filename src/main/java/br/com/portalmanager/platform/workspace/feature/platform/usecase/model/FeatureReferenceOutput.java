@@ -1,3 +1,0 @@
-package br.com.portalmanager.platform.workspace.feature.platform.usecase.model;
-
-public record FeatureReferenceOutput(String identifier, String name) {}

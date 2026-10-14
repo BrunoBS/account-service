@@ -2,11 +2,22 @@ package br.com.portalmanager.platform.workspace.entrypoint.web.environment;
 
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.core.environment.facade.WorkspaceEnvironmentFacade;
-import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.*;
-import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.*;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.CreateEnvironmentRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.request.UpdateEnvironmentRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentResponse;
+import br.com.portalmanager.platform.workspace.entrypoint.web.environment.response.EnvironmentTreeResponse;
 import java.util.List;
-import org.springframework.http.*;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/workspaces/{workspaceIdentifier}/environments")
@@ -14,18 +25,18 @@ public class WorkspaceEnvironmentController {
 
     private final WorkspaceEnvironmentFacade facade;
 
-    public WorkspaceEnvironmentController(WorkspaceEnvironmentFacade f) {
-        facade = f;
+    public WorkspaceEnvironmentController(WorkspaceEnvironmentFacade facade) {
+        this.facade = facade;
     }
 
     @PostMapping
     public ResponseEntity<EnvironmentResponse> create(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
-        @RequestBody CreateEnvironmentRequest r
+        @RequestBody CreateEnvironmentRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
-            EnvironmentResponse.from(facade.create(context, workspaceIdentifier, r.toInput()))
+            EnvironmentResponse.from(facade.create(context, workspaceIdentifier, request.toInput()))
         );
     }
 
@@ -33,9 +44,9 @@ public class WorkspaceEnvironmentController {
     public List<EnvironmentResponse> list(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
-        @RequestParam(defaultValue = "true") Boolean active
+        @RequestParam(required = false) String lifecycle
     ) {
-        return facade.list(context, workspaceIdentifier, active).stream().map(EnvironmentResponse::from).toList();
+        return facade.list(context, workspaceIdentifier, lifecycle).stream().map(EnvironmentResponse::from).toList();
     }
 
     @GetMapping("/{identifier}")
@@ -48,26 +59,26 @@ public class WorkspaceEnvironmentController {
     }
 
     @GetMapping("/roots")
-    public List<EnvironmentResponse> roots(AuthorizationContext context, @PathVariable String workspaceIdentifier) {
-        return facade.roots(context, workspaceIdentifier).stream().map(EnvironmentResponse::from).toList();
+    public List<EnvironmentResponse> findRoots(AuthorizationContext context, @PathVariable String workspaceIdentifier) {
+        return facade.findRoots(context, workspaceIdentifier).stream().map(EnvironmentResponse::from).toList();
     }
 
     @GetMapping("/{identifier}/children")
-    public List<EnvironmentResponse> children(
+    public List<EnvironmentResponse> findChildren(
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
         @PathVariable String identifier
     ) {
         return facade
-            .children(context, workspaceIdentifier, identifier)
+            .findChildren(context, workspaceIdentifier, identifier)
             .stream()
             .map(EnvironmentResponse::from)
             .toList();
     }
 
     @GetMapping("/tree")
-    public List<EnvironmentTreeResponse> tree(AuthorizationContext context, @PathVariable String workspaceIdentifier) {
-        return facade.tree(context, workspaceIdentifier).stream().map(EnvironmentTreeResponse::from).toList();
+    public List<EnvironmentTreeResponse> findTree(AuthorizationContext context, @PathVariable String workspaceIdentifier) {
+        return facade.findTree(context, workspaceIdentifier).stream().map(EnvironmentTreeResponse::from).toList();
     }
 
     @PutMapping("/{identifier}")
@@ -75,9 +86,9 @@ public class WorkspaceEnvironmentController {
         AuthorizationContext context,
         @PathVariable String workspaceIdentifier,
         @PathVariable String identifier,
-        @RequestBody UpdateEnvironmentRequest r
+        @RequestBody UpdateEnvironmentRequest request
     ) {
-        return EnvironmentResponse.from(facade.update(context, workspaceIdentifier, identifier, r.toInput()));
+        return EnvironmentResponse.from(facade.update(context, workspaceIdentifier, identifier, request.toInput()));
     }
 
     @PostMapping("/{identifier}/inactivate")

@@ -7,6 +7,7 @@ public record UpdateApplicationInput(
     Long version,
     String name,
     String alias,
+    String description,
     String acronym,
     String applicationScope,
     String authorizerGroup,

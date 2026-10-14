@@ -5,58 +5,52 @@ import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.workspace.feature.message.domain.Message;
 import br.com.portalmanager.platform.workspace.feature.message.domain.MessageTranslation;
 import br.com.portalmanager.platform.workspace.feature.message.repository.MessageTranslationRepository;
+import br.com.portalmanager.platform.workspace.feature.message.repository.MessageTranslationRepository.DeletionSnapshot;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.CreateMessageTranslationInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.MessageTranslationOutput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.model.UpdateMessageTranslationInput;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageFinder;
+import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageMapper;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.operations.MessageNormalizer;
 import br.com.portalmanager.platform.workspace.feature.message.usecase.validation.MessageValidator;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class MessageTranslationCommandService {
 
-    private final MessageTranslationRepository repository;
+    private final MessageTranslationRepository translationRepository;
     private final MessageFinder finder;
     private final MessageNormalizer normalizer;
+    private final MessageMapper mapper;
     private final MessageValidator validator;
 
     public MessageTranslationCommandService(
-        MessageTranslationRepository repository,
+        MessageTranslationRepository translationRepository,
         MessageFinder finder,
         MessageNormalizer normalizer,
+        MessageMapper mapper,
         MessageValidator validator
     ) {
-        this.repository = repository;
+        this.translationRepository = translationRepository;
         this.finder = finder;
         this.normalizer = normalizer;
+        this.mapper = mapper;
         this.validator = validator;
     }
 
     @Transactional
     @Auditable(action = AuditAction.CREATE, event = "MESSAGE_TRANSLATION_CREATED", resourceType = "MESSAGE_TRANSLATION")
     public MessageTranslationOutput create(String messageIdentifier, CreateMessageTranslationInput rawInput) {
-        Message message = finder.findMessage(messageIdentifier);
+        Message message = finder.findMessageForUpdate(messageIdentifier);
         CreateMessageTranslationInput input = normalizer.normalize(rawInput);
 
-        boolean localeDuplicate =
-            input != null &&
-            input.locale() != null &&
-            repository.existsByMessageIdAndLocale(message.getId(), input.locale());
+        validator.validateTranslationForCreate(message, input);
 
-        validator.validateTranslationForCreate(input, localeDuplicate);
-
-        MessageTranslation translation = new MessageTranslation(
-            message,
-            input.locale(),
-            input.title(),
-            input.detail(),
-            input.suggestion(),
-            LocalDateTime.now()
-        );
-        return MessageTranslationOutput.from(repository.saveAndFlush(translation));
+        MessageTranslation translation = new MessageTranslation(message, mapper.toDetails(input), LocalDateTime.now());
+        return MessageTranslationOutput.from(translationRepository.saveAndFlush(translation));
     }
 
     @Transactional
@@ -66,20 +60,15 @@ public class MessageTranslationCommandService {
         String translationIdentifier,
         UpdateMessageTranslationInput rawInput
     ) {
-        Message message = finder.findMessage(messageIdentifier);
-        MessageTranslation translation = finder.findTranslation(message, translationIdentifier);
+        Message message = finder.findMessageForUpdate(messageIdentifier);
+        MessageTranslation translation = finder.findTranslationForUpdate(message, translationIdentifier);
         UpdateMessageTranslationInput input = normalizer.normalize(rawInput);
 
-        boolean localeDuplicate =
-            input != null &&
-            input.locale() != null &&
-            repository.existsByMessageIdAndLocaleAndIdNot(message.getId(), input.locale(), translation.getId());
+        validator.validateTranslationForUpdate(translation, input);
 
-        validator.validateTranslationForUpdate(input, localeDuplicate);
-        validator.validateVersion(translation.getVersion(), input.version());
-
-        translation.update(input.locale(), input.title(), input.detail(), input.suggestion(), LocalDateTime.now());
-        return MessageTranslationOutput.from(repository.saveAndFlush(translation));
+        translation.update(mapper.toDetails(input), LocalDateTime.now());
+        translationRepository.flush();
+        return MessageTranslationOutput.from(translation);
     }
 
     @Transactional
@@ -89,10 +78,11 @@ public class MessageTranslationCommandService {
         resourceType = "MESSAGE_TRANSLATION"
     )
     public MessageTranslationOutput activate(String messageIdentifier, String translationIdentifier) {
-        Message message = finder.findMessage(messageIdentifier);
-        MessageTranslation translation = finder.findTranslation(message, translationIdentifier);
+        Message message = finder.findMessageForUpdate(messageIdentifier);
+        MessageTranslation translation = finder.findTranslationForUpdate(message, translationIdentifier);
         translation.activate(LocalDateTime.now());
-        return MessageTranslationOutput.from(repository.saveAndFlush(translation));
+        translationRepository.flush();
+        return MessageTranslationOutput.from(translation);
     }
 
     @Transactional
@@ -102,19 +92,65 @@ public class MessageTranslationCommandService {
         resourceType = "MESSAGE_TRANSLATION"
     )
     public MessageTranslationOutput inactivate(String messageIdentifier, String translationIdentifier) {
-        Message message = finder.findMessage(messageIdentifier);
-        MessageTranslation translation = finder.findTranslation(message, translationIdentifier);
+        Message message = finder.findMessageForUpdate(messageIdentifier);
+        MessageTranslation translation = finder.findTranslationForUpdate(message, translationIdentifier);
         translation.inactivate(LocalDateTime.now());
-        return MessageTranslationOutput.from(repository.saveAndFlush(translation));
+        translationRepository.flush();
+        return MessageTranslationOutput.from(translation);
     }
 
     @Transactional
-    @Auditable(action = AuditAction.DELETE, event = "MESSAGE_TRANSLATION_DELETED", resourceType = "MESSAGE_TRANSLATION")
+    @Auditable(action = AuditAction.PURGE, event = "MESSAGE_TRANSLATION_PURGED", resourceType = "MESSAGE_TRANSLATION")
     public MessageTranslationOutput delete(String messageIdentifier, String translationIdentifier) {
-        Message message = finder.findMessage(messageIdentifier);
-        MessageTranslation translation = finder.findTranslation(message, translationIdentifier);
-        validator.validateDeletion(translation);
-        translation.quarantine(LocalDateTime.now());
-        return MessageTranslationOutput.from(repository.saveAndFlush(translation));
+        Message message = finder.findMessageForUpdate(messageIdentifier);
+        MessageTranslation translation = finder.findTranslationForUpdate(message, translationIdentifier);
+        translation.requireInactiveForDeletion();
+        MessageTranslationOutput removedTranslation = MessageTranslationOutput.from(translation);
+        translationRepository.delete(translation);
+        translationRepository.flush();
+        return removedTranslation;
+    }
+
+    /** Receives current, nonempty snapshots under the parent/translation locks held by the caller. */
+    @Transactional
+    @Auditable(action = AuditAction.PURGE, event = "MESSAGE_TRANSLATION_PURGED", resourceType = "MESSAGE_TRANSLATION")
+    public List<MessageTranslationOutput> deleteAllForMessage(Message message, List<DeletionSnapshot> snapshots) {
+        message.requireInactiveForDeletion();
+        List<MessageTranslationOutput> removedTranslations = snapshots.stream()
+            .map(snapshot -> new MessageTranslationOutput(
+                snapshot.getIdentifier(),
+                message.getIdentifier(),
+                snapshot.getVersion(),
+                snapshot.getLocale(),
+                snapshot.getTitle(),
+                snapshot.getDetail(),
+                snapshot.getSuggestion(),
+                snapshot.getLifecycle()
+            ))
+            .toList();
+        translationRepository.deleteAllByMessageId(message.getId());
+        translationRepository.flush();
+        return removedTranslations;
+    }
+
+    /** Receives normalized inputs and a message just persisted by the enclosing creation transaction. */
+    @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "MESSAGE_TRANSLATION_CREATED", resourceType = "MESSAGE_TRANSLATION")
+    public List<MessageTranslationOutput> createAllForNewMessage(
+        Message message,
+        List<CreateMessageTranslationInput> inputs,
+        LocalDateTime now
+    ) {
+        if (inputs == null || inputs.isEmpty()) {
+            return List.of();
+        }
+        message.requireActiveForTranslation();
+        validator.validateInlineTranslations(inputs);
+        List<MessageTranslation> messageTranslations = inputs.stream()
+            .map(input -> new MessageTranslation(message, mapper.toDetails(input), now))
+            .toList();
+        return translationRepository.saveAllAndFlush(messageTranslations).stream()
+            .map(MessageTranslationOutput::from)
+            .toList();
     }
 }

@@ -7,10 +7,10 @@ import static org.mockito.Mockito.*;
 
 import br.com.portalmanager.platform.library.messaging.exception.ConflictException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaDefinitionValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaDefinitionValidationAdapter;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
@@ -27,14 +27,14 @@ class SchemaVersionCommandServiceTest {
 
     private final SchemaRepository schemaRepository = mock(SchemaRepository.class);
     private final SchemaVersionRepository versionRepository = mock(SchemaVersionRepository.class);
-    private final SchemaDefinitionValidator validator = new SchemaDefinitionValidator(new ObjectMapper());
-    private final WorkspaceReferenceResolver workspaceReferenceResolver = mock(WorkspaceReferenceResolver.class);
+    private final SchemaDefinitionValidationAdapter validator = new SchemaDefinitionValidationAdapter(new ObjectMapper());
+    private final WorkspaceReferencePort workspaceReferencePort = mock(WorkspaceReferencePort.class);
     private final SchemaVersionCommandService service = new SchemaVersionCommandService(
         schemaRepository,
         versionRepository,
         validator,
         new SchemaVersionOperationValidator(),
-        workspaceReferenceResolver
+        workspaceReferencePort
     );
 
     @Test

@@ -28,8 +28,8 @@ public class PlatformSchemaFacade {
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.READ)
-    public List<SchemaOutput> findAll(AuthorizationContext context) {
-        return queryService.findPlatform();
+    public List<SchemaOutput> findAll(AuthorizationContext context, String lifecycle) {
+        return queryService.findPlatform(lifecycle);
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.READ)

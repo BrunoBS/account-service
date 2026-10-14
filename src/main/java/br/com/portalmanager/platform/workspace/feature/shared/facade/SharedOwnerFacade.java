@@ -54,10 +54,11 @@ public class SharedOwnerFacade {
         AuthorizationContext authorizationContext,
         String ownerWorkspaceIdentifier,
         String ownerApplicationIdentifier,
+        String lifecycle,
         String page,
         String size
     ) {
-        return contractQueryService.listContracts(ownerWorkspaceIdentifier, ownerApplicationIdentifier, page, size);
+        return contractQueryService.listContracts(ownerWorkspaceIdentifier, ownerApplicationIdentifier, lifecycle, page, size);
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.DEV, action = AuthorizationAction.READ)

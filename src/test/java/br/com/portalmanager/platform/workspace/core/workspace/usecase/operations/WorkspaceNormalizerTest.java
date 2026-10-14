@@ -2,83 +2,59 @@ package br.com.portalmanager.platform.workspace.core.workspace.usecase.operation
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
-import java.util.List;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 class WorkspaceNormalizerTest {
 
     private final WorkspaceNormalizer normalizer = new WorkspaceNormalizer();
+    private final JsonMapper objectMapper = JsonMapper.builder().build();
 
     @Test
-    void shouldNormalizeBusinessFieldsAndPreserveNullAuthorizerGroup() {
-        CreateWorkspaceInput normalized = normalizer.normalize(
-            new CreateWorkspaceInput(
-                " manager ",
-                "  Workspace Normalizado  ",
-                "  Descrição normalizada  ",
-                "  requester  ",
-                " ABC ",
-                "   ",
-                "{}",
-                " group@portalmanager.com ",
-                List.of(new ApproverInput(" F1234 ", " approver@portalmanager.com ")),
-                List.of(" Manual Tag ")
-            )
+    void shouldNormalizeTextBeforeSchemaValidationWithoutChangingTheOriginalPayload() {
+        JsonNode payload = objectMapper.readTree(
+            """
+            {"workspaceType":" manager ","name":" Workspace ","description":" Descrição válida ",
+             "requester":" requester ","acronym":" ABC ","authorizerGroup":" team-a ",
+             "emailGroup":" group@example.com ","settings":{"value":" preserve spaces "},
+             "approvers":[{"functional":" F1234 ","email":" approver@example.com "}],
+             "tags":[" Manual Tag "]}
+            """
         );
-
-        assertThat(normalized.workspaceType()).isEqualTo("MANAGER");
-        assertThat(normalized.name()).isEqualTo("Workspace Normalizado");
-        assertThat(normalized.description()).isEqualTo("Descrição normalizada");
-        assertThat(normalized.requester()).isEqualTo("requester");
-        assertThat(normalized.acronym()).isEqualTo("ABC");
-        assertThat(normalized.authorizerGroup()).isNull();
-        assertThat(normalized.emailGroup()).isEqualTo("group@portalmanager.com");
-        assertThat(normalized.approvers()).containsExactly(new ApproverInput("F1234", "approver@portalmanager.com"));
-        assertThat(normalized.tags()).containsExactly(" Manual Tag ");
+        JsonNode normalized = normalizer.normalizePayload(payload);
+        assertThat(normalized.get("workspaceType").asString()).isEqualTo("MANAGER");
+        assertThat(normalized.get("name").asString()).isEqualTo("Workspace");
+        assertThat(normalized.get("description").asString()).isEqualTo("Descrição válida");
+        assertThat(normalized.get("requester").asString()).isEqualTo("requester");
+        assertThat(normalized.get("acronym").asString()).isEqualTo("ABC");
+        assertThat(normalized.get("authorizerGroup").asString()).isEqualTo("TEAM-A");
+        assertThat(normalized.get("emailGroup").asString()).isEqualTo("group@example.com");
+        assertThat(normalized.at("/approvers/0/functional").asString()).isEqualTo("F1234");
+        assertThat(normalized.at("/approvers/0/email").asString()).isEqualTo("approver@example.com");
+        assertThat(normalized.at("/settings/value").asString()).isEqualTo(" preserve spaces ");
+        assertThat(normalized.at("/tags/0").asString()).isEqualTo(" Manual Tag ");
+        assertThat(payload.get("name").asString()).isEqualTo(" Workspace ");
     }
 
     @Test
-    void shouldNormalizeAuthorizerGroupToUppercaseOnCreate() {
-        CreateWorkspaceInput normalized = normalizer.normalize(
-            new CreateWorkspaceInput(
-                "MANAGER",
-                "Workspace",
-                "Descrição",
-                "requester",
-                "ABC",
-                "  bbs-app  ",
-                "{}",
-                "group@portalmanager.com",
-                List.of(),
-                List.of()
-            )
+    void shouldPreserveInvalidTypesAndUnknownPropertiesForSchemaValidation() {
+        JsonNode payload = objectMapper.readTree(
+            """
+            {"name":123,"workspaceType":false,"authorizerGroup":[],"approvers":[null,42,{"functional":false}],"unexpected":true}
+            """
         );
-
-        assertThat(normalized.authorizerGroup()).isEqualTo("BBS-APP");
+        assertThat(normalizer.normalizePayload(payload)).isEqualTo(payload);
+        JsonNode arrayPayload = objectMapper.readTree("[]");
+        assertThat(normalizer.normalizePayload(arrayPayload)).isSameAs(arrayPayload);
+        assertThat(normalizer.normalizePayload(null)).isNull();
     }
 
     @Test
-    void shouldNormalizeAuthorizerGroupToUppercaseOnUpdate() {
-        UpdateWorkspaceInput normalized = normalizer.normalize(
-            new UpdateWorkspaceInput(
-                1L,
-                "MANAGER",
-                "Workspace",
-                "Descrição",
-                "requester",
-                "ABC",
-                "  catalog-team  ",
-                "{}",
-                "group@portalmanager.com",
-                List.of(),
-                List.of()
-            )
-        );
-
-        assertThat(normalized.authorizerGroup()).isEqualTo("CATALOG-TEAM");
+    void shouldNormalizeBlankAuthorizerGroupToNullAndKeepMissingFieldsAbsent() {
+        JsonNode normalized = normalizer.normalizePayload(objectMapper.readTree("{\"authorizerGroup\":\"   \"}"));
+        assertThat(normalized.get("authorizerGroup").isNull()).isTrue();
+        assertThat(normalized.has("name")).isFalse();
     }
 
     @Test

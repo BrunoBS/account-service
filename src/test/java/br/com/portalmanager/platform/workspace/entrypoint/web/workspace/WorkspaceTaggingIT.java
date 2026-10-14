@@ -40,7 +40,7 @@ class WorkspaceTaggingIT {
         seedWorkspaceTypes();
         seedLifecycleTypes();
         authorizationMock.reset();
-        authorizationMock.allow(session -> session.groups("PM5_OWNER"));
+        authorizationMock.allow(session -> session.userName("test-user").groups("PM5_OWNER"));
     }
 
     @Test
@@ -55,11 +55,11 @@ class WorkspaceTaggingIT {
             .extract()
             .path("identifier");
 
-        getList("Minha Tag").statusCode(200).body("identifier", hasItem(identifier));
+        getList("Minha Tag").statusCode(200).body("content.identifier", hasItem(identifier));
 
-        getList("Workspace Tags").statusCode(200).body("identifier", hasItem(identifier));
+        getList("Workspace Tags").statusCode(200).body("content.identifier", hasItem(identifier));
 
-        getList("TEAM_A").statusCode(200).body("identifier", hasItem(identifier));
+        getList("TEAM_A").statusCode(200).body("content.identifier", hasItem(identifier));
     }
 
     @Test
@@ -78,22 +78,49 @@ class WorkspaceTaggingIT {
 
         getList("Workspace Original")
             .statusCode(200)
-            .body("identifier", not(hasItem(identifier)));
+            .body("content.identifier", not(hasItem(identifier)));
 
         getList("ORG")
             .statusCode(200)
-            .body("identifier", not(hasItem(identifier)));
+            .body("content.identifier", not(hasItem(identifier)));
 
-        getList("Workspace Atualizado").statusCode(200).body("identifier", hasItem(identifier));
+        getList("Workspace Atualizado").statusCode(200).body("content.identifier", hasItem(identifier));
 
-        getList("ATU").statusCode(200).body("identifier", hasItem(identifier));
+        getList("ATU").statusCode(200).body("content.identifier", hasItem(identifier));
 
-        getList("manual-tag").statusCode(200).body("identifier", hasItem(identifier));
+        getList("manual-tag").statusCode(200).body("content.identifier", hasItem(identifier));
+    }
+
+    @Test
+    void shouldPreserveManualAndSystemTagsWhenRestoringWorkspace() {
+        Map<String, Object> request = validCreate("Workspace Restore Tags", "RST", "RESTORE");
+        request.put("tags", List.of("manual-restore"));
+        String identifier = post(request).statusCode(201).extract().path("identifier");
+        List<Long> originalTagIds = jdbcTemplate.queryForList(
+            "SELECT tag.id FROM workspace_tag tag JOIN workspaces workspace ON workspace.id = tag.workspace_id WHERE workspace.identifier = ? ORDER BY tag.id",
+            Long.class,
+            identifier
+        );
+        post("/api/v1/workspaces/" + identifier + "/inactivate").statusCode(204);
+        post("/api/v1/workspaces/" + identifier + "/restore")
+            .statusCode(200)
+            .body("lifecycle", equalTo("ACTIVE"))
+            .body("tags", contains("manual-restore"));
+        org.assertj.core.api.Assertions.assertThat(
+            jdbcTemplate.queryForList(
+                "SELECT tag.id FROM workspace_tag tag JOIN workspaces workspace ON workspace.id = tag.workspace_id WHERE workspace.identifier = ? ORDER BY tag.id",
+                Long.class,
+                identifier
+            )
+        ).isEqualTo(originalTagIds);
+        getList("Workspace Restore Tags").statusCode(200).body("content.identifier", hasItem(identifier));
+        getList("RESTORE").statusCode(200).body("content.identifier", hasItem(identifier));
+        getList("manual-restore").statusCode(200).body("content.identifier", hasItem(identifier));
     }
 
     @Test
     void shouldRemoveTagsWhenWorkspaceIsPhysicallyDeleted() {
-        Map<String, Object> create = validCreate("Workspace Delete Tags", "DEL", "TEAM_DELETE");
+        Map<String, Object> create = validCreate("Workspace Delete Tags", "DEL", "DELETE");
         create.put("tags", List.of("delete-tag"));
 
         String identifier = post(create).statusCode(201).extract().path("identifier");
@@ -104,7 +131,7 @@ class WorkspaceTaggingIT {
 
         getList("delete-tag")
             .statusCode(200)
-            .body("identifier", not(hasItem(identifier)));
+            .body("content.identifier", not(hasItem(identifier)));
     }
 
     private Map<String, Object> validCreate(String name, String acronym, String authorizerGroup) {

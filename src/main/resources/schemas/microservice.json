@@ -1,0 +1,42 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Microservice request",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "code",
+        "name",
+        "settings"
+    ],
+    "properties": {
+        "version": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        },
+        "code": {
+            "type": "string",
+            "maxLength": 50,
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S"
+        },
+        "description": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 500
+        },
+        "settings": {
+            "type": "object"
+        }
+    }
+}

@@ -39,7 +39,41 @@ class WorkspaceApiIT {
         seedWorkspaceTypes();
         seedLifecycleTypes();
         authorizationMock.reset();
-        authorizationMock.allow(session -> session.groups("PM5_OWNER"));
+        authorizationMock.allow(session -> session.userName("test-user").groups("PM5_OWNER"));
+    }
+
+    @Test
+    void shouldValidateOriginalJsonBeforeBindingTypedRequests() {
+        Map<String, Object> payload = validCreate("Typed Workspace", "MANAGER");
+        io.restassured.response.ExtractableResponse<io.restassured.response.Response> created = post(payload)
+            .statusCode(201)
+            .extract();
+        String identifier = created.path("identifier");
+        Object version = created.path("version");
+        Map<String, Object> invalidValues = Map.of(
+            "name",
+            123,
+            "requester",
+            true,
+            "tags",
+            List.of(123),
+            "version",
+            "0",
+            "unexpected",
+            "must not disappear",
+            "approvers",
+            List.of(Map.of("functional", "F1000", "email", "approver@example.com", "unexpected", true))
+        );
+        for (Map.Entry<String, Object> invalidValue : invalidValues.entrySet()) {
+            Map<String, Object> invalid = validCreate("Invalid Typed Workspace", "MANAGER");
+            invalid.put("version", version);
+            invalid.put(invalidValue.getKey(), invalidValue.getValue());
+            post(invalid).statusCode(400);
+            put("/api/v1/workspaces/" + identifier, invalid).statusCode(400);
+        }
+        get("/api/v1/workspaces/" + identifier)
+            .statusCode(200)
+            .body("version", equalTo(version));
     }
 
     @Test
@@ -48,7 +82,7 @@ class WorkspaceApiIT {
         request.put("description", "  Descrição válida do workspace G3  ");
         request.put("requester", "  requester  ");
         request.put("acronym", " G3 ");
-        request.put("authorizerGroup", "  GRP_WORKSPACE  ");
+        request.put("authorizerGroup", "  GRP_WORK  ");
         request.put("emailGroup", "  workspace@portalmanager.com  ");
         request.put("approvers", List.of(Map.of("functional", "  F1234  ", "email", "  approver@portalmanager.com  ")));
 
@@ -62,7 +96,7 @@ class WorkspaceApiIT {
             .body("description", equalTo("Descrição válida do workspace G3"))
             .body("requester", equalTo("requester"))
             .body("acronym", equalTo("G3"))
-            .body("authorizerGroup", equalTo("GRP_WORKSPACE"))
+            .body("authorizerGroup", equalTo("GRP_WORK"))
             .body("emailGroup", equalTo("workspace@portalmanager.com"))
             .body("lifecycle", equalTo("ACTIVE"))
             .body("onboarding", equalTo(false))
@@ -91,20 +125,20 @@ class WorkspaceApiIT {
             .header("correlation-id", "workspace-api-it")
             .header("Authorization", "Bearer workspace-api-it")
             .accept(ContentType.JSON)
-            .queryParam("active", true)
+            .queryParam("lifecycle", "ACTIVE")
             .queryParam("typeName", " admin ")
             .when()
             .get("/api/v1/workspaces")
             .then()
             .statusCode(200)
-            .body("identifier", hasItem(adminIdentifier))
-            .body("identifier", not(hasItem(managerIdentifier)))
-            .body("workspaceType", containsInAnyOrder("ADMIN"));
+            .body("content.identifier", hasItem(adminIdentifier))
+            .body("content.identifier", not(hasItem(managerIdentifier)))
+            .body("content.workspaceType", containsInAnyOrder("ADMIN"));
 
-        get("/api/v1/workspaces?active=false")
+        get("/api/v1/workspaces?lifecycle=INACTIVE")
             .statusCode(200)
-            .body("identifier", containsInAnyOrder(managerIdentifier))
-            .body("lifecycle", containsInAnyOrder("INACTIVE"));
+            .body("content.identifier", containsInAnyOrder(managerIdentifier))
+            .body("content.lifecycle", containsInAnyOrder("INACTIVE"));
     }
 
     @Test
@@ -138,6 +172,216 @@ class WorkspaceApiIT {
     }
 
     @Test
+    void shouldRejectValuesLargerThanDatabaseColumnsOnCreateAndUpdate() {
+        for (String field : List.of(
+            "name",
+            "description",
+            "acronym",
+            "tags",
+            "requester",
+            "authorizerGroup",
+            "emailGroup",
+            "approvers[0].functional",
+            "approvers[0].email"
+        )) {
+            String name = "Workspace Limites " + field;
+            String identifier = create(name, "ADMIN");
+            Integer version = get("/api/v1/workspaces/" + identifier)
+                .statusCode(200)
+                .extract()
+                .path("version");
+            Map<String, Object> request = validCreate(name + " Create", "ADMIN");
+            applyOversizedValue(request, field);
+            String expectedField = field.equals("tags") ? "tags[0]" : field;
+            post(request).statusCode(400).body("details.field", hasItem(expectedField));
+            request = validUpdate(version, name, "ADMIN");
+            applyOversizedValue(request, field);
+            put("/api/v1/workspaces/" + identifier, request)
+                .statusCode(400)
+                .body("details.field", hasItem(expectedField));
+            get("/api/v1/workspaces/" + identifier)
+                .statusCode(200)
+                .body("version", equalTo(version));
+        }
+    }
+
+    @Test
+    void shouldLimitApproversAndTagsOnCreateAndUpdate() {
+        String identifier = create("Workspace Collection Bounds", "ADMIN");
+        Integer version = get("/api/v1/workspaces/" + identifier)
+            .statusCode(200)
+            .extract()
+            .path("version");
+        List<Map<String, String>> approvers = java.util.stream.IntStream.range(0, 6)
+            .mapToObj(index -> Map.of("functional", "F" + index, "email", "user" + index + "@example.com"))
+            .toList();
+        List<String> tags = java.util.stream.IntStream.range(0, 21)
+            .mapToObj(index -> "tag-" + index)
+            .toList();
+        for (String field : List.of("approvers", "tags")) {
+            Map<String, Object> request = validCreate("Workspace Bounds " + field, "ADMIN");
+            request.put(field, field.equals("approvers") ? approvers : tags);
+            post(request).statusCode(400).body("details.field", hasItem(field));
+            request = validUpdate(version, "Workspace Collection Bounds", "ADMIN");
+            request.put(field, field.equals("approvers") ? approvers : tags);
+            put("/api/v1/workspaces/" + identifier, request)
+                .statusCode(400)
+                .body("details.field", hasItem(field));
+        }
+        Map<String, Object> maximum = validUpdate(version, "Workspace Collection Bounds", "ADMIN");
+        maximum.put("approvers", approvers.subList(0, 5));
+        maximum.put("tags", tags.subList(0, 20));
+        put("/api/v1/workspaces/" + identifier, maximum)
+            .statusCode(200)
+            .body("approvers", hasSize(5))
+            .body("tags", hasSize(20));
+    }
+
+    @Test
+    void shouldPaginateWithoutTruncatingApproversAndValidatePageParameters() {
+        for (int index = 0; index < 3; index++) {
+            Map<String, Object> request = validCreate("Workspace Page " + index, "ADMIN");
+            request.put(
+                "approvers",
+                List.of(
+                    Map.of("functional", "F1", "email", "first@example.com"),
+                    Map.of("functional", "F2", "email", "second@example.com")
+                )
+            );
+            post(request).statusCode(201);
+        }
+        get("/api/v1/workspaces?page=0&size=2")
+            .statusCode(200)
+            .body("content", hasSize(2))
+            .body("page.number", equalTo(0))
+            .body("page.size", equalTo(2))
+            .body("page.totalElements", equalTo(3))
+            .body("page.totalPages", equalTo(2))
+            .body("content[0].approvers", hasSize(2));
+        get("/api/v1/workspaces?page=1&size=2")
+            .statusCode(200)
+            .body("content", hasSize(1))
+            .body("content[0].name", equalTo("Workspace Page 2"))
+            .body("page.totalElements", equalTo(3));
+        for (String parameters : List.of("page=-1", "size=0", "page=text", "size=text", "page=2147483648")) {
+            get("/api/v1/workspaces?" + parameters)
+                .statusCode(200)
+                .body("page.number", equalTo(0))
+                .body("page.size", equalTo(20));
+        }
+        get("/api/v1/workspaces?size=101").statusCode(200).body("page.size", equalTo(100));
+        get("/api/v1/workspaces?page=2147483647&size=100").statusCode(400);
+        get("/api/v1/workspaces?sort=approvers.email").statusCode(400);
+        get("/api/v1/workspaces?sort=unknown").statusCode(400);
+        get("/api/v1/workspaces?sort=name,desc&size=2")
+            .statusCode(200)
+            .body("content.name", contains("Workspace Page 2", "Workspace Page 1"));
+    }
+
+    @Test
+    void shouldRejectCatalogAsWorkspaceTypeAndFilter() {
+        post(validCreate("Workspace Unsupported Type", "CATALOG")).statusCode(400);
+        get("/api/v1/workspaces?typeName=CATALOG").statusCode(400);
+    }
+
+    @Test
+    void shouldAcceptMaximumLengthsIncludingTheWorkspaceNameSystemTag() {
+        Map<String, Object> request = validCreate("N".repeat(50), "ADMIN");
+        request.put("description", "D".repeat(200));
+        request.put("requester", "R".repeat(10));
+        request.put("acronym", "ABCDE");
+        request.put("authorizerGroup", "G".repeat(10));
+        String maximumEmail = "a".repeat(63) + "@" + "b".repeat(32) + ".com";
+        request.put("emailGroup", maximumEmail);
+        request.put("tags", List.of("T".repeat(50)));
+        request.put("approvers", List.of(Map.of("functional", "F".repeat(10), "email", maximumEmail)));
+        String identifier = post(request).statusCode(201).extract().path("identifier");
+        org.assertj.core.api.Assertions.assertThat(
+            jdbcTemplate.queryForList(
+                "select t.name from workspace_tag t join workspaces w on w.id = t.workspace_id where w.identifier = ?",
+                String.class,
+                identifier
+            )
+        ).contains("n".repeat(50), "t".repeat(50));
+    }
+
+    @Test
+    void shouldPreserveUnchangedApproversAndAllowEmailSwaps() {
+        Map<String, Object> request = validCreate("Workspace Approver Reconcile", "ADMIN");
+        List<Map<String, String>> approvers = List.of(
+            Map.of("functional", "F1000", "email", "first@portalmanager.com"),
+            Map.of("functional", "F2000", "email", "second@portalmanager.com")
+        );
+        request.put("approvers", approvers);
+        String identifier = post(request).statusCode(201).extract().path("identifier");
+        List<String> originalIds = approverIds(identifier);
+        Integer version = get("/api/v1/workspaces/" + identifier)
+            .statusCode(200)
+            .extract()
+            .path("version");
+        request.put("version", version);
+        version = put("/api/v1/workspaces/" + identifier, request)
+            .statusCode(200)
+            .extract()
+            .path("version");
+        org.assertj.core.api.Assertions.assertThat(approverIds(identifier)).containsExactlyElementsOf(originalIds);
+        request.put("version", version);
+        request.put(
+            "approvers",
+            List.of(
+                Map.of("functional", "F1000", "email", "second@portalmanager.com"),
+                Map.of("functional", "F2000", "email", "first@portalmanager.com")
+            )
+        );
+        put("/api/v1/workspaces/" + identifier, request).statusCode(200);
+        get("/api/v1/workspaces/" + identifier)
+            .statusCode(200)
+            .body("approvers.email", containsInAnyOrder("first@portalmanager.com", "second@portalmanager.com"));
+        org.assertj.core.api.Assertions.assertThat(approverIds(identifier))
+            .hasSize(2)
+            .doesNotContainAnyElementsOf(originalIds);
+    }
+
+    private List<String> approverIds(String identifier) {
+        return jdbcTemplate.queryForList(
+            "select a.id from workspace_approvers a join workspaces w on w.id = a.workspace_id where w.identifier = ? order by a.functional",
+            String.class,
+            identifier
+        );
+    }
+
+    private void applyOversizedValue(Map<String, Object> request, String field) {
+        if (field.startsWith("approvers")) {
+            request.put(
+                "approvers",
+                List.of(
+                    Map.of(
+                        "functional",
+                        field.endsWith("functional") ? "F".repeat(11) : "F1000",
+                        "email",
+                        field.endsWith("email") ? "a".repeat(89) + "@example.com" : "approver@example.com"
+                    )
+                )
+            );
+        } else {
+            int maximumLength = switch (field) {
+                case "name" -> 50;
+                case "description" -> 200;
+                case "requester" -> 10;
+                case "authorizerGroup" -> 10;
+                case "acronym" -> 5;
+                case "tags" -> 50;
+                default -> 100;
+            };
+            if (field.equals("tags")) request.put(field, List.of("T".repeat(maximumLength + 1)));
+            else request.put(
+                field,
+                field.equals("emailGroup") ? "a".repeat(89) + "@example.com" : "A".repeat(maximumLength + 1)
+            );
+        }
+    }
+
+    @Test
     void shouldRejectStaleUpdateWithConflict() {
         String identifier = create("Workspace Concorrente", "ADMIN");
         Integer version = get("/api/v1/workspaces/" + identifier)
@@ -155,6 +399,31 @@ class WorkspaceApiIT {
         put("/api/v1/workspaces/" + identifier, stale)
             .statusCode(409)
             .body("code", equalTo("GLOBAL-0009"));
+    }
+
+    @Test
+    void shouldEnforceGlobalCaseInsensitiveNameUniquenessOnCreateAndUpdate() {
+        String identifier = create("Portal CaseInsensitive", "ADMIN");
+        post(validCreate("  portal caseinsensitive  ", "MANAGER"))
+            .statusCode(400)
+            .body("details.field", hasItem("name"));
+        Integer version = get("/api/v1/workspaces/" + identifier)
+            .statusCode(200)
+            .extract()
+            .path("version");
+        put("/api/v1/workspaces/" + identifier, validUpdate(version, "PORTAL CASEINSENSITIVE", "ADMIN"))
+            .statusCode(200)
+            .body("name", equalTo("PORTAL CASEINSENSITIVE"));
+        String otherIdentifier = create("Other Case Workspace", "ADMIN");
+        Integer otherVersion = get("/api/v1/workspaces/" + otherIdentifier)
+            .statusCode(200)
+            .extract()
+            .path("version");
+        put("/api/v1/workspaces/" + otherIdentifier, validUpdate(otherVersion, "portal caseinsensitive", "ADMIN"))
+            .statusCode(400)
+            .body("details.field", hasItem("name"));
+        post("/api/v1/workspaces/" + identifier + "/inactivate").statusCode(204);
+        post(validCreate("portal caseinsensitive", "MANAGER")).statusCode(400).body("details.field", hasItem("name"));
     }
 
     @Test
@@ -276,6 +545,73 @@ class WorkspaceApiIT {
     }
 
     @Test
+    void shouldRejectInvalidStructureWithoutCoercingOrDiscardingFields() {
+        for (Map<String, Object> invalidField : List.<Map<String, Object>>of(
+            Map.of("name", 123),
+            Map.of("settings", List.of()),
+            Map.of("tags", "invalid"),
+            Map.of(
+                "approvers",
+                List.of(Map.of("functional", "F1000", "email", "valid@example.com", "unexpected", true))
+            ),
+            Map.of("unexpected", true)
+        )) {
+            Map<String, Object> request = validCreate("Workspace Schema Structure", "ADMIN");
+            request.putAll(invalidField);
+            post(request).statusCode(400).body("code", equalTo("GLOBAL-0001"));
+        }
+        given()
+            .port(port)
+            .header("correlation-id", "workspace-api-it")
+            .header("Authorization", "Bearer workspace-api-it")
+            .contentType(ContentType.JSON)
+            .body(List.of())
+            .post("/api/v1/workspaces")
+            .then()
+            .statusCode(400);
+        org.assertj.core.api.Assertions.assertThat(
+            jdbcTemplate.queryForObject("select count(*) from workspaces", Integer.class)
+        ).isZero();
+    }
+
+    @Test
+    void shouldUseTheSameSchemaForCreationAndUpdateWhileRejectingVersionOnCreate() {
+        Map<String, Object> request = validCreate("Workspace Shared Schema", "ADMIN");
+        request.put("version", 999);
+        post(request).statusCode(400);
+        request.remove("version");
+        String identifier = post(request).statusCode(201).body("version", equalTo(0)).extract().path("identifier");
+        request.put("version", 0);
+        put("/api/v1/workspaces/" + identifier, request).statusCode(200);
+    }
+
+    @Test
+    void shouldRequireVersionForUpdateAndValidateItsStructureWithTheSharedSchema() {
+        String identifier = create("Workspace Schema Version", "ADMIN");
+        Integer version = get("/api/v1/workspaces/" + identifier)
+            .statusCode(200)
+            .extract()
+            .path("version");
+        Map<String, Object> request = validCreate("Workspace Schema Version", "ADMIN");
+        put("/api/v1/workspaces/" + identifier, request)
+            .statusCode(400)
+            .body("details.field", hasItem("version"));
+        for (Object invalidVersion : List.of(-1, 0.5, "0")) {
+            request.put("version", invalidVersion);
+            put("/api/v1/workspaces/" + identifier, request)
+                .statusCode(400)
+                .body("details.field", hasItem("version"));
+        }
+        request.put("version", null);
+        put("/api/v1/workspaces/" + identifier, request)
+            .statusCode(400)
+            .body("details.field", hasItem("version"));
+        get("/api/v1/workspaces/" + identifier)
+            .statusCode(200)
+            .body("version", equalTo(version));
+    }
+
+    @Test
     void shouldRejectWorkspaceSettingsThatAreNotAJsonObject() {
         Map<String, Object> request = validCreate("Workspace Invalid Settings", "ADMIN");
         request.put("settings", "not-an-object");
@@ -307,7 +643,7 @@ class WorkspaceApiIT {
 
     @Test
     void shouldQuarantineOnlyInactiveWorkspace() {
-        String identifier = create("Workspace Physical Delete", "ADMIN");
+        String identifier = create("Workspace Quarantine", "ADMIN");
 
         delete("/api/v1/workspaces/" + identifier)
             .statusCode(400)
@@ -323,6 +659,19 @@ class WorkspaceApiIT {
             identifier
         );
         org.assertj.core.api.Assertions.assertThat(lifecycle).isEqualTo("QUARANTINED");
+        post("/api/v1/workspaces/" + identifier + "/restore")
+            .statusCode(400)
+            .body("code", equalTo("WORKSPACE-0002"));
+        delete("/api/v1/workspaces/" + identifier)
+            .statusCode(400)
+            .body("code", equalTo("WORKSPACE-0003"));
+        org.assertj.core.api.Assertions.assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT lifecycle_code FROM workspaces WHERE identifier = ?",
+                String.class,
+                identifier
+            )
+        ).isEqualTo("QUARANTINED");
     }
 
     @Test
@@ -348,6 +697,49 @@ class WorkspaceApiIT {
 
     private String create(String name, String type) {
         return post(validCreate(name, type)).statusCode(201).extract().path("identifier");
+    }
+
+    @Test
+    void shouldPreventTypeChangeWithApplicationsInAnyLifecycle() {
+        String identifier = create("Workspace With Application", "MANAGER");
+        Long workspaceId = jdbcTemplate.queryForObject(
+            "select id from workspaces where identifier = ?",
+            Long.class,
+            identifier
+        );
+        jdbcTemplate.update(
+            "INSERT IGNORE INTO type_application_scopes (code, label, description, sort_order, is_active, settings) VALUES ('BACKEND', 'Backend', 'Backend application', 1, true, '{}')"
+        );
+        jdbcTemplate.update(
+            "INSERT INTO applications (identifier, workspace_id, name, alias, acronym, application_scope_code, settings, lifecycle_code, created_at, updated_at) VALUES (?, ?, 'Linked App', 'linked', 'APP', 'BACKEND', '{}', 'ACTIVE', NOW(), NOW())",
+            java.util.UUID.randomUUID().toString(),
+            workspaceId
+        );
+        for (String lifecycle : List.of("ACTIVE", "INACTIVE", "QUARANTINED")) {
+            jdbcTemplate.update(
+                "UPDATE applications SET lifecycle_code = ? WHERE workspace_id = ?",
+                lifecycle,
+                workspaceId
+            );
+            put("/api/v1/workspaces/" + identifier, validUpdate(0, "Workspace With Application", "ADMIN"))
+                .statusCode(400)
+                .body("details.field", hasItem("workspaceType"));
+            get("/api/v1/workspaces/" + identifier)
+                .statusCode(200)
+                .body("workspaceType", equalTo("MANAGER"))
+                .body("version", equalTo(0));
+        }
+        put("/api/v1/workspaces/" + identifier, validUpdate(0, "Workspace With Application Edited", "MANAGER"))
+            .statusCode(200)
+            .body("workspaceType", equalTo("MANAGER"));
+    }
+
+    @Test
+    void shouldAllowOwnerTypeChangeWithoutApplications() {
+        String identifier = create("Workspace Without Application", "MANAGER");
+        put("/api/v1/workspaces/" + identifier, validUpdate(0, "Workspace Without Application", "ADMIN"))
+            .statusCode(200)
+            .body("workspaceType", equalTo("ADMIN"));
     }
 
     private Map<String, Object> validCreate(String name, String type) {

@@ -3,6 +3,7 @@ package br.com.portalmanager.platform.workspace.core.application.usecase.model;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
 import java.time.LocalDateTime;
 import java.util.List;
+import tools.jackson.databind.JsonNode;
 
 public record ApplicationOutput(
     Long version,
@@ -10,10 +11,11 @@ public record ApplicationOutput(
     String workspaceIdentifier,
     String name,
     String alias,
+    String description,
     String acronym,
     String applicationScope,
     String authorizerGroup,
-    String settings,
+    JsonNode settings,
     String lifecycle,
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
@@ -26,6 +28,7 @@ public record ApplicationOutput(
             workspaceIdentifier,
             application.getName(),
             application.getAlias(),
+            application.getDescription(),
             application.getAcronym(),
             application.getApplicationScope().value(),
             application.getAuthorizerGroup(),

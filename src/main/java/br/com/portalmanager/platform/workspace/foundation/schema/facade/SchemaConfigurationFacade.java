@@ -23,8 +23,8 @@ public class SchemaConfigurationFacade {
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.READ)
-    public List<SchemaConfigurationOutput> findAll(AuthorizationContext context) {
-        return service.findAll();
+    public List<SchemaConfigurationOutput> findAll(AuthorizationContext context, String lifecycle) {
+        return service.findAll(lifecycle);
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.READ)

@@ -207,6 +207,38 @@ class GoldenArchitectureTest {
     }
 
     @Test
+    void platformControllersMustUseOnlyTheFacadeOfTheirOwnResponsibility() {
+        String facadePrefix = ROOT + ".feature.platform.facade.";
+        for (String responsibility : List.of("microservice", "feature", "context", "featurecontext")) {
+            classes().that().areAnnotatedWith(RestController.class)
+                .and().resideInAPackage(ROOT + ".entrypoint.web.platform." + responsibility + "..")
+                .should(new ArchCondition<>("use only the " + responsibility + " platform facade") {
+                    @Override
+                    public void check(JavaClass controller, ConditionEvents events) {
+                        for (Dependency dependency : controller.getDirectDependenciesFromSelf()) {
+                            String targetPackage = dependency.getTargetClass().getPackageName();
+                            if (targetPackage.startsWith(facadePrefix)) {
+                                boolean correctFacade = targetPackage.equals(facadePrefix + responsibility);
+                                events.add(new SimpleConditionEvent(dependency, correctFacade, dependency.getDescription()));
+                            }
+                        }
+                    }
+                }).check(classes);
+        }
+    }
+
+    @Test
+    void featureAndContextCommandsMustDelegateAssociationManagementToItsOwnFlow() {
+        noClasses().that().haveFullyQualifiedName(ROOT + ".feature.platform.usecase.operations.feature.FeatureCommandService")
+            .or().haveFullyQualifiedName(ROOT + ".feature.platform.usecase.operations.context.ContextCommandService")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                ROOT + ".feature.platform.domain.featurecontext..",
+                ROOT + ".feature.platform.repository.featurecontext..",
+                ROOT + ".feature.platform.usecase.operations.featurecontext.."
+            ).check(classes);
+    }
+
+    @Test
     void restControllersMustNotAccessIntegrations() {
         noClasses()
             .that()
@@ -214,6 +246,17 @@ class GoldenArchitectureTest {
             .should()
             .dependOnClassesThat()
             .resideInAPackage("..integration..")
+            .check(classes);
+    }
+
+    @Test
+    void onboardingMustUsePublicContractsForOtherModules() {
+        noClasses()
+            .that()
+            .resideInAPackage(ROOT + ".feature.onboarding..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage(ROOT + ".foundation..repository..", ROOT + ".core..repository..")
             .check(classes);
     }
 
@@ -263,7 +306,7 @@ class GoldenArchitectureTest {
     void authorizedFacadeMethodsMustReceiveAuthorizationContext() {
         List<Method> methods = classes
             .stream()
-            .filter(c -> c.getPackageName().endsWith(".facade"))
+            .filter(c -> c.getPackageName().endsWith(".facade") || c.getPackageName().contains(".facade."))
             .map(JavaClass::reflect)
             .flatMap(c -> Arrays.stream(c.getMethods()))
             .filter(m -> m.isAnnotationPresent(AuthorizationRequired.class))

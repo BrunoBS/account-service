@@ -11,10 +11,10 @@ public class WorkspaceApprover {
     @Column(name = "id", length = 36, nullable = false, updatable = false)
     private String id;
 
-    @Column(name = "functional", nullable = false, length = 255)
+    @Column(name = "functional", nullable = false, length = 10)
     private String functional;
 
-    @Column(name = "email", nullable = false, length = 320)
+    @Column(name = "email", nullable = false, length = 100)
     private String email;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -40,9 +40,5 @@ public class WorkspaceApprover {
 
     public String getEmail() {
         return email;
-    }
-
-    public Workspace getWorkspace() {
-        return workspace;
     }
 }

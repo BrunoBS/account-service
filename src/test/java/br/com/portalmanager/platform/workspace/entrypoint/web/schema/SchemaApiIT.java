@@ -151,7 +151,7 @@ class SchemaApiIT {
                 (version, identifier, workspace_type_code, name, description, requester,
                  acronym, settings, authorizer_group, email_group, onboarding,
                  lifecycle_code, created_at, updated_at)
-            values (0, ?, 'ADMIN', ?, 'Schema test workspace', 'integration-test',
+            values (0, ?, 'ADMIN', ?, 'Schema test workspace', 'testuser',
                     'SCH', null, null, 'schema-it@example.com', false, 'ACTIVE',
                     current_timestamp, current_timestamp)
             """,

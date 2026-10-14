@@ -9,7 +9,7 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.operatio
 import br.com.portalmanager.platform.workspace.feature.shared.domain.SharedMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.shared.domain.contract.SharedContract;
 import br.com.portalmanager.platform.workspace.feature.shared.domain.participation.SharedParticipation;
-import br.com.portalmanager.platform.workspace.feature.shared.integration.SharedReferenceResolver;
+import br.com.portalmanager.platform.workspace.feature.shared.integration.SharedReferenceAdapter;
 import br.com.portalmanager.platform.workspace.feature.shared.repository.SharedParticipationRepository;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.participation.ParticipationConfigurationInput;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.participation.SharedParticipationOutput;
@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SharedParticipationCommandService {
 
     private final EntityManager entityManager;
-    private final SharedReferenceResolver referenceResolver;
+    private final SharedReferenceAdapter referenceResolver;
     private final SharedParticipationRepository participationRepository;
     private final ApplicationQueryService applicationQueryService;
     private final SharedValidator sharedValidator;
@@ -43,7 +43,7 @@ public class SharedParticipationCommandService {
 
     public SharedParticipationCommandService(
         EntityManager entityManager,
-        SharedReferenceResolver referenceResolver,
+        SharedReferenceAdapter referenceResolver,
         SharedParticipationRepository participationRepository,
         ApplicationQueryService applicationQueryService,
         SharedValidator sharedValidator,

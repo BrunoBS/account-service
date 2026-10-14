@@ -1,82 +1,112 @@
 package br.com.portalmanager.platform.workspace.core.environment.usecase.validation;
 
+import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentType;
+import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
+import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeCompatibilityRepository;
+import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeRepository;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTypeInput;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
 public class EnvironmentTypeValidator {
 
-    public void validateForCreate(EnvironmentTypeInput input, boolean duplicateCode) {
-        ValidationResult result = fields(input, false);
-        if (duplicateCode) result.addError("code", EnvironmentMessageKeys.TYPE_DUPLICATE);
-        reject(result);
+    private final EnvironmentTypeRepository types;
+
+    private final EnvironmentRepository environments;
+
+    private final EnvironmentTypeCompatibilityRepository compatibilities;
+
+    public EnvironmentTypeValidator(
+        EnvironmentTypeRepository types,
+        EnvironmentRepository environments,
+        EnvironmentTypeCompatibilityRepository compatibilities
+    ) {
+        this.types = types;
+        this.environments = environments;
+        this.compatibilities = compatibilities;
     }
 
-    public void validateForUpdate(EnvironmentTypeInput input) {
-        reject(fields(input, true));
-    }
-
-    public void validateUpdateConflicts(boolean codeChanged, boolean workspaceScopeInUse, boolean rootInUse) {
-        ValidationResult result = new ValidationResult();
-        if (codeChanged) result.addError("code", EnvironmentMessageKeys.TYPE_CODE_IMMUTABLE);
-        if (workspaceScopeInUse) result.addError("workspaceRequired", EnvironmentMessageKeys.TYPE_IN_USE);
-        if (rootInUse) result.addError("rootAllowed", EnvironmentMessageKeys.TYPE_IN_USE);
-        reject(result);
-    }
-
-    public void validateForInactivate(boolean inUse) {
-        ValidationResult result = new ValidationResult();
-        if (inUse) result.addError("identifier", EnvironmentMessageKeys.TYPE_IN_USE);
-        reject(result);
-    }
-
-    public void validateForDelete(boolean inactive, boolean inUse) {
-        ValidationResult result = new ValidationResult();
-        if (!inactive) result.addError("lifecycle", EnvironmentMessageKeys.TYPE_DELETE_REQUIRES_INACTIVE);
-        if (inUse) result.addError("identifier", EnvironmentMessageKeys.TYPE_IN_USE);
-        reject(result);
-    }
-
-    private ValidationResult fields(EnvironmentTypeInput input, boolean update) {
+    public void validateForCreate(EnvironmentTypeInput input) {
         ValidationResult result = new ValidationResult();
         if (input == null) {
             result.addError("request", EnvironmentMessageKeys.TYPE_REQUEST_INVALID);
-            return result;
+        } else {
+            if (input.version() != null) {
+                result.addError("version", EnvironmentMessageKeys.TYPE_VERSION_NOT_ALLOWED_ON_CREATE);
+            }
+            if (types.existsByCode(input.code())) {
+                result.addError("code", EnvironmentMessageKeys.TYPE_DUPLICATE);
+            }
+            validateScopeCombination(input, result);
         }
-        if (input.code() == null || input.code().isBlank() || input.code().length() > 50) result.addError(
-            "code",
-            EnvironmentMessageKeys.TYPE_CODE_INVALID
+        reject(result);
+    }
+
+    public void validateForUpdate(EnvironmentType type, EnvironmentTypeInput input) {
+        type.requireActiveForUpdate();
+        ValidationResult result = new ValidationResult();
+        if (input == null) result.addError("request", EnvironmentMessageKeys.TYPE_REQUEST_INVALID);
+        else if (input.version() == null || input.version() < 0) result.addError(
+            "version", EnvironmentMessageKeys.TYPE_VERSION_REQUIRED
         );
-        if (input.name() == null || input.name().isBlank() || input.name().length() > 100) result.addError(
-            "name",
-            EnvironmentMessageKeys.TYPE_NAME_INVALID
-        );
-        if (
-            input.description() == null || input.description().isBlank() || input.description().length() > 250
-        ) result.addError("description", EnvironmentMessageKeys.TYPE_DESCRIPTION_INVALID);
-        if (input.rootAllowed() == null) result.addError(
-            "rootAllowed",
-            EnvironmentMessageKeys.TYPE_ROOT_ALLOWED_REQUIRED
-        );
-        if (input.workspaceRequired() == null) result.addError(
-            "workspaceRequired",
-            EnvironmentMessageKeys.TYPE_WORKSPACE_REQUIRED_REQUIRED
-        );
-        if (input.displayOrder() == null || input.displayOrder() < 0) result.addError(
-            "displayOrder",
-            EnvironmentMessageKeys.TYPE_DISPLAY_ORDER_INVALID
-        );
-        if (update && (input.version() == null || input.version() < 0)) result.addError(
-            "version",
-            EnvironmentMessageKeys.TYPE_VERSION_REQUIRED
-        );
-        return result;
+        else validateScopeCombination(input, result);
+        reject(result);
+
+        if (!Objects.equals(type.getVersion(), input.version())) throw new ResourceVersionConflictException();
+        if (!Objects.equals(type.getCode(), input.code())) result.addError("code", EnvironmentMessageKeys.TYPE_CODE_IMMUTABLE);
+        if (type.isWorkspaceRequired() != input.workspaceRequired() && environments.findUsageForTypeValidation(type.getCode()).isPresent()) {
+            result.addError("workspaceRequired", EnvironmentMessageKeys.TYPE_IN_USE);
+        }
+        if (type.isRootAllowed() && !input.rootAllowed() && environments.findRootForTypeValidation(type.getCode()).isPresent()) {
+            result.addError("rootAllowed", EnvironmentMessageKeys.TYPE_IN_USE);
+        }
+        if (!input.allowsChildren()) {
+            if (compatibilities.findActiveChildLinkForTypeValidation(type.getCode()).isPresent()) {
+                result.addError("allowsChildren", EnvironmentMessageKeys.TYPE_CHILD_COMPATIBILITIES_ACTIVE);
+            }
+            if (environments.findChildForTypeValidation(type.getCode()).isPresent()) {
+                result.addError("allowsChildren", EnvironmentMessageKeys.TYPE_CHILDREN_IN_USE);
+            }
+        }
+        reject(result);
+    }
+
+    public void validateForDelete(EnvironmentType type) {
+        ValidationResult result = new ValidationResult();
+        if (!LifecycleTypeCode.inactive().equals(type.getLifecycle())) {
+            result.addError("lifecycle", EnvironmentMessageKeys.TYPE_DELETE_REQUIRES_INACTIVE);
+        }
+        if (environments.findUsageForTypeValidation(type.getCode()).isPresent() ||
+            compatibilities.findUsageForTypeValidation(type.getCode()).isPresent()) {
+            result.addError("code", EnvironmentMessageKeys.TYPE_IN_USE);
+        }
+        reject(result);
     }
 
     private void reject(ValidationResult result) {
         if (result.hasErrors()) throw new ValidationException(result);
+    }
+
+    private void validateScopeCombination(EnvironmentTypeInput input, ValidationResult result) {
+        if (input.code() == null) {
+            result.addError("code", EnvironmentMessageKeys.TYPE_CODE_INVALID);
+            return;
+        }
+        boolean valid = switch (input.code()) {
+            case "DEFAULT" -> input.rootAllowed() && !input.workspaceRequired();
+            case "CUSTOM" -> input.rootAllowed() && input.workspaceRequired();
+            case "SHARD", "CELL" -> !input.rootAllowed() && input.workspaceRequired();
+            default -> {
+                result.addError("code", EnvironmentMessageKeys.TYPE_CODE_INVALID);
+                yield true;
+            }
+        };
+        if (!valid) result.addError("workspaceRequired", EnvironmentMessageKeys.TYPE_SCOPE_INVALID);
     }
 }

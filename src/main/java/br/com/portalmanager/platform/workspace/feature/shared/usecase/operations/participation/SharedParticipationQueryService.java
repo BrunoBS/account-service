@@ -7,14 +7,13 @@ import br.com.portalmanager.platform.workspace.core.environment.usecase.operatio
 import br.com.portalmanager.platform.workspace.feature.shared.domain.SharedMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.shared.domain.contract.SharedContract;
 import br.com.portalmanager.platform.workspace.feature.shared.domain.participation.SharedParticipation;
-import br.com.portalmanager.platform.workspace.feature.shared.integration.SharedReferenceResolver;
+import br.com.portalmanager.platform.workspace.feature.shared.integration.SharedReferenceAdapter;
 import br.com.portalmanager.platform.workspace.feature.shared.repository.SharedParticipationRepository;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.pagination.SharedPageInput;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.participation.SharedParticipationOutput;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.model.participation.SharedParticipationPageOutput;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.operations.contract.SharedContractAccessService;
 import br.com.portalmanager.platform.workspace.feature.shared.usecase.validation.SharedValidator;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain.ShareStatusTypeEnum;
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SharedParticipationQueryService {
 
     private final SharedValidator sharedValidator;
-    private final SharedReferenceResolver referenceResolver;
+    private final SharedReferenceAdapter referenceResolver;
     private final SharedParticipationRepository participationRepository;
     private final ApplicationQueryService applicationQueryService;
     private final EnvironmentQueryService environmentQueryService;
@@ -37,7 +36,7 @@ public class SharedParticipationQueryService {
 
     public SharedParticipationQueryService(
         SharedValidator sharedValidator,
-        SharedReferenceResolver referenceResolver,
+        SharedReferenceAdapter referenceResolver,
         SharedParticipationRepository participationRepository,
         ApplicationQueryService applicationQueryService,
         EnvironmentQueryService environmentQueryService,
@@ -114,17 +113,18 @@ public class SharedParticipationQueryService {
             participationIdentifier
         );
         SharedParticipationOutput output = referenceResolver.participationOutput(participation);
-        if (
-            !LifecycleTypeCode.active().value().equals(participation.getContract().getLifecycle().value()) ||
-            applicationQueryService
-                .findActiveReferencesForShared(List.of(participation.getParticipantApplicationId()))
-                .isEmpty()
-        ) {
+        if (!canListSourceEnvironments(participation)) {
             return output.withSourceEnvironments(List.of());
         }
         return output.withSourceEnvironments(
             environmentQueryService.listActiveForShared(output.participantWorkspaceIdentifier())
         );
+    }
+
+    private boolean canListSourceEnvironments(SharedParticipation participation) {
+        SharedContract contract = participation.getContract();
+        return contract.isActive() &&
+            !applicationQueryService.findActiveReferencesForShared(List.of(participation.getParticipantApplicationId())).isEmpty();
     }
 
     private SharedParticipation findOwnedParticipation(
@@ -138,9 +138,11 @@ public class SharedParticipationQueryService {
             ownerApplicationIdentifier,
             contractIdentifier
         );
-        return participationRepository
+        SharedParticipation participation = participationRepository
             .findByContractIdAndIdentifier(contract.getId(), participationIdentifier)
             .orElseThrow(() -> new NotFoundException(SharedMessageKeys.NOT_FOUND));
+        contractAccessService.requireFeatureForDetails(contract);
+        return participation;
     }
 
     @Transactional(readOnly = true)
@@ -213,6 +215,7 @@ public class SharedParticipationQueryService {
                 applicationReference.applicationId()
             )
             .orElseThrow(() -> new NotFoundException(SharedMessageKeys.NOT_FOUND));
+        contractAccessService.requireFeatureForDetails(participation.getContract());
         return referenceResolver.participationOutput(participation);
     }
 }

@@ -47,7 +47,7 @@ class DatabaseUpgradeMigrationIT {
                 created_at, updated_at
             ) values (
                 100, 3, ?, 'ADMIN', 'Legacy Workspace', 'Descrição persistida antes da V3',
-                'legacy-requester', 'LEG', '{"legacy":true}', ' team_legacy ',
+                'legacyuser', 'LEG', '{"legacy":true}', ' team_old ',
                 'legacy@portalmanager.com', true, 'INACTIVE', now(6), now(6)
             )
             """,
@@ -91,7 +91,7 @@ class DatabaseUpgradeMigrationIT {
 
         assertThat(
             jdbc.queryForObject("select authorizer_group from workspaces where id = 100", String.class)
-        ).isEqualTo("TEAM_LEGACY");
+        ).isEqualTo("TEAM_OLD");
 
         assertThat(indexCount(jdbc, "workspaces", "idx_workspaces_authorizer_group")).isEqualTo(1);
 

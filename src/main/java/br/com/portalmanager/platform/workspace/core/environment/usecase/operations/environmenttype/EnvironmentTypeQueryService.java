@@ -1,11 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environmenttype;
 
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
-import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentType;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeRepository;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTypeOutput;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,32 +11,24 @@ import org.springframework.transaction.annotation.Transactional;
 public class EnvironmentTypeQueryService {
 
     private final EnvironmentTypeRepository types;
+    private final EnvironmentTypeFinder finder;
 
-    public EnvironmentTypeQueryService(EnvironmentTypeRepository types) {
+    public EnvironmentTypeQueryService(EnvironmentTypeRepository types, EnvironmentTypeFinder finder) {
         this.types = types;
+        this.finder = finder;
     }
 
     @Transactional(readOnly = true)
-    public EnvironmentType active(String code) {
+    public EnvironmentTypeOutput find(String code) {
+        return EnvironmentTypeOutput.from(finder.find(code));
+    }
+
+    @Transactional(readOnly = true)
+    public List<EnvironmentTypeOutput> list(String lifecycle) {
         return types
-            .findByCodeAndLifecycle(code, LifecycleTypeCode.active())
-            .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.TYPE_NOT_FOUND));
-    }
-
-    @Transactional(readOnly = true)
-    public EnvironmentType find(String identifier) {
-        return types
-            .findByIdentifier(identifier)
-            .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.TYPE_NOT_FOUND));
-    }
-
-    @Transactional(readOnly = true)
-    public EnvironmentTypeOutput findOutput(String identifier) {
-        return EnvironmentTypeOutput.from(find(identifier));
-    }
-
-    @Transactional(readOnly = true)
-    public List<EnvironmentTypeOutput> list() {
-        return types.findAllByOrderByDisplayOrderAscIdAsc().stream().map(EnvironmentTypeOutput::from).toList();
+            .findByLifecycleOrderByDisplayOrderAscCodeAsc(LifecycleFilter.resolve(lifecycle))
+            .stream()
+            .map(EnvironmentTypeOutput::from)
+            .toList();
     }
 }

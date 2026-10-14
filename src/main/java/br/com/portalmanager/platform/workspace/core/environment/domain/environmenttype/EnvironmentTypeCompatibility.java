@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype;
 
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -17,11 +19,11 @@ public class EnvironmentTypeCompatibility {
     private String identifier;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "parent_type_id", nullable = false)
+    @JoinColumn(name = "parent_type_code", referencedColumnName = "code", nullable = false)
     private EnvironmentType parentType;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "child_type_id", nullable = false)
+    @JoinColumn(name = "child_type_code", referencedColumnName = "code", nullable = false)
     private EnvironmentType childType;
 
     @Embedded
@@ -44,12 +46,14 @@ public class EnvironmentTypeCompatibility {
         createdAt = updatedAt = now;
     }
 
-    public void activate(LocalDateTime now) {
+    public void restore(LocalDateTime now) {
+        requireLifecycle(LifecycleTypeCode.inactive());
         lifecycle = LifecycleTypeCode.active();
         updatedAt = now;
     }
 
     public void inactivate(LocalDateTime now) {
+        requireLifecycle(LifecycleTypeCode.active());
         lifecycle = LifecycleTypeCode.inactive();
         updatedAt = now;
     }
@@ -68,5 +72,9 @@ public class EnvironmentTypeCompatibility {
 
     public LifecycleTypeCode getLifecycle() {
         return lifecycle;
+    }
+
+    private void requireLifecycle(LifecycleTypeCode expected) {
+        if (!expected.equals(lifecycle)) throw new ValidationException(EnvironmentMessageKeys.COMPATIBILITY_LIFECYCLE_INVALID);
     }
 }

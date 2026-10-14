@@ -2,9 +2,12 @@ package br.com.portalmanager.platform.workspace.entrypoint.web.workspace;
 
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.core.workspace.facade.WorkspaceFacade;
-import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.*;
+import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.CreateWorkspaceRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request.UpdateWorkspaceRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.web.workspace.response.WorkspaceResponse;
-import java.util.List;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,17 +17,17 @@ public class WorkspaceController {
 
     private final WorkspaceFacade facade;
 
-    public WorkspaceController(WorkspaceFacade f) {
-        facade = f;
+    public WorkspaceController(WorkspaceFacade facade) {
+        this.facade = facade;
     }
 
     @PostMapping
     public ResponseEntity<WorkspaceResponse> create(
         AuthorizationContext context,
-        @RequestBody CreateWorkspaceRequest r
+        @RequestBody CreateWorkspaceRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
-            WorkspaceResponse.from(facade.create(context, r.toInput()))
+            WorkspaceResponse.from(facade.create(context, request.toInput()))
         );
     }
 
@@ -34,22 +37,25 @@ public class WorkspaceController {
     }
 
     @GetMapping
-    public List<WorkspaceResponse> findAll(
+    public PagedModel<WorkspaceResponse> findAll(
         AuthorizationContext context,
-        @RequestParam(defaultValue = "true") Boolean active,
+        @RequestParam(required = false) String lifecycle,
         @RequestParam(required = false) String typeName,
-        @RequestParam(required = false) String tagName
+        @RequestParam(required = false) String tagName,
+        @PageableDefault(size = 20, sort = "id") Pageable pageable
     ) {
-        return facade.findAll(context, active, typeName, tagName).stream().map(WorkspaceResponse::from).toList();
+        return new PagedModel<>(
+            facade.findAll(context, lifecycle, typeName, tagName, pageable).map(WorkspaceResponse::from)
+        );
     }
 
     @PutMapping("/{identifier}")
     public WorkspaceResponse update(
         AuthorizationContext context,
         @PathVariable String identifier,
-        @RequestBody UpdateWorkspaceRequest r
+        @RequestBody UpdateWorkspaceRequest request
     ) {
-        return WorkspaceResponse.from(facade.update(context, identifier, r.toInput()));
+        return WorkspaceResponse.from(facade.update(context, identifier, request.toInput()));
     }
 
     @PostMapping("/{identifier}/inactivate")

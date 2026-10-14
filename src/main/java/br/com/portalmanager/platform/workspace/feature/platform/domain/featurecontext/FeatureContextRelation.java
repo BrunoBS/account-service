@@ -1,5 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.platform.domain.featurecontext;
 
+import br.com.portalmanager.platform.workspace.feature.platform.domain.context.Context;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.feature.Feature;
 import jakarta.persistence.*;
 
@@ -15,14 +16,14 @@ public class FeatureContextRelation {
     @JoinColumn(name = "feature_id", nullable = false)
     private Feature feature;
 
-    @MapsId("featureContextId")
+    @MapsId("contextId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "feature_context_id", nullable = false)
-    private FeatureContext context;
+    private Context context;
 
     protected FeatureContextRelation() {}
 
-    public FeatureContextRelation(Feature feature, FeatureContext context) {
+    public FeatureContextRelation(Feature feature, Context context) {
         this.feature = feature;
         this.context = context;
         id = new FeatureContextRelationId(feature.getId(), context.getId());
@@ -36,7 +37,7 @@ public class FeatureContextRelation {
         return feature;
     }
 
-    public FeatureContext getContext() {
+    public Context getContext() {
         return context;
     }
 }

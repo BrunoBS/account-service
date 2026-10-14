@@ -28,8 +28,8 @@ public class WorkspaceSchemaFacade {
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.READ)
-    public List<SchemaOutput> findAll(AuthorizationContext context, String w) {
-        return queryService.findWorkspace(w);
+    public List<SchemaOutput> findAll(AuthorizationContext context, String workspaceIdentifier, String lifecycle) {
+        return queryService.findWorkspace(workspaceIdentifier, lifecycle);
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.ADM, action = AuthorizationAction.READ)

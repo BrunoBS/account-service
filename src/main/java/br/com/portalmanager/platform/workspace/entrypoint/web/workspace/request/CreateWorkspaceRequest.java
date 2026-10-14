@@ -1,10 +1,14 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.workspace.request;
 
+import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceNormalizer;
 import java.util.List;
 import tools.jackson.databind.JsonNode;
 
+@ValidateResourceSchemaRequest(type = "WORKSPACE", code = "workspace", normalizer = WorkspaceNormalizer.class)
 public record CreateWorkspaceRequest(
+    Long version,
     String workspaceType,
     String name,
     String description,
@@ -18,20 +22,16 @@ public record CreateWorkspaceRequest(
 ) {
     public CreateWorkspaceInput toInput() {
         return new CreateWorkspaceInput(
+            version,
             workspaceType,
             name,
             description,
             requester,
             acronym,
             authorizerGroup,
-            settings == null ? null : settings.toString(),
+            settings,
             emailGroup,
-            approvers == null
-                ? null
-                : approvers
-                      .stream()
-                      .map(value -> value == null ? null : value.toInput())
-                      .toList(),
+            approvers == null ? null : approvers.stream().map(ApproverRequest::toInput).toList(),
             tags
         );
     }

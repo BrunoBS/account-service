@@ -1,5 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.shared;
 
+import br.com.portalmanager.platform.workspace.feature.platform.domain.feature.Feature;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.anyOf;
@@ -72,7 +73,7 @@ class SharedApiIT {
         SchemaDefaultFixture.seed(jdbc);
         seedCatalogs();
         authorization.reset();
-        authorization.allow(session -> session.groups("PM5_OWNER"));
+        authorization.allow(session -> session.userName("test-user").groups("PM5_OWNER"));
         sharedFeatureIdentifier = createPlatformFeature(true);
     }
 
@@ -532,7 +533,7 @@ class SharedApiIT {
             "applicationScope",
             applicationScope,
             "settings",
-            Map.of(),
+            Map.of("language", "JAVA", "infrastructure", "VM"),
             "tags",
             List.of()
         );
@@ -666,7 +667,7 @@ class SharedApiIT {
     }
 
     @Test
-    void inactiveFeaturesDisappearFromDiscoveryAndBlockNewParticipationWithoutHidingHistory() {
+    void inactiveFeaturesDisappearFromDiscoveryAndBlockDetailsAndNewParticipation() {
         Scope owner = createScope("FeatureLifecycleOwner");
         Scope participant = createScope("FeatureLifecycleParticipant");
         Scope otherParticipant = createScope("NewFeatureParticipant");
@@ -682,15 +683,66 @@ class SharedApiIT {
         get(participant.basePath() + "/shared-contracts/available")
             .statusCode(200)
             .body("content.size()", equalTo(0));
-        get(participant.basePath() + "/shared-contracts/available/" + contract).statusCode(404);
+        assertFeatureUnavailable(participant.basePath() + "/shared-contracts/available/" + contract);
         requestParticipation(otherParticipant, contract).statusCode(404);
         patch(
             owner.contractPath(contract) + "/participations/" + participation + "/status",
             statusChangeRequest("APPROVE", approvalRequest("MANUAL"))
         ).statusCode(404);
-        get(participant.basePath() + "/shared-participations/" + participation)
-            .statusCode(200)
-            .body("contract.featureIdentifier", equalTo(sharedFeatureIdentifier));
+        assertFeatureUnavailable(participant.basePath() + "/shared-participations/" + participation);
+        assertFeatureUnavailable(owner.contractPath(contract));
+        assertFeatureUnavailable(owner.contractPath(contract) + "/participations/" + participation);
+    }
+
+    @Test
+    void inactiveFeatureOrMicroserviceRejectsDetailsAndAllowsRecoveryAndCleanup() {
+        Scope owner = createScope("FeatureAvailabilityOwner");
+        Scope participant = createScope("FeatureAvailabilityParticipant");
+        String contract = createContract(owner);
+        String participation = requestParticipation(participant, contract).statusCode(201).extract().path("identifier");
+        String participationPath = owner.contractPath(contract) + "/participations/" + participation;
+        String featurePath = "/api/v1/platform/features/" + sharedFeatureIdentifier;
+        String microserviceIdentifier = get(featurePath).statusCode(200).extract().path("microserviceIdentifier");
+        String microservicePath = "/api/v1/platform/microservices/" + microserviceIdentifier;
+        String environmentIdentifier = UUID.randomUUID().toString();
+        patch(participationPath + "/status", statusChangeRequest("APPROVE", approvalRequest("MANUAL", environmentIdentifier)))
+            .statusCode(200);
+        get(participationPath).statusCode(200).body("sourceEnvironments.identifier", hasItem(environmentIdentifier));
+
+        List<String> detailPaths = List.of(owner.contractPath(contract), participationPath,
+            participant.basePath() + "/shared-participations/" + participation,
+            participant.basePath() + "/shared-contracts/available/" + contract);
+        patch(featurePath + "/inactivate").statusCode(200);
+        int eventsBeforeReads = jdbc.queryForObject("SELECT COUNT(*) FROM audit_outbox", Integer.class);
+        detailPaths.forEach(this::assertFeatureUnavailable);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM audit_outbox", Integer.class)).isEqualTo(eventsBeforeReads);
+        get(participant.contractPath(contract)).statusCode(404);
+        get(owner.contractPath(contract) + "/participations/" + UUID.randomUUID()).statusCode(404);
+        authorization.reset();
+        authorization.forbidden();
+        get(participationPath).statusCode(403);
+        authorization.reset();
+        authorization.allow(session -> session.userName("test-user").groups("PM5_OWNER"));
+        patch(featurePath + "/activate").statusCode(200);
+        get(owner.contractPath(contract)).statusCode(200).body("lifecycle", equalTo("ACTIVE"));
+        get(participationPath).statusCode(200).body("status", equalTo("APPROVED"))
+            .body("mappings[0].sourceEnvironmentIdentifier", equalTo(environmentIdentifier))
+            .body("sourceEnvironments.identifier", hasItem(environmentIdentifier));
+
+        patch(microservicePath + "/inactivate").statusCode(200);
+        get(featurePath).statusCode(200).body("lifecycle", equalTo("ACTIVE"));
+        detailPaths.forEach(this::assertFeatureUnavailable);
+        patch(microservicePath + "/activate").statusCode(200);
+        get(participationPath).statusCode(200).body("status", equalTo("APPROVED"))
+            .body("mappings[0].sourceEnvironmentIdentifier", equalTo(environmentIdentifier))
+            .body("sourceEnvironments.identifier", hasItem(environmentIdentifier));
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM shared_contracts", Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM shared_participations", Integer.class)).isEqualTo(1);
+        patch(featurePath + "/inactivate").statusCode(200);
+        patch(owner.contractPath(contract) + "/inactivate").statusCode(200);
+        delete(owner.contractPath(contract)).statusCode(204);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM shared_contracts", Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM shared_participations", Integer.class)).isZero();
     }
 
     @Test
@@ -1378,8 +1430,8 @@ class SharedApiIT {
 
     @Test
     void authorizationUsesTheWorkspaceAndApplicationFromEachControllerPath() {
-        Scope owner = createScope("Owner", "OWNER_SPACE", "OWNER_APP");
-        Scope other = createScope("Other", "OTHER_SPACE", "OTHER_APP");
+        Scope owner = createScope("Owner", "OWN_SPACE", "OWN_APP");
+        Scope other = createScope("Other", "OTH_SPACE", "OTH_APP");
         Scope participant = createScope("Participant", "PART_SPACE", "PART_APP");
         String ownerContract = createContract(owner);
         String otherContract = createContract(other);
@@ -1388,8 +1440,8 @@ class SharedApiIT {
         authorization.allow(session ->
             session
                 .groups("USER")
-                .addAuthorizerGroup("GRP_WORKSPACE_DEV_OWNER_SPACE", "DEV", "DEV", "OWNER_SPACE")
-                .addAuthorizerGroup("GRP_APPLICATION_DEV_OWNER_APP", "DEV", "DEV", "A-OWNER_APP")
+                .addAuthorizerGroup("GRP_WORKSPACE_DEV_OWN_SPACE", "DEV", "DEV", "OWN_SPACE")
+                .addAuthorizerGroup("GRP_APPLICATION_DEV_OWN_APP", "DEV", "DEV", "A-OWN_APP")
         );
 
         get(owner.contractPath(ownerContract)).statusCode(200);
@@ -1406,6 +1458,16 @@ class SharedApiIT {
         get(participant.basePath() + "/shared-participations").statusCode(200);
         get(owner.basePath() + "/shared-participations").statusCode(anyOf(is(403), is(404)));
         authorization.verifyCalledWithPolicy("DEV");
+    }
+
+    private void assertFeatureUnavailable(String path) {
+        get(path).statusCode(409)
+            .body("code", equalTo("SHARED-0013"))
+            .body("message", anyOf(equalTo("A feature deste contrato está indisponível para compartilhamento."),
+                equalTo("The feature of this contract is unavailable for sharing.")))
+            .body("containsKey('sourceEnvironments')", equalTo(false))
+            .body("containsKey('contract')", equalTo(false))
+            .body("containsKey('mappings')", equalTo(false));
     }
 
     private void seedCatalogs() {
@@ -1464,12 +1526,14 @@ class SharedApiIT {
             .statusCode(200)
             .extract();
         return Map.of(
+            "version", feature.path("version"),
+            "code", feature.path("code"),
             "name",
             feature.path("name"),
             "microserviceIdentifier",
             feature.path("microserviceIdentifier"),
             "settings",
-            Map.of(),
+            Map.of("language", "JAVA", "infrastructure", "VM"),
             "shareable",
             shareable
         );
@@ -1531,13 +1595,13 @@ class SharedApiIT {
             "INSERT IGNORE INTO type_authorizations (code, label, description, sort_order, is_active, settings) VALUES ('DEV', 'Dev', 'Developer', 1, true, '{}')"
         );
         jdbc.update(
-            "INSERT IGNORE INTO environment_types (identifier, code, name, description, root_allowed, workspace_required, lifecycle_code, display_order, created_at, updated_at) VALUES (UUID(), 'DEFAULT', 'Default', 'Default', true, false, 'ACTIVE', 1, NOW(6), NOW(6))"
+            "INSERT IGNORE INTO environment_types (code, name, description, root_allowed, workspace_required, lifecycle_code, display_order, created_at, updated_at) VALUES ('DEFAULT', 'Default', 'Default', true, false, 'ACTIVE', 1, NOW(6), NOW(6))"
         );
         jdbc.update(
             """
-            INSERT IGNORE INTO environments (identifier, environment_type_id, name, description,
+            INSERT IGNORE INTO environments (identifier, environment_type_code, name, description,
                 authorization_type_code, settings, sort_order, lifecycle_code, created_at, updated_at)
-            SELECT ?, id, ?, 'Shared test environment', 'DEV', '{}', 1, 'ACTIVE', NOW(6), NOW(6)
+            SELECT ?, code, ?, 'Shared test environment', 'DEV', '{}', 1, 'ACTIVE', NOW(6), NOW(6)
             FROM environment_types WHERE code = 'DEFAULT'
             """,
             identifier,
@@ -1584,7 +1648,12 @@ class SharedApiIT {
     private Map<String, Object> workspaceRequest(String prefix, String authorizerGroup) {
         Map<String, Object> request = new LinkedHashMap<>();
         request.put("workspaceType", "MANAGER");
-        request.put("name", prefix + " Workspace " + UUID.randomUUID());
+        request.put(
+            "name",
+            prefix.substring(0, Math.min(prefix.length(), 25)) +
+                " Workspace " +
+                UUID.randomUUID().toString().substring(0, 8)
+        );
         request.put("description", "Workspace usado nos testes Shared");
         request.put("requester", "requester");
         request.put("acronym", "SHR");
@@ -1598,10 +1667,14 @@ class SharedApiIT {
 
     private Map<String, Object> applicationRequest(String prefix, String authorizerGroup) {
         Map<String, Object> request = new LinkedHashMap<>();
-        request.put("name", prefix + " Application " + UUID.randomUUID());
+        request.put(
+            "name",
+            prefix.substring(0, Math.min(prefix.length(), 25)) + " App " + UUID.randomUUID().toString().substring(0, 8)
+        );
         request.put("alias", "shared-" + UUID.randomUUID().toString().substring(0, 8));
         request.put("acronym", "SHR");
         request.put("applicationScope", "SHARED");
+        request.put("settings", Map.of("language", "JAVA", "infrastructure", "VM"));
         if (authorizerGroup != null) request.put("authorizerGroup", authorizerGroup);
         request.put("tags", List.of());
         return request;

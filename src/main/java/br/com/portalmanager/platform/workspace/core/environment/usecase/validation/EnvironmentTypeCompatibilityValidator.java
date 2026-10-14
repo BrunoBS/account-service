@@ -4,58 +4,93 @@ import br.com.portalmanager.platform.library.messaging.exception.ValidationExcep
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
 import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentType;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeRepository;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentTypeCompatibility;
+import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
+import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeCompatibilityRepository;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
 public class EnvironmentTypeCompatibilityValidator {
 
-    private final EnvironmentTypeRepository types;
+    private final EnvironmentTypeCompatibilityRepository compatibilities;
+    private final EnvironmentRepository environments;
 
-    public EnvironmentTypeCompatibilityValidator(EnvironmentTypeRepository types) {
-        this.types = types;
+    public EnvironmentTypeCompatibilityValidator(
+        EnvironmentTypeCompatibilityRepository compatibilities,
+        EnvironmentRepository environments
+    ) {
+        this.compatibilities = compatibilities;
+        this.environments = environments;
     }
 
-    public TypePair resolve(String parentCode, String childCode) {
+    public TypePair validateForCreate(String parentTypeCode, String childTypeCode, List<EnvironmentType> lockedTypes) {
         ValidationResult result = new ValidationResult();
-        EnvironmentType parent = active(parentCode);
-        EnvironmentType child = active(childCode);
-        if (parent == null) result.addError("parentTypeCode", EnvironmentMessageKeys.COMPATIBILITY_PARENT_INVALID);
-        if (child == null) result.addError("childTypeCode", EnvironmentMessageKeys.COMPATIBILITY_CHILD_INVALID);
+        EnvironmentType parentType = findActiveType(parentTypeCode, lockedTypes);
+        EnvironmentType childType = findActiveType(childTypeCode, lockedTypes);
+        if (parentType == null) result.addError("parentTypeCode", EnvironmentMessageKeys.COMPATIBILITY_PARENT_INVALID);
+        if (childType == null) result.addError("childTypeCode", EnvironmentMessageKeys.COMPATIBILITY_CHILD_INVALID);
         reject(result);
-        return new TypePair(parent, child);
+
+        if (!parentType.allowsChildren()) {
+            result.addError("parentTypeCode", EnvironmentMessageKeys.PARENT_TYPE_CANNOT_HAVE_CHILDREN);
+        }
+        if (parentType.isWorkspaceRequired() && !childType.isWorkspaceRequired()) {
+            result.addError("childTypeCode", EnvironmentMessageKeys.COMPATIBILITY_SCOPE_INVALID);
+        }
+        reject(result);
+
+        if (parentType.getCode().equals(childType.getCode()) || createsCycle(parentType.getCode(), childType.getCode())) {
+            result.addError("childTypeCode", EnvironmentMessageKeys.COMPATIBILITY_CYCLE_INVALID);
+        }
+        reject(result);
+        return new TypePair(parentType, childType);
     }
 
-    public void requireAcyclic(boolean selfRelation, boolean cycle) {
+    public void validateForDelete(EnvironmentTypeCompatibility compatibility) {
         ValidationResult result = new ValidationResult();
-        if (selfRelation || cycle) result.addError("childTypeCode", EnvironmentMessageKeys.COMPATIBILITY_CYCLE_INVALID);
+        if (!LifecycleTypeCode.inactive().equals(compatibility.getLifecycle())) {
+            result.addError("lifecycle", EnvironmentMessageKeys.COMPATIBILITY_DELETE_REQUIRES_INACTIVE);
+        }
+        if (environments.findUsageForCompatibilityValidation(compatibility.getParentType().getCode(), compatibility.getChildType().getCode()).isPresent()) {
+            result.addError("identifier", EnvironmentMessageKeys.COMPATIBILITY_IN_USE);
+        }
         reject(result);
     }
 
-    public void requireInactive(LifecycleTypeCode lifecycle) {
-        ValidationResult result = new ValidationResult();
-        if (!LifecycleTypeCode.inactive().equals(lifecycle)) result.addError(
-            "identifier",
-            EnvironmentMessageKeys.COMPATIBILITY_DELETE_REQUIRES_INACTIVE
-        );
-        reject(result);
+    private boolean createsCycle(String parentTypeCode, String childTypeCode) {
+        Map<String, Set<String>> childrenByTypeCode = new HashMap<>();
+        for (EnvironmentTypeCompatibilityRepository.TypeLink link : compatibilities.findActiveTypeLinksForValidation()) {
+            childrenByTypeCode.computeIfAbsent(link.getParentTypeCode(), ignored -> new HashSet<>()).add(link.getChildTypeCode());
+        }
+        ArrayDeque<String> pendingTypeCodes = new ArrayDeque<>();
+        Set<String> visitedTypeCodes = new HashSet<>();
+        pendingTypeCodes.add(childTypeCode);
+        while (!pendingTypeCodes.isEmpty()) {
+            String currentTypeCode = pendingTypeCodes.removeFirst();
+            if (currentTypeCode.equals(parentTypeCode)) return true;
+            if (visitedTypeCodes.add(currentTypeCode)) pendingTypeCodes.addAll(childrenByTypeCode.getOrDefault(currentTypeCode, Set.of()));
+        }
+        return false;
     }
 
-    public void requireUnused(boolean inUse) {
-        ValidationResult result = new ValidationResult();
-        if (inUse) result.addError("identifier", EnvironmentMessageKeys.COMPATIBILITY_IN_USE);
-        reject(result);
-    }
-
-    private EnvironmentType active(String code) {
+    private EnvironmentType findActiveType(String code, List<EnvironmentType> lockedTypes) {
         if (code == null || code.isBlank()) return null;
-        return types.findByCodeAndLifecycle(code, LifecycleTypeCode.active()).orElse(null);
+        return lockedTypes.stream()
+            .filter(type -> type.getCode().equalsIgnoreCase(code.trim()))
+            .filter(type -> LifecycleTypeCode.active().equals(type.getLifecycle()))
+            .findFirst().orElse(null);
     }
 
     private void reject(ValidationResult result) {
         if (result.hasErrors()) throw new ValidationException(result);
     }
 
-    public record TypePair(EnvironmentType parent, EnvironmentType child) {}
+    public record TypePair(EnvironmentType parentType, EnvironmentType childType) {}
 }

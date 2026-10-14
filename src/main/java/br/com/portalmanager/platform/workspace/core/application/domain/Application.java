@@ -1,12 +1,16 @@
 package br.com.portalmanager.platform.workspace.core.application.domain;
 
 import br.com.portalmanager.platform.library.authorization.annotation.AuthorizerGroup;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.tagging.model.TagOwner;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import tools.jackson.databind.JsonNode;
 
 @Entity
 @Table(
@@ -32,28 +36,32 @@ public class Application implements TagOwner {
     @Column(name = "workspace_id", nullable = false, updatable = false)
     private Long workspaceId;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 50)
     private String alias;
 
-    @Column(nullable = false, length = 20)
+    @Column(length = 200)
+    private String description;
+
+    @Column(nullable = false, length = 5)
     private String acronym;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "application_scope_code", nullable = false, length = 50))
+    @AttributeOverride(name = "value", column = @Column(name = "application_scope_code", nullable = false, length = 20))
     private ApplicationScopeTypeCode applicationScope;
 
     @AuthorizerGroup
-    @Column(name = "authorizer_group", length = 255)
+    @Column(name = "authorizer_group", length = 10)
     private String authorizerGroup;
 
-    @Column(name = "settings", columnDefinition = "TEXT", nullable = false)
-    private String settings;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "settings", nullable = false, columnDefinition = "JSON")
+    private JsonNode settings;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
+    @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 20))
     private LifecycleTypeCode lifecycle;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -64,52 +72,56 @@ public class Application implements TagOwner {
 
     protected Application() {}
 
-    public Application(
-        Long workspaceId,
-        String name,
-        String alias,
-        String acronym,
-        ApplicationScopeTypeCode applicationScope,
-        String authorizerGroup,
-        String settings,
-        LocalDateTime now
-    ) {
+    public Application(Long workspaceId, ApplicationDetails details, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.workspaceId = workspaceId;
-        update(name, alias, acronym, applicationScope, authorizerGroup, settings, now);
+        applyDetails(details);
         this.lifecycle = LifecycleTypeCode.active();
         this.createdAt = now;
-    }
-
-    public void update(
-        String name,
-        String alias,
-        String acronym,
-        ApplicationScopeTypeCode applicationScope,
-        String authorizerGroup,
-        String settings,
-        LocalDateTime now
-    ) {
-        this.name = name;
-        this.alias = alias;
-        this.acronym = acronym;
-        this.applicationScope = applicationScope;
-        this.authorizerGroup = authorizerGroup;
-        this.settings = settings;
         this.updatedAt = now;
     }
 
+    public void update(ApplicationDetails details, LocalDateTime now) {
+        applyDetails(details);
+        updatedAt = now;
+    }
+
+    private void applyDetails(ApplicationDetails details) {
+        name = details.name();
+        alias = details.alias();
+        description = details.description();
+        acronym = details.acronym();
+        applicationScope = details.applicationScope();
+        authorizerGroup = details.authorizerGroup();
+        settings = details.settings() == null || details.settings().isNull() ? null : details.settings().deepCopy();
+    }
+
+    public void requireRestorable() {
+        requireLifecycle(LifecycleTypeCode.inactive(), ApplicationMessageKeys.RESTORE_INVALID);
+    }
+
+    public void requireDeletable() {
+        requireLifecycle(LifecycleTypeCode.inactive(), ApplicationMessageKeys.DELETE_INVALID);
+    }
+
+    private void requireLifecycle(LifecycleTypeCode expected, String messageKey) {
+        if (!expected.equals(lifecycle)) throw new ValidationException(messageKey);
+    }
+
     public void inactivate(LocalDateTime now) {
+        requireLifecycle(LifecycleTypeCode.active(), ApplicationMessageKeys.NOT_FOUND);
         lifecycle = LifecycleTypeCode.inactive();
         updatedAt = now;
     }
 
     public void restore(LocalDateTime now) {
+        requireRestorable();
         lifecycle = LifecycleTypeCode.active();
         updatedAt = now;
     }
 
     public void quarantine(LocalDateTime now) {
+        requireDeletable();
         lifecycle = LifecycleTypeCode.quarantined();
         updatedAt = now;
     }
@@ -134,6 +146,10 @@ public class Application implements TagOwner {
         return name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public String getAlias() {
         return alias;
     }
@@ -150,8 +166,8 @@ public class Application implements TagOwner {
         return authorizerGroup;
     }
 
-    public String getSettings() {
-        return settings;
+    public JsonNode getSettings() {
+        return settings == null ? null : settings.deepCopy();
     }
 
     public LifecycleTypeCode getLifecycle() {

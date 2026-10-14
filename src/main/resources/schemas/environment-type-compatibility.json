@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Environment type compatibility request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "parentTypeCode",
+    "childTypeCode"
+  ],
+  "properties": {
+    "parentTypeCode": {
+      "type": "string",
+      "enum": ["DEFAULT", "CUSTOM", "SHARD", "CELL"],
+      "minLength": 1,
+      "maxLength": 50,
+      "pattern": "\\S"
+    },
+    "childTypeCode": {
+      "type": "string",
+      "enum": ["DEFAULT", "CUSTOM", "SHARD", "CELL"],
+      "minLength": 1,
+      "maxLength": 50,
+      "pattern": "\\S"
+    }
+  }
+}

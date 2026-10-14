@@ -17,11 +17,24 @@ public final class PlatformMessageKeys {
     public static final String MICROSERVICE_INACTIVE = "platform.microservice.inactive";
     public static final String CONTEXT_INACTIVE = "platform.context.inactive";
     public static final String CONTEXT_HAS_FEATURES = "platform.context.has-features";
-    public static final String MICROSERVICE_HAS_FEATURES = "platform.microservice.has-features";
 
     public static final String FEATURE_HAS_SHARED_CONTRACTS = "platform.feature.has-shared-contracts";
 
     public static final String FEATURE_NOT_SHAREABLE = "platform.feature.not-shareable";
+
+    public static final String VERSION_REQUIRED = "platform.version.required";
+    public static final String VERSION_NOT_ALLOWED_ON_CREATE = "platform.version.not-allowed-on-create";
+    public static final String CODE_IMMUTABLE = "platform.code.immutable";
+    public static final String MICROSERVICE_ACTIVATE_INVALID = "platform.microservice.activate.invalid";
+    public static final String MICROSERVICE_PAGE_INVALID = "platform.microservice.page.invalid";
+    public static final String MICROSERVICE_SETTINGS_INVALID = "platform.microservice.settings.invalid";
+
+    public static final String FEATURE_ACTIVATE_INVALID = "platform.feature.activate.invalid";
+    public static final String FEATURE_PAGE_INVALID = "platform.feature.page.invalid";
+    public static final String FEATURE_SETTINGS_INVALID = "platform.feature.settings.invalid";
+
+    public static final String CONTEXT_ACTIVATE_INVALID = "platform.context.activate.invalid";
+    public static final String CONTEXT_PAGE_INVALID = "platform.context.page.invalid";
 
     private PlatformMessageKeys() {}
 }

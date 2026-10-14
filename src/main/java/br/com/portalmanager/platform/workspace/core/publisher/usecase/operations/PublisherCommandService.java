@@ -1,12 +1,14 @@
 package br.com.portalmanager.platform.workspace.core.publisher.usecase.operations;
 
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.workspace.core.publisher.domain.Publisher;
 import br.com.portalmanager.platform.workspace.core.publisher.repository.PublisherRepository;
+import br.com.portalmanager.platform.workspace.core.publisher.usecase.mapping.PublisherMapper;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.CreatePublisherInput;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.PublisherOutput;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.UpdatePublisherInput;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.validation.PublisherValidator;
-import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeCode;
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,77 +18,59 @@ public class PublisherCommandService {
 
     private final PublisherRepository repository;
     private final PublisherFinder finder;
-    private final PublisherNormalizer normalizer;
     private final PublisherValidator validator;
+    private final PublisherMapper mapper;
 
     public PublisherCommandService(
         PublisherRepository repository,
         PublisherFinder finder,
-        PublisherNormalizer normalizer,
-        PublisherValidator validator
+        PublisherValidator validator,
+        PublisherMapper mapper
     ) {
         this.repository = repository;
         this.finder = finder;
-        this.normalizer = normalizer;
         this.validator = validator;
+        this.mapper = mapper;
     }
 
     @Transactional
-    public PublisherOutput create(CreatePublisherInput raw) {
-        CreatePublisherInput input = normalizer.normalize(raw);
-        ResourceScopeTypeCode scope = validator.validateCreate(
-            input,
-            input != null && input.code() != null && repository.existsByCode(input.code())
-        );
-        validator.validateSettings(input.code(), input.settings());
-        Publisher publisher = new Publisher(
-            input.code(),
-            input.name(),
-            input.description(),
-            scope,
-            Boolean.TRUE.equals(input.deprecated()),
-            input.settings(),
-            LocalDateTime.now()
-        );
+    @Auditable(action = AuditAction.CREATE, event = "PUBLISHER_CREATED", resourceType = "PUBLISHER")
+    public PublisherOutput create(CreatePublisherInput input) {
+        validator.validateForCreate(input);
+        Publisher publisher = new Publisher(input.code(), mapper.toDetails(input), LocalDateTime.now());
         return PublisherOutput.from(repository.saveAndFlush(publisher));
     }
 
     @Transactional
-    public PublisherOutput update(String identifier, UpdatePublisherInput raw) {
+    @Auditable(action = AuditAction.UPDATE, event = "PUBLISHER_UPDATED", resourceType = "PUBLISHER")
+    public PublisherOutput update(String identifier, UpdatePublisherInput input) {
         Publisher publisher = finder.findActive(identifier);
-        UpdatePublisherInput input = normalizer.normalize(raw);
-        ResourceScopeTypeCode scope = validator.validateUpdate(input);
-        validator.requireVersion(publisher.getVersion(), input.version());
-        validator.validateSettings(publisher.getCode(), input.settings());
-        publisher.update(
-            input.name(),
-            input.description(),
-            scope,
-            input.deprecated() == null ? publisher.isDeprecated() : input.deprecated(),
-            input.settings(),
-            LocalDateTime.now()
-        );
+        validator.validateForUpdate(publisher, input);
+        publisher.update(mapper.toDetails(input, publisher.isDeprecated()), LocalDateTime.now());
         return PublisherOutput.from(repository.saveAndFlush(publisher));
     }
 
     @Transactional
-    public void inactivate(String identifier) {
-        Publisher p = finder.findActive(identifier);
-        p.inactivate(LocalDateTime.now());
-        repository.saveAndFlush(p);
+    @Auditable(action = AuditAction.DEACTIVATE, event = "PUBLISHER_DEACTIVATED", resourceType = "PUBLISHER")
+    public PublisherOutput inactivate(String identifier) {
+        Publisher publisher = finder.findActive(identifier);
+        publisher.inactivate(LocalDateTime.now());
+        return PublisherOutput.from(repository.saveAndFlush(publisher));
     }
 
     @Transactional
+    @Auditable(action = AuditAction.RESTORE, event = "PUBLISHER_RESTORED", resourceType = "PUBLISHER")
     public PublisherOutput restore(String identifier) {
-        Publisher p = finder.findInactive(identifier);
-        p.restore(LocalDateTime.now());
-        return PublisherOutput.from(repository.saveAndFlush(p));
+        Publisher publisher = finder.findInactive(identifier);
+        publisher.restore(LocalDateTime.now());
+        return PublisherOutput.from(repository.saveAndFlush(publisher));
     }
 
     @Transactional
-    public void delete(String identifier) {
-        Publisher p = finder.findInactiveForDeletion(identifier);
-        p.quarantine(LocalDateTime.now());
-        repository.saveAndFlush(p);
+    @Auditable(action = AuditAction.DELETE, event = "PUBLISHER_DELETED", resourceType = "PUBLISHER")
+    public PublisherOutput delete(String identifier) {
+        Publisher publisher = finder.findInactiveForDeletion(identifier);
+        publisher.quarantine(LocalDateTime.now());
+        return PublisherOutput.from(repository.saveAndFlush(publisher));
     }
 }

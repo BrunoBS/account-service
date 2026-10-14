@@ -1,5 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.platform.domain.feature;
 
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.workspace.feature.platform.domain.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
@@ -22,7 +25,7 @@ public class Feature {
     @Column(name = "identifier", nullable = false, unique = true, length = 36, updatable = false)
     private String identifier;
 
-    @Column(name = "code", nullable = false, unique = true, length = 50)
+    @Column(name = "code", nullable = false, unique = true, length = 50, updatable = false)
     private String code;
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
@@ -61,29 +64,29 @@ public class Feature {
         String settings,
         LocalDateTime now
     ) {
+        this(code, new FeatureDetails(name, description, settings, false), microservice, now);
+    }
+
+    public Feature(String code, FeatureDetails details, Microservice microservice, LocalDateTime now) {
         this.identifier = UUID.randomUUID().toString();
         this.code = code;
-        this.name = name;
-        this.description = description;
+        this.name = details.name();
+        this.description = details.description();
         this.microservice = microservice;
-        this.settings = settings;
+        this.settings = details.settings();
+        this.shareable = details.shareable();
         this.lifecycle = LifecycleTypeCode.active();
         this.createdAt = now;
         this.updatedAt = now;
-        microservice.attach(this);
     }
 
-    public void update(String name, String description, String settings, LocalDateTime now) {
-        this.name = name;
-        this.description = description;
-        this.settings = settings;
-        this.updatedAt = now;
-    }
-
-    public void changeMicroservice(Microservice newService, LocalDateTime now) {
-        if (microservice != null) microservice.detach(this);
-        microservice = newService;
-        newService.attach(this);
+    public void update(FeatureDetails details, Microservice microservice, LocalDateTime now) {
+        requireActive();
+        name = details.name();
+        description = details.description();
+        settings = details.settings();
+        shareable = details.shareable();
+        this.microservice = microservice;
         updatedAt = now;
     }
 
@@ -92,23 +95,19 @@ public class Feature {
     }
 
     public void activate(LocalDateTime now) {
+        if (!LifecycleTypeCode.inactive().equals(lifecycle)) throw new ValidationException(PlatformMessageKeys.FEATURE_ACTIVATE_INVALID);
         lifecycle = LifecycleTypeCode.active();
         updatedAt = now;
     }
 
     public void inactivate(LocalDateTime now) {
+        requireActive();
         lifecycle = LifecycleTypeCode.inactive();
         updatedAt = now;
     }
 
-    public void quarantine(LocalDateTime now) {
-        lifecycle = LifecycleTypeCode.quarantined();
-        updatedAt = now;
-    }
-
-    public void setShareable(boolean shareable, LocalDateTime now) {
-        this.shareable = shareable;
-        updatedAt = now;
+    public void requireActive() {
+        if (!isActive()) throw new NotFoundException(PlatformMessageKeys.FEATURE_NOT_FOUND);
     }
 
     public boolean isActive() {

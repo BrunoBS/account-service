@@ -4,7 +4,6 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.model.Ap
 import java.time.LocalDateTime;
 import java.util.List;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 public record ApplicationResponse(
     Long version,
@@ -12,6 +11,7 @@ public record ApplicationResponse(
     String workspaceIdentifier,
     String name,
     String alias,
+    String description,
     String acronym,
     String applicationScope,
     String authorizerGroup,
@@ -21,8 +21,6 @@ public record ApplicationResponse(
     LocalDateTime updatedAt,
     List<String> tags
 ) {
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
-
     public static ApplicationResponse from(ApplicationOutput value) {
         return new ApplicationResponse(
             value.version(),
@@ -30,21 +28,15 @@ public record ApplicationResponse(
             value.workspaceIdentifier(),
             value.name(),
             value.alias(),
+            value.description(),
             value.acronym(),
             value.applicationScope(),
             value.authorizerGroup(),
-            toJsonNode(value.settings()),
+            value.settings(),
             value.lifecycle(),
             value.createdAt(),
             value.updatedAt(),
             value.tags()
         );
-    }
-
-    private static JsonNode toJsonNode(String settings) {
-        if (settings == null || settings.isBlank()) {
-            return null;
-        }
-        return JSON_MAPPER.readTree(settings);
     }
 }

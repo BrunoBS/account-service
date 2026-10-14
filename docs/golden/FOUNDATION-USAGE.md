@@ -398,14 +398,16 @@ A validação dos `settings` dos catálogos usa a capability publicada `platform
 - a capability resolve e valida o payload usando o schema publicado.
 
 O contrato compartilhado não deve ser duplicado em adapters locais como `CatalogSettingsValidator` ou
-`SchemaSettingsValidator`.
+`SchemaSettingsValidationAdapter`.
 
 A aplicação mantém responsabilidades próprias que não foram transferidas para a capability:
 
-- `SchemaResolver` e `SchemaResolutionPort` para resolução local dos schemas persistidos;
-- `SchemaDefinitionValidator` para validar definições armazenadas;
-- `JsonSchemaValidator` e `SchemaJsonValidator` para as operações locais de validação necessárias.
+- `SchemaResolutionAdapter` e `SchemaResolutionPort` para resolução local dos schemas persistidos;
+- `SchemaDefinitionValidationAdapter` para validar definições armazenadas;
+- `JsonSchemaValidationPort` e `JsonSchemaValidationAdapter` para as operações locais de validação necessárias.
 
 Essas classes usam diretamente `com.networknt:json-schema-validator`; a dependência é declarada no POM do serviço e sua
 versão `3.0.7` é gerenciada por `platform-dependencies`.
 ```
+
+Requests HTTP tipados de Workspace/Application usam `@ValidateResourceSchemaRequest(type, code, normalizer)` da platform-schema-validation. A biblioteca registra o advice MVC, valida o JSON recebido antes da desserialização e usa o mesmo resolver/cache/SchemaValidator existente. Os normalizadores específicos implementam SchemaPayloadNormalizer e preservam campos desconhecidos e tipos originais. Não implementar advice local nem repetir a validação no command.

@@ -27,4 +27,5 @@ public class SchemaVersionStatusTypeCode extends AbstractCatalogCode {
     public static SchemaVersionStatusTypeCode published() {
         return of(SchemaVersionStatusTypeEnum.PUBLISHED);
     }
+
 }

@@ -3,7 +3,7 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferenceResolver;
+import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
@@ -17,18 +17,18 @@ class SchemaQueryServiceTest {
 
     private final SchemaRepository schemaRepository = mock(SchemaRepository.class);
     private final SchemaVersionRepository versionRepository = mock(SchemaVersionRepository.class);
-    private final WorkspaceReferenceResolver workspaceReferenceResolver = mock(WorkspaceReferenceResolver.class);
+    private final WorkspaceReferencePort workspaceReferencePort = mock(WorkspaceReferencePort.class);
     private final SchemaQueryService service = new SchemaQueryService(
         schemaRepository,
         versionRepository,
-        workspaceReferenceResolver
+        workspaceReferencePort
     );
 
     @Test
     void shouldScopeWorkspaceVersionReadByResolvedInternalWorkspaceId() {
         Schema schema = mock(Schema.class);
         when(schema.getId()).thenReturn(42L);
-        when(workspaceReferenceResolver.resolveInternalId("workspace-identifier")).thenReturn(7L);
+        when(workspaceReferencePort.resolveInternalId("workspace-identifier")).thenReturn(7L);
         when(schemaRepository.findByIdentifierAndScope("schema-identifier", "WORKSPACE", 7L)).thenReturn(
             Optional.of(schema)
         );
@@ -37,7 +37,7 @@ class SchemaQueryServiceTest {
         List<SchemaVersionOutput> versions = service.findWorkspaceVersions("workspace-identifier", "schema-identifier");
 
         assertThat(versions).isEmpty();
-        verify(workspaceReferenceResolver).resolveInternalId("workspace-identifier");
+        verify(workspaceReferencePort).resolveInternalId("workspace-identifier");
         verify(schemaRepository).findByIdentifierAndScope("schema-identifier", "WORKSPACE", 7L);
     }
 }

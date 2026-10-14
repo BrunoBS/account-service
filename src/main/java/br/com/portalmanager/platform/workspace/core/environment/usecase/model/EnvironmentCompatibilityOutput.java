@@ -8,12 +8,12 @@ public record EnvironmentCompatibilityOutput(
     String childTypeCode,
     String lifecycle
 ) {
-    public static EnvironmentCompatibilityOutput from(EnvironmentTypeCompatibility value) {
+    public static EnvironmentCompatibilityOutput from(EnvironmentTypeCompatibility compatibility) {
         return new EnvironmentCompatibilityOutput(
-            value.getIdentifier(),
-            value.getParentType().getCode(),
-            value.getChildType().getCode(),
-            value.getLifecycle().value()
+            compatibility.getIdentifier(),
+            compatibility.getParentType().getCode(),
+            compatibility.getChildType().getCode(),
+            compatibility.getLifecycle().value()
         );
     }
 }

@@ -1,16 +1,15 @@
 package br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environmenttype;
 
-import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
+import br.com.portalmanager.platform.library.audit.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentType;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeCompatibilityRepository;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentTypeDetails;
 import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeRepository;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTypeInput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTypeOutput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.mapping.EnvironmentTypeMapper;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentTypeValidator;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import java.time.LocalDateTime;
-import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,89 +17,65 @@ import org.springframework.transaction.annotation.Transactional;
 public class EnvironmentTypeCommandService {
 
     private final EnvironmentTypeRepository types;
-    private final EnvironmentTypeCompatibilityRepository compatibilities;
-    private final EnvironmentRepository environments;
-    private final EnvironmentTypeQueryService query;
+    private final EnvironmentTypeFinder finder;
     private final EnvironmentTypeValidator validator;
+    private final EnvironmentTypeMapper mapper;
 
     public EnvironmentTypeCommandService(
         EnvironmentTypeRepository types,
-        EnvironmentTypeCompatibilityRepository compatibilities,
-        EnvironmentRepository environments,
-        EnvironmentTypeQueryService query,
-        EnvironmentTypeValidator validator
+        EnvironmentTypeFinder finder,
+        EnvironmentTypeValidator validator,
+        EnvironmentTypeMapper mapper
     ) {
         this.types = types;
-        this.compatibilities = compatibilities;
-        this.environments = environments;
-        this.query = query;
+        this.finder = finder;
         this.validator = validator;
+        this.mapper = mapper;
     }
 
     @Transactional
+    @Auditable(action = AuditAction.CREATE, event = "ENVIRONMENT_TYPE_CREATED", resourceType = "ENVIRONMENT_TYPE")
     public EnvironmentTypeOutput create(EnvironmentTypeInput input) {
-        boolean duplicateCode = input != null && input.code() != null && types.existsByCode(input.code().trim());
-        validator.validateForCreate(input, duplicateCode);
-        String code = input.code().trim();
-        EnvironmentType type = new EnvironmentType(
-            code,
-            input.name().trim(),
-            input.description().trim(),
-            input.rootAllowed(),
-            input.workspaceRequired(),
-            input.displayOrder(),
-            LocalDateTime.now()
-        );
+        validator.validateForCreate(input);
+        EnvironmentTypeDetails details = mapper.toDetails(input);
+        EnvironmentType type = new EnvironmentType(input.code(), details, LocalDateTime.now());
         return EnvironmentTypeOutput.from(types.saveAndFlush(type));
     }
 
     @Transactional
-    public EnvironmentTypeOutput update(String identifier, EnvironmentTypeInput input) {
-        EnvironmentType type = query.find(identifier);
-        validator.validateForUpdate(input);
-        if (!Objects.equals(type.getVersion(), input.version())) throw new ResourceVersionConflictException();
-        boolean codeChanged = !Objects.equals(type.getCode(), input.code().trim());
-        boolean scopeInUse =
-            type.isWorkspaceRequired() != input.workspaceRequired() &&
-            environments.existsByEnvironmentTypeId(type.getId());
-        boolean rootInUse =
-            type.isRootAllowed() &&
-            !input.rootAllowed() &&
-            environments.existsByEnvironmentTypeIdAndParentIsNull(type.getId());
-        validator.validateUpdateConflicts(codeChanged, scopeInUse, rootInUse);
-        type.update(
-            input.name().trim(),
-            input.description().trim(),
-            input.rootAllowed(),
-            input.workspaceRequired(),
-            input.displayOrder(),
-            LocalDateTime.now()
-        );
+    @Auditable(action = AuditAction.UPDATE, event = "ENVIRONMENT_TYPE_UPDATED", resourceType = "ENVIRONMENT_TYPE")
+    public EnvironmentTypeOutput update(String code, EnvironmentTypeInput input) {
+        EnvironmentType type = finder.findForConfigurationUpdate(code);
+        validator.validateForUpdate(type, input);
+        EnvironmentTypeDetails details = mapper.toDetails(input);
+        type.update(details, LocalDateTime.now());
         return EnvironmentTypeOutput.from(types.saveAndFlush(type));
     }
 
     @Transactional
-    public void inactivate(String identifier) {
-        EnvironmentType type = query.find(identifier);
-        validator.validateForInactivate(environments.existsByEnvironmentTypeId(type.getId()));
+    @Auditable(action = AuditAction.DEACTIVATE, event = "ENVIRONMENT_TYPE_DEACTIVATED", resourceType = "ENVIRONMENT_TYPE")
+    public EnvironmentTypeOutput inactivate(String code) {
+        EnvironmentType type = finder.findForUpdate(code);
         type.inactivate(LocalDateTime.now());
+        return EnvironmentTypeOutput.from(types.saveAndFlush(type));
     }
 
     @Transactional
-    public EnvironmentTypeOutput restore(String identifier) {
-        EnvironmentType type = query.find(identifier);
+    @Auditable(action = AuditAction.RESTORE, event = "ENVIRONMENT_TYPE_RESTORED", resourceType = "ENVIRONMENT_TYPE")
+    public EnvironmentTypeOutput restore(String code) {
+        EnvironmentType type = finder.findForUpdate(code);
         type.restore(LocalDateTime.now());
-        return EnvironmentTypeOutput.from(type);
+        return EnvironmentTypeOutput.from(types.saveAndFlush(type));
     }
 
     @Transactional
-    public void delete(String identifier) {
-        EnvironmentType type = query.find(identifier);
-        boolean inactive = LifecycleTypeCode.inactive().equals(type.getLifecycle());
-        boolean inUse =
-            environments.existsByEnvironmentTypeId(type.getId()) ||
-            compatibilities.existsByParentTypeIdOrChildTypeId(type.getId(), type.getId());
-        validator.validateForDelete(inactive, inUse);
+    @Auditable(action = AuditAction.PURGE, event = "ENVIRONMENT_TYPE_PURGED", resourceType = "ENVIRONMENT_TYPE")
+    public EnvironmentTypeOutput delete(String code) {
+        EnvironmentType type = finder.findForUpdate(code);
+        validator.validateForDelete(type);
+        EnvironmentTypeOutput removedType = EnvironmentTypeOutput.from(type);
         types.delete(type);
+        types.flush();
+        return removedType;
     }
 }

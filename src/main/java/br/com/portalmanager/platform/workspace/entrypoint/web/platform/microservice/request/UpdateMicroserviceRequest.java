@@ -1,10 +1,13 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.platform.microservice.request;
 
-import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.UpdateMicroserviceInput;
+import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.model.microservice.UpdateMicroserviceInput;
+import br.com.portalmanager.platform.workspace.feature.platform.usecase.operations.microservice.MicroserviceNormalizer;
 import tools.jackson.databind.JsonNode;
 
-public record UpdateMicroserviceRequest(String name, String description, JsonNode settings) {
+@ValidateResourceSchemaRequest(type = "PLATFORM", code = "microservice", normalizer = MicroserviceNormalizer.class)
+public record UpdateMicroserviceRequest(Long version, String code, String name, String description, JsonNode settings) {
     public UpdateMicroserviceInput toInput() {
-        return new UpdateMicroserviceInput(name, description, settings == null ? null : settings.toString());
+        return new UpdateMicroserviceInput(version, code, name, description, settings == null ? null : settings.toString());
     }
 }

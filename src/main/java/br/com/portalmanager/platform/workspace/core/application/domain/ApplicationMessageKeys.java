@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.core.application.domain;
 
 public final class ApplicationMessageKeys {
 
+    public static final String PAGE_INVALID = "application.page.invalid";
     public static final String NOT_FOUND = "application.not-found";
     public static final String RESTORE_INVALID = "application.restore.invalid";
     public static final String DELETE_INVALID = "application.delete.invalid";
@@ -12,6 +13,7 @@ public final class ApplicationMessageKeys {
     public static final String ACRONYM_REQUIRED = "application.acronym.required";
     public static final String SCOPE_INVALID = "application.scope.invalid";
     public static final String VERSION_REQUIRED = "application.version.required";
+    public static final String VERSION_NOT_ALLOWED_ON_CREATE = "application.version.not-allowed-on-create";
 
     public static final String HAS_SHARED_CONTRACTS = "application.has-shared-contracts";
 

@@ -4,6 +4,7 @@ import br.com.portalmanager.platform.workspace.feature.message.domain.MessageTra
 
 public record MessageTranslationOutput(
     String identifier,
+    String messageIdentifier,
     Long version,
     String locale,
     String title,
@@ -14,6 +15,7 @@ public record MessageTranslationOutput(
     public static MessageTranslationOutput from(MessageTranslation translation) {
         return new MessageTranslationOutput(
             translation.getIdentifier(),
+            translation.getMessage().getIdentifier(),
             translation.getVersion(),
             translation.getLocale(),
             translation.getTitle(),

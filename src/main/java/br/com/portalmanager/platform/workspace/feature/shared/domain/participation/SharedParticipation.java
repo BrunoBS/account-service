@@ -3,7 +3,6 @@ package br.com.portalmanager.platform.workspace.feature.shared.domain.participat
 import br.com.portalmanager.platform.workspace.feature.shared.domain.contract.SharedContract;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publicationmodetype.domain.PublicationModeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain.ShareStatusTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain.ShareStatusTypeEnum;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
@@ -67,29 +66,29 @@ public class SharedParticipation {
         this.contract = contract;
         participantWorkspaceId = workspaceId;
         participantApplicationId = applicationId;
-        status = ShareStatusTypeCode.of(ShareStatusTypeEnum.PENDING);
+        status = ShareStatusTypeCode.pending();
         createdAt = now;
         updatedAt = now;
     }
 
     public void approve(PublicationModeTypeCode mode, LocalDateTime now) {
-        status = ShareStatusTypeCode.of(ShareStatusTypeEnum.APPROVED);
+        status = ShareStatusTypeCode.approved();
         publicationMode = mode;
         updatedAt = now;
     }
 
     public void reject(LocalDateTime now) {
-        status = ShareStatusTypeCode.of(ShareStatusTypeEnum.REJECTED);
+        status = ShareStatusTypeCode.rejected();
         updatedAt = now;
     }
 
     public void revoke(LocalDateTime now) {
-        status = ShareStatusTypeCode.of(ShareStatusTypeEnum.REVOKED);
+        status = ShareStatusTypeCode.revoked();
         updatedAt = now;
     }
 
     public void requestAgain(LocalDateTime now) {
-        status = ShareStatusTypeCode.of(ShareStatusTypeEnum.PENDING);
+        status = ShareStatusTypeCode.pending();
         publicationMode = null;
         mappings.clear();
         updatedAt = now;

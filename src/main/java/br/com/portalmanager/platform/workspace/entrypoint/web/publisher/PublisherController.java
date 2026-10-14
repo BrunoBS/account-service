@@ -4,7 +4,9 @@ import br.com.portalmanager.platform.library.authorization.model.AuthorizationCo
 import br.com.portalmanager.platform.workspace.core.publisher.facade.PublisherFacade;
 import br.com.portalmanager.platform.workspace.entrypoint.web.publisher.request.*;
 import br.com.portalmanager.platform.workspace.entrypoint.web.publisher.response.PublisherResponse;
-import java.util.List;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,27 +16,28 @@ public class PublisherController {
 
     private final PublisherFacade facade;
 
-    public PublisherController(PublisherFacade f) {
-        facade = f;
+    public PublisherController(PublisherFacade facade) {
+        this.facade = facade;
     }
 
     @PostMapping
     public ResponseEntity<PublisherResponse> create(
         AuthorizationContext context,
-        @RequestBody CreatePublisherRequest r
+        @RequestBody CreatePublisherRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
-            PublisherResponse.from(facade.create(context, r.toInput()))
+            PublisherResponse.from(facade.create(context, request.toInput()))
         );
     }
 
     @GetMapping
-    public List<PublisherResponse> list(
+    public PagedModel<PublisherResponse> findAll(
         AuthorizationContext context,
-        @RequestParam(defaultValue = "true") Boolean active,
-        @RequestParam(required = false) String scope
+        @RequestParam(required = false) String lifecycle,
+        @RequestParam(required = false) String scope,
+        @PageableDefault(sort = "code") Pageable pageable
     ) {
-        return facade.list(context, active, scope).stream().map(PublisherResponse::from).toList();
+        return new PagedModel<>(facade.findAll(context, lifecycle, scope, pageable).map(PublisherResponse::from));
     }
 
     @GetMapping("/{identifier}")
@@ -46,9 +49,9 @@ public class PublisherController {
     public PublisherResponse update(
         AuthorizationContext context,
         @PathVariable String identifier,
-        @RequestBody UpdatePublisherRequest r
+        @RequestBody UpdatePublisherRequest request
     ) {
-        return PublisherResponse.from(facade.update(context, identifier, r.toInput()));
+        return PublisherResponse.from(facade.update(context, identifier, request.toInput()));
     }
 
     @PostMapping("/{identifier}/inactivate")

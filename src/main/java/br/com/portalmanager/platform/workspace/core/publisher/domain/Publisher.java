@@ -1,10 +1,14 @@
 package br.com.portalmanager.platform.workspace.core.publisher.domain;
 
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeCode;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import tools.jackson.databind.JsonNode;
 
 @Entity
 @Table(name = "publishers")
@@ -21,13 +25,13 @@ public class Publisher {
     @Column(nullable = false, unique = true, updatable = false, length = 36)
     private String identifier;
 
-    @Column(nullable = false, unique = true, updatable = false, length = 40)
+    @Column(nullable = false, unique = true, updatable = false, length = 50)
     private String code;
 
     @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 200)
     private String description;
 
     @Embedded
@@ -37,8 +41,9 @@ public class Publisher {
     @Column(nullable = false)
     private boolean deprecated;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "settings", nullable = false, columnDefinition = "json")
-    private String settings;
+    private JsonNode settings;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "lifecycle_code", nullable = false, length = 50))
@@ -52,51 +57,57 @@ public class Publisher {
 
     protected Publisher() {}
 
-    public Publisher(
-        String code,
-        String name,
-        String description,
-        ResourceScopeTypeCode scope,
-        boolean deprecated,
-        String settings,
-        LocalDateTime now
-    ) {
-        this.identifier = UUID.randomUUID().toString();
+    public Publisher(String code, PublisherDetails details, LocalDateTime now) {
+        identifier = UUID.randomUUID().toString();
         this.code = code;
-        update(name, description, scope, deprecated, settings, now);
-        this.lifecycle = LifecycleTypeCode.active();
-        this.createdAt = now;
+        applyDetails(details);
+        lifecycle = LifecycleTypeCode.active();
+        createdAt = now;
+        updatedAt = now;
     }
 
-    public void update(
-        String name,
-        String description,
-        ResourceScopeTypeCode scope,
-        boolean deprecated,
-        String settings,
-        LocalDateTime now
-    ) {
-        this.name = name;
-        this.description = description;
-        this.scope = scope;
-        this.deprecated = deprecated;
-        this.settings = settings;
-        this.updatedAt = now;
+    public void update(PublisherDetails details, LocalDateTime now) {
+        requireLifecycle(LifecycleTypeCode.active(), PublisherMessageKeys.NOT_FOUND);
+        applyDetails(details);
+        updatedAt = now;
+    }
+
+    private void applyDetails(PublisherDetails details) {
+        name = details.name();
+        description = details.description();
+        scope = details.scope();
+        deprecated = details.deprecated();
+        settings = details.settings() == null ? null : details.settings().deepCopy();
     }
 
     public void inactivate(LocalDateTime now) {
+        requireLifecycle(LifecycleTypeCode.active(), PublisherMessageKeys.NOT_FOUND);
         lifecycle = LifecycleTypeCode.inactive();
         updatedAt = now;
     }
 
     public void restore(LocalDateTime now) {
+        requireLifecycle(LifecycleTypeCode.inactive(), PublisherMessageKeys.RESTORE_INVALID);
         lifecycle = LifecycleTypeCode.active();
         updatedAt = now;
     }
 
     public void quarantine(LocalDateTime now) {
+        requireLifecycle(LifecycleTypeCode.inactive(), PublisherMessageKeys.DELETE_INVALID);
         lifecycle = LifecycleTypeCode.quarantined();
         updatedAt = now;
+    }
+
+    public void requireRestorable() {
+        requireLifecycle(LifecycleTypeCode.inactive(), PublisherMessageKeys.RESTORE_INVALID);
+    }
+
+    public void requireDeletable() {
+        requireLifecycle(LifecycleTypeCode.inactive(), PublisherMessageKeys.DELETE_INVALID);
+    }
+
+    private void requireLifecycle(LifecycleTypeCode expected, String messageKey) {
+        if (!expected.equals(lifecycle)) throw new ValidationException(messageKey);
     }
 
     public Long getId() {
@@ -131,8 +142,8 @@ public class Publisher {
         return deprecated;
     }
 
-    public String getSettings() {
-        return settings;
+    public JsonNode getSettings() {
+        return settings == null ? null : settings.deepCopy();
     }
 
     public LifecycleTypeCode getLifecycle() {

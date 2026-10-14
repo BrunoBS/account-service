@@ -3,18 +3,27 @@ package br.com.portalmanager.platform.workspace.core.workspace.usecase.operation
 import br.com.portalmanager.platform.library.authorization.annotation.ResourceVisibility;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.library.tagging.TagManager;
+import br.com.portalmanager.platform.library.tagging.model.TagName;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceMessageKeys;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceTag;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
+import br.com.portalmanager.platform.workspace.core.workspace.repository.projection.WorkspaceOnboardingReference;
+import br.com.portalmanager.platform.workspace.core.workspace.repository.projection.WorkspaceReference;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOnboardingReferenceOutput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOutput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,60 +32,70 @@ public class WorkspaceQueryService {
 
     private final WorkspaceRepository repository;
     private final WorkspaceFinder finder;
-    private final WorkspaceNormalizer normalizer;
     private final WorkspaceValidator validator;
     private final TagManager<WorkspaceTag, Workspace> tags;
 
     public WorkspaceQueryService(
         WorkspaceRepository repository,
         WorkspaceFinder finder,
-        WorkspaceNormalizer normalizer,
         WorkspaceValidator validator,
         TagManager<WorkspaceTag, Workspace> tags
     ) {
         this.repository = repository;
         this.finder = finder;
-        this.normalizer = normalizer;
         this.validator = validator;
         this.tags = tags;
     }
 
     @Transactional(readOnly = true)
-    public Long findInternalIdByIdentifier(String identifier) {
-        return finder.findActive(identifier).getId();
-    }
-
-    @Transactional(readOnly = true)
-    public String findIdentifierByInternalId(Long id) {
-        return finder.findActive(id).getIdentifier();
-    }
-
-    /** Resolves a persisted reference for Shared history, including inactive workspaces. */
-    @Transactional(readOnly = true)
+    @ResourceVisibility(Workspace.class)
     public String findReferenceIdentifierByInternalId(Long workspaceId) {
+        return findReferenceIdentifier(workspaceId);
+    }
+
+    /** Only after Shared has authorized the contract or participation involving this workspace. */
+    @Transactional(readOnly = true)
+    public String findReferenceIdentifierForShared(Long workspaceId) {
+        return findReferenceIdentifier(workspaceId);
+    }
+
+    private String findReferenceIdentifier(Long workspaceId) {
         return repository
-            .findById(workspaceId)
+            .findReferenceById(workspaceId, null)
             .orElseThrow(() -> new NotFoundException(WorkspaceMessageKeys.NOT_FOUND))
             .getIdentifier();
     }
 
-    /** Cross-module reference lookup for Shared discovery; does not expose workspace entities. */
     @Transactional(readOnly = true)
+    @ResourceVisibility(Workspace.class)
     public Map<Long, String> findReferenceIdentifiersByInternalIds(Collection<Long> workspaceIds) {
-        if (workspaceIds.isEmpty()) return Map.of();
-        return repository
-            .findAllById(workspaceIds)
-            .stream()
-            .collect(Collectors.toMap(Workspace::getId, Workspace::getIdentifier));
+        return findIdentifiersByInternalIds(workspaceIds, null);
     }
 
     @Transactional(readOnly = true)
+    @ResourceVisibility(Workspace.class)
     public Map<Long, String> findActiveIdentifiersByInternalIds(Collection<Long> workspaceIds) {
+        return findIdentifiersByInternalIds(workspaceIds, LifecycleTypeCode.active().value());
+    }
+
+    /** Historical cross-workspace references; the caller must authorize the Shared scope first. */
+    @Transactional(readOnly = true)
+    public Map<Long, String> findReferenceIdentifiersForShared(Collection<Long> workspaceIds) {
+        return findIdentifiersByInternalIds(workspaceIds, null);
+    }
+
+    /** Cross-workspace discovery after authorization of the participant application. */
+    @Transactional(readOnly = true)
+    public Map<Long, String> findActiveIdentifiersForShared(Collection<Long> workspaceIds) {
+        return findIdentifiersByInternalIds(workspaceIds, LifecycleTypeCode.active().value());
+    }
+
+    private Map<Long, String> findIdentifiersByInternalIds(Collection<Long> workspaceIds, String lifecycleCode) {
         if (workspaceIds.isEmpty()) return Map.of();
         return repository
-            .findByIdInAndLifecycleValue(workspaceIds, LifecycleTypeCode.active().value())
+            .findReferencesByIds(workspaceIds, lifecycleCode)
             .stream()
-            .collect(Collectors.toMap(Workspace::getId, Workspace::getIdentifier));
+            .collect(Collectors.toMap(WorkspaceReference::getId, WorkspaceReference::getIdentifier));
     }
 
     @ResourceVisibility(Workspace.class)
@@ -88,27 +107,39 @@ public class WorkspaceQueryService {
 
     @ResourceVisibility(Workspace.class)
     @Transactional(readOnly = true)
-    public List<WorkspaceOutput> findAll(FindAllWorkspacesInput input) {
-        String lifecycleCode =
-            input != null && Boolean.FALSE.equals(input.active())
-                ? LifecycleTypeCode.inactive().value()
-                : LifecycleTypeCode.active().value();
-        String normalizedType = normalizer.normalizeTypeFilter(input == null ? null : input.typeName());
-        String normalizedTag = normalizer.normalizeTagFilter(input == null ? null : input.tagName());
-        validator.validateTypeFilter(normalizedType);
-        List<Workspace> workspaces;
-        if (normalizedTag == null) workspaces = repository.findFiltered(lifecycleCode, normalizedType);
-        else {
-            List<String> identifiers = tags.findOwnerKeysByTag(normalizedTag);
-            if (identifiers.isEmpty()) return List.of();
-            workspaces = repository.findFilteredByIdentifiers(lifecycleCode, normalizedType, identifiers);
-        }
-        Map<String, List<String>> manualTags = tags.findManualByOwnerKeys(
-            workspaces.stream().map(Workspace::getIdentifier).toList()
+    public WorkspaceOnboardingReferenceOutput findOnboardingReference(String identifier) {
+        WorkspaceOnboardingReference reference = finder.findActiveOnboardingReference(identifier);
+        return new WorkspaceOnboardingReferenceOutput(
+            reference.getId(),
+            reference.getWorkspaceType(),
+            reference.getOnboarding()
         );
-        return workspaces
-            .stream()
-            .map(w -> WorkspaceOutput.from(w, manualTags.getOrDefault(w.getIdentifier(), List.of())))
-            .toList();
+    }
+
+    @ResourceVisibility(Workspace.class)
+    @Transactional(readOnly = true)
+    public Page<WorkspaceOutput> findAll(FindAllWorkspacesInput input, Pageable pageable) {
+        validator.validatePagination(pageable);
+        String lifecycleCode = LifecycleFilter.resolve(input.lifecycle()).value();
+        validator.validateTypeFilter(input.typeName());
+        Sort workspaceSort =
+            pageable.getSort().getOrderFor("id") == null ? pageable.getSort().and(Sort.by("id")) : pageable.getSort();
+
+        Pageable orderedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), workspaceSort);
+        Page<Workspace> workspaces = repository.findFiltered(
+            lifecycleCode,
+            input.typeName(),
+            input.tagName() == null ? null : TagName.of(input.tagName()),
+            orderedPageable
+        );
+        Map<String, List<String>> manualTagsByWorkspaceIdentifier = tags.findManualByOwnerKeys(
+            workspaces.getContent().stream().map(Workspace::getIdentifier).toList()
+        );
+        return workspaces.map(workspace ->
+            WorkspaceOutput.from(
+                workspace,
+                manualTagsByWorkspaceIdentifier.getOrDefault(workspace.getIdentifier(), List.of())
+            )
+        );
     }
 }

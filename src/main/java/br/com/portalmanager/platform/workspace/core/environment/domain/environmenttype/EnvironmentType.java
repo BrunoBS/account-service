@@ -1,25 +1,20 @@
 package br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype;
 
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "environment_types")
 public class EnvironmentType {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Version
     private Long version;
 
-    @Column(nullable = false, unique = true, updatable = false, length = 36)
-    private String identifier;
-
-    @Column(nullable = false, unique = true, length = 50)
+    @Id
+    @Column(name = "code", nullable = false, length = 50, updatable = false)
     private String code;
 
     @Column(nullable = false, length = 100)
@@ -30,6 +25,9 @@ public class EnvironmentType {
 
     @Column(name = "root_allowed", nullable = false)
     private boolean rootAllowed;
+
+    @Column(name = "allows_children", nullable = false)
+    private boolean allowsChildren;
 
     @Column(name = "workspace_required", nullable = false)
     private boolean workspaceRequired;
@@ -51,56 +49,47 @@ public class EnvironmentType {
 
     public EnvironmentType(
         String code,
-        String name,
-        String description,
-        boolean rootAllowed,
-        boolean workspaceRequired,
-        int displayOrder,
+        EnvironmentTypeDetails details,
         LocalDateTime now
     ) {
-        identifier = UUID.randomUUID().toString();
         this.code = code;
-        update(name, description, rootAllowed, workspaceRequired, displayOrder, now);
+        applyDetails(details);
+        updatedAt = now;
         lifecycle = LifecycleTypeCode.active();
         createdAt = now;
     }
 
-    public void update(
-        String name,
-        String description,
-        boolean rootAllowed,
-        boolean workspaceRequired,
-        int displayOrder,
-        LocalDateTime now
-    ) {
-        this.name = name;
-        this.description = description;
-        this.rootAllowed = rootAllowed;
-        this.workspaceRequired = workspaceRequired;
-        this.displayOrder = displayOrder;
+    public void update(EnvironmentTypeDetails details, LocalDateTime now) {
+        requireActiveForUpdate();
+        applyDetails(details);
         updatedAt = now;
     }
 
+    private void applyDetails(EnvironmentTypeDetails details) {
+        name = details.name();
+        description = details.description();
+        rootAllowed = details.rootAllowed();
+        allowsChildren = details.allowsChildren();
+        workspaceRequired = details.workspaceRequired();
+        displayOrder = details.displayOrder();
+    }
+
     public void inactivate(LocalDateTime now) {
+        requireActiveForInactivation();
         lifecycle = LifecycleTypeCode.inactive();
         updatedAt = now;
     }
 
     public void restore(LocalDateTime now) {
+        if (!LifecycleTypeCode.inactive().equals(lifecycle)) throw new ValidationException(
+            EnvironmentMessageKeys.TYPE_RESTORE_INVALID
+        );
         lifecycle = LifecycleTypeCode.active();
         updatedAt = now;
     }
 
-    public Long getId() {
-        return id;
-    }
-
     public Long getVersion() {
         return version;
-    }
-
-    public String getIdentifier() {
-        return identifier;
     }
 
     public String getCode() {
@@ -117,6 +106,10 @@ public class EnvironmentType {
 
     public boolean isRootAllowed() {
         return rootAllowed;
+    }
+
+    public boolean allowsChildren() {
+        return allowsChildren;
     }
 
     public boolean isWorkspaceRequired() {
@@ -137,5 +130,17 @@ public class EnvironmentType {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void requireActiveForUpdate() {
+        if (!LifecycleTypeCode.active().equals(lifecycle)) throw new ValidationException(
+            EnvironmentMessageKeys.TYPE_UPDATE_INVALID
+        );
+    }
+
+    public void requireActiveForInactivation() {
+        if (!LifecycleTypeCode.active().equals(lifecycle)) throw new ValidationException(
+            EnvironmentMessageKeys.TYPE_INACTIVATE_INVALID
+        );
     }
 }

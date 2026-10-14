@@ -29,8 +29,11 @@ public class SchemaConfigurationController {
     }
 
     @GetMapping
-    public List<SchemaConfigurationResponse> findAll(AuthorizationContext context) {
-        return facade.findAll(context).stream().map(SchemaConfigurationResponse::from).toList();
+    public List<SchemaConfigurationResponse> findAll(
+        AuthorizationContext context,
+        @RequestParam(required = false) String lifecycle
+    ) {
+        return facade.findAll(context, lifecycle).stream().map(SchemaConfigurationResponse::from).toList();
     }
 
     @GetMapping("/{identifier}")

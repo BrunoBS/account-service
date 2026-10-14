@@ -14,6 +14,7 @@ public final class SharedMessageKeys {
 
     public static final String FEATURE_REQUIRED = "shared.feature.required";
     public static final String FEATURE_IMMUTABLE = "shared.feature.immutable";
+    public static final String FEATURE_UNAVAILABLE = "shared.contract.feature-unavailable";
 
     public static final String OWNER_APPLICATION_TYPE_INVALID = "shared.contract.owner-application-type-invalid";
 
