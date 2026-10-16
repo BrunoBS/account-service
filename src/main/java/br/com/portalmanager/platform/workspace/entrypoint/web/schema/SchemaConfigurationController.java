@@ -1,5 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.schema;
 
+
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.request.*;
 import br.com.portalmanager.platform.workspace.entrypoint.web.schema.response.SchemaConfigurationResponse;

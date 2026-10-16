@@ -1,0 +1,138 @@
+package br.com.portalmanager.platform.workspace;
+
+
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
+import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.dynamicparameter.parameterkey.ParameterKeyController;
+import br.com.portalmanager.platform.workspace.entrypoint.web.dynamicparameter.parameterkey.request.CreateParameterKeyRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.web.dynamicparameter.parameterkey.request.UpdateParameterKeyRequest;
+import br.com.portalmanager.platform.workspace.feature.dynamicparameter.facade.parameterkey.DynamicParameterFacade;
+import br.com.portalmanager.platform.workspace.feature.dynamicparameter.usecase.model.parameterkey.ParameterKeyMetadata;
+
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.web.bind.annotation.PatchMapping;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+
+class DynamicParameterArchitectureTest {
+    @Test
+    void dynamicParameterUsesPublicUseCasesRatherThanRepositoriesOrEntitiesOfOtherModules() {
+        noClasses()
+                .that()
+                .resideInAPackage("..feature.dynamicparameter..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage(
+                        "..core..repository..",
+                        "..feature.servicecontext.repository..",
+                        "..feature.servicecontext.domain..",
+                        "..feature.resourcesharing..",
+                        "..feature.dynamicbundle..")
+                .check(
+                        new ClassFileImporter()
+                                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                                .importPackages("br.com.portalmanager.platform.workspace"));
+    }
+
+    @Test
+    void dynamicParameterDelegatesRedisInfrastructureToTheLibrary() {
+        noClasses()
+                .that()
+                .resideInAPackage("..feature.dynamicparameter..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage(
+                        "org.springframework.data.redis..", "io.lettuce..", "redis.clients..")
+                .check(
+                        new ClassFileImporter()
+                                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                                .importPackages("br.com.portalmanager.platform.workspace"));
+    }
+
+    @Test
+    void everyAdministrativeOperationRequiresOwnerAndPublicationIsExplicit() {
+        for (Method method : DynamicParameterFacade.class.getDeclaredMethods()) {
+            if (method.isSynthetic()) continue;
+            assertThat(method.getAnnotation(AuthorizationRequired.class)).isNotNull();
+            assertThat(method.getAnnotation(AuthorizationRequired.class).level())
+                    .isEqualTo(AuthorizationLevel.OWNER);
+        }
+        assertThat(
+                        Arrays.stream(ParameterKeyController.class.getDeclaredMethods())
+                                .filter(method -> !method.isSynthetic()))
+                .hasSize(8);
+        assertThat(
+                        Arrays.stream(ParameterKeyController.class.getDeclaredMethods())
+                                .filter(method -> method.isAnnotationPresent(PatchMapping.class))
+                                .flatMap(
+                                        method ->
+                                                Arrays.stream(
+                                                        method.getAnnotation(PatchMapping.class)
+                                                                .value())))
+                .containsExactlyInAnyOrder("/{identifier}/activate", "/{identifier}/inactivate");
+    }
+
+    @Test
+    void publicRoutesAndEntityUseOnlyTheNewDomainNames() {
+        assertThat(
+                        ParameterKeyController.class
+                                .getAnnotation(
+                                        org.springframework.web.bind.annotation.RequestMapping
+                                                .class)
+                                .value())
+                .containsExactly("/api/v1/dynamic-parameters");
+        assertThat(
+                        br.com.portalmanager.platform.workspace.feature.dynamicparameter.domain
+                                .parameterkey.ParameterKey.class
+                                .getAnnotation(jakarta.persistence.Table.class)
+                                .name())
+                .isEqualTo("parameter_keys");
+        assertThat(
+                        br.com.portalmanager.platform.workspace.entrypoint.web.catalog
+                                .parameterkeytype.ParameterKeyTypeController.class
+                                .getAnnotation(
+                                        org.springframework.web.bind.annotation.RequestMapping
+                                                .class)
+                                .value())
+                .containsExactly("/api/v1/parameter-key-type");
+        assertThat(
+                        br.com.portalmanager.platform.workspace.entrypoint.web.catalog
+                                .parameterkeystatustype.ParameterKeyStatusTypeController.class
+                                .getAnnotation(
+                                        org.springframework.web.bind.annotation.RequestMapping
+                                                .class)
+                                .value())
+                .containsExactly("/api/v1/parameter-key-status-type");
+    }
+
+    @Test
+    void typedRequestsUseTheLibraryAndCommandSnapshotsContainNoValuesOrNumericIds() {
+        for (Class<?> request :
+                List.of(CreateParameterKeyRequest.class, UpdateParameterKeyRequest.class)) {
+            assertThat(request.isRecord()).isTrue();
+            assertThat(request.isAnnotationPresent(ValidateResourceSchemaRequest.class)).isTrue();
+            assertThat(request.getAnnotation(ValidateResourceSchemaRequest.class).type())
+                    .isEqualTo("PLATFORM");
+            assertThat(request.getAnnotation(ValidateResourceSchemaRequest.class).code())
+                    .isEqualTo("dynamic-parameter");
+        }
+        assertThat(
+                        Arrays.stream(UpdateParameterKeyRequest.class.getRecordComponents())
+                                .map(component -> component.getName()))
+                .containsExactly("version", "description", "type", "value");
+        assertThat(
+                        Arrays.stream(ParameterKeyMetadata.class.getRecordComponents())
+                                .map(component -> component.getName()))
+                .doesNotContain("id", "microserviceId", "value", "publishedValue", "publishedType");
+    }
+}

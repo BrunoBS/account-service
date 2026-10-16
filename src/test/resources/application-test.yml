@@ -3,6 +3,11 @@ spring:
     name: workspace-service
 
 platform:
+  dynamic-parameter:
+    runtime:
+      enabled: false
+    reconciliation:
+      enabled: false
   authorization:
     mode: REAL
     service-url: http://127.0.0.1:9

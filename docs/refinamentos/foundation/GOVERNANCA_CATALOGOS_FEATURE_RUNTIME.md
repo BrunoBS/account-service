@@ -1,3 +1,5 @@
+> Nomenclatura atualizada no [refinamento integral Golden](../features-golden/EXECUCAO.md).
+
 # Governança — Catálogos + Platform Microservice/Feature Runtime
 
 ## 1. Objetivo
@@ -93,15 +95,15 @@ WORKSPACE
 
 # 4. Recursos Platform
 
-`Microservice`, `Feature` e `FeatureContext` não são mais tratados como catálogos simples.
+`Microservice`, `Feature` e `Group` não são mais tratados como catálogos simples.
 
 São entidades administrativas persistidas em:
 
 ```text
-platform_microservices
-platform_features
-platform_feature_contexts
-platform_feature_context_relations
+service_context_microservices
+service_context_features
+service_context_groups
+service_context_feature_groups
 ```
 
 Relações principais:
@@ -109,7 +111,7 @@ Relações principais:
 ```text
 Microservice 1 ───── N Feature
 
-Feature N ───── N FeatureContext
+Feature N ───── N Group
 ```
 
 Semântica oficial:
@@ -117,10 +119,10 @@ Semântica oficial:
 ```text
 Microservice        = quem oferece
 Feature        = o que é oferecido
-FeatureContext = em qual contexto funcional a capacidade é disponibilizada
+Group = em qual contexto funcional a capacidade é disponibilizada
 ```
 
-`FeatureContext` não representa ownership de Workspace/Application.
+`Group` não representa ownership de Workspace/Application.
 
 ---
 
@@ -133,7 +135,7 @@ Para:
 ```text
 Microservice
 Feature
-FeatureContext
+Group
 ```
 
 o `code` é o identificador técnico canônico.
@@ -227,7 +229,7 @@ Lifecycle continua sendo catálogo tipado da Foundation.
 Tabela:
 
 ```text
-platform_microservices
+service_context_microservices
 ```
 
 Campos principais:
@@ -261,7 +263,7 @@ Regras:
 Tabela:
 
 ```text
-platform_features
+service_context_features
 ```
 
 Campos principais:
@@ -283,9 +285,9 @@ updated_at
 Relação:
 
 ```text
-platform_features.microservice_id
+service_context_features.microservice_id
         ↓
-platform_microservices.id
+service_context_microservices.id
 ```
 
 Feature deve possuir exatamente um Microservice ativo na criação.
@@ -315,13 +317,13 @@ Ownership de Microservice não fica em JSON.
 
 ---
 
-# 9. FeatureContext
+# 9. Group
 
 Tabelas:
 
 ```text
-platform_feature_contexts
-platform_feature_context_relations
+service_context_groups
+service_context_feature_groups
 ```
 
 Exemplos de code:
@@ -358,7 +360,7 @@ Persistência:
 ```text
 messages.microservice_id
         ↓
-platform_microservices.id
+service_context_microservices.id
 ```
 
 A coluna antiga:
@@ -382,7 +384,7 @@ O output pode continuar expondo:
 microserviceIdentifier = <uuid-do-workspace-service>
 ```
 
-porque esse valor é derivado do relacionamento com `platform_microservices`.
+porque esse valor é derivado do relacionamento com `service_context_microservices`.
 
 ---
 
@@ -400,7 +402,7 @@ Message.microserviceId
 mapeada sobre:
 
 ```text
-platform_microservices
+service_context_microservices
 ```
 
 Objetivo:
@@ -419,7 +421,7 @@ Validação funcional de Microservice ativo continua sendo feita por contrato p�
 A view:
 
 ```text
-vw_feature_runtime_config
+vw_service_context_feature_runtime_config
 ```
 
 expõe o contrato operacional das Features sem obrigar consumidores a interpretar diretamente o JSON.
@@ -472,7 +474,7 @@ resolve o Microservice através de:
 ```text
 messages.microservice_id
         ↓
-platform_microservices.id
+service_context_microservices.id
 ```
 
 A chave runtime resultante utiliza o `Microservice.code` canônico.
@@ -494,13 +496,13 @@ Somente registros ativos de Microservice, Message e Translation são expostos.
 Promoveu Microservice e Feature de catálogo para entidades Platform:
 
 ```text
-platform_microservices
-platform_features
+service_context_microservices
+service_context_features
 ```
 
 ## V13
 
-Introduziu `FeatureContext` e removeu o antigo `FeatureScopeType`.
+Introduziu `Group` e removeu o antigo `FeatureScopeType`.
 
 ## V14
 
@@ -517,7 +519,7 @@ Padronizou:
 ```text
 Microservice.code
 Feature.code
-FeatureContext.code
+Group.code
 ```
 
 para lowercase kebab-case.
@@ -557,7 +559,7 @@ Feature
    ↓
 Microservice
    ↓
-vw_feature_runtime_config
+vw_service_context_feature_runtime_config
    ↓
 quarantine policy
    ↓
@@ -616,7 +618,7 @@ foundation.catalog
 feature.platform
 ├── Microservice
 ├── Feature
-└── FeatureContext
+└── Group
 
 feature.message
 ├── Message
@@ -627,15 +629,15 @@ feature.message
 Com persistência:
 
 ```text
-platform_microservices
+service_context_microservices
       │
-      ├────────< platform_features
+      ├────────< service_context_features
       │
       └────────< messages
                      │
                      └────────< message_translations
 
-platform_features >────────< platform_feature_contexts
+service_context_features >────────< service_context_groups
 ```
 
 Esse é o padrão base para as próximas evoluções da Golden Reference.

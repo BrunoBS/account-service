@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.onboarding.response;
 
-import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.OnboardingPhaseOutput;
-import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.OnboardingPhaseStatus;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.phase.OnboardingPhaseOutput;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.phase.OnboardingPhaseStatus;
 import java.time.LocalDateTime;
 import tools.jackson.databind.JsonNode;
 

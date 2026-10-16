@@ -1,3 +1,5 @@
+> Documento histórico. Consulte [Service Context](../service-context/SERVICE-CONTEXT.md) para nomes e contratos atuais.
+
 # Vínculos de features e contextos
 
 `FeatureContextRelation` representa a associação N:N entre `Feature` e `Context`

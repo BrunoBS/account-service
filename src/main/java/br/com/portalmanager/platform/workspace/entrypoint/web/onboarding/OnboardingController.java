@@ -2,7 +2,7 @@ package br.com.portalmanager.platform.workspace.entrypoint.web.onboarding;
 
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.entrypoint.web.onboarding.response.OnboardingProgressResponse;
-import br.com.portalmanager.platform.workspace.feature.onboarding.facade.OnboardingFacade;
+import br.com.portalmanager.platform.workspace.feature.onboarding.facade.progress.OnboardingFacade;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;

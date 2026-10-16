@@ -1,3 +1,5 @@
+> Histórico. Consulte [Resource Sharing](../resource-sharing/RESOURCE-SHARING.md) para contratos e nomes atuais.
+
 # Revisão dos use cases Shared
 
 ## Organização

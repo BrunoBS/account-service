@@ -1,3 +1,5 @@
+> Histórico. Consulte [Resource Sharing](../resource-sharing/RESOURCE-SHARING.md) para contratos e nomes atuais.
+
 # API de compartilhamento
 
 ## Participante

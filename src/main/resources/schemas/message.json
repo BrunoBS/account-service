@@ -48,7 +48,7 @@
       ],
       "maxLength": 500
     },
-    "translations": {
+    "translators": {
       "type": [
         "array",
         "null"
@@ -115,7 +115,7 @@
       "then": {
         "not": {
           "required": [
-            "translations"
+            "translators"
           ]
         }
       }

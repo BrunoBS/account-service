@@ -51,6 +51,8 @@ Para cada alteração, confirmar que o comportamento de negócio está explícit
 
 ### 4. Persistência, integridade e concorrência
 
+- Em `core` e `feature`, atualizações de entidades, incluindo lifecycle, status e alterações do agregado por associações, usam `repository.saveAndFlush(entity)`. Montar o output/snapshot com a entidade retornada, depois da persistência e do flush, para refletir a versão atual. Criações individuais seguem o mesmo padrão; operações em lote podem usar `saveAllAndFlush`.
+- Não substituir a persistência explícita de uma atualização por dirty checking ou `flush()` isolado. O flush intermediário pode ser necessário para ordenar remoções/inclusões e liberar valores únicos; exclusões físicas usam `delete`/`deleteAll` e flush. Operações SQL atômicas de associação/idempotência preservam sua semântica e não são convertidas para save de entidade.
 - Atributos equivalentes entre módulos seguem limites e nulabilidade consistentes. Diferenças exigem regra de domínio explícita, incluindo o limite de tags manuais versus tags derivadas de sistema.
 - Entidades e migrations concordam em nomes, tipos, nulabilidade, tamanhos, defaults, chaves, índices e relacionamentos.
 - Migrations aplicadas são imutáveis; mudanças de schema entram em nova migration. Confirmar que a migration funciona sobre banco limpo e sobre upgrade, quando aplicável.

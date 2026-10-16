@@ -77,7 +77,7 @@ public class ApplicationQueryService {
         ApplicationScopeReference application = repository
             .findActiveScope(workspaceId, applicationId)
             .orElseThrow(() -> new NotFoundException(ApplicationMessageKeys.NOT_FOUND));
-        if (workspaceQueries.findActiveIdentifiersForShared(List.of(workspaceId)).isEmpty()) {
+        if (workspaceQueries.findActiveIdentifiersForResourceSharing(List.of(workspaceId)).isEmpty()) {
             throw new NotFoundException(ApplicationMessageKeys.NOT_FOUND);
         }
         return new ApplicationScopeReferenceOutput(workspaceId, applicationId, application.getApplicationScope());
@@ -104,10 +104,10 @@ public class ApplicationQueryService {
 
     /** Resolves persisted Shared references, including inactive applications and workspaces. */
     @Transactional(readOnly = true)
-    public Map<Long, ApplicationReferenceOutput> findReferencesForShared(Collection<Long> applicationIds) {
+    public Map<Long, ApplicationReferenceOutput> findReferencesForResourceSharing(Collection<Long> applicationIds) {
         if (applicationIds.isEmpty()) return Map.of();
         List<ApplicationReference> referencedApplications = repository.findReferences(applicationIds, null);
-        Map<Long, String> workspaceIdentifiers = workspaceQueries.findReferenceIdentifiersForShared(
+        Map<Long, String> workspaceIdentifiers = workspaceQueries.findReferenceIdentifiersForResourceSharing(
             referencedApplications.stream().map(ApplicationReference::getWorkspaceId).distinct().toList()
         );
         return referencedApplications
@@ -127,13 +127,13 @@ public class ApplicationQueryService {
 
     /** Shared discovery resolves application and workspace activity in bulk. */
     @Transactional(readOnly = true)
-    public List<ApplicationReferenceOutput> findActiveReferencesForShared(Collection<Long> applicationIds) {
+    public List<ApplicationReferenceOutput> findActiveReferencesForResourceSharing(Collection<Long> applicationIds) {
         if (applicationIds.isEmpty()) return List.of();
         List<ApplicationReference> activeApplications = repository.findReferences(
             applicationIds,
             LifecycleTypeCode.active().value()
         );
-        Map<Long, String> activeWorkspaces = workspaceQueries.findActiveIdentifiersForShared(
+        Map<Long, String> activeWorkspaces = workspaceQueries.findActiveIdentifiersForResourceSharing(
             activeApplications.stream().map(ApplicationReference::getWorkspaceId).distinct().toList()
         );
         return activeApplications

@@ -1,3 +1,5 @@
+> Registro histórico. Consulte o [refinamento integral das features Golden](../refinamentos/features-golden/EXECUCAO.md) para nomenclatura e contratos atuais.
+
 # Account — Behavior Matrix
 
 **Fase:** G0  
