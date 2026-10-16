@@ -1,0 +1,6 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "configuration-status-type settings",
+    "type": "object",
+    "additionalProperties": false
+}

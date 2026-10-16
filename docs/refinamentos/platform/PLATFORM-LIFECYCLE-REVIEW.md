@@ -1,3 +1,5 @@
+> Documento histórico. Consulte [Service Context](../service-context/SERVICE-CONTEXT.md) para nomes e contratos atuais.
+
 # Platform — ativação, inativação e purge de contexto
 
 Data: 13/10/2026. Complemento à [separação dos quatro fluxos](PLATFORM-STRUCTURE-REFACTOR.md).

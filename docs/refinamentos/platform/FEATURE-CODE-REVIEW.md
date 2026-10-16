@@ -1,3 +1,5 @@
+> Documento histórico. Consulte [Service Context](../service-context/SERVICE-CONTEXT.md) para nomes e contratos atuais.
+
 # Revisão de Platform — Features
 
 > Registro da revisão anterior à separação dos quatro fluxos. A estrutura e os contratos atuais, incluindo a retirada de `featureIdentifiers` do cadastro de contexto, estão em [Platform — separação de responsabilidades](PLATFORM-STRUCTURE-REFACTOR.md). As evidências abaixo são históricas.

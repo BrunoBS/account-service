@@ -1,5 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.publisher;
 
+
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.core.publisher.facade.PublisherFacade;
 import br.com.portalmanager.platform.workspace.entrypoint.web.publisher.request.*;

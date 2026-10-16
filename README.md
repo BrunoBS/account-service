@@ -37,17 +37,19 @@ br.com.portalmanager.platform.workspace
 │   └── schema/{domain,repository,integration/*{Port,Adapter},usecase/{model,operations,validation}}
 ├── core/workspace/{domain,repository,integration,usecase/{model,operations,validation}}
 ├── feature
-│   ├── message/{domain,repository,usecase/{model,operations,validation}}
+│   ├── dynamicbundle/{domain,facade,repository,usecase/{model,operations,validation}}
 │   ├── onboarding/{domain,repository,integration,usecase/{model,operations,validation}}
-│   ├── platform/{domain,repository,usecase/{model,operations,validation}}
-│   └── shared/{domain,repository,integration,usecase/{model,operations,validation}}
-└── entrypoint/web/{catalog,workspace,onboarding,message,platform,schema}
+│   ├── servicecontext/{domain,repository,usecase/{model,operations,validation}}
+│   ├── dynamicparameter/{domain,repository,integration,facade,usecase/{model,operations,validation}}
+│   ├── segmentation/{domain,repository,facade,usecase/{model,operations,validation}}
+│   └── resourcesharing/{domain,repository,integration,usecase/{model,operations,validation}}
+└── entrypoint/web/{catalog,workspace,onboarding,dynamicbundle,servicecontext,dynamicparameter,segmentation,resourcesharing,schema}
 ```
 
 Pacotes vazios não são criados apenas para completar a árvore.
 
-O cadastro administrativo de microserviços usa `feature/platform` e
-`/api/v1/platform/microservices`. A migração V19 renomeia as referências de
+O cadastro administrativo de microserviços usa `feature/servicecontext` e
+`/api/v1/service-contexts/microservices`. A migração V19 renomeia as referências de
 Feature e Message e remove os catálogos de linguagem e infraestrutura. Consulte
 [`MICROSERVICE-MIGRATION-V19.md`](docs/refinamentos/foundation/MICROSERVICE-MIGRATION-V19.md)
 para os contratos de atualização.
@@ -60,18 +62,20 @@ junto ao agregado ao qual pertencem; ter várias classes não exige criar subpac
 
 | Módulo              | Subpacotes de domínio                                      |
 | ------------------- | ---------------------------------------------------------- |
-| `feature.platform`  | `feature`, `microservice`, `featurecontext`                |
-| `feature.shared`    | `contract`, `participation` (inclui os mapeamentos)        |
+| `feature.servicecontext` | `feature`, `microservice`, `group`, `featuregroup`                |
+| `feature.resourcesharing` | `contract`, `participant` (inclui os mapeamentos)        |
+| `feature.segmentation` | `segment`, `category` (catálogo global)                   |
+| `feature.dynamicparameter` | `parameterkey`: parâmetros globais ou de um microsserviço, com JSON editável e snapshot publicado. |
 | `core.environment`  | `environment`, `environmenttype` (inclui compatibilidades) |
 | `foundation.schema` | `schema`, `version`, `configuration`                       |
 
-Módulos com um único agregado mantêm as classes diretamente em `domain`.
+As features organizam as camadas por subdomínio ou responsabilidade; Dynamic Bundle usa `message`/`messagetranslator`, e Onboarding usa `completion`/`progress`/`phase`.
 As chaves de mensagens compartilhadas entre responsabilidades permanecem na raiz
 `<modulo>.domain`.
 
 ### Chaves de mensagens
 
-As classes `*MessageKeys` devem ficar em `<modulo>.domain`, junto ao domínio que
+As classes `*MessageKeys` ficam em `<modulo>.domain` ou `domain/<subdominio>`, junto ao domínio que
 possui os erros. Esse padrão vale para módulos de `core`, `feature` e `foundation`.
 Cada classe contém apenas constantes com as chaves; a resolução e a tradução das
 mensagens permanecem no mecanismo de messaging.
@@ -125,7 +129,7 @@ Application aceita description opcional com até 200 caracteres. Workspace mant�
 ### Mensagens e traduções
 
 A revisão dos dois fluxos administrativos está concluída no código e nos testes.
-As listagens de `/api/v1/messages` e `/api/v1/messages/{messageIdentifier}/translations`
+As listagens de `/api/v1/dynamic-bundles/messages` e `/api/v1/dynamic-bundles/messages/{messageIdentifier}/translators`
 retornam `content` e `page`. Create aceita traduções inline; update exige `version`
 e edita somente os atributos da mensagem. Traduções têm endpoints e versões próprios.
 
@@ -136,7 +140,7 @@ como PURGE, com snapshots preservados antes da remoção e rollback transacional
 V58 publica os schemas; V59 preserva registros antigos em quarentena como INACTIVE
 e restringe o lifecycle desses dois recursos a ACTIVE/INACTIVE. O Flyway habilitado
 aplica as migrations na inicialização do serviço no banco configurado.
-Consulte o [guia de integração](docs/refinamentos/message/MESSAGE-INTEGRATION.md)
+Consulte o [guia de integração](docs/refinamentos/dynamic-bundle/DYNAMIC-BUNDLE.md)
 e o [relatório da revisão](docs/refinamentos/message/MESSAGE-CODE-REVIEW.md).
 
 ### Onboarding
@@ -151,86 +155,91 @@ validação central no catálogo e mensagens localizadas para configuração inv
 
 As duas fases de configuração de ambientes aguardam as integrações correspondentes;
 criar um Environment isolado não as conclui. Consulte a
-[análise detalhada do fluxo](docs/refinamentos/onboarding/ONBOARDING-CODE-REVIEW.md)
+[organização atual](docs/refinamentos/onboarding/ONBOARDING.md)
 para os ajustes implementados de arquitetura, nomes, mensagens e validação.
 
-## Platform — Microservices
+## Service Context
 
-A revisão do fluxo de microservices está documentada em
-[Microservices](docs/refinamentos/platform/MICROSERVICE-CODE-REVIEW.md), incluindo
-as seis rotas atuais, autorização OWNER, schema HTTP, settings configuráveis, lifecycle,
-auditoria e concorrência dos vínculos com features/messages. A V62 publica o
-contrato `PLATFORM/microservice`; settings continuam usando `MICROSERVICE/{code}`.
+Microservice, Feature e FeatureGroup ficam em `feature.servicecontext`; a associação N:N é
+`feature_group_feature` e o agregado usa a tabela `feature_group`. A API usa `/api/v1/service-contexts/microservices`, `/features`
+e `/feature-groups`. Alterações exigem OWNER e versionamento; códigos são imutáveis.
+Microservice e Feature preservam lifecycle e referências, sem DELETE.
+FeatureGroup permite purge somente sem vínculos, inclusive com features inativas.
 
-A listagem retorna página com filtro central de lifecycle. Update exige `version`
-atual e código imutável. Microservices podem ser ativados e inativados, preservando
-features e mensagens; não há endpoint de exclusão.
+Associar/remover usa POST/DELETE em
+`/api/v1/service-contexts/feature-groups/{featureGroupIdentifier}/features/{featureIdentifier}`.
+Listar features por grupo usa `featureGroupIdentifier`; a consulta inversa usa
+`featureIdentifier`. Locks, filtros de lifecycle, idempotência e auditoria são preservados.
+V78 renomeia as tabelas do módulo e V81 renomeia FeatureGroup e sua associação, preservando dados. O binding HTTP passa
+para `SERVICE_CONTEXT`; settings continuam em `MICROSERVICE/{code}` e `FEATURE/{code}`.
+Consulte [Service Context](docs/refinamentos/service-context/SERVICE-CONTEXT.md).
 
-## Platform — Features
+## Resource Sharing
 
-A revisão anterior das dez rotas está documentada em
-[Features](docs/refinamentos/platform/FEATURE-CODE-REVIEW.md): autorização OWNER,
-versão obrigatória no update, código imutável, lifecycle, settings, auditoria e
-proteção concorrente dos vínculos com contexts e contratos Shared. A V63 publica
-`PLATFORM/feature`; settings continuam usando `FEATURE/{code}`.
+`feature.resourcesharing` organiza Contract e Participant. Contract representa o destino;
+Participants são origens autorizadas. Autorização, escopos, transições e mapeamentos de
+ambiente permanecem iguais. As rotas usam `resource-sharing/contracts` e
+`resource-sharing/participants` dentro do escopo workspace/application. V80 renomeia
+objetos físicos preservando dados e cascatas.
+Consulte [Resource Sharing](docs/refinamentos/resource-sharing/RESOURCE-SHARING.md).
 
-As listagens de features e de seus contexts retornam páginas com filtro central
-de lifecycle. Features globais podem ser ativadas e inativadas, mantendo suas
-referências; não há endpoint de exclusão. Novos vínculos exigem feature,
-microservice e context ativos; remover um vínculo continua permitido após inativação.
+## Segmentos e categorias
 
-## Platform — Contexts
+O catálogo global usa `/api/v1/segmentation/segments` e
+`/api/v1/segmentation/segments/{segmentIdentifier}/categories`, com create,
+update versionado, detalhe/listagem e PATCH activate/inactivate. Mutações exigem
+OWNER; leituras autenticadas passam pela autorização OPEN. Detalhes e updates
+administrativos incluem registros inativos; listas usam ACTIVE por padrão e
+aceitam INACTIVE. Não há DELETE ou vínculo com workspace/aplicação.
 
-A [revisão de contexts](docs/refinamentos/platform/CONTEXT-CODE-REVIEW.md) cobre
-as sete rotas, autorização OWNER, paginação, versão do cliente, lifecycle,
-vínculos, auditoria e concorrência. A V64 publica `PLATFORM/context`.
+Códigos são imutáveis e reservados inclusive em registros inativos: globais para
+segmentos e únicos por segmento para categorias. Categoria só nasce sob segmento
+ACTIVE, mas suas transições são independentes; inativar o pai não altera filhas.
+`available` na resposta da categoria exige ambos ACTIVE. V66 cria tabelas e
+constraints; V67 publica os schemas dos requests. Consulte os contratos, regras,
+concorrência e operação na [Segmentation](docs/refinamentos/segmentation/SEGMENTATION.md).
 
-Update exige `version` e código imutável; a listagem retorna Page. Inativação
-preserva vínculos, e DELETE executa purge físico somente quando não há vínculos,
-inclusive com features inativas. Alterações individuais de vínculos também avançam a versão do
-context; retries sem mudança real não geram evento ou incremento de versão.
+## DynamicParameter — parâmetros dinâmicos
 
-A [revisão geral anterior de Platform e suas 24 rotas](docs/refinamentos/platform/PLATFORM-ENDPOINTS-REVIEW.md)
-registra a finalidade e a necessidade de cada endpoint, a convivência entre
-alterações individuais/em lote e a política de retenção. Vínculos de uma feature
-inativa/em quarentena continuam consultáveis por OWNER para possibilitar limpeza.
+A feature `feature.dynamicparameter` gerencia parâmetros consumidos pelas aplicações em
+runtime. Sua entidade principal é `ParameterKey`, persistida em `parameter_keys`.
+O CRUD OWNER fica em `/api/v1/dynamic-parameters`, com requests/responses próprios,
+listagem paginada, atualização versionada e lifecycle idempotente. Os catálogos são
+`/api/v1/parameter-key-type` e `/api/v1/parameter-key-status-type`.
 
-## Platform — separação dos quatro fluxos
+Uma chave nasce ativa em DRAFT, sem snapshot publicado. Editar tipo/valor preserva o
+snapshot anterior e volta a DRAFT; editar somente descrição mantém o status.
+`POST /api/v1/dynamic-parameters/publish` recebe `identifiers` com 1 ou N chaves e retorna
+`202 Accepted` sem corpo. O worker confirma cada item em sua própria transação/auditoria,
+relê os snapshots confirmados e usa `RedisStore.setAll` em lotes de 500 por padrão.
+`platform.dynamic-parameter.runtime.batch-size` configura o tamanho positivo dos lotes.
+Inativar limpa o snapshot e remove a chave Redis após commit; reativar aguarda publicação.
+Exclusão física continua restrita a registros inativos.
 
-A [revisão geral de fechamento](docs/refinamentos/platform/PLATFORM-FINAL-REVIEW.md)
-registra os últimos ajustes, a regressão e as condições de entrega da biblioteca.
+O scheduler horário em `integration.scheduler` consulta chaves ativas com
+`publishedValue` preenchido, em páginas, e envia cada página com MSET pela lib.
+Falhas geram somente logs de erro, com identifier, fullKey e publishedValue sanitizado.
+O processamento permanece em memória nesta etapa, sem tabelas de solicitações ou retries duráveis.
 
-A [refatoração de Platform](docs/refinamentos/platform/PLATFORM-STRUCTURE-REFACTOR.md)
-separa microservice, feature, context e featurecontext, com controllers, fachadas
-e pacotes próprios. O cadastro de contexto usa nomes `Context*`.
-`FeatureContextController` e sua fachada têm somente `associate` e `remove`.
-Os dois controllers usam `findAll` com filtro opcional de vínculo. A busca de features
-usa somente `contextIdentifier`, com `findAll` em controller, fachada, query service
-e repositório. A busca inversa também usa `findAll` em todas as camadas, com
-`featureIdentifier` opcional. Os dois filtros normalizam espaços e verificam a
-existência do recurso informado.
+O envelope Redis `{type,value}`, a chave `<microservice.code>.<key>`, o namespace físico
+`dynamic-parameter` e a ausência de TTL compõem o contrato atual. O código de valor `CONFIGURATION`
+continua distinguindo valores de expressões; não representa configuração de infraestrutura.
+A biblioteca Redis permanece genérica. Migrations V75–V76 adotam os novos nomes de
+persistência/schema sem perder dados nem reescrever as migrations anteriores.
+Não há aliases das rotas/propriedades antigas, conforme a decisão de refatorar antes do uso.
 
-POST/PUT de contexto recebem somente seus atributos. Para associar ou remover um
-vínculo, usar POST/DELETE em
-`/api/v1/platform/contexts/{contextIdentifier}/features/{featureIdentifier}`, sem
-body. O DELETE de vínculo retorna HTTP 204 sem corpo, mantendo o retorno interno
-para auditoria. Não há replace ou aliases de escrita a partir de features.
-A consulta de features usa
-`GET /api/v1/platform/features?contextIdentifier=<UUID>`. A consulta inversa de
-contextos usa `GET /api/v1/platform/contexts?featureIdentifier=<UUID>`.
-Ambas aplicam lifecycle centralizado.
-A V65 permanece imutável; seu schema histórico de body de vínculo não tem mais
-consumidor HTTP. A
-[política atual de exclusão](docs/refinamentos/platform/PLATFORM-LIFECYCLE-REVIEW.md)
-remove DELETE de microservice/feature e implementa purge de contexto sem vínculos.
-O vínculo usa o estado da feature global: uma feature inativa fica fora da listagem
-padrão do contexto, mantendo a relação até sua remoção explícita. A reativação
-restaura sua presença nos contextos em que continua vinculada. Consultas OWNER com
-`lifecycle=INACTIVE` permitem localizar os vínculos para limpeza.
+Consulte o [contrato atual e a refatoração](docs/refinamentos/dynamic-parameter/DYNAMIC-PARAMETER.md).
+
+## Persistência de entidades
+
+Atualizações de entidades em core/feature usam `repository.saveAndFlush(entity)`
+antes de montar responses e snapshots. A [revisão de persistência](docs/refinamentos/persistence/SAVE-AND-FLUSH-REVIEW.md)
+registra a verificação de todos os módulos e os ajustes em Service Context, Dynamic Bundle,
+Resource Sharing e Segmentation. Essa regra também faz parte do [padrão de revisão](docs/REVIEW-STANDARD.md).
 
 ## Ponto único de validação
 
-Workspace, Application, Publisher, Environment, Message, Microservice, Feature e Context validam
+Workspace, Application, Publisher, Environment, Message, Microservice, Feature, FeatureGroup, Segment, Category e DynamicParameter validam
 o JSON original antes da desserialização, com `@ValidateResourceSchemaRequest`
 da biblioteca e normalizadores específicos quando necessários. Campos permitidos,
 tipos, formatos e limites pertencem ao schema publicado; tipos inválidos e campos
@@ -328,3 +337,7 @@ registra a restauração dos arquivos anteriores à reformatação de `32ac504f`
 O cache de contextos Spring dos testes fica limitado a oito em
 `src/test/resources/spring.properties`, liberando os containers MySQL dos
 contextos descartados para que o `mvn verify` completo respeite os recursos locais.
+
+## Refinamento integral das features Golden
+
+[Checkpoints, migrations incrementais, testes e relatório consolidado](docs/refinamentos/features-golden/EXECUCAO.md). As migrations históricas permanecem imutáveis. Contratos antigos não têm aliases.

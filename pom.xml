@@ -38,6 +38,11 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
+            <groupId>br.com.portalmanager.platform.library</groupId>
+            <artifactId>platform-redis</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-flyway</artifactId>
         </dependency>
@@ -83,6 +88,12 @@
         <dependency>
             <groupId>br.com.portalmanager.platform.library</groupId>
             <artifactId>platform-testing-database</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>br.com.portalmanager.platform.library</groupId>
+            <artifactId>platform-testing-redis</artifactId>
+            <version>1.0.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -1,3 +1,5 @@
+> Documento histórico anterior à refatoração. Consulte [Dynamic Bundle](../dynamic-bundle/DYNAMIC-BUNDLE.md) para nomes e contratos atuais.
+
 # Revisão de feature.message
 
 Data: 2026-10-13. Critérios: [REVIEW-STANDARD.md](../../REVIEW-STANDARD.md).

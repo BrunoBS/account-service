@@ -21,6 +21,9 @@ spring:
     enabled: true
 
 platform:
+  redis:
+    namespace: dynamic-parameter
+    namespace-mode: SHARED
   observability:
     logging:
       levels:
@@ -47,7 +50,7 @@ platform:
     default-locale: pt-BR
     datasource:
       enabled: true
-      view-name: vw_platform_messages
+      view-name: vw_dynamic_bundle_messages
     cache:
       enabled: false
   schema-validation:

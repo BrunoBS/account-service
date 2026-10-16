@@ -15,7 +15,7 @@ public final class ApplicationMessageKeys {
     public static final String VERSION_REQUIRED = "application.version.required";
     public static final String VERSION_NOT_ALLOWED_ON_CREATE = "application.version.not-allowed-on-create";
 
-    public static final String HAS_SHARED_CONTRACTS = "application.has-shared-contracts";
+    public static final String HAS_SHARED_CONTRACTS = "application.has-resource-sharing-contracts";
 
     private ApplicationMessageKeys() {}
 }

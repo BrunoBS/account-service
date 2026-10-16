@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.onboarding.response;
 
-import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.OnboardingProgressOutput;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.progress.OnboardingProgressOutput;
 import java.util.List;
 
 public record OnboardingProgressResponse(

@@ -1,3 +1,5 @@
+> Registro histórico. Consulte o [refinamento integral das features Golden](../features-golden/EXECUCAO.md) para nomenclatura e contratos atuais.
+
 # Microservice e remoção de catálogos — V19
 
 ## Modelo

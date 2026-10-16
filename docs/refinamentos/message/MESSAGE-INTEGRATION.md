@@ -1,3 +1,5 @@
+> Documento histórico anterior à refatoração. Consulte [Dynamic Bundle](../dynamic-bundle/DYNAMIC-BUNDLE.md) para nomes e contratos atuais.
+
 # Integração com mensagens e traduções
 
 Contrato final da revisão de 2026-10-13. As operações exigem autenticação e autorização ADM por ação. A revisão e as evidências estão em [MESSAGE-CODE-REVIEW.md](MESSAGE-CODE-REVIEW.md).
