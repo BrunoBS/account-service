@@ -1,3 +1,5 @@
+> Documento histórico. Consulte [Service Context](../service-context/SERVICE-CONTEXT.md) para nomes e contratos atuais.
+
 # Platform — separação de responsabilidades
 
 Data: 13/10/2026. Referência: [padrão de revisão](../../REVIEW-STANDARD.md).

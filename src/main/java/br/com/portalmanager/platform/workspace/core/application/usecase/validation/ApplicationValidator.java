@@ -83,7 +83,7 @@ public class ApplicationValidator {
         if (
             !ApplicationScopeTypeCode.shared().value().equals(input.applicationScope()) &&
             !application.getApplicationScope().value().equals(input.applicationScope()) &&
-            sharingReferences.hasSharedContracts(application.getId())
+            sharingReferences.hasResourceSharingContracts(application.getId())
         ) {
             throw new ValidationException(ApplicationMessageKeys.HAS_SHARED_CONTRACTS);
         }

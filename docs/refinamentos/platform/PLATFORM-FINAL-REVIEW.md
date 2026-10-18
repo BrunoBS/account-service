@@ -1,3 +1,5 @@
+> Documento histórico. Consulte [Service Context](../service-context/SERVICE-CONTEXT.md) para nomes e contratos atuais.
+
 # Platform — revisão geral e fechamento
 
 Data: 14/10/2026. Critérios: [padrão de revisão](../../REVIEW-STANDARD.md).

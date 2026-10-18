@@ -1,3 +1,5 @@
+> Documento histórico. Consulte [Service Context](../service-context/SERVICE-CONTEXT.md) para nomes e contratos atuais.
+
 # Recuperação da verificação local
 
 Data: 14/10/2026, após o merge local da revisão na main.

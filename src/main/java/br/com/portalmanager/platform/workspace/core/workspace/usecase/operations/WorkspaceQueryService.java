@@ -55,7 +55,7 @@ public class WorkspaceQueryService {
 
     /** Only after Shared has authorized the contract or participation involving this workspace. */
     @Transactional(readOnly = true)
-    public String findReferenceIdentifierForShared(Long workspaceId) {
+    public String findReferenceIdentifierForResourceSharing(Long workspaceId) {
         return findReferenceIdentifier(workspaceId);
     }
 
@@ -80,13 +80,13 @@ public class WorkspaceQueryService {
 
     /** Historical cross-workspace references; the caller must authorize the Shared scope first. */
     @Transactional(readOnly = true)
-    public Map<Long, String> findReferenceIdentifiersForShared(Collection<Long> workspaceIds) {
+    public Map<Long, String> findReferenceIdentifiersForResourceSharing(Collection<Long> workspaceIds) {
         return findIdentifiersByInternalIds(workspaceIds, null);
     }
 
     /** Cross-workspace discovery after authorization of the participant application. */
     @Transactional(readOnly = true)
-    public Map<Long, String> findActiveIdentifiersForShared(Collection<Long> workspaceIds) {
+    public Map<Long, String> findActiveIdentifiersForResourceSharing(Collection<Long> workspaceIds) {
         return findIdentifiersByInternalIds(workspaceIds, LifecycleTypeCode.active().value());
     }
 

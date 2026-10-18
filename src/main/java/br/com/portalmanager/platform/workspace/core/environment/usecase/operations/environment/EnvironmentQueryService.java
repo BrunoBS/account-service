@@ -110,7 +110,7 @@ public class EnvironmentQueryService {
 
     /** Resolves only the requested environments, retaining workspace and ancestor activity checks. */
     @Transactional(readOnly = true)
-    public Map<String, EnvironmentReferenceOutput> findAvailableReferencesForShared(
+    public Map<String, EnvironmentReferenceOutput> findAvailableReferencesForResourceSharing(
         String workspaceIdentifier,
         Collection<String> identifiers
     ) {

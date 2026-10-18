@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.entrypoint.web.lifecycle;
 
-import br.com.portalmanager.platform.workspace.feature.platform.domain.feature.Feature;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.microservice.Microservice;
-import br.com.portalmanager.platform.workspace.feature.platform.domain.context.Context;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.feature.Feature;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.microservice.Microservice;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.featuregroup.FeatureGroup;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -101,19 +101,19 @@ class LifecycleListingIT {
                 """, "filter-publisher-" + suffix, "FILTER_" + lifecycle, "Publisher " + suffix, lifecycle);
             jdbc.update(
                 """
-                INSERT INTO platform_microservices (identifier, code, name, settings, lifecycle_code, created_at, updated_at)
+                INSERT INTO service_context_microservices (identifier, code, name, settings, lifecycle_code, created_at, updated_at)
                 VALUES (?, ?, ?, '{}', ?, NOW(6), NOW(6))
                 """, "filter-microservice-" + suffix, "filter-" + suffix, "Microservice " + suffix, lifecycle);
             jdbc.update(
                 """
-                INSERT INTO platform_feature_contexts (identifier, code, name, lifecycle_code, created_at, updated_at)
+                INSERT INTO feature_group (identifier, code, name, lifecycle_code, created_at, updated_at)
                 VALUES (?, ?, ?, ?, NOW(6), NOW(6))
-                """, "filter-context-" + suffix, "filter-" + suffix, "Context " + suffix, lifecycle);
+                """, "filter-context-" + suffix, "filter-" + suffix, "FeatureGroup " + suffix, lifecycle);
             jdbc.update(
                 """
-                INSERT INTO platform_features (identifier, code, name, microservice_id, lifecycle_code, shareable, settings, created_at, updated_at)
+                INSERT INTO service_context_features (identifier, code, name, microservice_id, lifecycle_code, shareable, settings, created_at, updated_at)
                 SELECT ?, ?, ?, id, ?, true, '{}', NOW(6), NOW(6)
-                FROM platform_microservices
+                FROM service_context_microservices
                 WHERE identifier='filter-microservice-active'
                 """, "filter-feature-" + suffix, "filter-" + suffix, "Feature " + suffix, lifecycle);
             if (!"QUARANTINED".equals(lifecycle)) {
@@ -121,12 +121,12 @@ class LifecycleListingIT {
                     """
                     INSERT INTO messages (identifier, microservice_id, message_key, code, http_status, lifecycle_code, created_at, updated_at)
                     SELECT ?, id, ?, ?, 400, ?, NOW(6), NOW(6)
-                    FROM platform_microservices
+                    FROM service_context_microservices
                     WHERE identifier='filter-microservice-active'
                     """, "filter-message-" + suffix, "filter." + suffix, "FILTER-" + lifecycle, lifecycle);
                 jdbc.update(
                     """
-                    INSERT INTO message_translations (identifier, message_id, locale, title, detail, suggestion, lifecycle_code, created_at, updated_at)
+                    INSERT INTO message_translators (identifier, message_id, locale, title, detail, suggestion, lifecycle_code, created_at, updated_at)
                     SELECT ?, id, ?, 'Filter', 'Filter', 'Filter', ?, NOW(6), NOW(6)
                     FROM messages
                     WHERE identifier='filter-message-active'
@@ -153,10 +153,10 @@ class LifecycleListingIT {
                 """, "filter-configuration-" + suffix, "filter-" + suffix, lifecycle);
             jdbc.update(
                 """
-                INSERT INTO shared_contracts (identifier, owner_workspace_id, owner_application_id, feature_id, lifecycle_code, created_at, updated_at)
+                INSERT INTO resource_sharing_contracts (identifier, owner_workspace_id, owner_application_id, feature_id, lifecycle_code, created_at, updated_at)
                 SELECT ?, a.workspace_id, a.id, f.id, ?, NOW(6), NOW(6)
                 FROM applications a
-                JOIN platform_features f ON f.identifier=?
+                JOIN service_context_features f ON f.identifier=?
                 WHERE a.identifier='filter-owner-app'
                 """, "filter-contract-" + suffix, lifecycle, "filter-feature-" + suffix);
         }
@@ -208,7 +208,7 @@ class LifecycleListingIT {
         for (Map.Entry<String, String> listing : listings().entrySet()) {
             for (String lifecycle : List.of("ACTIVE", "INACTIVE", "QUARANTINED")) {
                 List<String> lifecycles = get(listing.getKey(), lifecycle).statusCode(200).extract().path(listing.getValue());
-                if (listing.getKey().startsWith("/api/v1/messages") && "QUARANTINED".equals(lifecycle)) {
+                if (listing.getKey().startsWith("/api/v1/dynamic-bundles/messages") && "QUARANTINED".equals(lifecycle)) {
                     assertThat(lifecycles).as(listing.getKey() + " " + lifecycle).isEmpty();
                 } else {
                     assertThat(lifecycles).as(listing.getKey() + " " + lifecycle).isNotEmpty().containsOnly(lifecycle);
@@ -226,14 +226,14 @@ class LifecycleListingIT {
     void combinesLifecycleWithContextAndPagination() {
         jdbc.update(
             """
-            INSERT INTO platform_feature_context_relations (feature_id, feature_context_id)
+            INSERT INTO feature_group_feature (feature_id, feature_group_id)
             SELECT f.id, c.id
-            FROM platform_features f
-            JOIN platform_feature_contexts c ON c.identifier='filter-context-active'
+            FROM service_context_features f
+            JOIN feature_group c ON c.identifier='filter-context-active'
             WHERE f.identifier='filter-feature-inactive'
             """);
-        List<String> identifiers = request().queryParam("lifecycle", "INACTIVE").queryParam("contextIdentifier", "filter-context-active")
-            .get("/api/v1/platform/features").then().statusCode(200).extract().path("content.identifier");
+        List<String> identifiers = request().queryParam("lifecycle", "INACTIVE").queryParam("featureGroupIdentifier", "filter-context-active")
+            .get("/api/v1/service-contexts/features").then().statusCode(200).extract().path("content.identifier");
         assertThat(identifiers).containsExactly("filter-feature-inactive");
         request().queryParam("lifecycle", "QUARANTINED").queryParam("size", 1).get("/api/v1/workspaces")
             .then().statusCode(200).body("page.totalElements", org.hamcrest.Matchers.equalTo(1));
@@ -244,11 +244,11 @@ class LifecycleListingIT {
             Map.entry("/api/v1/workspaces", "content.lifecycle"),
             Map.entry("/api/v1/workspaces/filter-owner/applications", "content.lifecycle"),
             Map.entry("/api/v1/publishers", "content.lifecycle"),
-            Map.entry("/api/v1/platform/microservices", "content.lifecycle"),
-            Map.entry("/api/v1/platform/features", "content.lifecycle"),
-            Map.entry("/api/v1/platform/contexts", "content.lifecycle"),
-            Map.entry("/api/v1/messages", "content.lifecycle"),
-            Map.entry("/api/v1/messages/filter-message-active/translations", "content.lifecycle"),
+            Map.entry("/api/v1/service-contexts/microservices", "content.lifecycle"),
+            Map.entry("/api/v1/service-contexts/features", "content.lifecycle"),
+            Map.entry("/api/v1/service-contexts/feature-groups", "content.lifecycle"),
+            Map.entry("/api/v1/dynamic-bundles/messages", "content.lifecycle"),
+            Map.entry("/api/v1/dynamic-bundles/messages/filter-message-active/translators", "content.lifecycle"),
             Map.entry("/api/v1/schemas", "lifecycle"),
             Map.entry("/api/v1/workspaces/filter-owner/schemas", "lifecycle"),
             Map.entry("/api/v1/schema-configurations", "lifecycle"),
@@ -256,7 +256,7 @@ class LifecycleListingIT {
             Map.entry("/api/v1/environment-types/compatibilities", "lifecycle"),
             Map.entry("/api/v1/environment-defaults", "lifecycle"),
             Map.entry("/api/v1/workspaces/filter-owner/environments", "lifecycle"),
-            Map.entry("/api/v1/workspaces/filter-owner/applications/filter-owner-app/shared-contracts", "content.lifecycle")
+            Map.entry("/api/v1/workspaces/filter-owner/applications/filter-owner-app/resource-sharing/contracts", "content.lifecycle")
         );
     }
 

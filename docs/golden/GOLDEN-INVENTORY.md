@@ -1,3 +1,5 @@
+> Registro histórico. Consulte o [refinamento integral das features Golden](../refinamentos/features-golden/EXECUCAO.md) para nomenclatura e contratos atuais.
+
 # Golden Reference — Inventário G0
 
 **Fase:** G0 — Inventário funcional e contratos  
