@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.workspace.feature.servicecontext.repository
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.featuregroup.FeatureGroupRepository;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.featuregroup.FeatureGroupOutput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.featuregroup.FeatureGroupValidator;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.featuregroup.FeatureGroupMapper;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 
 import org.springframework.data.domain.Page;
@@ -19,21 +20,24 @@ public class FeatureGroupQueryService {
     private final FeatureRepository features;
     private final FeatureGroupFinder finder;
     private final FeatureGroupValidator validator;
+    private final FeatureGroupMapper mapper;
 
     public FeatureGroupQueryService(
             FeatureGroupRepository repository,
             FeatureRepository features,
             FeatureGroupFinder finder,
-            FeatureGroupValidator validator) {
+            FeatureGroupValidator validator,
+            FeatureGroupMapper mapper) {
         this.repository = repository;
         this.features = features;
         this.finder = finder;
         this.validator = validator;
+        this.mapper = mapper;
     }
 
     @Transactional(readOnly = true)
     public FeatureGroupOutput findByIdentifier(String featureGroupIdentifier) {
-        return FeatureGroupOutput.from(finder.findActive(featureGroupIdentifier));
+        return mapper.toOutput(finder.findActive(featureGroupIdentifier));
     }
 
     @Transactional(readOnly = true)
@@ -53,6 +57,6 @@ public class FeatureGroupQueryService {
                         normalizedFeatureIdentifier,
                         LifecycleFilter.resolve(lifecycle).value(),
                         pageable)
-                .map(FeatureGroupOutput::from);
+                .map(mapper::toOutput);
     }
 }

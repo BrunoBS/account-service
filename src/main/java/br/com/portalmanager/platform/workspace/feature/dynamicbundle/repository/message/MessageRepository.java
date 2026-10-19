@@ -16,6 +16,8 @@ import java.util.Optional;
 
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
+    boolean existsByMicroserviceId(Long microserviceId);
+
     Optional<Message> findByIdentifier(String identifier);
 
     @Query("select message.id from Message message where message.identifier = :identifier")

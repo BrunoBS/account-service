@@ -1,12 +1,12 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.integration;
 
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.configuration.SchemaConfiguration;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.binding.SchemaBinding;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaConfigurationRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.binding.SchemaBindingRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.version.SchemaVersionRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.schema.SchemaOperationValidator;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,16 +18,16 @@ public class SchemaResolutionAdapter implements SchemaResolutionPort {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchemaResolutionAdapter.class);
     private static final String DEFAULT_CODE = "DEFAULT";
-    private final SchemaConfigurationRepository configurations;
+    private final SchemaBindingRepository bindings;
     private final SchemaVersionRepository versions;
     private final SchemaOperationValidator schemaOperationValidator;
 
     public SchemaResolutionAdapter(
-        SchemaConfigurationRepository configurations,
+        SchemaBindingRepository bindings,
         SchemaVersionRepository versions,
         SchemaOperationValidator schemaOperationValidator
     ) {
-        this.configurations = configurations;
+        this.bindings = bindings;
         this.versions = versions;
         this.schemaOperationValidator = schemaOperationValidator;
     }
@@ -43,21 +43,21 @@ public class SchemaResolutionAdapter implements SchemaResolutionPort {
         if (!DEFAULT_CODE.equals(resourceCode)) {
             fallback = definition(type, DEFAULT_CODE);
         }
-        if (fallback.isEmpty()) LOGGER.error("No published default schema configuration: type={}", type);
+        if (fallback.isEmpty()) LOGGER.error("No published default schema binding: type={}", type);
         return schemaOperationValidator.requireDefaultDefinition(fallback);
     }
 
     private Optional<String> definition(String type, String code) {
-        Optional<SchemaConfiguration> binding = configurations.findByResourceTypeAndResourceCode(type, code);
+        Optional<SchemaBinding> binding = bindings.findByResourceTypeAndResourceCode(type, code);
         if (binding.isEmpty()) return Optional.empty();
-        SchemaConfiguration configuration = binding.get();
-        if (!configuration.isActive()) {
-            LOGGER.warn("Inactive schema configuration: type={}, code={}", type, code);
+        SchemaBinding schemaBinding = binding.get();
+        if (!schemaBinding.isActive()) {
+            LOGGER.warn("Inactive schema binding: type={}, code={}", type, code);
             return Optional.empty();
         }
-        Schema schema = configuration.getSchema();
+        Schema schema = schemaBinding.getSchema();
         if (schema == null || !schema.isActive()) {
-            LOGGER.warn("Inactive or missing configured schema: type={}, code={}", type, code);
+            LOGGER.warn("Inactive or missing bound schema: type={}, code={}", type, code);
             return Optional.empty();
         }
         Optional<SchemaVersion> published = versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(

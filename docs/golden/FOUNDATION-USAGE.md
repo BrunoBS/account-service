@@ -5,6 +5,10 @@
 **Objetivo:** registrar como a Golden Reference consome a Foundation oficial sem reabrir decisões arquiteturais da
 Foundation.
 
+> Revisão de 2026-10-18: este guia foi reconciliado com o código atual. O namespace
+> Java vigente é `br.com.portalmanager.platform.workspace`; referências abaixo a
+> `br.com.itau...` são históricas e não devem ser usadas como instrução de implementação.
+
 ## 1. Fonte oficial
 
 A Foundation oficial está no repositório:
@@ -115,6 +119,8 @@ A Golden consome somente os módulos de teste que usa, todos em escopo `test`:
 - `platform-testing-http`: fornece `@PlatformIntegrationTest` e os utilitários de teste HTTP;
 - `platform-testing-database`: fornece `@WithMySql` e a fixture MySQL com Testcontainers;
 - `platform-testing-authorization`: fornece `@WithMockAuthorization` e `AuthorizationMock`.
+- `platform-testing-redis`: fornece suporte de teste Redis/Testcontainers para a
+  publicação e reconciliação da feature Parameter.
 
 O `platform-testing-core` chega transitivamente por esses módulos. Não é declarado diretamente porque a Golden não usa
 nenhuma API exclusiva do Core.
@@ -134,7 +140,7 @@ br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockA
 
 ### platform-audit
 
-Adicionar somente quando as mutações reais de Workspace forem implementadas.
+Declarada e usada nas mutações auditadas das entidades do serviço.
 
 ### platform-catalog
 
@@ -166,21 +172,11 @@ Já chega pelo starter. Regras dependentes de Workspace permanecem explícitas n
 Já chega pelo starter. Erros e mensagens específicas de Workspace usam os contratos da Foundation sem duplicar mecanismo
 transversal.
 
-Na G3, a aplicação possui DataSource próprio de Workspace. Como a auto-configuração JDBC de Messaging é ativada na
-presença de `JdbcTemplate`, a Golden declara explicitamente um `NoOpApiMessageRepository` para indicar que **o banco de
-Workspace não é o catálogo corporativo de mensagens**.
-
-Após o review pós-G4, esse wiring reside no **composition root** como
-`br.com.itau.portalmanager.workspace.WorkspaceMessagingConfiguration`. Ele não pertence
-à application foundation macrozone. A decisão está registrada no ADR-006.
-
-Com isso, a resolução usa os bundles classpath, incluindo:
-
-```text
-META-INF/platform-messages/workspace-service_pt_BR.properties
-```
-
-Essa é uma decisão explícita de integração do consumidor; não cria uma implementação paralela de messaging.
+Messaging chega pelo starter e é configurado em `application.yml`, com resolução de
+mensagens habilitada e datasource/view `vw_dynamic_bundle_messages`. Atualmente não há
+`WorkspaceMessagingConfiguration` nem `NoOpApiMessageRepository` declarado no código.
+Consulte o ADR-006 para o histórico da decisão anterior; ele foi superado pelo wiring
+configurado na aplicação atual.
 
 ### platform-observability
 
@@ -321,7 +317,8 @@ capturável para provar os eventos sem serviço externo.
 
 `platform-catalog` passou a ser capability efetivamente consumida.
 
-Foram migrados 16 catálogos do `account-api`:
+Foram migrados catálogos da referência funcional histórica. Atualmente há 14 módulos
+concretos em `foundation.catalog`:
 
 - 12 usando `EnumCatalogService`;
 - `FeatureScopeType` usando `DynamicCatalogService`;
@@ -351,7 +348,7 @@ Todo catálogo concreto termina em `type`. Assim, mesmo a entidade histórica
 
 Packages técnicos compartilhados, como `support`, permanecem fora dessa regra.
 
-entrypoint/web/catalog
+entrypoint/catalog
 └── <catalogo>
 
 ```
@@ -365,7 +362,7 @@ enquanto a Golden declara os catálogos concretos.
 
 Permanecem pelo starter e já estão exercitados:
 
-- messaging resolve erros globais/Workspace pelo provider classpath, com `NoOpApiMessageRepository` explícito para o banco de Workspace;
+- messaging resolve mensagens via view `vw_dynamic_bundle_messages`, conforme configuração ativa;
 - logging produz saída estruturada e recebe MDC preenchido pelo fluxo de authorization.
 
 Nenhum framework paralelo foi criado.
@@ -377,7 +374,7 @@ Para evitar ambiguidade:
 
 - **Golden Platform Foundation** = `platform-build + platform-libraries`;
 - **application foundation macrozone** = package
-  `br.com.itau.portalmanager.workspace.foundation`.
+  `br.com.portalmanager.platform.workspace.foundation`.
 
 A segunda não é um depósito de configurações Spring transversais. Wiring técnico do
 consumidor fica no composition root quando não pertence a uma macrozona funcional.
@@ -411,3 +408,24 @@ versão `3.0.7` é gerenciada por `platform-dependencies`.
 ```
 
 Requests HTTP tipados de Workspace/Application usam `@ValidateResourceSchemaRequest(type, code, normalizer)` da platform-schema-validation. A biblioteca registra o advice MVC, valida o JSON recebido antes da desserialização e usa o mesmo resolver/cache/SchemaValidator existente. Os normalizadores específicos implementam SchemaPayloadNormalizer e preservam campos desconhecidos e tipos originais. Não implementar advice local nem repetir a validação no command.
+
+## 16. Redis e teste de Redis
+
+`platform-redis` é uma dependência de runtime usada pela feature `feature.parameter`;
+ela fornece a API genérica `RedisStore`. A aplicação configura o namespace
+`dynamic-parameter` em `application.yml`; conceitos de parâmetros, chave lógica e
+envelope pertencem à feature, não à library.
+
+`platform-testing-redis` é dependência de teste e é usada junto a
+`platform-testing-database` para cobrir a publicação e reconciliação com Redis real
+via Testcontainers. O uso está restrito aos testes; os cenários de integração não
+substituem o Redis real por mocks.
+
+## 17. Pacotes de aplicação atuais
+
+O package root é `br.com.portalmanager.platform.workspace`. O composition root contém
+`WorkspaceServiceApplication` e configuração geral em `config`; as macrozonas ativas
+são `foundation`, `core`, `feature` e `entrypoint`. A árvore atual e a organização
+por subdomínio estão resumidas no [README](../../README.md). Controllers de catálogos
+ficam diretamente em `entrypoint.catalog`, pois são bindings finos do controller
+genérico da capability `platform-catalog`; não há subpacote por catálogo nessa camada.

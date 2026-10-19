@@ -4,8 +4,9 @@ import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.mess
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.messagetranslator.MessageTranslator;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.repository.messagetranslator.MessageTranslatorRepository;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.messagetranslator.MessageTranslatorOutput;
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.mapping.messagetranslator.MessageTranslatorMapper;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageFinder;
-import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageNormalizer;
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.messagetranslator.MessageTranslatorNormalizer;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.validation.messagetranslator.MessageTranslatorValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 
@@ -21,17 +22,20 @@ public class MessageTranslatorQueryService {
 
     private final MessageTranslatorRepository translatorRepository;
     private final MessageFinder finder;
-    private final MessageNormalizer normalizer;
+    private final MessageTranslatorNormalizer normalizer;
+    private final MessageTranslatorMapper mapper;
     private final MessageTranslatorValidator validator;
 
     public MessageTranslatorQueryService(
             MessageTranslatorRepository translatorRepository,
             MessageFinder finder,
-            MessageNormalizer normalizer,
+            MessageTranslatorNormalizer normalizer,
+            MessageTranslatorMapper mapper,
             MessageTranslatorValidator validator) {
         this.translatorRepository = translatorRepository;
         this.finder = finder;
         this.normalizer = normalizer;
+        this.mapper = mapper;
         this.validator = validator;
     }
 
@@ -53,7 +57,7 @@ public class MessageTranslatorQueryService {
                         normalizer.normalizeLocaleFilter(locale),
                         LifecycleFilter.resolve(lifecycle).value(),
                         sortedPageable)
-                .map(MessageTranslatorOutput::from);
+                .map(mapper::toOutput);
     }
 
     @Transactional(readOnly = true)
@@ -61,6 +65,6 @@ public class MessageTranslatorQueryService {
             String messageIdentifier, String translatorIdentifier) {
         Message message = finder.findMessage(messageIdentifier);
         MessageTranslator translator = finder.findTranslator(message, translatorIdentifier);
-        return MessageTranslatorOutput.from(translator);
+        return mapper.toOutput(translator);
     }
 }

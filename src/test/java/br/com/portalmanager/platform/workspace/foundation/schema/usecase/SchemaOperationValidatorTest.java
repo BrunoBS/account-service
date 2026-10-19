@@ -8,9 +8,9 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetyp
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaInput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaVersionOperationValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.schema.CreateSchemaInput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.schema.SchemaOperationValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.version.SchemaVersionOperationValidator;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 

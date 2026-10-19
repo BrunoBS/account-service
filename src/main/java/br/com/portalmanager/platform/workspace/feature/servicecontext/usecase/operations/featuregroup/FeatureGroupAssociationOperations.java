@@ -8,7 +8,7 @@ import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.fea
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.feature.FeatureRepository;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.featuregroup.FeatureGroupRelationRepository;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.featuregroup.FeatureGroupAssociationOutput;
-import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature.FeatureMapper;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.feature.FeatureMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,8 +42,7 @@ public class FeatureGroupAssociationOperations {
         // The command has inserted the pair in this transaction; only real changes reach auditing.
         feature.markUpdated(LocalDateTime.now());
         Feature savedFeature = features.saveAndFlush(feature);
-        return new FeatureGroupAssociationOutput(
-                mapper.toOutput(savedFeature), featureGroupEntity.getIdentifier());
+        return mapper.toAssociationOutput(savedFeature, featureGroupEntity.getIdentifier());
     }
 
     @Transactional
@@ -56,6 +55,6 @@ public class FeatureGroupAssociationOperations {
         relations.delete(relation);
         feature.markUpdated(LocalDateTime.now());
         Feature savedFeature = features.saveAndFlush(feature);
-        return new FeatureGroupAssociationOutput(mapper.toOutput(savedFeature), featureGroupIdentifier);
+        return mapper.toAssociationOutput(savedFeature, featureGroupIdentifier);
     }
 }

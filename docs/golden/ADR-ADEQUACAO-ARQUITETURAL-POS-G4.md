@@ -126,7 +126,7 @@ A entidade JPA continuará no `domain`, conforme o modelo pragmático aprovado.
 ### Entrypoint/Web
 
 ```text
-entrypoint.web.workspace
+entrypoint.workspace
 ├── request
 ├── response
 └── WorkspaceController

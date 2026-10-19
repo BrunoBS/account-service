@@ -38,9 +38,9 @@ Arquivos principais: `feature/onboarding/OnboardingService`, `OnboardingReposito
 | `feature.onboarding.facade` | AuthorizationRequired, contexto de autorização e delegação. |
 | `feature.onboarding.integration` | Adaptador para receber o registro automático dos módulos core. |
 | `foundation.integration` | Contrato mínimo de integração para core comunicar os marcos, sem depender de feature. |
-| `entrypoint.web.onboarding` | Controller e responses HTTP; sem expor entidade ou projeção de repository. |
+| `entrypoint.onboarding` | Controller e responses HTTP; sem expor entidade ou projeção de repository. |
 
-`GoldenArchitectureTest` proíbe core depender de feature. Portanto WorkspaceCommandService e ApplicationCommandService não podem injetar diretamente um serviço de feature.onboarding. Usar o contrato `OnboardingPhaseCompletionPort.registerPhaseCompletion`, seguindo a fronteira adotada para `WorkspaceReferencePort`. Não usar outro repository de módulo diretamente.
+`GoldenArchitectureTest` proíbe core depender de feature. Portanto WorkspaceCommandService e ApplicationCommandService não podem injetar diretamente um serviço de feature.onboarding. Usar o contrato `PhaseCompletionPort.registerPhaseCompletion`, seguindo a fronteira adotada para `WorkspaceReferencePort`. Não usar outro repository de módulo diretamente.
 
 ## Alterações necessárias
 

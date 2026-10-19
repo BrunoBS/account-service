@@ -6,8 +6,6 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 
-import jakarta.persistence.Entity;
-
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -33,31 +31,31 @@ class FeatureCapabilityArchitectureTest {
                         "dynamicbundle",
                         "servicecontext",
                         "segmentation",
-                        "resourcesharing",
+                        "sharing",
                         "onboarding",
-                        "dynamicparameter");
+                        "parameter");
     }
 
     @Test
-    void entitiesRepositoriesAndFacadesAreOrganizedWithinTheirLayerByResponsibility() {
-        assertThat(classes.stream().filter(type -> type.isAnnotatedWith(Entity.class)).toList())
-                .isNotEmpty()
-                .allSatisfy(
-                        type ->
-                                assertThat(type.getPackageName())
-                                        .matches(".*\\.domain\\.[a-z]+(?:\\..*)?"));
-        assertThat(
-                        classes.stream()
-                                .map(JavaClass::getPackageName)
-                                .filter(
-                                        name ->
-                                                name.endsWith(".repository")
-                                                        || name.endsWith(".facade"))
-                                .distinct()
-                                .toList())
-                .as(
-                        "Feature repositories and facades must be grouped by their domain or"
-                            + " responsibility")
-                .isEmpty();
+    void singleDomainLayersAreNotWrappedInRedundantSubpackages() {
+        Set<String> packageNames =
+                classes.stream().map(JavaClass::getPackageName).collect(Collectors.toSet());
+        assertThat(packageNames)
+                .noneMatch(
+                        name ->
+                                name.matches(
+                                        ".*\\.entrypoint\\.web\\.parameter\\.parameterkey(?:\\..*)?"))
+                .noneMatch(
+                        name ->
+                                name.matches(
+                                        ".*\\.feature\\.parameter\\.(domain|facade|repository|usecase\\.model|usecase\\.validation)\\.parameterkey(?:\\..*)?"))
+                .noneMatch(
+                        name ->
+                                name.matches(
+                                        ".*\\.feature\\.onboarding\\.(domain|facade|integration|repository|usecase\\.validation)\\.(completion|progress)(?:\\..*)?"))
+                .noneMatch(
+                        name ->
+                                name.matches(
+                                        ".*\\.feature\\.sharing\\.usecase\\.validation\\.participant(?:\\..*)?"));
     }
 }

@@ -85,4 +85,6 @@ public interface FeatureRepository extends JpaRepository<Feature, Long> {
     boolean existsByName(String name);
 
     boolean existsByNameAndIdNot(String name, Long excludedId);
+
+    boolean existsByMicroservice_Id(Long microserviceId);
 }

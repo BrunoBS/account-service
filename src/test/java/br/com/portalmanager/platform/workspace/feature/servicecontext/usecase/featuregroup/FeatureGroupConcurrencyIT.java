@@ -181,7 +181,8 @@ class FeatureGroupConcurrencyIT {
             String code, String name, String featureIdentifier) {
         FeatureGroupOutput group = groups.create(new CreateFeatureGroupInput(code, name, null));
         bindings.associate(group.identifier(), featureIdentifier);
-        return FeatureGroupOutput.from(finder.findActive(group.identifier()));
+        return new br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.featuregroup.FeatureGroupMapper()
+                .toOutput(finder.findActive(group.identifier()));
     }
 
     @Test

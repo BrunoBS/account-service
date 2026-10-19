@@ -7,6 +7,7 @@ import br.com.portalmanager.platform.workspace.feature.servicecontext.repository
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.featuregroup.CreateFeatureGroupInput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.featuregroup.FeatureGroupOutput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.featuregroup.UpdateFeatureGroupInput;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.featuregroup.FeatureGroupMapper;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.featuregroup.FeatureGroupValidator;
 
 import org.springframework.stereotype.Service;
@@ -19,12 +20,15 @@ public class FeatureGroupCommandService {
     private final FeatureGroupRepository repository;
     private final FeatureGroupFinder finder;
     private final FeatureGroupValidator validator;
+    private final FeatureGroupMapper mapper;
 
     public FeatureGroupCommandService(
-            FeatureGroupRepository repository, FeatureGroupFinder finder, FeatureGroupValidator validator) {
+            FeatureGroupRepository repository, FeatureGroupFinder finder, FeatureGroupValidator validator,
+            FeatureGroupMapper mapper) {
         this.repository = repository;
         this.finder = finder;
         this.validator = validator;
+        this.mapper = mapper;
     }
 
     @Transactional
@@ -32,13 +36,8 @@ public class FeatureGroupCommandService {
     public FeatureGroupOutput create(CreateFeatureGroupInput input) {
         validator.validateForCreate(input);
         FeatureGroup featureGroupEntity =
-                repository.saveAndFlush(
-                        new FeatureGroup(
-                                input.code(),
-                                input.name(),
-                                input.description(),
-                                LocalDateTime.now()));
-        return FeatureGroupOutput.from(featureGroupEntity);
+                repository.saveAndFlush(mapper.toDomain(input, LocalDateTime.now()));
+        return mapper.toOutput(featureGroupEntity);
     }
 
     @Transactional
@@ -48,7 +47,7 @@ public class FeatureGroupCommandService {
         featureGroupEntity.requireActive();
         validator.validateForUpdate(featureGroupEntity, input);
         featureGroupEntity.update(input.name(), input.description(), LocalDateTime.now());
-        return FeatureGroupOutput.from(repository.saveAndFlush(featureGroupEntity));
+        return mapper.toOutput(repository.saveAndFlush(featureGroupEntity));
     }
 
     @Transactional
@@ -56,7 +55,7 @@ public class FeatureGroupCommandService {
     public FeatureGroupOutput activate(String featureGroupIdentifier) {
         FeatureGroup featureGroupEntity = finder.findForUpdate(featureGroupIdentifier);
         featureGroupEntity.activate(LocalDateTime.now());
-        return FeatureGroupOutput.from(repository.saveAndFlush(featureGroupEntity));
+        return mapper.toOutput(repository.saveAndFlush(featureGroupEntity));
     }
 
     @Transactional
@@ -64,7 +63,7 @@ public class FeatureGroupCommandService {
     public FeatureGroupOutput inactivate(String featureGroupIdentifier) {
         FeatureGroup featureGroupEntity = finder.findForUpdate(featureGroupIdentifier);
         featureGroupEntity.inactivate(LocalDateTime.now());
-        return FeatureGroupOutput.from(repository.saveAndFlush(featureGroupEntity));
+        return mapper.toOutput(repository.saveAndFlush(featureGroupEntity));
     }
 
     @Transactional
@@ -72,7 +71,7 @@ public class FeatureGroupCommandService {
     public FeatureGroupOutput purge(String featureGroupIdentifier) {
         FeatureGroup featureGroupEntity = finder.findForUpdate(featureGroupIdentifier);
         validator.validateForPurge(featureGroupEntity);
-        FeatureGroupOutput removedGroup = FeatureGroupOutput.from(featureGroupEntity);
+        FeatureGroupOutput removedGroup = mapper.toOutput(featureGroupEntity);
         repository.delete(featureGroupEntity);
         repository.flush();
         return removedGroup;

@@ -11,7 +11,7 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.model.Up
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.usecase.ApplicationScopeTypeService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.ApplicationSharingReferencePort;
+import br.com.portalmanager.platform.workspace.foundation.integration.ApplicationUsagePort;
 import java.util.Objects;
 import java.util.Set;
 import org.springframework.data.domain.Pageable;
@@ -22,16 +22,16 @@ public class ApplicationValidator {
 
     private final ApplicationScopeTypeService scopeService;
     private final ApplicationRepository repository;
-    private final ApplicationSharingReferencePort sharingReferences;
+    private final ApplicationUsagePort applicationUsage;
 
     public ApplicationValidator(
         ApplicationScopeTypeService scopeService,
         ApplicationRepository repository,
-        ApplicationSharingReferencePort sharingReferences
+        ApplicationUsagePort applicationUsage
     ) {
         this.scopeService = scopeService;
         this.repository = repository;
-        this.sharingReferences = sharingReferences;
+        this.applicationUsage = applicationUsage;
     }
 
     public void validateForCreate(String workspaceType, Long workspaceId, CreateApplicationInput input) {
@@ -83,7 +83,7 @@ public class ApplicationValidator {
         if (
             !ApplicationScopeTypeCode.shared().value().equals(input.applicationScope()) &&
             !application.getApplicationScope().value().equals(input.applicationScope()) &&
-            sharingReferences.hasResourceSharingContracts(application.getId())
+            applicationUsage.isInUse(application.getId())
         ) {
             throw new ValidationException(ApplicationMessageKeys.HAS_SHARED_CONTRACTS);
         }

@@ -8,6 +8,7 @@ import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.mode
 import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.model.segment.SegmentOutput;
 import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.model.segment.UpdateSegmentInput;
 import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.validation.segment.SegmentValidator;
+import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.mapping.segment.SegmentMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,22 +20,23 @@ public class SegmentCommandService {
     private final SegmentRepository repository;
     private final SegmentFinder finder;
     private final SegmentValidator validator;
+    private final SegmentMapper mapper;
 
     public SegmentCommandService(
-            SegmentRepository repository, SegmentFinder finder, SegmentValidator validator) {
+            SegmentRepository repository, SegmentFinder finder, SegmentValidator validator,
+            SegmentMapper mapper) {
         this.repository = repository;
         this.finder = finder;
         this.validator = validator;
+        this.mapper = mapper;
     }
 
     @Transactional
     @Auditable(action = AuditAction.CREATE, event = "SEGMENT_CREATED", resourceType = "SEGMENT")
     public SegmentOutput create(CreateSegmentInput input) {
         validator.validateForCreate(input);
-        Segment resource =
-                repository.saveAndFlush(
-                        new Segment(input.code(), input.name(), LocalDateTime.now()));
-        return SegmentOutput.from(resource);
+        Segment resource = repository.saveAndFlush(mapper.toDomain(input, LocalDateTime.now()));
+        return mapper.toOutput(resource);
     }
 
     @Transactional
@@ -43,7 +45,7 @@ public class SegmentCommandService {
         Segment resource = finder.findForUpdate(identifier);
         validator.validateForUpdate(resource, input);
         resource.update(input.name(), LocalDateTime.now());
-        return SegmentOutput.from(repository.saveAndFlush(resource));
+        return mapper.toOutput(repository.saveAndFlush(resource));
     }
 
     @Transactional
@@ -51,7 +53,7 @@ public class SegmentCommandService {
     public SegmentOutput activate(String identifier) {
         Segment resource = finder.findForUpdate(identifier);
         resource.activate(LocalDateTime.now());
-        return SegmentOutput.from(repository.saveAndFlush(resource));
+        return mapper.toOutput(repository.saveAndFlush(resource));
     }
 
     @Transactional
@@ -62,6 +64,6 @@ public class SegmentCommandService {
     public SegmentOutput inactivate(String identifier) {
         Segment resource = finder.findForUpdate(identifier);
         resource.inactivate(LocalDateTime.now());
-        return SegmentOutput.from(repository.saveAndFlush(resource));
+        return mapper.toOutput(repository.saveAndFlush(resource));
     }
 }

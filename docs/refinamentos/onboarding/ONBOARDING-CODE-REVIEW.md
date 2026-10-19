@@ -48,7 +48,7 @@ Sem as duas integrações futuras, as operações públicas atuais não permitem
 registrar todas as fases. Os testes da conclusão preparam essas duas conclusões
 como fixture; não demonstram gatilhos de configuração ainda inexistentes.
 
-Core chama `OnboardingPhaseCompletionPort.registerPhaseCompletion`. O adapter
+Core chama `PhaseCompletionPort.registerPhaseCompletion`. O adapter
 delega a `OnboardingPhaseCompletionCommandService`, que valida catálogo e sessão
 e insere o histórico. A conclusão total usa `OnboardingCommandService`.
 A separação evita a dependência circular que ocorreria com um único command:
@@ -72,7 +72,7 @@ Inativação/quarentena de aplicações não desfaz conclusões históricas.
 | Adapter com regras/persistência | Adapter passou a delegar ao command de conclusão de fase. |
 | Repositories de outros módulos | Query e validator consomem `OnboardingPhaseTypeService`; core é acessado por seus serviços públicos. Regra de arquitetura impede acesso a repositories externos. |
 | Exceção específica | Removida `OnboardingConfigurationException`; erros técnicos usam `ApiException` da plataforma com chaves, status e mensagens localizadas. |
-| Nomenclatura | `OnboardingMilestonePort/Adapter` substituídos por `OnboardingPhaseCompletionPort/Adapter`; `register` por `registerPhaseCompletion`. |
+| Nomenclatura | `OnboardingMilestonePort/Adapter` substituídos por `PhaseCompletionPort/Adapter`; `register` por `registerPhaseCompletion`. |
 | Validação final | `requireCompleted` renomeado para `requireReadyToComplete`, refletindo a pré-condição real. |
 | Variáveis | Serviços e dados nomeados `workspaceQueryService`, `phaseCatalogService`, `completionRepository`, `phaseOutputs` e `inProgressPhaseCode`. |
 | `findProgress` | Método principal concentra busca, validação e composição do progresso. Histórico por fase, montagem dos outputs e decisão de status ficam em métodos menores. A primeira fase sem conclusão é calculada explicitamente, sem booleano mutável. |

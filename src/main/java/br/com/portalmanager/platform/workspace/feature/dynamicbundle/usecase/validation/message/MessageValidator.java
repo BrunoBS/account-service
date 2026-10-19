@@ -7,7 +7,7 @@ import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.mess
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.repository.message.MessageRepository;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.CreateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.UpdateMessageInput;
-import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceQueryService;
+import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort;
 import java.util.Objects;
 import java.util.Set;
 import org.springframework.data.domain.Pageable;
@@ -17,13 +17,13 @@ import org.springframework.stereotype.Component;
 public class MessageValidator {
 
     private final MessageRepository messageRepository;
-    private final MicroserviceQueryService microserviceQueryService;
+    private final MicroserviceReferencePort microservices;
 
     public MessageValidator(
             MessageRepository messageRepository,
-            MicroserviceQueryService microserviceQueryService) {
+            MicroserviceReferencePort microservices) {
         this.messageRepository = messageRepository;
-        this.microserviceQueryService = microserviceQueryService;
+        this.microservices = microservices;
     }
 
     public Long validateForCreate(CreateMessageInput input) {
@@ -64,8 +64,9 @@ public class MessageValidator {
             Set.of("id", "identifier", "messageKey", "code", "httpStatus", "createdAt", "updatedAt");
 
     private Long resolveActiveMicroserviceId(String microserviceIdentifier) {
-        return microserviceQueryService
-                .findActiveInternalIdForMessage(microserviceIdentifier)
+        return microservices
+                .findActiveByIdentifier(microserviceIdentifier)
+                .map(MicroserviceReferencePort.Reference::internalId)
                 .orElseThrow(
                         () -> fieldError("microserviceIdentifier", MessageMessageKeys.MICROSERVICE_INVALID));
     }

@@ -2,9 +2,9 @@ package br.com.portalmanager.platform.workspace.core.environment.usecase.operati
 
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.CreateEnvironmentInput;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentOutput;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.UpdateEnvironmentInput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.CreateEnvironmentInput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.EnvironmentOutput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.UpdateEnvironmentInput;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -7,19 +7,18 @@ import br.com.portalmanager.platform.library.messaging.exception.ApiException;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOnboardingReferenceOutput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.feature.onboarding.domain.OnboardingMessageKeys;
-import br.com.portalmanager.platform.workspace.feature.onboarding.domain.completion.WorkspaceOnboardingCompletion;
-import br.com.portalmanager.platform.workspace.feature.onboarding.repository.completion.WorkspaceOnboardingCompletionRepository;
+import br.com.portalmanager.platform.workspace.feature.onboarding.domain.WorkspaceOnboardingCompletion;
+import br.com.portalmanager.platform.workspace.feature.onboarding.repository.WorkspaceOnboardingCompletionRepository;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.phase.OnboardingPhaseOutput;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.phase.OnboardingPhaseStatus;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.progress.OnboardingProgressOutput;
-import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation.progress.OnboardingValidator;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation.OnboardingValidator;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.mapping.OnboardingProgressMapper;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.usecase.OnboardingPhaseTypeService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import tools.jackson.databind.JsonNode;
 
 import java.util.Comparator;
 import java.util.List;
@@ -44,16 +43,19 @@ public class OnboardingQueryService {
     private final OnboardingPhaseTypeService phaseCatalogService;
     private final WorkspaceOnboardingCompletionRepository completionRepository;
     private final OnboardingValidator validator;
+    private final OnboardingProgressMapper mapper;
 
     public OnboardingQueryService(
             WorkspaceQueryService workspaceQueryService,
             OnboardingPhaseTypeService phaseCatalogService,
             WorkspaceOnboardingCompletionRepository completionRepository,
-            OnboardingValidator validator) {
+            OnboardingValidator validator,
+            OnboardingProgressMapper mapper) {
         this.workspaceQueryService = workspaceQueryService;
         this.phaseCatalogService = phaseCatalogService;
         this.completionRepository = completionRepository;
         this.validator = validator;
+        this.mapper = mapper;
     }
 
     @Transactional(readOnly = true)
@@ -70,12 +72,9 @@ public class OnboardingQueryService {
         boolean readyToComplete =
                 phaseOutputs.stream()
                         .allMatch(phase -> phase.status() == OnboardingPhaseStatus.COMPLETED);
-        return new OnboardingProgressOutput(
-                workspaceIdentifier,
-                workspace.workspaceType(),
-                workspace.onboarding(),
-                readyToComplete,
-                phaseOutputs);
+        return mapper.toOutput(
+                workspaceIdentifier, workspace.workspaceType(), workspace.onboarding(),
+                readyToComplete, phaseOutputs);
     }
 
     private Map<String, WorkspaceOnboardingCompletion> findCompletionsByPhase(Long workspaceId) {
@@ -98,28 +97,14 @@ public class OnboardingQueryService {
         return configuredPhases.stream()
                 .map(
                         phase ->
-                                toPhaseOutput(
+                                mapper.toPhaseOutput(
                                         phase,
                                         completionsByPhase.get(phase.code()),
-                                        inProgressPhaseCode))
+                                        determinePhaseStatus(
+                                                phase.code(),
+                                                completionsByPhase.get(phase.code()),
+                                                inProgressPhaseCode)))
                 .toList();
-    }
-
-    private OnboardingPhaseOutput toPhaseOutput(
-            CatalogDTO phase,
-            WorkspaceOnboardingCompletion completion,
-            String inProgressPhaseCode) {
-        JsonNode orientation = phase.settings().get("orientation");
-        return new OnboardingPhaseOutput(
-                phase.code(),
-                phase.label(),
-                phase.description(),
-                phase.sortOrder(),
-                orientation == null || orientation.isNull() ? null : orientation.asString(),
-                phase.settings(),
-                determinePhaseStatus(phase.code(), completion, inProgressPhaseCode),
-                completion == null ? null : completion.getRequester(),
-                completion == null ? null : completion.getCompletedAt());
     }
 
     private OnboardingPhaseStatus determinePhaseStatus(

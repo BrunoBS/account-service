@@ -1,7 +1,9 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.domain.microservice;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 
 import org.junit.jupiter.api.Test;
@@ -47,5 +49,17 @@ class MicroserviceDomainTest {
         microservice.activate(NOW.plusMinutes(3));
         assertThat(microservice.isActive()).isTrue();
         assertThat(microservice.getName()).isEqualTo("Audit Service");
+    }
+
+    @Test
+    void onlyInactiveMicroservicesCanBePhysicallyDeleted() {
+        Microservice microservice =
+                new Microservice("audit-service", "Audit Service", null, "{}", NOW);
+
+        assertThatThrownBy(microservice::requireInactiveForDeletion)
+                .isInstanceOf(ValidationException.class);
+
+        microservice.inactivate(NOW.plusMinutes(1));
+        microservice.requireInactiveForDeletion();
     }
 }

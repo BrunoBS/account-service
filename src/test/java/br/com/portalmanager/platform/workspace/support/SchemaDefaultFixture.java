@@ -1,9 +1,14 @@
 package br.com.portalmanager.platform.workspace.support;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 
 /**
  * Recreates the persisted schema fallback and Golden resource contracts after test database
@@ -94,7 +99,7 @@ public final class SchemaDefaultFixture {
                 """);
         jdbc.update(
                 """
-                INSERT IGNORE INTO schema_configuration
+                INSERT IGNORE INTO schema_binding
                     (version, identifier, resource_type, resource_code, schema_id, lifecycle_code,
                      created_at, updated_at)
                 SELECT 0, UUID(), resource_types.resource_type, 'DEFAULT', sd.id, 'ACTIVE',
@@ -153,7 +158,7 @@ public final class SchemaDefaultFixture {
                 """);
         jdbc.update(
                 """
-                INSERT IGNORE INTO schema_configuration
+                INSERT IGNORE INTO schema_binding
                     (version, identifier, resource_type, resource_code, schema_id, lifecycle_code,
                      created_at, updated_at)
                 SELECT 0, UUID(), 'APPLICATION', 'application', sd.id, 'ACTIVE',
@@ -164,66 +169,39 @@ public final class SchemaDefaultFixture {
         jdbc.execute(
                 (ConnectionCallback<Void>)
                         connection -> {
-                            ScriptUtils.executeSqlScript(
+                            executeSchemaSeed(
+                                    connection, "db/migration/V42__workspace_resource_schema.sql");
+                            executeSchemaSeed(
                                     connection,
-                                    new ClassPathResource(
-                                            "db/migration/V42__workspace_resource_schema.sql"));
-                            ScriptUtils.executeSqlScript(
+                                    "db/migration/V50__publisher_resource_schema_and_limits.sql");
+                            executeSchemaSeed(
+                                    connection, "db/migration/V52__environment_resource_schemas.sql");
+                            executeSchemaSeed(
                                     connection,
-                                    new ClassPathResource(
-                                            "db/migration/V50__publisher_resource_schema_and_limits.sql"));
-                            ScriptUtils.executeSqlScript(
+                                    "db/migration/V55__environment_type_compatibility_identifiers.sql");
+                            executeSchemaSeed(
                                     connection,
-                                    new ClassPathResource(
-                                            "db/migration/V52__environment_resource_schemas.sql"));
-                            ScriptUtils.executeSqlScript(
+                                    "db/migration/V57__environment_type_code_schemas.sql");
+                            executeSchemaSeed(
+                                    connection, "db/migration/V58__message_resource_schemas.sql");
+                            executeSchemaSeed(
                                     connection,
-                                    new ClassPathResource(
-                                            "db/migration/V55__environment_type_compatibility_identifiers.sql"));
-                            ScriptUtils.executeSqlScript(
+                                    "db/migration/V61__onboarding_phase_settings_schema.sql");
+                            executeSchemaSeed(
                                     connection,
-                                    new ClassPathResource(
-                                            "db/migration/V57__environment_type_code_schemas.sql"));
-                            ScriptUtils.executeSqlScript(
+                                    "db/migration/V62__microservice_resource_schema.sql");
+                            executeSchemaSeed(
+                                    connection, "db/migration/V63__feature_resource_schema.sql");
+                            executeSchemaSeed(
+                                    connection, "db/migration/V64__context_resource_schema.sql");
+                            executeSchemaSeed(
                                     connection,
-                                    new ClassPathResource(
-                                            "db/migration/V58__message_resource_schemas.sql"));
-                            ScriptUtils.executeSqlScript(
-                                    connection,
-                                    new ClassPathResource(
-                                            "db/migration/V61__onboarding_phase_settings_schema.sql"));
-                            ScriptUtils.executeSqlScript(
-                                    connection,
-                                    new ClassPathResource(
-                                            "db/migration/V62__microservice_resource_schema.sql"));
-                            ScriptUtils.executeSqlScript(
-                                    connection,
-                                    new ClassPathResource(
-                                            "db/migration/V63__feature_resource_schema.sql"));
-                            ScriptUtils.executeSqlScript(
-                                    connection,
-                                    new ClassPathResource(
-                                            "db/migration/V64__context_resource_schema.sql"));
-                            ScriptUtils.executeSqlScript(
-                                    connection,
-                                    new ClassPathResource(
-                                            "db/migration/V65__separate_feature_context_resource_schema.sql"));
-                            ScriptUtils.executeSqlScript(
-                                    connection,
-                                    new ClassPathResource(
-                                            "db/migration/V67__segment_resource_schemas.sql"));
-                            ScriptUtils.executeSqlScript(
-                                    connection,
-                                    new ClassPathResource(
-                                            "migration/dynamic-bundle-schema-seed.sql"));
-                            ScriptUtils.executeSqlScript(
-                                    connection,
-                                    new ClassPathResource(
-                                            "migration/service-context-schema-seed.sql"));
-                            ScriptUtils.executeSqlScript(
-                                    connection,
-                                    new ClassPathResource(
-                                            "migration/segmentation-schema-seed.sql"));
+                                    "db/migration/V65__separate_feature_context_resource_schema.sql");
+                            executeSchemaSeed(
+                                    connection, "db/migration/V67__segment_resource_schemas.sql");
+                            executeSchemaSeed(connection, "migration/dynamic-bundle-schema-seed.sql");
+                            executeSchemaSeed(connection, "migration/service-context-schema-seed.sql");
+                            executeSchemaSeed(connection, "migration/segmentation-schema-seed.sql");
                             return null;
                         });
         try {
@@ -270,6 +248,20 @@ public final class SchemaDefaultFixture {
         }
     }
 
+    private static void executeSchemaSeed(Connection connection, String path)
+            throws java.sql.SQLException {
+        ClassPathResource resource = new ClassPathResource(path);
+        try (var input = resource.getInputStream()) {
+            String sql = new String(input.readAllBytes(), StandardCharsets.UTF_8)
+                    .replace("schema_configuration", "schema_binding");
+            ScriptUtils.executeSqlScript(
+                    connection,
+                    new ByteArrayResource(sql.getBytes(StandardCharsets.UTF_8), path));
+        } catch (IOException exception) {
+            throw new IllegalStateException("Could not load historical schema seed: " + path, exception);
+        }
+    }
+
     private static void seedDynamicParameterSchemas(JdbcTemplate jdbc) throws java.io.IOException {
         for (String resource :
                 java.util.List.of(
@@ -307,7 +299,7 @@ public final class SchemaDefaultFixture {
                     definition,
                     code);
             jdbc.update(
-                    "INSERT IGNORE INTO schema_configuration"
+                    "INSERT IGNORE INTO schema_binding"
                         + " (version,identifier,resource_type,resource_code,schema_id,lifecycle_code,created_at,updated_at)"
                         + " SELECT 0,UUID(),?,?,id,'ACTIVE',NOW(),NOW() FROM schema_definitions"
                         + " WHERE scope_code='PLATFORM' AND code=?",

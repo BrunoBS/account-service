@@ -124,7 +124,7 @@ version      = 1
 status       = PUBLISHED
 ```
 
-A migration `V34__application_resource_schema.sql` publica o contrato estrutural da Application e cria seu vínculo em `schema_configuration`.
+A migration `V34__application_resource_schema.sql` publica o contrato estrutural da Application e cria seu vínculo em `schema_binding`.
 
 O controller continua recebendo `CreateApplicationRequest` ou `UpdateApplicationRequest` normalmente. A validação ocorre antes da desserialização por meio de `@ValidateResourceSchema` e do `ResourceSchemaRequestBodyAdvice` fornecidos pelo módulo `platform-schema-validation`.
 

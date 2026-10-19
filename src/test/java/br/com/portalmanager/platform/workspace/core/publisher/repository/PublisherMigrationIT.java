@@ -69,7 +69,7 @@ class PublisherMigrationIT {
         ).isEqualTo(200L);
         assertThat(
             jdbc.queryForObject(
-                "select count(*) from schema_configuration where resource_type='PUBLISHER' and resource_code='publisher'",
+                "select count(*) from schema_binding where resource_type='PUBLISHER' and resource_code='publisher'",
                 Long.class
             )
         ).isEqualTo(1L);

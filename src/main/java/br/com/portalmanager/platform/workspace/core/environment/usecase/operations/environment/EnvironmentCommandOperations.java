@@ -5,14 +5,14 @@ import br.com.portalmanager.platform.library.messaging.exception.ValidationExcep
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
 import br.com.portalmanager.platform.workspace.core.environment.domain.environment.Environment;
 import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentType;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.mapping.EnvironmentMapper;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.CreateEnvironmentInput;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentOutput;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.UpdateEnvironmentInput;
+import br.com.portalmanager.platform.workspace.core.environment.repository.environment.EnvironmentRepository;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.mapping.environment.EnvironmentMapper;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.CreateEnvironmentInput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.EnvironmentOutput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.UpdateEnvironmentInput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environmenttype.EnvironmentTypeFinder;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentTopologyValidator;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentValidator;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.environment.EnvironmentTopologyValidator;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.environment.EnvironmentValidator;
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -166,7 +166,7 @@ public class EnvironmentCommandOperations {
 
     private EnvironmentOutput saveAndReturnOutput(Environment environment, String workspaceIdentifier) {
         Environment savedEnvironment = repository.saveAndFlush(environment);
-        return EnvironmentOutput.from(savedEnvironment, workspaceIdentifier);
+        return mapper.toOutput(savedEnvironment, workspaceIdentifier);
     }
 
     private String environmentTypeCode(Environment environment) {

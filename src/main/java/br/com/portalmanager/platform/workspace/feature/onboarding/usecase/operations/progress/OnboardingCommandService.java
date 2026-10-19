@@ -2,7 +2,7 @@ package br.com.portalmanager.platform.workspace.feature.onboarding.usecase.opera
 
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceCommandService;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.progress.OnboardingProgressOutput;
-import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation.progress.OnboardingValidator;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation.OnboardingValidator;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

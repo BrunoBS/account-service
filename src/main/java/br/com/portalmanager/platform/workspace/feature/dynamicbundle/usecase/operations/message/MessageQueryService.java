@@ -1,10 +1,14 @@
 package br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message;
 
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.mapping.message.MessageMapper;
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageNormalizer;
+
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.message.Message;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.repository.message.MessageRepository;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.MessageOutput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.validation.message.MessageValidator;
-import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceQueryService;
+import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort;
+import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort.Reference;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 
 import org.springframework.data.domain.Page;
@@ -24,20 +28,23 @@ public class MessageQueryService {
     private final MessageRepository messageRepository;
     private final MessageFinder finder;
     private final MessageNormalizer normalizer;
+    private final MessageMapper mapper;
     private final MessageValidator validator;
-    private final MicroserviceQueryService microserviceQueryService;
+    private final MicroserviceReferencePort microservices;
 
     public MessageQueryService(
             MessageRepository messageRepository,
             MessageFinder finder,
             MessageNormalizer normalizer,
-            MicroserviceQueryService microserviceQueryService,
+            MessageMapper mapper,
+            MicroserviceReferencePort microservices,
             MessageValidator validator) {
         this.messageRepository = messageRepository;
         this.finder = finder;
         this.normalizer = normalizer;
+        this.mapper = mapper;
         this.validator = validator;
-        this.microserviceQueryService = microserviceQueryService;
+        this.microservices = microservices;
     }
 
     @Transactional(readOnly = true)
@@ -66,8 +73,7 @@ public class MessageQueryService {
         Long microserviceId =
                 normalizedMicroserviceIdentifier == null
                         ? null
-                        : microserviceQueryService.findInternalIdByIdentifier(
-                                normalizedMicroserviceIdentifier);
+                        : microservices.findByIdentifier(normalizedMicroserviceIdentifier).internalId();
 
         Page<Message> messagePage =
                 messageRepository.findFiltered(
@@ -78,17 +84,22 @@ public class MessageQueryService {
                         sortedPageable);
         Set<Long> microserviceIds =
                 messagePage.stream().map(Message::getMicroserviceId).collect(Collectors.toSet());
-        Map<Long, String> microserviceIdentifiers =
-                microserviceQueryService.findIdentifiersByInternalIds(microserviceIds);
+        Map<Long, Reference> microserviceReferences = microservices.findByInternalIds(microserviceIds);
         return messagePage.map(
                 message ->
-                        MessageOutput.from(
-                                message, microserviceIdentifiers.get(message.getMicroserviceId())));
+                        mapper.toOutput(
+                                message,
+                                microserviceReferences
+                                        .get(message.getMicroserviceId())
+                                        .identifier()));
     }
 
     private MessageOutput toOutput(Message message) {
-        return MessageOutput.from(
+        return mapper.toOutput(
                 message,
-                microserviceQueryService.findIdentifierByInternalId(message.getMicroserviceId()));
+                microservices
+                        .findByInternalIds(Set.of(message.getMicroserviceId()))
+                        .get(message.getMicroserviceId())
+                        .identifier());
     }
 }

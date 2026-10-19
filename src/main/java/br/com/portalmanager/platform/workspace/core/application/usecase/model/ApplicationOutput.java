@@ -1,8 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.application.usecase.model;
 
-import br.com.portalmanager.platform.workspace.core.application.domain.Application;
 import java.time.LocalDateTime;
-import java.util.List;
 import tools.jackson.databind.JsonNode;
 
 public record ApplicationOutput(
@@ -19,24 +17,5 @@ public record ApplicationOutput(
     String lifecycle,
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
-    List<String> tags
-) {
-    public static ApplicationOutput from(Application application, String workspaceIdentifier, List<String> tags) {
-        return new ApplicationOutput(
-            application.getVersion(),
-            application.getIdentifier(),
-            workspaceIdentifier,
-            application.getName(),
-            application.getAlias(),
-            application.getDescription(),
-            application.getAcronym(),
-            application.getApplicationScope().value(),
-            application.getAuthorizerGroup(),
-            application.getSettings(),
-            application.getLifecycle().value(),
-            application.getCreatedAt(),
-            application.getUpdatedAt(),
-            tags == null ? List.of() : List.copyOf(tags)
-        );
-    }
-}
+    java.util.List<String> tags
+) {}

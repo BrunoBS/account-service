@@ -2,6 +2,7 @@ package br.com.portalmanager.platform.workspace.core.publisher.usecase.operation
 
 import br.com.portalmanager.platform.workspace.core.publisher.repository.PublisherRepository;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.model.PublisherOutput;
+import br.com.portalmanager.platform.workspace.core.publisher.usecase.mapping.PublisherMapper;
 import br.com.portalmanager.platform.workspace.core.publisher.usecase.validation.PublisherValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 import org.springframework.data.domain.Page;
@@ -16,22 +17,25 @@ public class PublisherQueryService {
     private final PublisherFinder finder;
     private final PublisherNormalizer normalizer;
     private final PublisherValidator validator;
+    private final PublisherMapper mapper;
 
     public PublisherQueryService(
         PublisherRepository repository,
         PublisherFinder finder,
         PublisherNormalizer normalizer,
-        PublisherValidator validator
+        PublisherValidator validator,
+        PublisherMapper mapper
     ) {
         this.repository = repository;
         this.finder = finder;
         this.normalizer = normalizer;
         this.validator = validator;
+        this.mapper = mapper;
     }
 
     @Transactional(readOnly = true)
     public PublisherOutput find(String identifier) {
-        return PublisherOutput.from(finder.findActive(identifier));
+        return mapper.toOutput(finder.findActive(identifier));
     }
 
     @Transactional(readOnly = true)
@@ -41,7 +45,7 @@ public class PublisherQueryService {
         String lifecycleCode = LifecycleFilter.resolve(lifecycle).value();
         if (scope == null || scope.isBlank()) return repository
             .findByLifecycle(lifecycleCode, pageable)
-            .map(PublisherOutput::from);
-        return repository.findByLifecycleAndScope(lifecycleCode, scope, pageable).map(PublisherOutput::from);
+            .map(mapper::toOutput);
+        return repository.findByLifecycleAndScope(lifecycleCode, scope, pageable).map(mapper::toOutput);
     }
 }

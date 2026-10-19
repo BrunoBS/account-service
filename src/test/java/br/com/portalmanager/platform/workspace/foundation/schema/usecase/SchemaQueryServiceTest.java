@@ -5,10 +5,12 @@ import static org.mockito.Mockito.*;
 
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.schema.SchemaRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.version.SchemaVersionRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.version.SchemaVersionOutput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.SchemaQueryService;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.mapping.schema.SchemaMapper;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.mapping.version.SchemaVersionMapper;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -21,7 +23,9 @@ class SchemaQueryServiceTest {
     private final SchemaQueryService service = new SchemaQueryService(
         schemaRepository,
         versionRepository,
-        workspaceReferencePort
+        workspaceReferencePort,
+        new SchemaMapper(),
+        new SchemaVersionMapper()
     );
 
     @Test

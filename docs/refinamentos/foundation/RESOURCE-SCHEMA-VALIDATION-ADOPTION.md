@@ -32,7 +32,7 @@ Cadastrar o Schema independente do recurso, versionar sua definição e publicar
 
 O Schema deve representar o contrato HTTP estrutural completo do recurso.
 
-### 3. Criar SchemaConfiguration
+### 3. Criar SchemaBinding
 
 Associar:
 
@@ -189,7 +189,7 @@ Um recurso está aderente quando:
 
 - possui binding documentado;
 - possui Schema ativo e versão PUBLISHED;
-- possui SchemaConfiguration;
+- possui SchemaBinding;
 - declara `@ValidateResourceSchema` no endpoint e valida o JSON bruto antes de Request/Input;
 - não reconstrói payload estrutural via reflection;
 - distingue ausente de `null`;

@@ -76,7 +76,7 @@ class WorkspaceResourceSchemaMigrationIT {
         List<JsonNode> definitions = jdbcTemplate.query(
             """
             select version.definition
-              from schema_configuration configuration
+              from schema_binding configuration
               join schema_definitions definition on definition.id = configuration.schema_id
               join schema_versions version on version.schema_id = definition.id
              where configuration.resource_type = 'WORKSPACE'

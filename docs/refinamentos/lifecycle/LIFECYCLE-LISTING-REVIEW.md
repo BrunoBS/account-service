@@ -31,7 +31,7 @@ LifecycleFilter reutiliza LifecycleTypeEnum/LifecycleTypeCode do catálogo de li
 | MessageTranslationController | /api/v1/messages/{message}/translations | active opcional; ausência listava todos | lifecycle, padrão ACTIVE, content/page; somente ACTIVE/INACTIVE persistidos |
 | PlatformSchemaController | /api/v1/schemas | todos os estados | lifecycle + scope PLATFORM |
 | WorkspaceSchemaController | /api/v1/workspaces/{workspace}/schemas | todos os estados | lifecycle + scope WORKSPACE + workspace |
-| SchemaConfigurationController | /api/v1/schema-configurations | todos os estados | lifecycle, ordem por id |
+| SchemaBindingController | /api/v1/schema-bindings | todos os estados | lifecycle, ordem por id |
 | SharedOwnerController | /api/v1/workspaces/{workspace}/applications/{application}/shared-contracts | todos os estados | lifecycle, conteúdo/contagem paginados com o mesmo filtro |
 | Controllers de catálogos | application-scope-type, authorization-type, onboarding-type, schema-version-status-type, share-status-type, lifecycle-type, publication-mode-type, resource-scope-type, schema-scope, tag-origin-type, workspace-type, visibility-type | active booleano | preservado |
 | OnboardingController | progresso individual | sem findAll/listagem geral | preservado |

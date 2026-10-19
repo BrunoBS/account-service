@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice;
 
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.microservice.MicroserviceMapper;
+
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.microservice.Microservice;
@@ -40,8 +42,7 @@ public class MicroserviceCommandService {
             resourceType = "MICROSERVICE")
     public MicroserviceOutput create(CreateMicroserviceInput input) {
         validator.validateForCreate(input);
-        Microservice microservice =
-                new Microservice(input.code(), mapper.toDetails(input), LocalDateTime.now());
+        Microservice microservice = mapper.toDomain(input, input.code(), LocalDateTime.now());
         return mapper.toOutput(repository.saveAndFlush(microservice));
     }
 
@@ -78,5 +79,16 @@ public class MicroserviceCommandService {
         Microservice microservice = finder.findForUpdate(identifier);
         microservice.inactivate(LocalDateTime.now());
         return mapper.toOutput(repository.saveAndFlush(microservice));
+    }
+
+    @Transactional
+    @Auditable(action = AuditAction.PURGE, event = "MICROSERVICE_PURGED", resourceType = "MICROSERVICE")
+    public MicroserviceOutput purge(String identifier) {
+        Microservice microservice = finder.findForUpdate(identifier);
+        validator.validateForPurge(microservice);
+        MicroserviceOutput removedMicroservice = mapper.toOutput(microservice);
+        repository.delete(microservice);
+        repository.flush();
+        return removedMicroservice;
     }
 }

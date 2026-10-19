@@ -22,6 +22,8 @@ Este repositório implementa a fase `GOLDEN-REFERENCE-V1` sobre o checkpoint `FO
 - `br.com.portalmanager.platform.library:platform-testing-database:1.0.0`;
 - `br.com.portalmanager.platform.library:platform-testing-authorization:1.0.0`
 - `br.com.portalmanager.platform.library:platform-catalog:1.0.0`
+- `br.com.portalmanager.platform.library:platform-redis:1.0.0` (runtime de Parameter)
+- `br.com.portalmanager.platform.library:platform-testing-redis:1.0.0` (teste)
 
 ## Arquitetura
 
@@ -30,20 +32,33 @@ A aplicação utiliza as macrozonas:
 ```text
 br.com.portalmanager.platform.workspace
 ├── WorkspaceServiceApplication
+├── config/{WorkspaceConfiguration,WorkspaceProperties}
 ├── foundation
-│   ├── catalog
-│   │   └── <catalog-type>/{domain,repository,usecase}
+│   ├── audit/{domain,repository}
+│   ├── catalog/<catalog-type>/{domain,facade,repository,usecase}
 │   ├── integration/*Port
-│   └── schema/{domain,repository,integration/*{Port,Adapter},usecase/{model,operations,validation}}
-├── core/workspace/{domain,repository,integration,usecase/{model,operations,validation}}
+│   └── schema/{domain,facade,integration,repository,usecase}
+├── core
+│   ├── workspace/{config,domain,facade,integration,repository,usecase}
+│   ├── application/{config,domain,facade,repository,usecase}
+│   ├── publisher/{domain,facade,repository,usecase}
+│   └── environment/{domain,facade,integration,repository,usecase}
 ├── feature
 │   ├── dynamicbundle/{domain,facade,repository,usecase/{model,operations,validation}}
 │   ├── onboarding/{domain,repository,integration,usecase/{model,operations,validation}}
 │   ├── servicecontext/{domain,repository,usecase/{model,operations,validation}}
-│   ├── dynamicparameter/{domain,repository,integration,facade,usecase/{model,operations,validation}}
+│   ├── parameter/{domain,repository,integration,facade,usecase/{model,operations,validation}}
 │   ├── segmentation/{domain,repository,facade,usecase/{model,operations,validation}}
-│   └── resourcesharing/{domain,repository,integration,usecase/{model,operations,validation}}
-└── entrypoint/web/{catalog,workspace,onboarding,dynamicbundle,servicecontext,dynamicparameter,segmentation,resourcesharing,schema}
+│   └── sharing/{domain,repository,integration,usecase/{model,operations,validation}}
+└── entrypoint
+    ├── catalog                 # controllers genéricos ficam diretamente aqui
+    ├── workspace/{request,response}
+    ├── application/{request,response}
+    ├── dynamicbundle/{message,messagetranslator}
+    ├── servicecontext/{microservice,feature,featuregroup}
+    ├── segmentation/{segment,category}
+    ├── sharing/{contract,participant}
+    └── environment, onboarding, parameter, publisher, schema
 ```
 
 Pacotes vazios não são criados apenas para completar a árvore.
@@ -62,12 +77,12 @@ junto ao agregado ao qual pertencem; ter várias classes não exige criar subpac
 
 | Módulo              | Subpacotes de domínio                                      |
 | ------------------- | ---------------------------------------------------------- |
-| `feature.servicecontext` | `feature`, `microservice`, `group`, `featuregroup`                |
-| `feature.resourcesharing` | `contract`, `participant` (inclui os mapeamentos)        |
+| `feature.servicecontext` | `feature`, `microservice`, `featuregroup`                |
+| `feature.sharing` | `contract`, `participant` (inclui os mapeamentos)        |
 | `feature.segmentation` | `segment`, `category` (catálogo global)                   |
-| `feature.dynamicparameter` | `parameterkey`: parâmetros globais ou de um microsserviço, com JSON editável e snapshot publicado. |
+| `feature.parameter` | sem subpacote no domínio; `ParameterKey` representa parâmetros globais ou de um microsserviço. |
 | `core.environment`  | `environment`, `environmenttype` (inclui compatibilidades) |
-| `foundation.schema` | `schema`, `version`, `configuration`                       |
+| `foundation.schema` | `schema`, `version`, `binding`                       |
 
 As features organizam as camadas por subdomínio ou responsabilidade; Dynamic Bundle usa `message`/`messagetranslator`, e Onboarding usa `completion`/`progress`/`phase`.
 As chaves de mensagens compartilhadas entre responsabilidades permanecem na raiz
@@ -170,13 +185,13 @@ Associar/remover usa POST/DELETE em
 `/api/v1/service-contexts/feature-groups/{featureGroupIdentifier}/features/{featureIdentifier}`.
 Listar features por grupo usa `featureGroupIdentifier`; a consulta inversa usa
 `featureIdentifier`. Locks, filtros de lifecycle, idempotência e auditoria são preservados.
-V78 renomeia as tabelas do módulo e V81 renomeia FeatureGroup e sua associação, preservando dados. O binding HTTP passa
+V78 renomeia as tabelas do módulo, V81 renomeia FeatureGroup e sua associação e V82 alinha os títulos dos schemas, preservando dados. O binding HTTP passa
 para `SERVICE_CONTEXT`; settings continuam em `MICROSERVICE/{code}` e `FEATURE/{code}`.
 Consulte [Service Context](docs/refinamentos/service-context/SERVICE-CONTEXT.md).
 
 ## Resource Sharing
 
-`feature.resourcesharing` organiza Contract e Participant. Contract representa o destino;
+`feature.sharing` organiza Contract e Participant. Contract representa o destino;
 Participants são origens autorizadas. Autorização, escopos, transições e mapeamentos de
 ambiente permanecem iguais. As rotas usam `resource-sharing/contracts` e
 `resource-sharing/participants` dentro do escopo workspace/application. V80 renomeia
@@ -199,9 +214,9 @@ ACTIVE, mas suas transições são independentes; inativar o pai não altera fil
 constraints; V67 publica os schemas dos requests. Consulte os contratos, regras,
 concorrência e operação na [Segmentation](docs/refinamentos/segmentation/SEGMENTATION.md).
 
-## DynamicParameter — parâmetros dinâmicos
+## Parameter — parâmetros dinâmicos
 
-A feature `feature.dynamicparameter` gerencia parâmetros consumidos pelas aplicações em
+A feature `feature.parameter` gerencia parâmetros consumidos pelas aplicações em
 runtime. Sua entidade principal é `ParameterKey`, persistida em `parameter_keys`.
 O CRUD OWNER fica em `/api/v1/dynamic-parameters`, com requests/responses próprios,
 listagem paginada, atualização versionada e lifecycle idempotente. Os catálogos são
@@ -212,12 +227,12 @@ snapshot anterior e volta a DRAFT; editar somente descrição mantém o status.
 `POST /api/v1/dynamic-parameters/publish` recebe `identifiers` com 1 ou N chaves e retorna
 `202 Accepted` sem corpo. O worker confirma cada item em sua própria transação/auditoria,
 relê os snapshots confirmados e usa `RedisStore.setAll` em lotes de 500 por padrão.
-`platform.dynamic-parameter.runtime.batch-size` configura o tamanho positivo dos lotes.
+`workspace.parameter.runtime.batch-size` configura o tamanho positivo dos lotes.
 Inativar limpa o snapshot e remove a chave Redis após commit; reativar aguarda publicação.
 Exclusão física continua restrita a registros inativos.
 
-O scheduler horário em `integration.scheduler` consulta chaves ativas com
-`publishedValue` preenchido, em páginas, e envia cada página com MSET pela lib.
+O agendamento horário fica no `ParameterKeyPublisherService`, que consulta chaves ativas
+com `publishedValue` preenchido em páginas e envia cada página com `RedisStore.setAll`.
 Falhas geram somente logs de erro, com identifier, fullKey e publishedValue sanitizado.
 O processamento permanece em memória nesta etapa, sem tabelas de solicitações ou retries duráveis.
 
@@ -239,7 +254,7 @@ Resource Sharing e Segmentation. Essa regra também faz parte do [padrão de rev
 
 ## Ponto único de validação
 
-Workspace, Application, Publisher, Environment, Message, Microservice, Feature, FeatureGroup, Segment, Category e DynamicParameter validam
+Workspace, Application, Publisher, Environment, Message, Microservice, Feature, FeatureGroup, Segment, Category e ParameterKey validam
 o JSON original antes da desserialização, com `@ValidateResourceSchemaRequest`
 da biblioteca e normalizadores específicos quando necessários. Campos permitidos,
 tipos, formatos e limites pertencem ao schema publicado; tipos inválidos e campos
@@ -270,8 +285,9 @@ Princípios principais:
 
 ## Catálogos
 
-A Golden migrou os 16 CRUDs de catálogo da referência funcional histórica para a
-application Foundation, reutilizando `platform-catalog`:
+A migração inicial trouxe 16 CRUDs de catálogo da referência funcional histórica para
+a application Foundation. Hoje, 14 módulos concretos permanecem em `foundation.catalog`,
+reutilizando `platform-catalog`:
 
 Na estrutura atual da Golden, os catálogos concretos presentes em `foundation.catalog` usam `EnumCatalogService`; o modelo Included/Dynamic permanece disponível na Foundation para catálogos cujo banco governa novos códigos em runtime. A antiga referência a `BaseCatalogService` não representa mais a API pública atual da `platform-catalog`.
 
@@ -288,7 +304,7 @@ Para catálogos cuja entidade principal termina em `Type`, o módulo em
 ```text
 ApplicationScopeType -> foundation.catalog.applicationscopetype
 WorkspaceType        -> foundation.catalog.workspacetype
-SchemaType           -> foundation.catalog.schematype
+SchemaScopeType      -> foundation.catalog.schemascopetype
 ```
 
 Todos os módulos concretos de catálogo terminam em `type`. Mesmo quando o nome
@@ -314,6 +330,7 @@ mvn --settings .github/maven-settings.xml --batch-mode --no-transfer-progress cl
 Não é permitido usar checkout ou `mvn install` local da Foundation como evidência de integração.
 
 A documentação da Golden está em [`docs/golden`](docs/golden).
+O [índice da documentação](docs/README.md) separa os guias vigentes dos registros históricos.
 O roteiro reutilizável para revisar features está em
 [`docs/REVIEW-STANDARD.md`](docs/REVIEW-STANDARD.md).
 

@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice;
 
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.microservice.MicroserviceMapper;
+
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.ServiceContextMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.microservice.MicroserviceRepository;
@@ -39,17 +41,17 @@ public class MicroserviceQueryService {
         this.validator = validator;
     }
 
-    /** The shared lock keeps this reference active until the message transaction completes. */
+    /** The shared lock keeps this reference active until the consumer transaction completes. */
     @Transactional
-    public Optional<Long> findActiveInternalIdForMessage(String identifier) {
+    public Optional<Long> findActiveReferenceIdByIdentifier(String identifier) {
         return repository.findActiveIdForReference(identifier);
     }
 
     @Transactional(readOnly = true)
-    public MicroserviceReference findReferenceForDynamicParameter(String identifier) {
+    public MicroserviceReference findReferenceByIdentifier(String identifier) {
         return repository
                 .findReferenceByIdentifier(identifier)
-                .map(this::toDynamicParameterReference)
+                .map(this::toReference)
                 .orElseThrow(
                         () ->
                                 new NotFoundException(
@@ -57,15 +59,15 @@ public class MicroserviceQueryService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<MicroserviceReference> findReferenceByCodeForDynamicParameter(String code) {
-        return repository.findReferenceByCode(code).map(this::toDynamicParameterReference);
+    public Optional<MicroserviceReference> findReferenceByCode(String code) {
+        return repository.findReferenceByCode(code).map(this::toReference);
     }
 
     @Transactional(readOnly = true)
     public Map<Long, MicroserviceReference> findReferencesByInternalIds(Collection<Long> ids) {
         if (ids.isEmpty()) return Map.of();
         return repository.findReferencesByInternalIds(ids).stream()
-                .map(this::toDynamicParameterReference)
+                .map(this::toReference)
                 .collect(Collectors.toMap(MicroserviceReference::id, reference -> reference));
     }
 
@@ -135,7 +137,7 @@ public class MicroserviceQueryService {
                 .map(mapper::toOutput);
     }
 
-    private MicroserviceReference toDynamicParameterReference(
+    private MicroserviceReference toReference(
             MicroserviceReferenceProjection reference) {
         return new MicroserviceReference(
                 reference.getId(), reference.getIdentifier(), reference.getCode());

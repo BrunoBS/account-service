@@ -4,12 +4,13 @@ import br.com.portalmanager.platform.library.authorization.annotation.ResourceVi
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
 import br.com.portalmanager.platform.workspace.core.environment.domain.environment.Environment;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository.HierarchyReference;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository.IdentifierReference;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentOutput;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentReferenceOutput;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTreeOutput;
+import br.com.portalmanager.platform.workspace.core.environment.repository.environment.EnvironmentRepository;
+import br.com.portalmanager.platform.workspace.core.environment.repository.environment.EnvironmentRepository.HierarchyReference;
+import br.com.portalmanager.platform.workspace.core.environment.repository.environment.EnvironmentRepository.IdentifierReference;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.EnvironmentOutput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.mapping.environment.EnvironmentMapper;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.EnvironmentReferenceOutput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.EnvironmentTreeOutput;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
@@ -29,21 +30,24 @@ public class EnvironmentQueryService {
     private final EnvironmentRepository repository;
     private final EnvironmentFinder finder;
     private final WorkspaceReferencePort workspaces;
+    private final EnvironmentMapper mapper;
 
     public EnvironmentQueryService(
         EnvironmentRepository repository,
         EnvironmentFinder finder,
-        WorkspaceReferencePort workspaces
+        WorkspaceReferencePort workspaces,
+        EnvironmentMapper mapper
     ) {
         this.repository = repository;
         this.finder = finder;
         this.workspaces = workspaces;
+        this.mapper = mapper;
     }
 
     @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
     public EnvironmentOutput findWorkspace(String workspaceIdentifier, String identifier) {
-        return EnvironmentOutput.from(
+        return mapper.toOutput(
             finder.findActive(identifier, workspaces.resolveInternalId(workspaceIdentifier)),
             workspaceIdentifier
         );
@@ -52,7 +56,7 @@ public class EnvironmentQueryService {
     @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
     public EnvironmentOutput findWorkspaceInactive(String workspaceIdentifier, String identifier) {
-        return EnvironmentOutput.from(
+        return mapper.toOutput(
             finder.findInactive(identifier, workspaces.resolveInternalId(workspaceIdentifier)),
             workspaceIdentifier
         );
@@ -61,7 +65,7 @@ public class EnvironmentQueryService {
     @ResourceVisibility(Environment.class)
     @Transactional(readOnly = true)
     public EnvironmentOutput findWorkspaceForDeletion(String workspaceIdentifier, String identifier) {
-        return EnvironmentOutput.from(
+        return mapper.toOutput(
             finder.findInactiveForDeletion(identifier, workspaces.resolveInternalId(workspaceIdentifier)),
             workspaceIdentifier
         );
@@ -104,7 +108,7 @@ public class EnvironmentQueryService {
         return environments.stream()
             .sorted(Comparator.comparing(environment -> environment.getWorkspaceId() != null))
             .filter(environment -> hasActiveAncestors(environment, hierarchy))
-            .map(environment -> EnvironmentOutput.from(environment, environment.getWorkspaceId() == null ? null : workspaceIdentifier))
+            .map(environment -> mapper.toOutput(environment, environment.getWorkspaceId() == null ? null : workspaceIdentifier))
             .toList();
     }
 
@@ -124,13 +128,8 @@ public class EnvironmentQueryService {
             .filter(environment -> hasVisibleAncestors(environment.getId(), hierarchy, true))
             .collect(
                 Collectors.toMap(Environment::getIdentifier, environment ->
-                    new EnvironmentReferenceOutput(
-                        environment.getId(),
-                        EnvironmentOutput.from(
-                            environment,
-                            environment.getWorkspaceId() == null ? null : workspaceIdentifier
-                        )
-                    )
+                    mapper.toReference(environment.getId(), mapper.toOutput(
+                        environment, environment.getWorkspaceId() == null ? null : workspaceIdentifier))
                 )
             );
         if (!available.keySet().containsAll(identifiers)) {
@@ -148,22 +147,22 @@ public class EnvironmentQueryService {
             .or(() -> repository.findByIdentifierAndWorkspaceIdIsNull(environmentIdentifier))
             .filter(finder::isAccessible)
             .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND));
-        return EnvironmentOutput.from(environment, environment.getWorkspaceId() == null ? null : workspaceIdentifier);
+        return mapper.toOutput(environment, environment.getWorkspaceId() == null ? null : workspaceIdentifier);
     }
 
     @Transactional(readOnly = true)
     public EnvironmentOutput findDefault(String identifier) {
-        return EnvironmentOutput.from(finder.findActive(identifier, null), null);
+        return mapper.toOutput(finder.findActive(identifier, null), null);
     }
 
     @Transactional(readOnly = true)
     public EnvironmentOutput findDefaultInactive(String identifier) {
-        return EnvironmentOutput.from(finder.findInactive(identifier, null), null);
+        return mapper.toOutput(finder.findInactive(identifier, null), null);
     }
 
     @Transactional(readOnly = true)
     public EnvironmentOutput findDefaultForDeletion(String identifier) {
-        return EnvironmentOutput.from(finder.findInactiveForDeletion(identifier, null), null);
+        return mapper.toOutput(finder.findInactiveForDeletion(identifier, null), null);
     }
 
     @Transactional(readOnly = true)
@@ -186,7 +185,7 @@ public class EnvironmentQueryService {
             defaultRoots.stream(),
             repository.findWorkspaceRoots(workspaceId, LifecycleTypeCode.active()).stream()
         )
-            .map(environment -> EnvironmentOutput.from(
+            .map(environment -> mapper.toOutput(
                 environment, environment.getWorkspaceId() == null ? null : workspaceIdentifier
             ))
             .toList();
@@ -206,7 +205,7 @@ public class EnvironmentQueryService {
         return repository
             .findChildren(parent.getId(), workspaceId, LifecycleTypeCode.active())
             .stream()
-            .map(environment -> EnvironmentOutput.from(environment, workspaceIdentifier))
+            .map(environment -> mapper.toOutput(environment, workspaceIdentifier))
             .toList();
     }
 
@@ -240,7 +239,7 @@ public class EnvironmentQueryService {
                     parentIdentifier = parentIdentifiers.get(environment.getParent().getId());
                     if (parentIdentifier == null) throw new NotFoundException(EnvironmentMessageKeys.NOT_FOUND);
                 }
-                return EnvironmentOutput.from(environment, workspaceIdentifier, parentIdentifier);
+                return mapper.toOutput(environment, workspaceIdentifier, parentIdentifier);
             })
             .toList();
     }
@@ -274,8 +273,8 @@ public class EnvironmentQueryService {
             .stream()
             .map(child -> buildTree(child, childrenByParentId, workspaceIdentifier))
             .toList();
-        return new EnvironmentTreeOutput(
-            EnvironmentOutput.from(environment, environment.getWorkspaceId() == null ? null : workspaceIdentifier),
+        return mapper.toTreeOutput(
+            mapper.toOutput(environment, environment.getWorkspaceId() == null ? null : workspaceIdentifier),
             children
         );
     }

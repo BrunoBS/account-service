@@ -5,6 +5,7 @@ import br.com.portalmanager.platform.workspace.feature.segmentation.domain.Segme
 import br.com.portalmanager.platform.workspace.feature.segmentation.repository.segment.SegmentRepository;
 import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.model.segment.SegmentOutput;
 import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.validation.SegmentQueryValidation;
+import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.mapping.segment.SegmentMapper;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,16 +15,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SegmentQueryService {
     private final SegmentRepository repository;
+    private final SegmentMapper mapper;
 
-    public SegmentQueryService(SegmentRepository repository) {
+    public SegmentQueryService(SegmentRepository repository, SegmentMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
     @Transactional(readOnly = true)
     public SegmentOutput findByIdentifier(String identifier) {
-        return repository
-                .findOutputByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundException(SegmentationMessageKeys.NOT_FOUND));
+        return mapper.toOutput(repository.findByIdentifier(identifier)
+                .orElseThrow(() -> new NotFoundException(SegmentationMessageKeys.NOT_FOUND)));
     }
 
     @Transactional(readOnly = true)
@@ -36,6 +38,6 @@ public class SegmentQueryService {
                 normalizedCode,
                 normalizedName,
                 SegmentQueryValidation.resolveLifecycle(lifecycle),
-                pageable);
+                pageable).map(mapper::toOutput);
     }
 }

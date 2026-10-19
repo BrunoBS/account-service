@@ -3,12 +3,13 @@ package br.com.portalmanager.platform.workspace.core.environment.usecase.operati
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentType;
-import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentTypeCompatibility;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeCompatibilityRepository;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentCompatibilityOutput;
+import br.com.portalmanager.platform.workspace.core.environment.domain.compatibility.EnvironmentTypeCompatibility;
+import br.com.portalmanager.platform.workspace.core.environment.repository.compatibility.EnvironmentTypeCompatibilityRepository;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.compatibility.EnvironmentCompatibilityOutput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.mapping.compatibility.EnvironmentCompatibilityMapper;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environmenttype.EnvironmentTypeFinder;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentTypeCompatibilityValidator.TypePair;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentTypeCompatibilityValidator;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.compatibility.EnvironmentTypeCompatibilityValidator.TypePair;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.compatibility.EnvironmentTypeCompatibilityValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,13 +24,16 @@ public class EnvironmentTypeCompatibilityCommandService {
     private final EnvironmentTypeFinder typeFinder;
     private final EnvironmentTypeCompatibilityFinder finder;
     private final EnvironmentTypeCompatibilityValidator validator;
+    private final EnvironmentCompatibilityMapper mapper;
 
     public EnvironmentTypeCompatibilityCommandService(EnvironmentTypeCompatibilityRepository repository, EnvironmentTypeFinder typeFinder,
-        EnvironmentTypeCompatibilityFinder finder, EnvironmentTypeCompatibilityValidator validator) {
+        EnvironmentTypeCompatibilityFinder finder, EnvironmentTypeCompatibilityValidator validator,
+        EnvironmentCompatibilityMapper mapper) {
         this.repository = repository;
         this.typeFinder = typeFinder;
         this.finder = finder;
         this.validator = validator;
+        this.mapper = mapper;
     }
 
     @Transactional
@@ -44,10 +48,10 @@ public class EnvironmentTypeCompatibilityCommandService {
             if (!LifecycleTypeCode.active().equals(compatibility.getLifecycle())) {
                 compatibility.restore(LocalDateTime.now());
             }
-            return EnvironmentCompatibilityOutput.from(repository.saveAndFlush(compatibility));
+            return mapper.toOutput(repository.saveAndFlush(compatibility));
         }
         EnvironmentTypeCompatibility compatibility = new EnvironmentTypeCompatibility(typePair.parentType(), typePair.childType(), LocalDateTime.now());
-        return EnvironmentCompatibilityOutput.from(repository.saveAndFlush(compatibility));
+        return mapper.toOutput(repository.saveAndFlush(compatibility));
     }
 
     @Transactional
@@ -56,7 +60,7 @@ public class EnvironmentTypeCompatibilityCommandService {
         typeFinder.findAllForUpdate();
         EnvironmentTypeCompatibility compatibility = finder.findForUpdate(identifier);
         compatibility.inactivate(LocalDateTime.now());
-        return EnvironmentCompatibilityOutput.from(repository.saveAndFlush(compatibility));
+        return mapper.toOutput(repository.saveAndFlush(compatibility));
     }
 
     @Transactional
@@ -65,7 +69,7 @@ public class EnvironmentTypeCompatibilityCommandService {
         typeFinder.findAllForUpdate();
         EnvironmentTypeCompatibility compatibility = finder.findForUpdate(identifier);
         validator.validateForDelete(compatibility);
-        EnvironmentCompatibilityOutput removedCompatibility = EnvironmentCompatibilityOutput.from(compatibility);
+        EnvironmentCompatibilityOutput removedCompatibility = mapper.toOutput(compatibility);
         repository.delete(compatibility);
         repository.flush();
         return removedCompatibility;

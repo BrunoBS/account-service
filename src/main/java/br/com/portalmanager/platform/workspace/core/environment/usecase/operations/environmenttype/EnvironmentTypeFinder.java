@@ -3,7 +3,7 @@ package br.com.portalmanager.platform.workspace.core.environment.usecase.operati
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
 import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentType;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeRepository;
+import br.com.portalmanager.platform.workspace.core.environment.repository.environmenttype.EnvironmentTypeRepository;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;

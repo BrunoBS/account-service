@@ -20,7 +20,7 @@ import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.mod
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageCommandService;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageFinder;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.messagetranslator.MessageTranslatorCommandService;
-import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceQueryService;
+import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +54,7 @@ class MessageConcurrencyIT {
     @Autowired private MessageFinder finder;
     @Autowired private MessageRepository repository;
     @Autowired private MessageTranslatorRepository translatorRepository;
-    @Autowired private MicroserviceQueryService microservices;
+    @Autowired private MicroserviceReferencePort microservices;
     @Autowired private PlatformTransactionManager transactionManager;
 
     @BeforeEach
@@ -243,9 +243,10 @@ class MessageConcurrencyIT {
                     .executeWithoutResult(
                             status -> {
                                 assertThat(
-                                                microservices.findActiveInternalIdForMessage(
-                                                        MICROSERVICE))
-                                        .isPresent();
+                                                microservices.findActiveByIdentifier(MICROSERVICE)
+                                                        .orElseThrow()
+                                                        .internalId())
+                                        .isPositive();
                                 blocked.set(
                                         executor.submit(
                                                 () -> {

@@ -17,7 +17,7 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.Work
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
-import br.com.portalmanager.platform.workspace.foundation.integration.OnboardingPhaseCompletionPort;
+import br.com.portalmanager.platform.workspace.foundation.integration.PhaseCompletionPort;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,7 +33,7 @@ public class WorkspaceCommandService {
     private final WorkspaceValidator validator;
     private final WorkspaceMapper mapper;
     private final TagManager<WorkspaceTag, Workspace> tags;
-    private final OnboardingPhaseCompletionPort onboardingPhaseCompletionPort;
+    private final PhaseCompletionPort phaseCompletion;
 
     public WorkspaceCommandService(
         WorkspaceRepository repository,
@@ -41,14 +41,14 @@ public class WorkspaceCommandService {
         WorkspaceValidator validator,
         WorkspaceMapper mapper,
         TagManager<WorkspaceTag, Workspace> tags,
-        OnboardingPhaseCompletionPort onboardingPhaseCompletionPort
+        PhaseCompletionPort phaseCompletion
     ) {
         this.repository = repository;
         this.finder = finder;
         this.validator = validator;
         this.mapper = mapper;
         this.tags = tags;
-        this.onboardingPhaseCompletionPort = onboardingPhaseCompletionPort;
+        this.phaseCompletion = phaseCompletion;
     }
 
     @Transactional
@@ -65,9 +65,9 @@ public class WorkspaceCommandService {
             WorkspaceSystemTags.resolve(savedWorkspace)
         );
         if (WorkspaceTypeEnum.MANAGER.name().equals(savedWorkspace.getWorkspaceType().value())) {
-            onboardingPhaseCompletionPort.registerPhaseCompletion(savedWorkspace.getId(), OnboardingPhaseTypeCode.workspaceRegistration());
+            phaseCompletion.registerPhaseCompletion(savedWorkspace.getId(), OnboardingPhaseTypeCode.workspaceRegistration());
         }
-        return WorkspaceOutput.from(savedWorkspace, manualTags);
+        return mapper.toOutput(savedWorkspace, manualTags);
     }
 
     @Transactional
@@ -93,7 +93,7 @@ public class WorkspaceCommandService {
             input.tags(),
             WorkspaceSystemTags.resolve(savedWorkspace)
         );
-        return WorkspaceOutput.from(savedWorkspace, manualTags);
+        return mapper.toOutput(savedWorkspace, manualTags);
     }
 
     @Transactional
@@ -102,7 +102,7 @@ public class WorkspaceCommandService {
         Workspace workspace = finder.findActive(identifier);
         workspace.inactivate(LocalDateTime.now());
         Workspace savedWorkspace = repository.saveAndFlush(workspace);
-        return WorkspaceOutput.from(savedWorkspace, tags.findManual(savedWorkspace));
+        return mapper.toOutput(savedWorkspace, tags.findManual(savedWorkspace));
     }
 
     @Transactional
@@ -112,7 +112,7 @@ public class WorkspaceCommandService {
         List<String> manualTags = tags.findManual(workspace);
         workspace.restore(LocalDateTime.now());
         Workspace savedWorkspace = repository.saveAndFlush(workspace);
-        return WorkspaceOutput.from(savedWorkspace, manualTags);
+        return mapper.toOutput(savedWorkspace, manualTags);
     }
 
     @Transactional
@@ -121,7 +121,7 @@ public class WorkspaceCommandService {
         Workspace workspace = finder.findInactiveForDeletion(identifier);
         workspace.quarantine(LocalDateTime.now());
         Workspace savedWorkspace = repository.saveAndFlush(workspace);
-        return WorkspaceOutput.from(savedWorkspace, tags.findManual(savedWorkspace));
+        return mapper.toOutput(savedWorkspace, tags.findManual(savedWorkspace));
     }
 
     private void reconcileApprovers(Workspace workspace, List<ApproverInput> requestedApprovers) {

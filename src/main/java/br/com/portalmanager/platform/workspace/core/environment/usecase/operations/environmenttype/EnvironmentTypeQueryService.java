@@ -1,7 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environmenttype;
 
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeRepository;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTypeOutput;
+import br.com.portalmanager.platform.workspace.core.environment.repository.environmenttype.EnvironmentTypeRepository;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environmenttype.EnvironmentTypeOutput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.mapping.environmenttype.EnvironmentTypeMapper;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -12,15 +13,17 @@ public class EnvironmentTypeQueryService {
 
     private final EnvironmentTypeRepository types;
     private final EnvironmentTypeFinder finder;
+    private final EnvironmentTypeMapper mapper;
 
-    public EnvironmentTypeQueryService(EnvironmentTypeRepository types, EnvironmentTypeFinder finder) {
+    public EnvironmentTypeQueryService(EnvironmentTypeRepository types, EnvironmentTypeFinder finder, EnvironmentTypeMapper mapper) {
         this.types = types;
         this.finder = finder;
+        this.mapper = mapper;
     }
 
     @Transactional(readOnly = true)
     public EnvironmentTypeOutput find(String code) {
-        return EnvironmentTypeOutput.from(finder.find(code));
+        return mapper.toOutput(finder.find(code));
     }
 
     @Transactional(readOnly = true)
@@ -28,7 +31,7 @@ public class EnvironmentTypeQueryService {
         return types
             .findByLifecycleOrderByDisplayOrderAscCodeAsc(LifecycleFilter.resolve(lifecycle))
             .stream()
-            .map(EnvironmentTypeOutput::from)
+            .map(mapper::toOutput)
             .toList();
     }
 }

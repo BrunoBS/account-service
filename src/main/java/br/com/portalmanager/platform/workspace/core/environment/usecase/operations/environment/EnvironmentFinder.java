@@ -4,8 +4,8 @@ import br.com.portalmanager.platform.library.authorization.annotation.ResourceVi
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
 import br.com.portalmanager.platform.workspace.core.environment.domain.environment.Environment;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository.HierarchyReference;
+import br.com.portalmanager.platform.workspace.core.environment.repository.environment.EnvironmentRepository;
+import br.com.portalmanager.platform.workspace.core.environment.repository.environment.EnvironmentRepository.HierarchyReference;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;

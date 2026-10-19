@@ -6,10 +6,12 @@ import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetyp
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaOutput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.schema.SchemaRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.version.SchemaVersionRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.schema.SchemaOutput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.version.SchemaVersionOutput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.mapping.schema.SchemaMapper;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.mapping.version.SchemaVersionMapper;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,15 +22,21 @@ public class SchemaQueryService {
     private final SchemaRepository schemaRepository;
     private final SchemaVersionRepository versionRepository;
     private final WorkspaceReferencePort workspaceReferencePort;
+    private final SchemaMapper schemaMapper;
+    private final SchemaVersionMapper versionMapper;
 
     public SchemaQueryService(
         SchemaRepository schemaRepository,
         SchemaVersionRepository versionRepository,
-        WorkspaceReferencePort workspaceReferencePort
+        WorkspaceReferencePort workspaceReferencePort,
+        SchemaMapper schemaMapper,
+        SchemaVersionMapper versionMapper
     ) {
         this.schemaRepository = schemaRepository;
         this.versionRepository = versionRepository;
         this.workspaceReferencePort = workspaceReferencePort;
+        this.schemaMapper = schemaMapper;
+        this.versionMapper = versionMapper;
     }
 
     @Transactional(readOnly = true)
@@ -86,7 +94,7 @@ public class SchemaQueryService {
         return versionRepository
             .findBySchema_IdOrderBySchemaVersionDesc(schema.getId())
             .stream()
-            .map(SchemaVersionOutput::from)
+            .map(versionMapper::toOutput)
             .toList();
     }
 
@@ -101,6 +109,6 @@ public class SchemaQueryService {
             schema.getWorkspaceId() == null
                 ? null
                 : workspaceReferencePort.resolveIdentifier(schema.getWorkspaceId());
-        return SchemaOutput.from(schema, workspaceIdentifier);
+        return schemaMapper.toOutput(schema, workspaceIdentifier);
     }
 }

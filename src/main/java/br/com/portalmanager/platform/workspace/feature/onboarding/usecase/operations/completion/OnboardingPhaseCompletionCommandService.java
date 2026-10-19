@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.onboarding.usecase.operations.completion;
 
-import br.com.portalmanager.platform.workspace.feature.onboarding.repository.completion.WorkspaceOnboardingCompletionRepository;
-import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation.progress.OnboardingValidator;
+import br.com.portalmanager.platform.workspace.feature.onboarding.repository.WorkspaceOnboardingCompletionRepository;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation.OnboardingValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeCode;
 
 import org.springframework.stereotype.Service;

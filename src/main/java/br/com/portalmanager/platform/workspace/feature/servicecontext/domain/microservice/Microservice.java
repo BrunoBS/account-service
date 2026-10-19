@@ -103,6 +103,11 @@ public class Microservice {
         updatedAt = now;
     }
 
+    public void requireInactiveForDeletion() {
+        if (isActive())
+            throw new ValidationException(ServiceContextMessageKeys.MICROSERVICE_DELETE_INVALID);
+    }
+
     public void requireActive() {
         if (!isActive())
             throw new NotFoundException(ServiceContextMessageKeys.MICROSERVICE_NOT_FOUND);

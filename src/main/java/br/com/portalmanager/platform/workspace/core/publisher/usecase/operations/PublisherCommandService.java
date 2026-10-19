@@ -38,7 +38,7 @@ public class PublisherCommandService {
     public PublisherOutput create(CreatePublisherInput input) {
         validator.validateForCreate(input);
         Publisher publisher = new Publisher(input.code(), mapper.toDetails(input), LocalDateTime.now());
-        return PublisherOutput.from(repository.saveAndFlush(publisher));
+        return mapper.toOutput(repository.saveAndFlush(publisher));
     }
 
     @Transactional
@@ -47,7 +47,7 @@ public class PublisherCommandService {
         Publisher publisher = finder.findActive(identifier);
         validator.validateForUpdate(publisher, input);
         publisher.update(mapper.toDetails(input, publisher.isDeprecated()), LocalDateTime.now());
-        return PublisherOutput.from(repository.saveAndFlush(publisher));
+        return mapper.toOutput(repository.saveAndFlush(publisher));
     }
 
     @Transactional
@@ -55,7 +55,7 @@ public class PublisherCommandService {
     public PublisherOutput inactivate(String identifier) {
         Publisher publisher = finder.findActive(identifier);
         publisher.inactivate(LocalDateTime.now());
-        return PublisherOutput.from(repository.saveAndFlush(publisher));
+        return mapper.toOutput(repository.saveAndFlush(publisher));
     }
 
     @Transactional
@@ -63,7 +63,7 @@ public class PublisherCommandService {
     public PublisherOutput restore(String identifier) {
         Publisher publisher = finder.findInactive(identifier);
         publisher.restore(LocalDateTime.now());
-        return PublisherOutput.from(repository.saveAndFlush(publisher));
+        return mapper.toOutput(repository.saveAndFlush(publisher));
     }
 
     @Transactional
@@ -71,6 +71,6 @@ public class PublisherCommandService {
     public PublisherOutput delete(String identifier) {
         Publisher publisher = finder.findInactiveForDeletion(identifier);
         publisher.quarantine(LocalDateTime.now());
-        return PublisherOutput.from(repository.saveAndFlush(publisher));
+        return mapper.toOutput(repository.saveAndFlush(publisher));
     }
 }

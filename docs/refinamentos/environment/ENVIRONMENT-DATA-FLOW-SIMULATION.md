@@ -599,7 +599,7 @@ Queries não produzem esses eventos de comando. Commands retornam o objeto para 
 
 ## 14. Conferência do documento
 
-O inventário foi comparado aos quatro controllers de `entrypoint.web.environment`. Payloads foram conferidos com os schemas de referência e as regras dos use cases, incluindo pai imutável, escopo, lifecycle, version, quarentena e allowsChildren. A simulação não substitui execução de testes de API, autorização, persistência ou concorrência.
+O inventário foi comparado aos quatro controllers de `entrypoint.environment`. Payloads foram conferidos com os schemas de referência e as regras dos use cases, incluindo pai imutável, escopo, lifecycle, version, quarentena e allowsChildren. A simulação não substitui execução de testes de API, autorização, persistência ou concorrência.
 
 A conferência estática confirmou as 29 rotas, a sintaxe dos oito blocos JSON, a estrutura das 23 tabelas e os links locais das referências.
 
