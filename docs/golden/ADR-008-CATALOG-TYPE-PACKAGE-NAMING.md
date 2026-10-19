@@ -16,8 +16,9 @@ foundation/catalog/<catalogo>/
 ```
 
 Os catálogos concretos da Golden usam majoritariamente entidades cujo nome termina em
-`Type`, como `ApplicationScopeType`, `FeatureType`, `LifecycleType` e
-`WorkspaceType`.
+`Type`, como `ApplicationScopeType`, `LifecycleType`, `ParameterKeyType` e
+`WorkspaceType`. A nomenclatura abaixo descreve a regra; alguns exemplos de catálogos
+da referência histórica já não existem no serviço atual.
 
 Usar packages como `applicationscope`, `feature` ou `workspace` elimina do nome
 do módulo justamente a informação de que a responsabilidade é um catálogo de tipos.
@@ -35,10 +36,9 @@ Exemplos:
 ```text
 ApplicationScopeType -> foundation.catalog.applicationscopetype
 AuthorizationType    -> foundation.catalog.authorizationtype
-FeatureScopeType     -> foundation.catalog.featurescopetype
-FeatureType          -> foundation.catalog.featuretype
 LifecycleType        -> foundation.catalog.lifecycletype
-SchemaType           -> foundation.catalog.schematype
+ParameterKeyType     -> foundation.catalog.parameterkeytype
+SchemaScopeType      -> foundation.catalog.schemascopetype
 WorkspaceType        -> foundation.catalog.workspacetype
 ```
 
@@ -72,12 +72,20 @@ foundation.catalog.support
 
 - packages antigos como `foundation.catalog.applicationscope`,
   `foundation.catalog.feature` e `foundation.catalog.workspace` deixam de ser usados;
-- `schematype` permanece inalterado, pois já expressava corretamente a convenção;
-- `onboarding` passa a `onboardingphasetype`;
+- `onboardingphasetype` é o package atual para o catálogo de fases;
 - controllers Web não são renomeados por esta decisão; a regra é específica de
   `foundation.catalog`;
 - fitness function deve falhar quando uma entidade de domínio `*Type` estiver em um
   módulo cujo nome não corresponda ao nome completo da entidade em lowercase.
+
+## Estado atual
+
+Os 14 módulos concretos presentes hoje são `applicationscopetype`,
+`authorizationtype`, `lifecycletype`, `onboardingphasetype`,
+`parameterkeystatustype`, `parameterkeytype`, `publicationmodetype`,
+`resourcescopetype`, `schemascopetype`, `schemaversionstatustype`, `sharestatustype`,
+`tagorigintype`, `visibilitytype` e `workspacetype`. Catálogos históricos removidos
+como `FeatureType` e `SchemaType` não devem ser recriados sem decisão de domínio.
 
 ## Relação com ADR-007
 

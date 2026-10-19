@@ -1,6 +1,6 @@
 # ADR-007 — Ordem interna dos packages de Catalog
 
-- **Status:** ACEITO
+- **Status:** ACEITO, decisão da camada HTTP atualizada em 2026-10-18
 - **Data:** 2026-09-22
 - **Escopo:** Golden Reference / application foundation macrozone
 
@@ -53,11 +53,11 @@ diretamente em um package explícito de suporte, por exemplo:
 foundation/catalog/support/CatalogSchemaValidationSupport.java
 ```
 
-Controllers permanecem em:
-
-```text
-entrypoint/web/catalog/<catalogo>
-```
+Controllers permanecem diretamente em `entrypoint.catalog`. São classes finas por
+recurso que estendem o `CatalogController<T>` genérico; a camada não tem pacotes por
+catálogo nem contratos HTTP próprios por tipo de catálogo. Requests/Responses
+específicos continuam agrupados por recurso nas outras áreas do entrypoint quando
+existem.
 
 ## Consequências
 

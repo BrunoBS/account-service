@@ -5,6 +5,14 @@
 - **Escopo:** Golden Reference / adequação arquitetural pós-G4
 - **Relacionados:** `ADR-ADEQUACAO-ARQUITETURAL-POS-G4.md`, `GOLDEN_REFERENCE_PADRAO_ARQUITETURAL.md`
 
+> **Registro histórico — não usar como descrição do wiring atual.** Este ADR documenta
+> a decisão tomada em 2026-09-21. Desde então o namespace Java foi migrado para
+> `br.com.portalmanager.platform.workspace`, e o serviço deixou de declarar
+> `WorkspaceMessagingConfiguration`/`NoOpApiMessageRepository`. A configuração vigente
+> de Messaging está em `application.yml` e usa a view `vw_dynamic_bundle_messages`.
+> A organização e composição atuais estão descritas em `README.md` e
+> `FOUNDATION-USAGE.md`.
+
 ## Contexto
 
 A adequação pós-G4 fechou a topologia de primeiro nível em:

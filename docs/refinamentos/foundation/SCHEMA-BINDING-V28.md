@@ -2,7 +2,7 @@
 
 Schema de plataforma é uma definição versionada independente do recurso. O administrador
 vincula a definição ao par único `(resourceType, resourceCode)` pelo endpoint
-`/api/v1/schema-configurations` (OWNER). Um vínculo ativo e um Schema ativo com
+`/api/v1/schema-bindings` (OWNER). Um vínculo ativo e um Schema ativo com
 versão publicada fornecem diretamente `SchemaVersion.definition`.
 
 Sem vínculo específico, com vínculo inativo, Schema inativo ou sem versão
@@ -34,7 +34,7 @@ erros de validação apontem para seu próprio atributo.
 | Publisher                | PUBLISHER    | código canônico do tipo de Publisher | futuro settings da configuração de ambiente |
 
 O cadastro `core.publisher` não possui settings. Sua criação não depende de
-SchemaConfiguration. O consumidor futuro deve usar o código do **tipo** do Publisher,
+SchemaBinding. O consumidor futuro deve usar o código do **tipo** do Publisher,
 nunca seu identifier. Environment de Application e Microservice ainda não persistem
 settings consumidos pelo mecanismo nesta versão. O cadastro de Schema de
 Workspace permanece; não há consumidor de resolução de Schema de Workspace nesta versão.

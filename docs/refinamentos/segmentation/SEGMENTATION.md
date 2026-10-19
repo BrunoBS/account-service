@@ -6,6 +6,6 @@ API: `/api/v1/segmentation/segments`, com categorias em `/{segmentIdentifier}/ca
 
 V79 renomeia `segment_category` para `category`, índices e constraints, preservando FK obrigatória `segment_id` e unique `(segment_id, code)`. Essas restrições já existiam em V66; não há remoção silenciosa de registros. O teste de upgrade verifica órfãos/duplicidades antes da renomeação e compara todas as colunas depois. `segment` permanece com seu nome de domínio correto.
 
-JSON Schemas: `segment.json`, `category.json`; bindings `SEGMENTATION/segment` e `SEGMENTATION/category`. Versões históricas publicadas são preservadas; Category recebe uma versão nova. O escopo global de schemas permanece `PLATFORM`.
+JSON Schemas: `segment.json`, `category.json`; bindings `SEGMENTATION/segment` e `SEGMENTATION/category`. Versões históricas publicadas são preservadas; Category recebe uma versão nova. A migration V82 corrige o título publicado para `Category request` sem alterar o payload. O escopo global de schemas permanece `PLATFORM`.
 
 [Resultados das ondas](../features-golden/EXECUCAO.md).
