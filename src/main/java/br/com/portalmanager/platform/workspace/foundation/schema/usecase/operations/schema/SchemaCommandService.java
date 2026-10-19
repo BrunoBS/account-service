@@ -10,13 +10,14 @@ import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaMe
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaDefinitionValidationAdapter;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaInput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaOutput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.UpdateSchemaInput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaVersionOperationValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.schema.SchemaRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.version.SchemaVersionRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.schema.CreateSchemaInput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.schema.SchemaOutput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.schema.UpdateSchemaInput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.mapping.schema.SchemaMapper;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.schema.SchemaOperationValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.version.SchemaVersionOperationValidator;
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,7 @@ public class SchemaCommandService {
     private final SchemaOperationValidator operationValidator;
     private final SchemaVersionOperationValidator versionValidator;
     private final WorkspaceReferencePort workspaceReferencePort;
+    private final SchemaMapper mapper;
 
     public SchemaCommandService(
         SchemaRepository repository,
@@ -39,7 +41,8 @@ public class SchemaCommandService {
         SchemaDefinitionValidationAdapter validator,
         SchemaOperationValidator operationValidator,
         SchemaVersionOperationValidator versionValidator,
-        WorkspaceReferencePort workspaceReferencePort
+        WorkspaceReferencePort workspaceReferencePort,
+        SchemaMapper mapper
     ) {
         this.repository = repository;
         this.versionRepository = versionRepository;
@@ -47,6 +50,7 @@ public class SchemaCommandService {
         this.operationValidator = operationValidator;
         this.versionValidator = versionValidator;
         this.workspaceReferencePort = workspaceReferencePort;
+        this.mapper = mapper;
     }
 
     @Transactional
@@ -186,6 +190,6 @@ public class SchemaCommandService {
             schema.getWorkspaceId() == null
                 ? null
                 : workspaceReferencePort.resolveIdentifier(schema.getWorkspaceId());
-        return SchemaOutput.from(schema, workspaceIdentifier);
+        return mapper.toOutput(schema, workspaceIdentifier);
     }
 }

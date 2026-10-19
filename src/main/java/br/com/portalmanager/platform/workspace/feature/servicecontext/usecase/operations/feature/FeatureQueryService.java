@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature;
 
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.feature.FeatureMapper;
+
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.ServiceContextMessageKeys;
@@ -71,14 +73,14 @@ public class FeatureQueryService {
     public Map<Long, FeatureReferenceOutput> findReferencesByInternalIds(
             Collection<Long> featureIds) {
         if (featureIds.isEmpty()) return Map.of();
-        return toReferences(repository.findReferences(featureIds));
+        return mapper.toReferences(repository.findReferences(featureIds));
     }
 
     @Transactional(readOnly = true)
     public Map<Long, FeatureReferenceOutput> findAvailableReferencesForResourceSharing(
             Collection<Long> featureIds) {
         if (featureIds.isEmpty()) return Map.of();
-        return toReferences(repository.findAvailableReferencesForResourceSharing(featureIds));
+        return mapper.toReferences(repository.findAvailableReferencesForResourceSharing(featureIds));
     }
 
     @Transactional(readOnly = true)
@@ -123,13 +125,4 @@ public class FeatureQueryService {
                 .map(mapper::toOutput);
     }
 
-    private Map<Long, FeatureReferenceOutput> toReferences(List<FeatureReference> references) {
-        return references.stream()
-                .collect(
-                        Collectors.toMap(
-                                FeatureReference::getId,
-                                reference ->
-                                        new FeatureReferenceOutput(
-                                                reference.getIdentifier(), reference.getName())));
-    }
 }

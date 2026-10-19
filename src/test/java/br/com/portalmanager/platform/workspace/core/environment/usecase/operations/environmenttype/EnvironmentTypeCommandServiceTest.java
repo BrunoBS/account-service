@@ -5,11 +5,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentRepository;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeCompatibilityRepository;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeRepository;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.mapping.EnvironmentTypeMapper;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentTypeValidator;
+import br.com.portalmanager.platform.workspace.core.environment.repository.environment.EnvironmentRepository;
+import br.com.portalmanager.platform.workspace.core.environment.repository.compatibility.EnvironmentTypeCompatibilityRepository;
+import br.com.portalmanager.platform.workspace.core.environment.repository.environmenttype.EnvironmentTypeRepository;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.mapping.environmenttype.EnvironmentTypeMapper;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.environmenttype.EnvironmentTypeValidator;
 import org.junit.jupiter.api.Test;
 
 class EnvironmentTypeCommandServiceTest {

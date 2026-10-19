@@ -10,11 +10,12 @@ import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaMe
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaDefinitionValidationAdapter;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaVersionOperationValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.schema.SchemaRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.version.SchemaVersionRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.version.CreateSchemaVersionInput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.version.SchemaVersionOutput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.mapping.version.SchemaVersionMapper;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.version.SchemaVersionOperationValidator;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -31,19 +32,22 @@ public class SchemaVersionCommandService {
     private final SchemaDefinitionValidationAdapter validator;
     private final SchemaVersionOperationValidator operationValidator;
     private final WorkspaceReferencePort workspaceReferencePort;
+    private final SchemaVersionMapper mapper;
 
     public SchemaVersionCommandService(
         SchemaRepository schemaRepository,
         SchemaVersionRepository versionRepository,
         SchemaDefinitionValidationAdapter validator,
         SchemaVersionOperationValidator operationValidator,
-        WorkspaceReferencePort workspaceReferencePort
+        WorkspaceReferencePort workspaceReferencePort,
+        SchemaVersionMapper mapper
     ) {
         this.schemaRepository = schemaRepository;
         this.versionRepository = versionRepository;
         this.validator = validator;
         this.operationValidator = operationValidator;
         this.workspaceReferencePort = workspaceReferencePort;
+        this.mapper = mapper;
     }
 
     @Transactional
@@ -119,7 +123,7 @@ public class SchemaVersionCommandService {
         if (existingDraft != null) {
             operationValidator.validateDraftUpdate(existingDraft, serialized);
             existingDraft.updateDraft(input.versionName(), serialized);
-            return SchemaVersionOutput.from(existingDraft);
+            return mapper.toOutput(existingDraft);
         }
 
         SchemaVersion latestPublished = versions.stream().filter(SchemaVersion::isPublished).findFirst().orElse(null);
@@ -142,7 +146,7 @@ public class SchemaVersionCommandService {
             operationValidator.validateDraftUpdate(created, serialized);
             created.updateDraft(input.versionName(), serialized);
         }
-        return SchemaVersionOutput.from(versionRepository.save(created));
+        return mapper.toOutput(versionRepository.save(created));
     }
 
     private SchemaVersionOutput publish(Schema schema, String versionIdentifier) {
@@ -151,7 +155,7 @@ public class SchemaVersionCommandService {
             .findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
             .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.VERSION_NOT_FOUND));
         version.publish();
-        return SchemaVersionOutput.from(version);
+        return mapper.toOutput(version);
     }
 
     private void deleteDraft(Schema schema, String versionIdentifier) {

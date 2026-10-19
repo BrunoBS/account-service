@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.workspace.feature.segmentation.repository.c
 import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.model.category.CategoryOutput;
 import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.operations.segment.SegmentQueryService;
 import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.validation.SegmentQueryValidation;
+import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.mapping.category.CategoryMapper;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,18 +17,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class CategoryQueryService {
     private final CategoryRepository repository;
     private final SegmentQueryService segments;
+    private final CategoryMapper mapper;
 
-    public CategoryQueryService(CategoryRepository repository, SegmentQueryService segments) {
+    public CategoryQueryService(
+            CategoryRepository repository, SegmentQueryService segments, CategoryMapper mapper) {
         this.repository = repository;
         this.segments = segments;
+        this.mapper = mapper;
     }
 
     @Transactional(readOnly = true)
     public CategoryOutput findByIdentifier(String segmentIdentifier, String identifier) {
-        return repository
-                .findOutputByIdentifier(segmentIdentifier, identifier)
+        return mapper.toOutput(repository
+                .findBySegmentIdentifierAndIdentifier(segmentIdentifier, identifier)
                 .orElseThrow(
-                        () -> new NotFoundException(SegmentationMessageKeys.CATEGORY_NOT_FOUND));
+                        () -> new NotFoundException(SegmentationMessageKeys.CATEGORY_NOT_FOUND)));
     }
 
     @Transactional(readOnly = true)
@@ -36,6 +40,7 @@ public class CategoryQueryService {
         SegmentQueryValidation.validatePage(pageable);
         segments.findByIdentifier(segmentIdentifier);
         return repository.findPage(
-                segmentIdentifier, SegmentQueryValidation.resolveLifecycle(lifecycle), pageable);
+                        segmentIdentifier, SegmentQueryValidation.resolveLifecycle(lifecycle), pageable)
+                .map(mapper::toOutput);
     }
 }

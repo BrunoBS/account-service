@@ -1,7 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.segmentation.repository.category;
 
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.category.Category;
-import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.model.category.CategoryOutput;
 
 import jakarta.persistence.LockModeType;
 
@@ -18,41 +17,29 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     boolean existsBySegmentIdAndCode(Long segmentId, String code);
 
     @Query(
-            """
-            select new br.com.portalmanager.platform.workspace.feature.segmentation.usecase.model.category.CategoryOutput(
-                resource.version,
-                resource.identifier,
-                resource.code,
-                resource.name,
-                resource.lifecycle.value,
-                parent.identifier,
-                case when resource.lifecycle.value = 'ACTIVE' and parent.lifecycle.value = 'ACTIVE' then true else false end,
-                resource.createdAt,
-                resource.updatedAt)
-            from Category resource join resource.segment parent
+            value = """
+            select resource
+            from Category resource join fetch resource.segment parent
             where resource.identifier = :identifier and resource.segment.identifier = :segmentIdentifier
             """)
-    Optional<CategoryOutput> findOutputByIdentifier(
+    Optional<Category> findBySegmentIdentifierAndIdentifier(
             @Param("segmentIdentifier") String segmentIdentifier,
             @Param("identifier") String identifier);
 
     @Query(
-            """
-            select new br.com.portalmanager.platform.workspace.feature.segmentation.usecase.model.category.CategoryOutput(
-                resource.version,
-                resource.identifier,
-                resource.code,
-                resource.name,
-                resource.lifecycle.value,
-                parent.identifier,
-                case when resource.lifecycle.value = 'ACTIVE' and parent.lifecycle.value = 'ACTIVE' then true else false end,
-                resource.createdAt,
-                resource.updatedAt)
+            value = """
+            select resource
+            from Category resource join fetch resource.segment parent
+            where resource.lifecycle.value = :lifecycle
+            and parent.identifier = :segmentIdentifier
+            """,
+            countQuery = """
+            select count(resource)
             from Category resource join resource.segment parent
             where resource.lifecycle.value = :lifecycle
             and parent.identifier = :segmentIdentifier
             """)
-    Page<CategoryOutput> findPage(
+    Page<Category> findPage(
             @Param("segmentIdentifier") String segmentIdentifier,
             @Param("lifecycle") String lifecycle,
             Pageable pageable);

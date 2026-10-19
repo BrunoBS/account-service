@@ -65,4 +65,10 @@ public class MicroserviceFacade {
             AuthorizationContext authorizationContext, String microserviceIdentifier) {
         return commandService.inactivate(microserviceIdentifier);
     }
+
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.DELETE)
+    public MicroserviceOutput purge(
+            AuthorizationContext authorizationContext, String microserviceIdentifier) {
+        return commandService.purge(microserviceIdentifier);
+    }
 }

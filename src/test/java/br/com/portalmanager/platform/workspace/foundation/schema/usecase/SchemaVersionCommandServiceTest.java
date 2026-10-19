@@ -11,12 +11,13 @@ import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceR
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaDefinitionValidationAdapter;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.SchemaVersionRepository;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.CreateSchemaVersionInput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.SchemaVersionOutput;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.schema.SchemaRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.version.SchemaVersionRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.version.CreateSchemaVersionInput;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.version.SchemaVersionOutput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.version.SchemaVersionCommandService;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaVersionOperationValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.mapping.version.SchemaVersionMapper;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.version.SchemaVersionOperationValidator;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +35,8 @@ class SchemaVersionCommandServiceTest {
         versionRepository,
         validator,
         new SchemaVersionOperationValidator(),
-        workspaceReferencePort
+        workspaceReferencePort,
+        new SchemaVersionMapper()
     );
 
     @Test

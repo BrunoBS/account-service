@@ -2,8 +2,9 @@ package br.com.portalmanager.platform.workspace.core.environment.usecase.operati
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeCompatibilityRepository;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentCompatibilityOutput;
+import br.com.portalmanager.platform.workspace.core.environment.repository.compatibility.EnvironmentTypeCompatibilityRepository;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.compatibility.EnvironmentCompatibilityOutput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.mapping.compatibility.EnvironmentCompatibilityMapper;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 import java.util.List;
@@ -14,15 +15,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class EnvironmentTypeCompatibilityQueryService {
 
     private final EnvironmentTypeCompatibilityRepository repository;
+    private final EnvironmentCompatibilityMapper mapper;
 
-    public EnvironmentTypeCompatibilityQueryService(EnvironmentTypeCompatibilityRepository repository) {
+    public EnvironmentTypeCompatibilityQueryService(
+        EnvironmentTypeCompatibilityRepository repository,
+        EnvironmentCompatibilityMapper mapper
+    ) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
     @Transactional(readOnly = true)
     public EnvironmentCompatibilityOutput find(String identifier) {
         return repository.findByIdentifier(identifier)
-            .map(EnvironmentCompatibilityOutput::from)
+            .map(mapper::toOutput)
             .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.COMPATIBILITY_NOT_FOUND));
     }
 
@@ -32,7 +38,7 @@ public class EnvironmentTypeCompatibilityQueryService {
         return repository
             .findByLifecycleOrderByIdAsc(effectiveLifecycle)
             .stream()
-            .map(EnvironmentCompatibilityOutput::from)
+            .map(mapper::toOutput)
             .toList();
     }
 }

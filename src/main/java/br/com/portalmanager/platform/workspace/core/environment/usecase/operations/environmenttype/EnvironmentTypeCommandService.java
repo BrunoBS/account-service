@@ -4,11 +4,11 @@ import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentType;
 import br.com.portalmanager.platform.workspace.core.environment.domain.environmenttype.EnvironmentTypeDetails;
-import br.com.portalmanager.platform.workspace.core.environment.repository.EnvironmentTypeRepository;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTypeInput;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.EnvironmentTypeOutput;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.mapping.EnvironmentTypeMapper;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.EnvironmentTypeValidator;
+import br.com.portalmanager.platform.workspace.core.environment.repository.environmenttype.EnvironmentTypeRepository;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environmenttype.EnvironmentTypeInput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environmenttype.EnvironmentTypeOutput;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.mapping.environmenttype.EnvironmentTypeMapper;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.validation.environmenttype.EnvironmentTypeValidator;
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +39,7 @@ public class EnvironmentTypeCommandService {
         validator.validateForCreate(input);
         EnvironmentTypeDetails details = mapper.toDetails(input);
         EnvironmentType type = new EnvironmentType(input.code(), details, LocalDateTime.now());
-        return EnvironmentTypeOutput.from(types.saveAndFlush(type));
+        return mapper.toOutput(types.saveAndFlush(type));
     }
 
     @Transactional
@@ -49,7 +49,7 @@ public class EnvironmentTypeCommandService {
         validator.validateForUpdate(type, input);
         EnvironmentTypeDetails details = mapper.toDetails(input);
         type.update(details, LocalDateTime.now());
-        return EnvironmentTypeOutput.from(types.saveAndFlush(type));
+        return mapper.toOutput(types.saveAndFlush(type));
     }
 
     @Transactional
@@ -57,7 +57,7 @@ public class EnvironmentTypeCommandService {
     public EnvironmentTypeOutput inactivate(String code) {
         EnvironmentType type = finder.findForUpdate(code);
         type.inactivate(LocalDateTime.now());
-        return EnvironmentTypeOutput.from(types.saveAndFlush(type));
+        return mapper.toOutput(types.saveAndFlush(type));
     }
 
     @Transactional
@@ -65,7 +65,7 @@ public class EnvironmentTypeCommandService {
     public EnvironmentTypeOutput restore(String code) {
         EnvironmentType type = finder.findForUpdate(code);
         type.restore(LocalDateTime.now());
-        return EnvironmentTypeOutput.from(types.saveAndFlush(type));
+        return mapper.toOutput(types.saveAndFlush(type));
     }
 
     @Transactional
@@ -73,7 +73,7 @@ public class EnvironmentTypeCommandService {
     public EnvironmentTypeOutput delete(String code) {
         EnvironmentType type = finder.findForUpdate(code);
         validator.validateForDelete(type);
-        EnvironmentTypeOutput removedType = EnvironmentTypeOutput.from(type);
+        EnvironmentTypeOutput removedType = mapper.toOutput(type);
         types.delete(type);
         types.flush();
         return removedType;

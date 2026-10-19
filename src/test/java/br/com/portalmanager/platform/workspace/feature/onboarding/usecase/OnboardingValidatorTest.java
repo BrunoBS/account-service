@@ -8,7 +8,7 @@ import br.com.portalmanager.platform.library.authorization.model.UserContext;
 import br.com.portalmanager.platform.library.authorization.model.UserSession;
 import br.com.portalmanager.platform.library.messaging.exception.ApiException;
 import br.com.portalmanager.platform.workspace.feature.onboarding.domain.OnboardingMessageKeys;
-import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation.progress.OnboardingValidator;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation.OnboardingValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.usecase.OnboardingPhaseTypeService;
 
 import org.junit.jupiter.api.AfterEach;

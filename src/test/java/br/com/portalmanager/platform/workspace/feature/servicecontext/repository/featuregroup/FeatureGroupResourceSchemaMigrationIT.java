@@ -111,7 +111,7 @@ class FeatureGroupResourceSchemaMigrationIT {
                                 + " sc.resource_code='feature-context' AND sv.status='PUBLISHED'",
                         String.class);
         String associationReference =
-                new ClassPathResource("schemas/feature-context.json")
+                new ClassPathResource("migration/service-context/feature-context.json")
                         .getContentAsString(StandardCharsets.UTF_8);
         assertThat(mapper.readTree(associationSchema))
                 .isEqualTo(mapper.readTree(associationReference));

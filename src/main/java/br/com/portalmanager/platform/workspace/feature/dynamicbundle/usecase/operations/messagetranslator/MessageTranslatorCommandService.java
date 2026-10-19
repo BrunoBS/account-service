@@ -10,8 +10,8 @@ import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.mod
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.messagetranslator.MessageTranslatorOutput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.messagetranslator.UpdateMessageTranslatorInput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageFinder;
-import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageMapper;
-import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageNormalizer;
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.mapping.messagetranslator.MessageTranslatorMapper;
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.messagetranslator.MessageTranslatorNormalizer;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.validation.messagetranslator.MessageTranslatorValidator;
 
 import org.springframework.stereotype.Service;
@@ -25,15 +25,15 @@ public class MessageTranslatorCommandService {
 
     private final MessageTranslatorRepository translatorRepository;
     private final MessageFinder finder;
-    private final MessageNormalizer normalizer;
-    private final MessageMapper mapper;
+    private final MessageTranslatorNormalizer normalizer;
+    private final MessageTranslatorMapper mapper;
     private final MessageTranslatorValidator validator;
 
     public MessageTranslatorCommandService(
             MessageTranslatorRepository translatorRepository,
             MessageFinder finder,
-            MessageNormalizer normalizer,
-            MessageMapper mapper,
+            MessageTranslatorNormalizer normalizer,
+            MessageTranslatorMapper mapper,
             MessageTranslatorValidator validator) {
         this.translatorRepository = translatorRepository;
         this.finder = finder;
@@ -54,9 +54,8 @@ public class MessageTranslatorCommandService {
 
         validator.validateForCreate(message, input);
 
-        MessageTranslator translator =
-                new MessageTranslator(message, mapper.toDetails(input), LocalDateTime.now());
-        return MessageTranslatorOutput.from(translatorRepository.saveAndFlush(translator));
+        MessageTranslator translator = mapper.toDomain(message, input, LocalDateTime.now());
+        return mapper.toOutput(translatorRepository.saveAndFlush(translator));
     }
 
     @Transactional
@@ -76,7 +75,7 @@ public class MessageTranslatorCommandService {
         validator.validateForUpdate(translator, input);
 
         translator.update(mapper.toDetails(input), LocalDateTime.now());
-        return MessageTranslatorOutput.from(translatorRepository.saveAndFlush(translator));
+        return mapper.toOutput(translatorRepository.saveAndFlush(translator));
     }
 
     @Transactional
@@ -89,7 +88,7 @@ public class MessageTranslatorCommandService {
         MessageTranslator translator =
                 finder.findTranslatorForUpdate(message, translatorIdentifier);
         translator.activate(LocalDateTime.now());
-        return MessageTranslatorOutput.from(translatorRepository.saveAndFlush(translator));
+        return mapper.toOutput(translatorRepository.saveAndFlush(translator));
     }
 
     @Transactional
@@ -103,7 +102,7 @@ public class MessageTranslatorCommandService {
         MessageTranslator translator =
                 finder.findTranslatorForUpdate(message, translatorIdentifier);
         translator.inactivate(LocalDateTime.now());
-        return MessageTranslatorOutput.from(translatorRepository.saveAndFlush(translator));
+        return mapper.toOutput(translatorRepository.saveAndFlush(translator));
     }
 
     @Transactional
@@ -116,7 +115,7 @@ public class MessageTranslatorCommandService {
         MessageTranslator translator =
                 finder.findTranslatorForUpdate(message, translatorIdentifier);
         translator.requireInactiveForDeletion();
-        MessageTranslatorOutput removedTranslator = MessageTranslatorOutput.from(translator);
+        MessageTranslatorOutput removedTranslator = mapper.toOutput(translator);
         translatorRepository.delete(translator);
         translatorRepository.flush();
         return removedTranslator;
@@ -135,17 +134,7 @@ public class MessageTranslatorCommandService {
         message.requireInactiveForDeletion();
         List<MessageTranslatorOutput> removedTranslators =
                 snapshots.stream()
-                        .map(
-                                snapshot ->
-                                        new MessageTranslatorOutput(
-                                                snapshot.getIdentifier(),
-                                                message.getIdentifier(),
-                                                snapshot.getVersion(),
-                                                snapshot.getLocale(),
-                                                snapshot.getTitle(),
-                                                snapshot.getDetail(),
-                                                snapshot.getSuggestion(),
-                                                snapshot.getLifecycle()))
+                        .map(snapshot -> mapper.toOutput(message, snapshot))
                         .toList();
         translatorRepository.deleteAllByMessageId(message.getId());
         translatorRepository.flush();
@@ -170,10 +159,10 @@ public class MessageTranslatorCommandService {
         validator.validateInline(inputs);
         List<MessageTranslator> messageTranslators =
                 inputs.stream()
-                        .map(input -> new MessageTranslator(message, mapper.toDetails(input), now))
+                        .map(input -> mapper.toDomain(message, input, now))
                         .toList();
         return translatorRepository.saveAllAndFlush(messageTranslators).stream()
-                .map(MessageTranslatorOutput::from)
+                .map(mapper::toOutput)
                 .toList();
     }
 }

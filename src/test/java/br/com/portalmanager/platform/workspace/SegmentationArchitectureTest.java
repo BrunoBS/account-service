@@ -8,8 +8,8 @@ import br.com.portalmanager.platform.library.authorization.annotation.Authorizat
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationAction;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
-import br.com.portalmanager.platform.workspace.entrypoint.web.segmentation.category.CategoryController;
-import br.com.portalmanager.platform.workspace.entrypoint.web.segmentation.segment.SegmentController;
+import br.com.portalmanager.platform.workspace.entrypoint.segmentation.category.CategoryController;
+import br.com.portalmanager.platform.workspace.entrypoint.segmentation.segment.SegmentController;
 import br.com.portalmanager.platform.workspace.feature.segmentation.facade.category.CategoryFacade;
 import br.com.portalmanager.platform.workspace.feature.segmentation.facade.segment.SegmentFacade;
 
@@ -37,7 +37,7 @@ class SegmentationArchitectureTest {
                 .resideInAnyPackage(
                         "..core..",
                         "..feature.servicecontext..",
-                        "..feature.resourcesharing..",
+                        "..feature.sharing..",
                         "..feature.dynamicbundle..",
                         "..feature.onboarding..")
                 .check(

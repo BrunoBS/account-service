@@ -62,3 +62,12 @@ platform:
   audit:
     enabled: ${AUDIT_ENABLED:true}
     service-name: workspace-service
+
+workspace:
+  parameter:
+    runtime:
+      enabled: true
+      batch-size: 500
+    reconciliation:
+      enabled: true
+      interval: PT1H

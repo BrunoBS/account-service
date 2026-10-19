@@ -13,7 +13,7 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.model.Cr
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.validation.ApplicationValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.OnboardingPhaseCompletionPort;
+import br.com.portalmanager.platform.workspace.foundation.integration.PhaseCompletionPort;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort.ResolvedWorkspace;
 import java.time.LocalDateTime;
@@ -30,7 +30,7 @@ public class ApplicationCommandService {
     private final ApplicationMapper mapper;
     private final ApplicationValidator validator;
     private final TagManager<ApplicationTag, Application> tags;
-    private final OnboardingPhaseCompletionPort onboardingPhaseCompletionPort;
+    private final PhaseCompletionPort phaseCompletion;
 
     public ApplicationCommandService(
         ApplicationRepository repository,
@@ -39,7 +39,7 @@ public class ApplicationCommandService {
         ApplicationMapper mapper,
         ApplicationValidator validator,
         TagManager<ApplicationTag, Application> tags,
-        OnboardingPhaseCompletionPort onboardingPhaseCompletionPort
+        PhaseCompletionPort phaseCompletion
     ) {
         this.repository = repository;
         this.finder = finder;
@@ -47,7 +47,7 @@ public class ApplicationCommandService {
         this.mapper = mapper;
         this.validator = validator;
         this.tags = tags;
-        this.onboardingPhaseCompletionPort = onboardingPhaseCompletionPort;
+        this.phaseCompletion = phaseCompletion;
     }
 
     @Transactional
@@ -67,9 +67,9 @@ public class ApplicationCommandService {
         );
 
         if (firstApplication) {
-            onboardingPhaseCompletionPort.registerPhaseCompletion(workspaceId, OnboardingPhaseTypeCode.firstApplicationRegistration());
+            phaseCompletion.registerPhaseCompletion(workspaceId, OnboardingPhaseTypeCode.firstApplicationRegistration());
         }
-        return ApplicationOutput.from(savedApplication, workspaceIdentifier, manualTags);
+        return mapper.toOutput(savedApplication, workspaceIdentifier, manualTags);
     }
 
     @Transactional
@@ -86,7 +86,7 @@ public class ApplicationCommandService {
             input.tags(),
             ApplicationSystemTags.resolve(savedApplication, workspaceIdentifier)
         );
-        return ApplicationOutput.from(savedApplication, workspaceIdentifier, manualTags);
+        return mapper.toOutput(savedApplication, workspaceIdentifier, manualTags);
     }
 
     @Transactional
@@ -97,7 +97,7 @@ public class ApplicationCommandService {
         List<String> manualTags = tags.findManual(application);
         application.inactivate(LocalDateTime.now());
         Application savedApplication = repository.saveAndFlush(application);
-        return ApplicationOutput.from(savedApplication, workspaceIdentifier, manualTags);
+        return mapper.toOutput(savedApplication, workspaceIdentifier, manualTags);
     }
 
     @Transactional
@@ -108,7 +108,7 @@ public class ApplicationCommandService {
         List<String> manualTags = tags.findManual(application);
         application.restore(LocalDateTime.now());
         Application savedApplication = repository.saveAndFlush(application);
-        return ApplicationOutput.from(savedApplication, workspaceIdentifier, manualTags);
+        return mapper.toOutput(savedApplication, workspaceIdentifier, manualTags);
     }
 
     @Transactional
@@ -118,6 +118,6 @@ public class ApplicationCommandService {
         Application application = finder.findInactiveForDeletion(identifier, workspaceId);
         application.quarantine(LocalDateTime.now());
         Application savedApplication = repository.saveAndFlush(application);
-        return ApplicationOutput.from(savedApplication, workspaceIdentifier, tags.findManual(savedApplication));
+        return mapper.toOutput(savedApplication, workspaceIdentifier, tags.findManual(savedApplication));
     }
 }

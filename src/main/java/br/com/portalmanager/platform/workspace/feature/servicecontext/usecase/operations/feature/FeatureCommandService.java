@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature;
 
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.feature.FeatureMapper;
+
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
@@ -41,9 +43,7 @@ public class FeatureCommandService {
         validator.validateForCreate(input);
         Microservice microservice =
                 finder.findActiveMicroserviceForReference(input.microserviceIdentifier());
-        Feature feature =
-                new Feature(
-                        input.code(), mapper.toDetails(input), microservice, LocalDateTime.now());
+        Feature feature = mapper.toDomain(input, microservice, LocalDateTime.now());
         return mapper.toOutput(repository.saveAndFlush(feature));
     }
 

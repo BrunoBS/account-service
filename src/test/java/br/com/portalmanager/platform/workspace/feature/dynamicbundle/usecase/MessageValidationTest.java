@@ -14,8 +14,9 @@ import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.mess
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.repository.message.MessageRepository;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.CreateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageNormalizer;
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.messagetranslator.MessageTranslatorNormalizer;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.validation.message.MessageValidator;
-import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceQueryService;
+import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,10 +28,10 @@ import java.time.LocalDateTime;
 class MessageValidationTest {
 
     private final MessageRepository messages = mock(MessageRepository.class);
-    private final MicroserviceQueryService microservices = mock(MicroserviceQueryService.class);
+    private final MicroserviceReferencePort microservices = mock(MicroserviceReferencePort.class);
     private final MessageValidator validator =
             new MessageValidator(messages, microservices);
-    private final MessageNormalizer normalizer = new MessageNormalizer();
+    private final MessageNormalizer normalizer = new MessageNormalizer(new MessageTranslatorNormalizer());
     private final LocalDateTime now = LocalDateTime.now();
 
     @Test
@@ -121,9 +122,10 @@ class MessageValidationTest {
 
     @Test
     void normalizesScriptsAndRejectsMalformedLocaleInsteadOfTruncatingIt() {
-        assertThat(normalizer.normalizeLocaleFilter(" zh_hant_tw ")).isEqualTo("zh-Hant-TW");
-        assertThat(normalizer.normalizeLocaleFilter("pt-br")).isEqualTo("pt-BR");
-        assertThatThrownBy(() -> normalizer.normalizeLocaleFilter("pt-BR-!"))
+        MessageTranslatorNormalizer translatorNormalizer = new MessageTranslatorNormalizer();
+        assertThat(translatorNormalizer.normalizeLocaleFilter(" zh_hant_tw ")).isEqualTo("zh-Hant-TW");
+        assertThat(translatorNormalizer.normalizeLocaleFilter("pt-br")).isEqualTo("pt-BR");
+        assertThatThrownBy(() -> translatorNormalizer.normalizeLocaleFilter("pt-BR-!"))
                 .isInstanceOf(ValidationException.class);
     }
 

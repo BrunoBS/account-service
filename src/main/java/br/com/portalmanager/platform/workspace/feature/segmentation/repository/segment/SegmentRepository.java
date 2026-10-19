@@ -1,7 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.segmentation.repository.segment;
 
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.segment.Segment;
-import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.model.segment.SegmentOutput;
 
 import jakarta.persistence.LockModeType;
 
@@ -17,37 +16,17 @@ import java.util.Optional;
 public interface SegmentRepository extends JpaRepository<Segment, Long> {
     boolean existsByCode(String code);
 
-    @Query(
-            """
-            select new br.com.portalmanager.platform.workspace.feature.segmentation.usecase.model.segment.SegmentOutput(
-                resource.version,
-                resource.identifier,
-                resource.code,
-                resource.name,
-                resource.lifecycle.value,
-                resource.createdAt,
-                resource.updatedAt)
-            from Segment resource
-            where resource.identifier = :identifier
-            """)
-    Optional<SegmentOutput> findOutputByIdentifier(@Param("identifier") String identifier);
+    Optional<Segment> findByIdentifier(String identifier);
 
     @Query(
             """
-            select new br.com.portalmanager.platform.workspace.feature.segmentation.usecase.model.segment.SegmentOutput(
-                resource.version,
-                resource.identifier,
-                resource.code,
-                resource.name,
-                resource.lifecycle.value,
-                resource.createdAt,
-                resource.updatedAt)
+            select resource
             from Segment resource
             where resource.lifecycle.value = :lifecycle
             and (:code is null or resource.code = :code)
             and (:name is null or lower(resource.name) like lower(concat('%', :name, '%')) escape '!')
             """)
-    Page<SegmentOutput> findPage(
+    Page<Segment> findPage(
             @Param("code") String code,
             @Param("name") String name,
             @Param("lifecycle") String lifecycle,

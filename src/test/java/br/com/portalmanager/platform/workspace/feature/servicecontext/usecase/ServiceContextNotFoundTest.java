@@ -11,12 +11,12 @@ import br.com.portalmanager.platform.workspace.feature.servicecontext.repository
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.featuregroup.FeatureGroupRepository;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.microservice.MicroserviceRepository;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature.FeatureFinder;
-import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature.FeatureMapper;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.feature.FeatureMapper;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature.FeatureQueryService;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.featuregroup.FeatureGroupFinder;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.featuregroup.FeatureGroupQueryService;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceFinder;
-import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceMapper;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.microservice.MicroserviceMapper;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceQueryService;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.feature.FeatureValidator;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.featuregroup.FeatureGroupValidator;
@@ -63,7 +63,8 @@ class ServiceContextNotFoundTest {
                                                 new FeatureGroupFinder(
                                                         mock(FeatureGroupRepository.class),
                                                         mock(EntityManager.class)),
-                                                mock(FeatureGroupValidator.class))
+                                                mock(FeatureGroupValidator.class),
+                                                new br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.featuregroup.FeatureGroupMapper())
                                         .findByIdentifier("missing"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(ServiceContextMessageKeys.FEATURE_GROUP_NOT_FOUND);

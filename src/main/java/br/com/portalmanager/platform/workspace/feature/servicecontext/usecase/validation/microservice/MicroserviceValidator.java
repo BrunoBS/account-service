@@ -9,12 +9,14 @@ import br.com.portalmanager.platform.workspace.feature.servicecontext.repository
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.microservice.CreateMicroserviceInput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.microservice.UpdateMicroserviceInput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.ServiceContextValidation;
+import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceUsagePort;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidationAdapter;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
+import java.util.List;
 import java.util.Set;
 
 @Component
@@ -25,11 +27,21 @@ public class MicroserviceValidator {
 
     private final MicroserviceRepository repository;
     private final SchemaSettingsValidationAdapter settingsValidator;
+    private final List<MicroserviceUsagePort> usagePorts;
 
     public MicroserviceValidator(
-            MicroserviceRepository repository, SchemaSettingsValidationAdapter settingsValidator) {
+            MicroserviceRepository repository,
+            SchemaSettingsValidationAdapter settingsValidator,
+            List<MicroserviceUsagePort> usagePorts) {
         this.repository = repository;
         this.settingsValidator = settingsValidator;
+        this.usagePorts = usagePorts;
+    }
+
+    public void validateForPurge(Microservice microservice) {
+        microservice.requireInactiveForDeletion();
+        if (usagePorts.stream().anyMatch(port -> port.isInUse(microservice.getId())))
+            throw new ValidationException(ServiceContextMessageKeys.MICROSERVICE_IN_USE);
     }
 
     public void validateForCreate(CreateMicroserviceInput input) {

@@ -17,19 +17,19 @@ import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mo
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.microservice.CreateMicroserviceInput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature.FeatureCommandService;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature.FeatureFinder;
-import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature.FeatureMapper;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.feature.FeatureMapper;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.featuregroup.FeatureGroupAssociationOperations;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.featuregroup.FeatureGroupAssociationCommandService;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.featuregroup.FeatureGroupCommandService;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.featuregroup.FeatureGroupFinder;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceCommandService;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceFinder;
-import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceMapper;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.microservice.MicroserviceMapper;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.feature.FeatureValidator;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.featuregroup.FeatureGroupAssociationValidator;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.featuregroup.FeatureGroupValidator;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.microservice.MicroserviceValidator;
-import br.com.portalmanager.platform.workspace.foundation.integration.FeatureSharingReferencePort;
+import br.com.portalmanager.platform.workspace.foundation.integration.FeatureUsagePort;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidationAdapter;
 
 import jakarta.persistence.EntityManager;
@@ -275,7 +275,7 @@ class ServiceContextCommandServiceTest {
                 new FeatureValidator(
                         features,
                         mock(SchemaSettingsValidationAdapter.class),
-                        mock(FeatureSharingReferencePort.class)),
+                        mock(FeatureUsagePort.class)),
                 mapper);
     }
 
@@ -300,7 +300,8 @@ class ServiceContextCommandServiceTest {
         return new FeatureGroupCommandService(
                 groups,
                 new FeatureGroupFinder(groups, mock(EntityManager.class)),
-                new FeatureGroupValidator(groups, relations));
+                new FeatureGroupValidator(groups, relations),
+                new br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.featuregroup.FeatureGroupMapper());
     }
 
     private static MicroserviceCommandService microserviceCommand(
@@ -308,7 +309,10 @@ class ServiceContextCommandServiceTest {
         return new MicroserviceCommandService(
                 repository,
                 new MicroserviceFinder(repository, mock(EntityManager.class)),
-                new MicroserviceValidator(repository, mock(SchemaSettingsValidationAdapter.class)),
+                new MicroserviceValidator(
+                        repository,
+                        mock(SchemaSettingsValidationAdapter.class),
+                        java.util.List.of()),
                 new MicroserviceMapper(JsonMapper.builder().build()));
     }
 }

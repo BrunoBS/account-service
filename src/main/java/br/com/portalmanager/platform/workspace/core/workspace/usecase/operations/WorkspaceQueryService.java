@@ -8,6 +8,7 @@ import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceMessageKeys;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceTag;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.mapping.WorkspaceMapper;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.projection.WorkspaceOnboardingReference;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.projection.WorkspaceReference;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.FindAllWorkspacesInput;
@@ -34,17 +35,20 @@ public class WorkspaceQueryService {
     private final WorkspaceFinder finder;
     private final WorkspaceValidator validator;
     private final TagManager<WorkspaceTag, Workspace> tags;
+    private final WorkspaceMapper mapper;
 
     public WorkspaceQueryService(
         WorkspaceRepository repository,
         WorkspaceFinder finder,
         WorkspaceValidator validator,
-        TagManager<WorkspaceTag, Workspace> tags
+        TagManager<WorkspaceTag, Workspace> tags,
+        WorkspaceMapper mapper
     ) {
         this.repository = repository;
         this.finder = finder;
         this.validator = validator;
         this.tags = tags;
+        this.mapper = mapper;
     }
 
     @Transactional(readOnly = true)
@@ -102,18 +106,14 @@ public class WorkspaceQueryService {
     @Transactional(readOnly = true)
     public WorkspaceOutput findByIdentifier(String identifier) {
         Workspace workspace = finder.findActive(identifier);
-        return WorkspaceOutput.from(workspace, tags.findManual(workspace));
+        return mapper.toOutput(workspace, tags.findManual(workspace));
     }
 
     @ResourceVisibility(Workspace.class)
     @Transactional(readOnly = true)
     public WorkspaceOnboardingReferenceOutput findOnboardingReference(String identifier) {
         WorkspaceOnboardingReference reference = finder.findActiveOnboardingReference(identifier);
-        return new WorkspaceOnboardingReferenceOutput(
-            reference.getId(),
-            reference.getWorkspaceType(),
-            reference.getOnboarding()
-        );
+        return mapper.toOnboardingReference(reference);
     }
 
     @ResourceVisibility(Workspace.class)
@@ -136,7 +136,7 @@ public class WorkspaceQueryService {
             workspaces.getContent().stream().map(Workspace::getIdentifier).toList()
         );
         return workspaces.map(workspace ->
-            WorkspaceOutput.from(
+            mapper.toOutput(
                 workspace,
                 manualTagsByWorkspaceIdentifier.getOrDefault(workspace.getIdentifier(), List.of())
             )

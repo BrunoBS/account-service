@@ -30,6 +30,9 @@ public final class ServiceContextMessageKeys {
     public static final String CODE_IMMUTABLE = "service-context.code.immutable";
     public static final String MICROSERVICE_ACTIVATE_INVALID =
             "service-context.microservice.activate.invalid";
+    public static final String MICROSERVICE_DELETE_INVALID =
+            "service-context.microservice.delete.invalid";
+    public static final String MICROSERVICE_IN_USE = "service-context.microservice.in-use";
     public static final String MICROSERVICE_PAGE_INVALID =
             "service-context.microservice.page.invalid";
     public static final String MICROSERVICE_SETTINGS_INVALID =

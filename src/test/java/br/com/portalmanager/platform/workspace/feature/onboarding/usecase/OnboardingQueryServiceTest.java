@@ -14,13 +14,14 @@ import br.com.portalmanager.platform.library.messaging.exception.ApiException;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOnboardingReferenceOutput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.feature.onboarding.domain.OnboardingMessageKeys;
-import br.com.portalmanager.platform.workspace.feature.onboarding.domain.completion.WorkspaceOnboardingCompletion;
-import br.com.portalmanager.platform.workspace.feature.onboarding.repository.completion.WorkspaceOnboardingCompletionRepository;
+import br.com.portalmanager.platform.workspace.feature.onboarding.domain.WorkspaceOnboardingCompletion;
+import br.com.portalmanager.platform.workspace.feature.onboarding.repository.WorkspaceOnboardingCompletionRepository;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.mapping.OnboardingProgressMapper;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.phase.OnboardingPhaseOutput;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.phase.OnboardingPhaseStatus;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.progress.OnboardingProgressOutput;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.operations.progress.OnboardingQueryService;
-import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation.progress.OnboardingValidator;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation.OnboardingValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.usecase.OnboardingPhaseTypeService;
 
@@ -47,7 +48,8 @@ class OnboardingQueryServiceTest {
                     workspaceQueryService,
                     phaseCatalogService,
                     completionRepository,
-                    new OnboardingValidator(phaseCatalogService));
+                    new OnboardingValidator(phaseCatalogService),
+                    new OnboardingProgressMapper());
 
     @BeforeEach
     void prepare() {

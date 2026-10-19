@@ -46,7 +46,7 @@ class GoldenArchitectureTest {
 
     @Test
     void onlyApprovedArchitecturalZonesMayExist() {
-        Set<String> allowed = Set.of("foundation", "core", "feature", "entrypoint");
+        Set<String> allowed = Set.of("config", "foundation", "core", "feature", "entrypoint");
         List<String> invalidPackages =
                 classes.stream()
                         .map(JavaClass::getPackageName)
@@ -237,7 +237,7 @@ class GoldenArchitectureTest {
                     .areAnnotatedWith(RestController.class)
                     .and()
                     .resideInAPackage(
-                            ROOT + ".entrypoint.web.servicecontext." + responsibility + "..")
+                            ROOT + ".entrypoint.servicecontext." + responsibility + "..")
                     .should(
                             new ArchCondition<>(
                                     "use only the " + responsibility + " service context facade") {

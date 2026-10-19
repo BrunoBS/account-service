@@ -10,6 +10,7 @@ import br.com.portalmanager.platform.workspace.core.application.domain.Applicati
 import br.com.portalmanager.platform.workspace.core.application.repository.ApplicationRepository;
 import br.com.portalmanager.platform.workspace.core.application.repository.projection.ApplicationReference;
 import br.com.portalmanager.platform.workspace.core.application.repository.projection.ApplicationScopeReference;
+import br.com.portalmanager.platform.workspace.core.application.usecase.mapping.ApplicationMapper;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationOutput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationReferenceOutput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationScopeReferenceOutput;
@@ -40,6 +41,7 @@ public class ApplicationQueryService {
     private final TagManager<ApplicationTag, Application> tags;
     private final ApplicationNormalizer normalizer;
     private final ApplicationValidator validator;
+    private final ApplicationMapper mapper;
 
     public ApplicationQueryService(
         WorkspaceQueryService workspaceQueries,
@@ -48,7 +50,8 @@ public class ApplicationQueryService {
         WorkspaceReferencePort workspaces,
         TagManager<ApplicationTag, Application> tags,
         ApplicationNormalizer normalizer,
-        ApplicationValidator validator
+        ApplicationValidator validator,
+        ApplicationMapper mapper
     ) {
         this.workspaceQueries = workspaceQueries;
         this.repository = repository;
@@ -57,6 +60,7 @@ public class ApplicationQueryService {
         this.tags = tags;
         this.normalizer = normalizer;
         this.validator = validator;
+        this.mapper = mapper;
     }
 
     @ResourceVisibility(Application.class)
@@ -64,11 +68,7 @@ public class ApplicationQueryService {
     public ApplicationScopeReferenceOutput findActiveScope(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application application = finder.findActive(identifier, workspaceId);
-        return new ApplicationScopeReferenceOutput(
-            workspaceId,
-            application.getId(),
-            application.getApplicationScope().value()
-        );
+        return mapper.toScopeReference(workspaceId, application);
     }
 
     /** Cross-application access only after Shared has verified the contract or participation scope. */
@@ -80,7 +80,7 @@ public class ApplicationQueryService {
         if (workspaceQueries.findActiveIdentifiersForResourceSharing(List.of(workspaceId)).isEmpty()) {
             throw new NotFoundException(ApplicationMessageKeys.NOT_FOUND);
         }
-        return new ApplicationScopeReferenceOutput(workspaceId, applicationId, application.getApplicationScope());
+        return mapper.toScopeReference(workspaceId, applicationId, application);
     }
 
     @ResourceVisibility(Application.class)
@@ -88,11 +88,7 @@ public class ApplicationQueryService {
     public ApplicationScopeReferenceOutput findActiveScopeForUpdate(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application application = finder.findActiveForUpdate(identifier, workspaceId);
-        return new ApplicationScopeReferenceOutput(
-            workspaceId,
-            application.getId(),
-            application.getApplicationScope().value()
-        );
+        return mapper.toScopeReference(workspaceId, application);
     }
 
     @Transactional(readOnly = true)
@@ -114,13 +110,7 @@ public class ApplicationQueryService {
             .stream()
             .collect(
                 Collectors.toMap(ApplicationReference::getId, application ->
-                    new ApplicationReferenceOutput(
-                        application.getId(),
-                        application.getWorkspaceId(),
-                        application.getIdentifier(),
-                        workspaceIdentifiers.get(application.getWorkspaceId()),
-                        application.getName()
-                    )
+                    mapper.toReference(application, workspaceIdentifiers.get(application.getWorkspaceId()))
                 )
             );
     }
@@ -140,13 +130,7 @@ public class ApplicationQueryService {
             .stream()
             .filter(application -> activeWorkspaces.containsKey(application.getWorkspaceId()))
             .map(application ->
-                new ApplicationReferenceOutput(
-                    application.getId(),
-                    application.getWorkspaceId(),
-                    application.getIdentifier(),
-                    activeWorkspaces.get(application.getWorkspaceId()),
-                    application.getName()
-                )
+                mapper.toReference(application, activeWorkspaces.get(application.getWorkspaceId()))
             )
             .toList();
     }
@@ -156,7 +140,7 @@ public class ApplicationQueryService {
     public ApplicationOutput findByIdentifier(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application application = finder.findActive(identifier, workspaceId);
-        return ApplicationOutput.from(application, workspaceIdentifier, tags.findManual(application));
+        return mapper.toOutput(application, workspaceIdentifier, tags.findManual(application));
     }
 
     @ResourceVisibility(Application.class)
@@ -183,7 +167,7 @@ public class ApplicationQueryService {
             applications.getContent().stream().map(Application::getIdentifier).toList()
         );
         return applications.map(application ->
-            ApplicationOutput.from(
+            mapper.toOutput(
                 application,
                 workspaceIdentifier,
                 manualTags.getOrDefault(application.getIdentifier(), List.of())
@@ -198,16 +182,7 @@ public class ApplicationQueryService {
         return repository
             .findActiveSummaries(workspaceId)
             .stream()
-            .map(reference ->
-                new ApplicationSummary(
-                    reference.getIdentifier(),
-                    reference.getName(),
-                    reference.getAlias(),
-                    reference.getAcronym(),
-                    reference.getApplicationScope(),
-                    reference.getAuthorizerGroup()
-                )
-            )
+            .map(mapper::toSummary)
             .toList();
     }
 }

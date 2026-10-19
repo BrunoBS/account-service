@@ -1,5 +1,9 @@
 package br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message;
 
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.mapping.message.MessageMapper;
+
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageNormalizer;
+
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.message.Message;
@@ -10,7 +14,7 @@ import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.mod
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.UpdateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.messagetranslator.MessageTranslatorCommandService;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.validation.message.MessageValidator;
-import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceQueryService;
+import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +31,7 @@ public class MessageCommandService {
     private final MessageNormalizer normalizer;
     private final MessageMapper mapper;
     private final MessageValidator validator;
-    private final MicroserviceQueryService microserviceQueryService;
+    private final MicroserviceReferencePort microservices;
 
     public MessageCommandService(
             MessageRepository messageRepository,
@@ -36,14 +40,14 @@ public class MessageCommandService {
             MessageNormalizer normalizer,
             MessageMapper mapper,
             MessageValidator validator,
-            MicroserviceQueryService microserviceQueryService) {
+            MicroserviceReferencePort microservices) {
         this.messageRepository = messageRepository;
         this.translatorCommandService = translatorCommandService;
         this.finder = finder;
         this.normalizer = normalizer;
         this.mapper = mapper;
         this.validator = validator;
-        this.microserviceQueryService = microserviceQueryService;
+        this.microservices = microservices;
     }
 
     @Transactional
@@ -54,13 +58,13 @@ public class MessageCommandService {
         Long microserviceId = validator.validateForCreate(input);
 
         LocalDateTime now = LocalDateTime.now();
-        Message message = new Message(microserviceId, mapper.toDetails(input), now);
+        Message message = mapper.toDomain(microserviceId, input, now);
         Message savedMessage = messageRepository.saveAndFlush(message);
 
         if (input.translators() != null && !input.translators().isEmpty()) {
             translatorCommandService.createAllForNewMessage(savedMessage, input.translators(), now);
         }
-        return MessageOutput.from(savedMessage, input.microserviceIdentifier());
+        return mapper.toOutput(savedMessage, input.microserviceIdentifier());
     }
 
     @Transactional
@@ -72,7 +76,7 @@ public class MessageCommandService {
         Long microserviceId = validator.validateForUpdate(message, input);
 
         message.update(microserviceId, mapper.toDetails(input), LocalDateTime.now());
-        return MessageOutput.from(
+        return mapper.toOutput(
                 messageRepository.saveAndFlush(message), input.microserviceIdentifier());
     }
 
@@ -112,8 +116,11 @@ public class MessageCommandService {
     }
 
     private MessageOutput toOutput(Message message) {
-        return MessageOutput.from(
+        return mapper.toOutput(
                 message,
-                microserviceQueryService.findIdentifierByInternalId(message.getMicroserviceId()));
+                microservices
+                        .findByInternalIds(List.of(message.getMicroserviceId()))
+                        .get(message.getMicroserviceId())
+                        .identifier());
     }
 }

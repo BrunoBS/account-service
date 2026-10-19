@@ -9,7 +9,7 @@ import br.com.portalmanager.platform.workspace.feature.servicecontext.repository
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.feature.CreateFeatureInput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.feature.UpdateFeatureInput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.ServiceContextValidation;
-import br.com.portalmanager.platform.workspace.foundation.integration.FeatureSharingReferencePort;
+import br.com.portalmanager.platform.workspace.foundation.integration.FeatureUsagePort;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidationAdapter;
 
 import org.springframework.data.domain.Pageable;
@@ -24,15 +24,15 @@ public class FeatureValidator {
             Set.of("id", "identifier", "code", "name", "createdAt", "updatedAt");
     private final FeatureRepository repository;
     private final SchemaSettingsValidationAdapter settingsValidator;
-    private final FeatureSharingReferencePort sharingReferences;
+    private final FeatureUsagePort featureUsage;
 
     public FeatureValidator(
             FeatureRepository repository,
             SchemaSettingsValidationAdapter settingsValidator,
-            FeatureSharingReferencePort sharingReferences) {
+            FeatureUsagePort featureUsage) {
         this.repository = repository;
         this.settingsValidator = settingsValidator;
-        this.sharingReferences = sharingReferences;
+        this.featureUsage = featureUsage;
     }
 
     public void validateForCreate(CreateFeatureInput input) {
@@ -63,7 +63,7 @@ public class FeatureValidator {
         reject(result);
         if (feature.isShareable()
                 && !input.shareable()
-                && sharingReferences.hasResourceSharingContracts(feature.getId())) {
+                && featureUsage.isInUse(feature.getId())) {
             throw new ValidationException(
                     ServiceContextMessageKeys.FEATURE_HAS_RESOURCE_SHARING_CONTRACTS);
         }

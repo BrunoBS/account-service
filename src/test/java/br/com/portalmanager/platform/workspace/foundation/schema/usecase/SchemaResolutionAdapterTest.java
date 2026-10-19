@@ -6,19 +6,21 @@ import static org.mockito.Mockito.*;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.*;
-import br.com.portalmanager.platform.workspace.foundation.schema.domain.configuration.SchemaConfiguration;
+import br.com.portalmanager.platform.workspace.foundation.schema.domain.binding.SchemaBinding;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
-import br.com.portalmanager.platform.workspace.foundation.schema.repository.*;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.binding.*;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.schema.*;
+import br.com.portalmanager.platform.workspace.foundation.schema.repository.version.*;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionAdapter;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.SchemaOperationValidator;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.schema.SchemaOperationValidator;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class SchemaResolutionAdapterTest {
 
-    private final SchemaConfigurationRepository configurations = mock(SchemaConfigurationRepository.class);
+    private final SchemaBindingRepository configurations = mock(SchemaBindingRepository.class);
     private final SchemaVersionRepository versions = mock(SchemaVersionRepository.class);
     private final SchemaResolutionAdapter resolver = new SchemaResolutionAdapter(
         configurations,
@@ -36,7 +38,7 @@ class SchemaResolutionAdapterTest {
     @Test
     void publishedDefinitionWinsOverNewerDraft() {
         Schema schema = schema("catalog", SchemaScopeTypeCode.platform());
-        SchemaConfiguration binding = new SchemaConfiguration("CATALOG", "lifecycle-type", schema, LocalDateTime.now());
+        SchemaBinding binding = new SchemaBinding("CATALOG", "lifecycle-type", schema, LocalDateTime.now());
         when(configurations.findByResourceTypeAndResourceCode("CATALOG", "lifecycle-type")).thenReturn(
             Optional.of(binding)
         );
@@ -77,7 +79,7 @@ class SchemaResolutionAdapterTest {
     void noPublicationFallsBackWithoutRejectingConsumer() {
         bindDefault("PUBLISHER");
         Schema schema = schema("publisher", SchemaScopeTypeCode.platform());
-        SchemaConfiguration binding = new SchemaConfiguration("PUBLISHER", "WEB_SOCKET", schema, LocalDateTime.now());
+        SchemaBinding binding = new SchemaBinding("PUBLISHER", "WEB_SOCKET", schema, LocalDateTime.now());
         when(configurations.findByResourceTypeAndResourceCode("PUBLISHER", "WEB_SOCKET")).thenReturn(
             Optional.of(binding)
         );
@@ -88,7 +90,7 @@ class SchemaResolutionAdapterTest {
     void inactiveConfigurationFallsBack() {
         bindDefault("PUBLISHER");
         Schema schema = schema("publisher", SchemaScopeTypeCode.platform());
-        SchemaConfiguration binding = new SchemaConfiguration("PUBLISHER", "KAAS", schema, LocalDateTime.now());
+        SchemaBinding binding = new SchemaBinding("PUBLISHER", "KAAS", schema, LocalDateTime.now());
         binding.inactivate(LocalDateTime.now());
         when(configurations.findByResourceTypeAndResourceCode("PUBLISHER", "KAAS")).thenReturn(Optional.of(binding));
         assertThat(resolver.resolve("PUBLISHER", "KAAS")).isEqualTo("{\"type\":\"object\"}");
@@ -121,7 +123,7 @@ class SchemaResolutionAdapterTest {
         when(fallback.getId()).thenReturn(11L);
         when(fallback.getIdentifier()).thenReturn("default-schema");
         when(configurations.findByResourceTypeAndResourceCode("FEATURE", "DEFAULT")).thenReturn(
-            Optional.of(new SchemaConfiguration("FEATURE", "DEFAULT", fallback, LocalDateTime.now()))
+            Optional.of(new SchemaBinding("FEATURE", "DEFAULT", fallback, LocalDateTime.now()))
         );
         assertThatThrownBy(() -> resolver.resolve("FEATURE", "unknown")).isInstanceOf(
             br.com.portalmanager.platform.library.messaging.exception.ValidationException.class
@@ -137,10 +139,10 @@ class SchemaResolutionAdapterTest {
         when(publisherDefault.getId()).thenReturn(20L);
         when(catalogDefault.getId()).thenReturn(21L);
         when(configurations.findByResourceTypeAndResourceCode("PUBLISHER", "DEFAULT")).thenReturn(
-            Optional.of(new SchemaConfiguration("PUBLISHER", "DEFAULT", publisherDefault, LocalDateTime.now()))
+            Optional.of(new SchemaBinding("PUBLISHER", "DEFAULT", publisherDefault, LocalDateTime.now()))
         );
         when(configurations.findByResourceTypeAndResourceCode("CATALOG", "DEFAULT")).thenReturn(
-            Optional.of(new SchemaConfiguration("CATALOG", "DEFAULT", catalogDefault, LocalDateTime.now()))
+            Optional.of(new SchemaBinding("CATALOG", "DEFAULT", catalogDefault, LocalDateTime.now()))
         );
         when(
             versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(20L, SchemaVersionStatusTypeCode.published())
@@ -180,8 +182,8 @@ class SchemaResolutionAdapterTest {
         Schema kaas = mock(Schema.class);
         when(kaas.isActive()).thenReturn(true);
         when(kaas.getId()).thenReturn(10L);
-        SchemaConfiguration webBinding = new SchemaConfiguration("PUBLISHER", "WEB_SOCKET", web, LocalDateTime.now());
-        SchemaConfiguration kaasBinding = new SchemaConfiguration("PUBLISHER", "KAAS", kaas, LocalDateTime.now());
+        SchemaBinding webBinding = new SchemaBinding("PUBLISHER", "WEB_SOCKET", web, LocalDateTime.now());
+        SchemaBinding kaasBinding = new SchemaBinding("PUBLISHER", "KAAS", kaas, LocalDateTime.now());
         when(configurations.findByResourceTypeAndResourceCode("PUBLISHER", "WEB_SOCKET")).thenReturn(
             Optional.of(webBinding)
         );
@@ -229,7 +231,7 @@ class SchemaResolutionAdapterTest {
         when(fallback.isActive()).thenReturn(true);
         when(fallback.getId()).thenReturn(11L);
         when(configurations.findByResourceTypeAndResourceCode(type, "DEFAULT")).thenReturn(
-            Optional.of(new SchemaConfiguration(type, "DEFAULT", fallback, LocalDateTime.now()))
+            Optional.of(new SchemaBinding(type, "DEFAULT", fallback, LocalDateTime.now()))
         );
         when(
             versions.findFirstBySchema_IdAndStatusOrderBySchemaVersionDesc(11L, SchemaVersionStatusTypeCode.published())
