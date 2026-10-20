@@ -1,5 +1,8 @@
 # workspace-service
 
+> **Contrato de implementação vigente:** [docs/IMPLEMENTATION-BASELINE.md](docs/IMPLEMENTATION-BASELINE.md). O nome Git `account-service` é histórico; a aplicação ativa é `workspace-service`. Planos G0–G4 e refinamentos versionados são registros históricos quando divergirem do código da `main`.
+
+
 Serviço de referência para o domínio de Workspace da Golden Platform.
 
 Este repositório implementa a fase `GOLDEN-REFERENCE-V1` sobre o checkpoint `FOUNDATION-GOLDEN-V1`.
