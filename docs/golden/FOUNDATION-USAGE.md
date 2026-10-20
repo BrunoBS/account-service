@@ -1,5 +1,8 @@
 # Golden Reference — Foundation Usage
 
+> **Fonte canônica do parent e BOM:** `BrunoBS/platform-libraries`, não o repositório legado `platform-build`. Consulte também [baseline implementado](../IMPLEMENTATION-BASELINE.md) para arquitetura, migrations e testes.
+
+
 **Fase:** G1 revalidada para a Foundation consolidada; atualizado após G4 para o domínio Workspace  
 **Status:** baseline de consumo atualizado  
 **Objetivo:** registrar como a Golden Reference consome a Foundation oficial sem reabrir decisões arquiteturais da
