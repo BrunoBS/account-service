@@ -1,5 +1,8 @@
 # Golden Reference — API Conventions
 
+> **Escopo:** exemplos e convenções do Workspace Service. Para estrutura vigente, capabilities e testes, consultar [baseline implementado](../IMPLEMENTATION-BASELINE.md). Qualquer referência histórica a G4, `account` ou endpoints antigos não prevalece sobre o código atual.
+
+
 **Baseline funcional:** G4 concluída.  
 **Adequação arquitetural:** pós-G4 / domínio ativo `Workspace`.
 
