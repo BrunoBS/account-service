@@ -13,5 +13,3 @@ mvn --settings .github/maven-settings.xml --batch-mode --no-transfer-progress cl
 ```
 
 Para execução local, configure MySQL com WORKSPACE_DB_URL/USERNAME/PASSWORD e Redis conforme application.yml. O perfil local usa autorização MOCK por padrão.
-
-[Snapshot anterior e proveniência](https://github.com/BrunoBS/golden-platform/blob/docs/golden-platform-foundation/docs/archive/account-service/README.md).
