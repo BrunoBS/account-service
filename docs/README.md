@@ -1,5 +1,8 @@
 # Índice da documentação
 
+> **Baseline técnico validado contra o código:** [IMPLEMENTATION-BASELINE.md](IMPLEMENTATION-BASELINE.md). Os documentos históricos abaixo não substituem esse contrato.
+
+
 ## Documentação de uso atual
 
 - [README do serviço](../README.md): visão geral, arquitetura vigente, APIs e regras
