@@ -4,7 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import br.com.portalmanager.platform.library.redis.core.RedisStore;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.ParameterPublicationStore;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.PublishedParameterValue;
 import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort.Reference;
 import br.com.portalmanager.platform.workspace.config.WorkspaceProperties;
@@ -42,22 +43,22 @@ class ParameterKeyBatchTest {
 
     @Test
     void asynchronousPublicationPartitionsTwelveHundredIdentifiersIntoThreeRedisBatches() {
-        var repository = mock(ParameterKeyRepository.class);
-        var tasks = new ArrayList<Runnable>();
-        var commands = mock(ParameterKeyCommandService.class);
-        var commandProvider = mock(ObjectProvider.class);
+        ParameterKeyRepository repository = mock(ParameterKeyRepository.class);
+        List<Runnable> tasks = new ArrayList<Runnable>();
+        ParameterKeyCommandService commands = mock(ParameterKeyCommandService.class);
+        ObjectProvider<ParameterKeyCommandService> commandProvider = mock(ObjectProvider.class);
         when(commandProvider.getObject()).thenReturn(commands);
-        var publisher =
+        ParameterKeyPublisherService publisher =
                 spy(
                         new ParameterKeyPublisherService(
                                 repository,
                                 mock(MicroserviceReferencePort.class),
                                 commandProvider,
                                 mock(ParameterKeyValidator.class),
-                                mock(RedisStore.class),
+                                mock(ParameterPublicationStore.class),
                                 tasks::add,
                                 properties));
-        var identifiers = IntStream.range(0, 1200).mapToObj(i -> "identifier-" + i).toList();
+        List<String> identifiers = IntStream.range(0, 1200).mapToObj(i -> "identifier-" + i).toList();
         doAnswer(
                         invocation ->
                                 new ParameterKeyMetadata(
@@ -93,11 +94,11 @@ class ParameterKeyBatchTest {
 
     @Test
     void schedulerUsesOneMsetPerPageAndContinuesAfterAFailedFiveHundredKeyBatch() {
-        var repository = mock(ParameterKeyRepository.class);
-        var microservices = mock(MicroserviceReferencePort.class);
-        var redis = mock(RedisStore.class);
-        var commandProvider = mock(ObjectProvider.class);
-        var publisher =
+        ParameterKeyRepository repository = mock(ParameterKeyRepository.class);
+        MicroserviceReferencePort microservices = mock(MicroserviceReferencePort.class);
+        ParameterPublicationStore redis = mock(ParameterPublicationStore.class);
+        ObjectProvider<ParameterKeyCommandService> commandProvider = mock(ObjectProvider.class);
+        ParameterKeyPublisherService publisher =
                 new ParameterKeyPublisherService(
                         repository,
                         microservices,
@@ -136,17 +137,16 @@ class ParameterKeyBatchTest {
         doThrow(new IllegalStateException("Redis unavailable"))
                 .doNothing()
                 .when(redis)
-                .setAll(anyMap());
+                .publish(anyMap());
 
         publisher.reconcile();
 
-        ArgumentCaptor<Map<String, ParameterKeyPublisherService.PublishedValue>> batches =
+        ArgumentCaptor<Map<String, PublishedParameterValue>> batches =
                 ArgumentCaptor.forClass(Map.class);
-        verify(redis, times(3)).setAll(batches.capture());
+        verify(redis, times(3)).publish(batches.capture());
         assertThat(batches.getAllValues().stream().map(Map::size)).containsExactly(500, 500, 200);
         assertThat(batches.getAllValues().getFirst().get("service.key-1").value()).isEqualTo(value);
         assertThat(batches.getAllValues().getLast()).containsKey("service.key-1200");
-        verify(redis, never()).set(anyString(), any());
         verify(repository, never()).findRuntimeSnapshot(anyString());
     }
 

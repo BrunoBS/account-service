@@ -60,6 +60,19 @@ class ParameterArchitectureTest {
     }
 
     @Test
+    void publicationUseCasesDependOnTheBusinessPortInsteadOfRedis() {
+        noClasses()
+                .that()
+                .resideInAPackage("..feature.parameter.usecase..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage("br.com.portalmanager.platform.library.redis..")
+                .check(new ClassFileImporter()
+                        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                        .importPackages("br.com.portalmanager.platform.workspace"));
+    }
+
+    @Test
     void everyAdministrativeOperationRequiresOwnerAndPublicationIsExplicit() {
         for (Method method : DynamicParameterFacade.class.getDeclaredMethods()) {
             if (method.isSynthetic()) continue;

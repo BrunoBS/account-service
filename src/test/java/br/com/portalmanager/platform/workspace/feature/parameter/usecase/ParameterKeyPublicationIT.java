@@ -7,7 +7,8 @@ import static org.mockito.Mockito.reset;
 import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
-import br.com.portalmanager.platform.library.redis.core.RedisStore;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.ParameterPublicationStore;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.PublishedParameterValue;
 import br.com.portalmanager.platform.workspace.feature.parameter.support.DynamicParameterRuntimeTestSupport;
 
 import io.restassured.http.ContentType;
@@ -29,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 @WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class ParameterKeyPublicationIT extends DynamicParameterRuntimeTestSupport {
-    @MockitoSpyBean private RedisStore store;
+    @MockitoSpyBean private ParameterPublicationStore store;
 
     @MockitoSpyBean
     private br.com.portalmanager.platform.library.audit.outbox.AuditOutboxAppender audit;
@@ -121,7 +122,7 @@ class ParameterKeyPublicationIT extends DynamicParameterRuntimeTestSupport {
                             return invocation.callRealMethod();
                         })
                 .when(store)
-                .setAll(org.mockito.ArgumentMatchers.anyMap());
+                .publish(org.mockito.ArgumentMatchers.anyMap());
         try {
             request()
                     .contentType(ContentType.JSON)
@@ -142,7 +143,7 @@ class ParameterKeyPublicationIT extends DynamicParameterRuntimeTestSupport {
     void oneFailedTransactionDoesNotRollBackOtherItemsOrSendItsValueToRedis() {
         String failed = create("transaction-failed", "CONFIGURATION", "1");
         String successful = create("transaction-successful", "CONFIGURATION", "2");
-        var first = new java.util.concurrent.atomic.AtomicBoolean(true);
+        java.util.concurrent.atomic.AtomicBoolean first = new java.util.concurrent.atomic.AtomicBoolean(true);
         doAnswer(
                         invocation -> {
                             if (first.getAndSet(false))

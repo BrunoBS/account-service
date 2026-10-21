@@ -4,7 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 
-import br.com.portalmanager.platform.library.redis.core.RedisStore;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.ParameterPublicationStore;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.PublishedParameterValue;
 import br.com.portalmanager.platform.library.observability.logging.sanitizer.LogSanitizers;
 import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
@@ -37,7 +38,7 @@ import java.util.Map;
 @WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class ParameterKeyRedisIT extends DynamicParameterRuntimeTestSupport {
-    @MockitoSpyBean private RedisStore store;
+    @MockitoSpyBean private ParameterPublicationStore store;
     @Autowired private ParameterKeyPublisherService publisher;
     @Autowired private PlatformTransactionManager transactions;
 
@@ -51,7 +52,7 @@ class ParameterKeyRedisIT extends DynamicParameterRuntimeTestSupport {
         String identifier = create("recoverable", "CONFIGURATION", "1");
         doThrow(new IllegalStateException("Forced Redis failure"))
                 .when(store)
-                .setAll(org.mockito.ArgumentMatchers.anyMap());
+                .publish(org.mockito.ArgumentMatchers.anyMap());
         request()
                 .contentType(ContentType.JSON)
                 .body(Map.of("identifiers", List.of(identifier)))
@@ -70,7 +71,7 @@ class ParameterKeyRedisIT extends DynamicParameterRuntimeTestSupport {
                                 && publishedAuditCount() == 1);
         // Wait for the worker to finish its Redis attempt before removing the failure.
         org.mockito.Mockito.verify(store, org.mockito.Mockito.timeout(5000))
-                .setAll(org.mockito.ArgumentMatchers.anyMap());
+                .publish(org.mockito.ArgumentMatchers.anyMap());
         assertThat(runtimeValue("recoverable")).isNull();
         reset(store);
         publisher.reconcile();
@@ -94,7 +95,7 @@ class ParameterKeyRedisIT extends DynamicParameterRuntimeTestSupport {
         redis.delete("account-service.healthy");
         doThrow(new IllegalStateException("do-not-log"))
                 .when(store)
-                .setAll(
+                .publish(
                         org.mockito.ArgumentMatchers.argThat(
                                 batch -> batch.containsKey("account-service.failure")));
         Logger logger = (Logger) LoggerFactory.getLogger(ParameterKeyPublisherService.class);
@@ -107,7 +108,7 @@ class ParameterKeyRedisIT extends DynamicParameterRuntimeTestSupport {
             assertThat(runtimeValue("failure")).isNull();
             assertThat(runtimeValue("same-batch")).isNull();
             assertThat(events.list).hasSize(2);
-            var event = events.list.getFirst();
+            ILoggingEvent event = events.list.getFirst();
             assertThat(event.getLevel()).isEqualTo(Level.ERROR);
             String message = LogSanitizers.sanitize(event.getFormattedMessage());
             assertThat(message)
@@ -123,7 +124,7 @@ class ParameterKeyRedisIT extends DynamicParameterRuntimeTestSupport {
     @Test
     void rolledBackPublicationNeverReachesRedis() {
         String identifier = create("rollback", "CONFIGURATION", "1");
-        var template = new TransactionTemplate(transactions);
+        TransactionTemplate template = new TransactionTemplate(transactions);
         template.executeWithoutResult(
                 status -> {
                     jdbc.update(

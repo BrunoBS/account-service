@@ -1,7 +1,9 @@
 package br.com.portalmanager.platform.workspace.feature.parameter.usecase.operations;
 
 import br.com.portalmanager.platform.library.authorization.model.UserContext;
-import br.com.portalmanager.platform.library.redis.core.RedisStore;
+import br.com.portalmanager.platform.library.authorization.model.UserSession;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.ParameterPublicationStore;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.PublishedParameterValue;
 import br.com.portalmanager.platform.workspace.config.WorkspaceProperties;
 import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort.Reference;
@@ -23,12 +25,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
 
-import tools.jackson.databind.JsonNode;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -39,7 +40,7 @@ public class ParameterKeyPublisherService {
     private final MicroserviceReferencePort microservices;
     private final ObjectProvider<ParameterKeyCommandService> commands;
     private final ParameterKeyValidator validator;
-    private final RedisStore redis;
+    private final ParameterPublicationStore publicationStore;
     private final TaskExecutor executor;
     private final WorkspaceProperties properties;
 
@@ -48,14 +49,14 @@ public class ParameterKeyPublisherService {
             MicroserviceReferencePort microservices,
             ObjectProvider<ParameterKeyCommandService> commands,
             ParameterKeyValidator validator,
-            RedisStore redis,
+            ParameterPublicationStore publicationStore,
             @Qualifier("applicationTaskExecutor") TaskExecutor executor,
             WorkspaceProperties properties) {
         this.repository = repository;
         this.microservices = microservices;
         this.commands = commands;
         this.validator = validator;
-        this.redis = redis;
+        this.publicationStore = publicationStore;
         this.executor = executor;
         this.properties = properties;
     }
@@ -63,12 +64,12 @@ public class ParameterKeyPublisherService {
     public void publish(PublishParameterKeysInput input) {
         validator.validatePublicationIdentifiers(input == null ? null : input.identifiers());
         List<String> identifiers = List.copyOf(input.identifiers());
-        var session = UserContext.get().orElse(null);
-        var context = MDC.getCopyOfContextMap();
+        UserSession session = UserContext.get().orElse(null);
+        Map<String, String> context = MDC.getCopyOfContextMap();
         executor.execute(
                 () -> {
-                    var previousSession = UserContext.get().orElse(null);
-                    var previousContext = MDC.getCopyOfContextMap();
+                    UserSession previousSession = UserContext.get().orElse(null);
+                    Map<String, String> previousContext = MDC.getCopyOfContextMap();
                     try {
                         UserContext.set(session);
                         if (context == null) MDC.clear();
@@ -107,7 +108,7 @@ public class ParameterKeyPublisherService {
         try {
             long afterId = 0;
             while (true) {
-                var page =
+                List<ParameterKeyRuntimeProjection> page =
                         repository
                                 .findPublishedSnapshots(
                                         afterId,
@@ -125,7 +126,7 @@ public class ParameterKeyPublisherService {
     public void remove(ParameterKeyMetadata parameterKey) {
         if (!properties.parameter().runtime().enabled()) return;
         try {
-            redis.delete(parameterKey.fullKey());
+            publicationStore.remove(parameterKey.fullKey());
         } catch (RuntimeException exception) {
             LOG.error(
                     "Falha ao remover parâmetro do Redis: identifier={}, fullKey={}",
@@ -145,18 +146,18 @@ public class ParameterKeyPublisherService {
                                     .map(ParameterKeyRuntimeProjection::getMicroserviceId)
                                     .distinct()
                                     .toList());
-            Map<String, PublishedValue> values = new LinkedHashMap<>();
-            for (var snapshot : snapshots) {
+            Map<String, PublishedParameterValue> values = new LinkedHashMap<>();
+            for (ParameterKeyRuntimeProjection snapshot : snapshots) {
                 values.put(
                         references.get(snapshot.getMicroserviceId()).code()
                                 + "."
                                 + snapshot.getKey(),
-                        new PublishedValue(snapshot.getType(), snapshot.getValue()));
+                        new PublishedParameterValue(snapshot.getType(), snapshot.getValue()));
             }
-            redis.setAll(values);
+            publicationStore.publish(values);
         } catch (RuntimeException exception) {
-            for (var snapshot : snapshots) {
-                var reference = references.get(snapshot.getMicroserviceId());
+            for (ParameterKeyRuntimeProjection snapshot : snapshots) {
+                Reference reference = references.get(snapshot.getMicroserviceId());
                 String fullKey =
                         reference == null ? null : reference.code() + "." + snapshot.getKey();
                 LOG.error(
@@ -173,11 +174,12 @@ public class ParameterKeyPublisherService {
         String fullKey = null;
         String publishedValue = null;
         try {
-            var state = repository.findRuntimeSnapshot(identifier);
+            Optional<ParameterKeyRuntimeProjection> state =
+                    repository.findRuntimeSnapshot(identifier);
             if (state.isPresent()) {
-                var snapshot = state.get();
+                ParameterKeyRuntimeProjection snapshot = state.get();
                 publishedValue = snapshot.getValue() == null ? null : snapshot.getValue().toString();
-                var reference = reference(snapshot.getMicroserviceId());
+                Reference reference = reference(snapshot.getMicroserviceId());
                 fullKey = reference.code() + "." + snapshot.getKey();
             }
         } catch (RuntimeException lookupFailure) {
@@ -194,6 +196,4 @@ public class ParameterKeyPublisherService {
     private Reference reference(Long microserviceId) {
         return microservices.findByInternalIds(List.of(microserviceId)).get(microserviceId);
     }
-
-    public record PublishedValue(String type, JsonNode value) {}
 }

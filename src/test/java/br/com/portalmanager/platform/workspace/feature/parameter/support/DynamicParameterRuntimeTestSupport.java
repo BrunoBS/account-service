@@ -4,6 +4,8 @@ import static io.restassured.RestAssured.given;
 
 import br.com.portalmanager.platform.library.authorization.model.UserContext;
 import br.com.portalmanager.platform.library.redis.core.RedisStore;
+import br.com.portalmanager.platform.library.redis.annotation.RedisNamespace;
+import br.com.portalmanager.platform.library.redis.configuration.PlatformRedisProperties.NamespaceMode;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
 import br.com.portalmanager.platform.library.testing.redis.annotation.WithRedis;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
@@ -37,7 +39,9 @@ public abstract class DynamicParameterRuntimeTestSupport {
     @LocalServerPort protected int port;
     @Autowired protected JdbcTemplate jdbc;
     @Autowired protected ObjectMapper mapper;
-    @Autowired protected RedisStore redis;
+    @Autowired
+    @RedisNamespace(value = "dynamic-parameter", mode = NamespaceMode.SHARED)
+    protected RedisStore redis;
     @Autowired protected AuthorizationMock authorization;
     protected String parent;
 

@@ -21,9 +21,6 @@ spring:
     enabled: true
 
 platform:
-  redis:
-    namespace: dynamic-parameter
-    namespace-mode: SHARED
   observability:
     logging:
       levels:
