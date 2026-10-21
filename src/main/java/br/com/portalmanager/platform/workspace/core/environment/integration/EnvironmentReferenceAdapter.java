@@ -1,0 +1,52 @@
+package br.com.portalmanager.platform.workspace.core.environment.integration;
+
+import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
+import br.com.portalmanager.platform.workspace.core.environment.domain.environment.Environment;
+import br.com.portalmanager.platform.workspace.core.environment.repository.environment.EnvironmentRepository;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environment.EnvironmentFinder;
+import br.com.portalmanager.platform.workspace.foundation.integration.EnvironmentReferencePort;
+
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+@Component
+public class EnvironmentReferenceAdapter implements EnvironmentReferencePort {
+    private final EnvironmentRepository repository;
+    private final EnvironmentFinder finder;
+
+    public EnvironmentReferenceAdapter(EnvironmentRepository repository, EnvironmentFinder finder) {
+        this.repository = repository;
+        this.finder = finder;
+    }
+
+    @Override
+    @Transactional
+    public Long resolveActiveForUpdate(Long workspaceId, String identifier) {
+        Environment reference =
+                repository
+                        .findByIdentifier(identifier)
+                        .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND));
+        boolean globalDefault =
+                reference.getWorkspaceId() == null
+                        && "DEFAULT".equals(reference.getEnvironmentType().getCode());
+        if (!globalDefault && !workspaceId.equals(reference.getWorkspaceId())) {
+            throw new NotFoundException(EnvironmentMessageKeys.NOT_FOUND);
+        }
+        return globalDefault
+                ? finder.findActiveForUpdate(identifier, null).getId()
+                : finder.findWorkspaceActiveForUpdate(identifier, workspaceId).getId();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String resolveIdentifier(Long id) {
+        // The owning configuration has already passed workspace/application visibility.
+        // Resolve only its persisted reference, including inactive environments, as in Shared
+        // history.
+        return repository.findIdentifierReferences(java.util.List.of(id)).stream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND))
+                .getIdentifier();
+    }
+}

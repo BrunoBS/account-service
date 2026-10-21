@@ -199,6 +199,9 @@ public final class SchemaDefaultFixture {
                                     "db/migration/V65__separate_feature_context_resource_schema.sql");
                             executeSchemaSeed(
                                     connection, "db/migration/V67__segment_resource_schemas.sql");
+                            executeSchemaSeed(
+                                    connection,
+                                    "db/migration/V85__environment_configuration_schemas.sql");
                             executeSchemaSeed(connection, "migration/dynamic-bundle-schema-seed.sql");
                             executeSchemaSeed(connection, "migration/service-context-schema-seed.sql");
                             executeSchemaSeed(connection, "migration/segmentation-schema-seed.sql");
