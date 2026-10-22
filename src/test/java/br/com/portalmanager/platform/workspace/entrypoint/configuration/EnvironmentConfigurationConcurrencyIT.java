@@ -57,7 +57,7 @@ class EnvironmentConfigurationConcurrencyIT extends EnvironmentConfigurationHttp
                             .body("publishers", hasSize(1))
                             .extract();
             String winner = stored.path("settings.winner");
-            assertThat(stored.<String>path("publishers[0].publisherIdentifier"))
+            assertThat(stored.<String>path("publishers[0].publisherCode"))
                     .isEqualTo(winner.equals("http") ? http : kafka);
         }
     }

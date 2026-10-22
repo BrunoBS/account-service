@@ -103,7 +103,7 @@ class GoldenArchitectureTest {
         assertThat(invalid)
                 .as(
                         "Catalog packages must follow"
-                            + " catalog/<catalog>/domain|usecase|repository|facade")
+                                + " catalog/<catalog>/domain|usecase|repository|facade")
                 .isEmpty();
     }
 
@@ -236,8 +236,7 @@ class GoldenArchitectureTest {
                     .that()
                     .areAnnotatedWith(RestController.class)
                     .and()
-                    .resideInAPackage(
-                            ROOT + ".entrypoint.servicecontext." + responsibility + "..")
+                    .resideInAPackage(ROOT + ".entrypoint.servicecontext." + responsibility + "..")
                     .should(
                             new ArchCondition<>(
                                     "use only the " + responsibility + " service context facade") {
@@ -278,8 +277,10 @@ class GoldenArchitectureTest {
                 .should()
                 .dependOnClassesThat()
                 .resideInAnyPackage(
-                        ROOT + ".feature.servicecontext.usecase.operations.featuregroup.FeatureGroupAssociation*",
-                        ROOT + ".feature.servicecontext.repository.featuregroup.FeatureGroupRelation*")
+                        ROOT
+                                + ".feature.servicecontext.usecase.operations.featuregroup.FeatureGroupAssociation*",
+                        ROOT
+                                + ".feature.servicecontext.repository.featuregroup.FeatureGroupRelation*")
                 .check(classes);
     }
 
@@ -397,77 +398,148 @@ class GoldenArchitectureTest {
 
     @Test
     void environmentConfigurationMustNotCreateTransversalCorePackages() {
-        noClasses().should().resideInAnyPackage(
-                ROOT + ".core.configuration..",
-                ROOT + ".core.environmentconfiguration..",
-                ROOT + ".core.common..",
-                ROOT + ".core.shared..",
-                ROOT + ".core.contract..",
-                ROOT + ".core.validation..")
+        noClasses()
+                .should()
+                .resideInAnyPackage(
+                        ROOT + ".core.configuration..",
+                        ROOT + ".core.environmentconfiguration..",
+                        ROOT + ".core.common..",
+                        ROOT + ".core.shared..",
+                        ROOT + ".core.contract..",
+                        ROOT + ".core.validation..")
                 .check(classes);
     }
 
     @Test
     void applicationEnvironmentConfigurationMustNotDependOnWorkspaceInternals() {
-        noClasses().that().resideInAPackage(ROOT + ".core.applicationconfiguration..")
-                .should().dependOnClassesThat().resideInAPackage(ROOT + ".core.workspaceconfiguration..")
+        noClasses()
+                .that()
+                .resideInAPackage(ROOT + ".core.applicationconfiguration..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage(ROOT + ".core.workspaceconfiguration..")
                 .check(classes);
     }
 
     @Test
     void workspaceEnvironmentConfigurationMustNotDependOnApplicationInternals() {
-        noClasses().that().resideInAPackage(ROOT + ".core.workspaceconfiguration..")
-                .should().dependOnClassesThat().resideInAPackage(ROOT + ".core.applicationconfiguration..")
+        noClasses()
+                .that()
+                .resideInAPackage(ROOT + ".core.workspaceconfiguration..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage(ROOT + ".core.applicationconfiguration..")
                 .check(classes);
     }
 
     @Test
     void environmentConfigurationComponentsMustBelongToTopLevelAggregates() {
-        Set<String> names = Set.of(
-                "ApplicationEnvironmentConfiguration", "ApplicationEnvironmentConfigurationPublisher",
-                "ApplicationEnvironmentConfigurationFacade", "ApplicationEnvironmentConfigurationRepository",
-                "ApplicationEnvironmentConfigurationPublisherRepository", "ApplicationEnvironmentConfigurationMapper",
-                "ApplicationEnvironmentConfigurationOutput", "CreateApplicationEnvironmentConfigurationInput",
-                "UpdateApplicationEnvironmentConfigurationInput", "ApplicationEnvironmentConfigurationCommandService",
-                "ApplicationEnvironmentConfigurationQueryService", "ApplicationEnvironmentConfigurationScope",
-                "ApplicationEnvironmentConfigurationValidator",
-                "WorkspaceEnvironmentConfiguration", "WorkspaceEnvironmentConfigurationPublisher",
-                "WorkspaceEnvironmentConfigurationFacade", "WorkspaceEnvironmentConfigurationRepository",
-                "WorkspaceEnvironmentConfigurationPublisherRepository", "WorkspaceEnvironmentConfigurationMapper",
-                "WorkspaceEnvironmentConfigurationOutput", "CreateWorkspaceEnvironmentConfigurationInput",
-                "UpdateWorkspaceEnvironmentConfigurationInput", "WorkspaceEnvironmentConfigurationCommandService",
-                "WorkspaceEnvironmentConfigurationQueryService", "WorkspaceEnvironmentConfigurationScope",
-                "WorkspaceEnvironmentConfigurationValidator",
-                "WorkspaceEnvironmentConfigurationAdapter");
-        List<JavaClass> components = classes.stream().filter(type -> names.contains(type.getSimpleName())).toList();
-        assertThat(components).extracting(JavaClass::getSimpleName).containsExactlyInAnyOrderElementsOf(names);
-        assertThat(components).allSatisfy(type -> {
-            String aggregate = type.getSimpleName().startsWith("Application") || type.getSimpleName().startsWith("CreateApplication") || type.getSimpleName().startsWith("UpdateApplication") ? "applicationconfiguration" : "workspaceconfiguration";
-            assertThat(type.getPackageName()).startsWith(ROOT + ".core." + aggregate + ".");
-        });
+        Set<String> names =
+                Set.of(
+                        "ApplicationEnvironmentConfiguration",
+                        "ApplicationEnvironmentConfigurationPublisher",
+                        "ApplicationEnvironmentConfigurationFacade",
+                        "ApplicationEnvironmentConfigurationRepository",
+                        "ApplicationEnvironmentConfigurationPublisherRepository",
+                        "ApplicationEnvironmentConfigurationMapper",
+                        "ApplicationEnvironmentConfigurationOutput",
+                        "CreateApplicationEnvironmentConfigurationInput",
+                        "UpdateApplicationEnvironmentConfigurationInput",
+                        "ApplicationEnvironmentConfigurationCommandService",
+                        "ApplicationEnvironmentConfigurationQueryService",
+                        "ApplicationEnvironmentConfigurationScope",
+                        "ApplicationEnvironmentConfigurationValidator",
+                        "WorkspaceEnvironmentConfiguration",
+                        "WorkspaceEnvironmentConfigurationPublisher",
+                        "WorkspaceEnvironmentConfigurationFacade",
+                        "WorkspaceEnvironmentConfigurationRepository",
+                        "WorkspaceEnvironmentConfigurationPublisherRepository",
+                        "WorkspaceEnvironmentConfigurationMapper",
+                        "WorkspaceEnvironmentConfigurationOutput",
+                        "CreateWorkspaceEnvironmentConfigurationInput",
+                        "UpdateWorkspaceEnvironmentConfigurationInput",
+                        "WorkspaceEnvironmentConfigurationCommandService",
+                        "WorkspaceEnvironmentConfigurationQueryService",
+                        "WorkspaceEnvironmentConfigurationScope",
+                        "WorkspaceEnvironmentConfigurationValidator",
+                        "WorkspaceEnvironmentConfigurationAdapter");
+        List<JavaClass> components =
+                classes.stream().filter(type -> names.contains(type.getSimpleName())).toList();
+        assertThat(components)
+                .extracting(JavaClass::getSimpleName)
+                .containsExactlyInAnyOrderElementsOf(names);
+        assertThat(components)
+                .allSatisfy(
+                        type -> {
+                            String aggregate =
+                                    type.getSimpleName().startsWith("Application")
+                                                    || type.getSimpleName()
+                                                            .startsWith("CreateApplication")
+                                                    || type.getSimpleName()
+                                                            .startsWith("UpdateApplication")
+                                            ? "applicationconfiguration"
+                                            : "workspaceconfiguration";
+                            assertThat(type.getPackageName())
+                                    .startsWith(ROOT + ".core." + aggregate + ".");
+                        });
     }
 
     @Test
     void configurationPublisherModelsMustStayInsideTheirOwnTopLevelAggregate() {
         for (String aggregate : List.of("applicationconfiguration", "workspaceconfiguration")) {
-            List<JavaClass> models = classes.stream().filter(type -> type.getPackageName().equals(ROOT + ".core." + aggregate + ".usecase.model"))
-                    .filter(type -> Set.of("PublisherInput", "PublisherOutput", "ResolvedPublisher").contains(type.getSimpleName())).toList();
-            assertThat(models).extracting(JavaClass::getSimpleName).containsExactlyInAnyOrder("PublisherInput", "PublisherOutput", "ResolvedPublisher");
+            List<JavaClass> models =
+                    classes.stream()
+                            .filter(
+                                    type ->
+                                            type.getPackageName()
+                                                    .equals(
+                                                            ROOT
+                                                                    + ".core."
+                                                                    + aggregate
+                                                                    + ".usecase.model"))
+                            .filter(
+                                    type ->
+                                            Set.of(
+                                                            "PublisherInput",
+                                                            "PublisherOutput",
+                                                            "ResolvedPublisher")
+                                                    .contains(type.getSimpleName()))
+                            .toList();
+            assertThat(models)
+                    .extracting(JavaClass::getSimpleName)
+                    .containsExactlyInAnyOrder(
+                            "PublisherInput", "PublisherOutput", "ResolvedPublisher");
         }
     }
 
     @Test
     void configurationHttpControllersMustMatchTheTopLevelAggregateBoundary() {
         for (String owner : List.of("Application", "Workspace")) {
-            JavaClass controller = classes.get(ROOT + ".entrypoint." + owner.toLowerCase(java.util.Locale.ROOT) + "configuration." + owner + "EnvironmentConfigurationController");
+            JavaClass controller =
+                    classes.get(
+                            ROOT
+                                    + ".entrypoint."
+                                    + owner.toLowerCase(java.util.Locale.ROOT)
+                                    + "configuration."
+                                    + owner
+                                    + "EnvironmentConfigurationController");
             assertThat(controller.isAnnotatedWith(RestController.class)).isTrue();
-            assertThat(controller.getDirectDependenciesFromSelf().stream().map(dependency -> dependency.getTargetClass().getPackageName())
-                    .filter(name -> name.startsWith(ROOT + ".core."))).allMatch(name -> name.startsWith(ROOT + ".core." + owner.toLowerCase(java.util.Locale.ROOT) + "configuration."));
+            assertThat(
+                            controller.getDirectDependenciesFromSelf().stream()
+                                    .map(dependency -> dependency.getTargetClass().getPackageName())
+                                    .filter(name -> name.startsWith(ROOT + ".core.")))
+                    .allMatch(
+                            name ->
+                                    name.startsWith(
+                                            ROOT
+                                                    + ".core."
+                                                    + owner.toLowerCase(java.util.Locale.ROOT)
+                                                    + "configuration."));
         }
     }
 
     @Test
-    void configurationSchemasHaveNoContractPackageAndEnumsRemainLocal() {
+    void configurationInputsRemainLocalAndPublisherTypesBelongToCatalog() {
         assertThat(
                         classes.stream()
                                 .filter(
@@ -476,9 +548,22 @@ class GoldenArchitectureTest {
                                                         .contains(
                                                                 "configuration.usecase.contract")))
                 .isEmpty();
+        assertThat(
+                        classes.stream()
+                                .filter(
+                                        type ->
+                                                type.getPackageName()
+                                                        .startsWith(ROOT + ".core.publisher")))
+                .isEmpty();
+        assertThat(
+                        classes.get(
+                                        ROOT
+                                                + ".foundation.catalog.publishertype.domain.PublisherTypeEnum")
+                                .isEnum())
+                .isTrue();
         for (String aggregate : List.of("applicationconfiguration", "workspaceconfiguration")) {
-            assertThat(classes.get(ROOT + ".core." + aggregate + ".domain.PublisherType").isEnum())
-                    .isTrue();
+            assertThat(classes.get(ROOT + ".core." + aggregate + ".usecase.model.PublisherInput"))
+                    .isNotNull();
         }
     }
 

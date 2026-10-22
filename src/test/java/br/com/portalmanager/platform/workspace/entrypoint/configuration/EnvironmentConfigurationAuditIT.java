@@ -83,7 +83,7 @@ class EnvironmentConfigurationAuditIT extends EnvironmentConfigurationHttpFixtur
                     .statusCode(200)
                     .body("version", equalTo(0))
                     .body("lifecycle", equalTo("ACTIVE"))
-                    .body("publishers.publisherIdentifier", contains(kafka, http));
+                    .body("publishers.publisherCode", contains(kafka, http));
             assertThat(
                             jdbc.queryForObject(
                                     "select count(*) from "

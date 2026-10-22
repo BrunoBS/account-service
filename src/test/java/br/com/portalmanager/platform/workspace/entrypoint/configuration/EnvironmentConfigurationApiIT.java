@@ -37,7 +37,7 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
                     .statusCode(200)
                     .body("version", equalTo(1))
                     .body("settings.own", equalTo("application"))
-                    .body("publishers.publisherIdentifier", contains(http, kafka));
+                    .body("publishers.publisherCode", contains(http, kafka));
             put(base + "/" + id, update(0)).statusCode(409).body("code", equalTo("GLOBAL-0009"));
             post(base, create(globalEnvironment))
                     .statusCode(409)
@@ -96,7 +96,7 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
                         "publishers",
                         List.of(
                                 Map.of(
-                                        "publisherIdentifier",
+                                        "publisherCode",
                                         http,
                                         "sortOrder",
                                         1,
@@ -163,30 +163,29 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
     }
 
     @Test
-    void validatesTheDedicatedPublishedSettingsAndAssociationParameterBindings() {
+    void generalSchemaCanValidateParametersConditionallyByPublisherCode() {
         publishConstraint("workspace-environment-configuration-settings", "requiredSetting");
         Map<String, Object> input = create(globalEnvironment);
         post(base(false), input).statusCode(400);
         input.put("settings", Map.of("requiredSetting", true));
-        jdbc.update(
-                "insert into"
-                    + " schema_versions(identifier,schema_id,schema_version,version_name,definition,status,created_at)"
-                    + " select uuid(),id,2,'Association constraint',?, 'PUBLISHED',now() from"
-                    + " schema_definitions where"
-                    + " code='environment-configuration-publisher-web-socket'",
-                "{\"type\":\"object\",\"properties\":{\"parameters\":{\"type\":\"object\",\"required\":[\"requiredParameter\"]}}}");
+        constrainKafkaParameters("workspace-environment-configuration");
         post(base(false), input).statusCode(400);
         input.put(
                 "publishers",
-                List.of(
-                        Map.of(
-                                "publisherIdentifier",
-                                http,
-                                "sortOrder",
-                                1,
-                                "parameters",
-                                Map.of("requiredParameter", true))));
+                List.of(Map.of("publisherCode", http, "sortOrder", 1, "parameters", Map.of())));
         post(base(false), input).statusCode(201);
+    }
+
+    private void constrainKafkaParameters(String code) {
+        jdbc.update(
+                "insert into"
+                    + " schema_versions(identifier,schema_id,schema_version,version_name,definition,status,created_at)"
+                    + " select uuid(),d.id,2,'Conditional"
+                    + " Kafka',json_set(v.definition,'$.properties.publishers.items.allOf',cast(?"
+                    + " as json)),'PUBLISHED',now() from schema_definitions d join schema_versions"
+                    + " v on v.schema_id=d.id where d.code=? and v.schema_version=1",
+                "[{\"if\":{\"properties\":{\"publisherCode\":{\"const\":\"KAFKA\"}}},\"then\":{\"properties\":{\"parameters\":{\"required\":[\"kafkaRequired\"]}}}}]",
+                code);
     }
 
     @Test
@@ -197,21 +196,14 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
                     create(id.equals(kafka) ? ownEnvironment : globalEnvironment);
             body.put(
                     "publishers",
-                    List.of(
-                            Map.of(
-                                    "publisherIdentifier",
-                                    id,
-                                    "sortOrder",
-                                    1,
-                                    "parameters",
-                                    Map.of())));
+                    List.of(Map.of("publisherCode", id, "sortOrder", 1, "parameters", Map.of())));
             String created = post(base(app), body).statusCode(201).extract().path("identifier");
             Map<String, Object> replacement = update(0);
             replacement.put(
                     "publishers",
                     List.of(
                             Map.of(
-                                    "publisherIdentifier",
+                                    "publisherCode",
                                     id,
                                     "sortOrder",
                                     1,
@@ -228,7 +220,7 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
     @Test
     void rejectsInvalidParametersAndAssociationFieldsWithoutPersisting() {
         for (boolean app : List.of(false, true)) {
-            for (String missing : List.of("publisherIdentifier", "sortOrder", "parameters")) {
+            for (String missing : List.of("publisherCode", "sortOrder", "parameters")) {
                 Map<String, Object> association = new LinkedHashMap<>(publisher(http, 1));
                 association.remove(missing);
                 Map<String, Object> request = create(globalEnvironment);
@@ -261,37 +253,53 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
     }
 
     @Test
-    void missingSpecificSchemaRejectsPutAndDoesNotReplaceExistingAssociations() {
-        jdbc.update(
-                "insert into"
-                    + " schema_binding(version,identifier,resource_type,resource_code,schema_id,lifecycle_code,created_at,updated_at)"
-                    + " select 0,uuid(),'PLATFORM','DEFAULT',id,'ACTIVE',now(),now() from"
-                    + " schema_definitions where code='default'");
-        for (boolean app : List.of(false, true)) {
-            String id =
-                    post(base(app), create(globalEnvironment))
-                            .statusCode(201)
-                            .extract()
-                            .path("identifier");
-            jdbc.update(
-                    "update schema_binding set lifecycle_code='INACTIVE' where"
-                            + " resource_type='PLATFORM' and"
-                            + " resource_code='environment-configuration-publisher-kafka'");
-            put(base(app) + "/" + id, update(0)).statusCode(400);
-            get(base(app) + "/" + id)
-                    .statusCode(200)
-                    .body("version", equalTo(0))
-                    .body("settings", anEmptyMap())
-                    .body("publishers", hasSize(2));
-            jdbc.update(
-                    "update schema_binding set lifecycle_code='ACTIVE' where"
-                            + " resource_type='PLATFORM' and"
-                            + " resource_code='environment-configuration-publisher-kafka'");
+    void misconfiguredPublisherAndIncompatibleScopeHaveDistinctErrorsAndRollbackPut() {
+        String id =
+                post(base(false), create(globalEnvironment))
+                        .statusCode(201)
+                        .extract()
+                        .path("identifier");
+        for (String settings :
+                List.of(
+                        "not-json",
+                        "[]",
+                        "{}",
+                        "{\"scope\":null}",
+                        "{\"scope\":1}",
+                        "{\"scope\":\"UNKNOWN\"}")) {
+            jdbc.update("update publishers set settings=? where code=?", settings, kafka);
+            put(base(false) + "/" + id, update(0))
+                    .statusCode(400)
+                    .body("details.code", hasItem("ECFG-0101"));
         }
         jdbc.update(
-                "delete from schema_binding where resource_type='PLATFORM' and"
-                    + " resource_code='environment-configuration-publisher-kafka'");
-        post(base(false), create(ownEnvironment)).statusCode(400);
+                "update publishers set settings='{\"scope\":\"APPLICATION\"}' where code=?", kafka);
+        put(base(false) + "/" + id, update(0))
+                .statusCode(400)
+                .body("details.code", hasItem("ECFG-0102"));
+        jdbc.update(
+                "update publishers set settings='{\"scope\":\"WORKSPACE\"}' where code=?", kafka);
+        jdbc.update("update type_resource_scopes set is_active=false where code='WORKSPACE'");
+        put(base(false) + "/" + id, update(0))
+                .statusCode(400)
+                .body("details.code", hasItem("ECFG-0101"));
+        get(base(false) + "/" + id)
+                .statusCode(200)
+                .body("version", equalTo(0))
+                .body("publishers", hasSize(2));
+    }
+
+    @Test
+    void rejectsMissingCatalogDefinitionForAnAllowedCode() {
+        jdbc.update("delete from publishers where code=?", kafka);
+        post(base(false), create(globalEnvironment))
+                .statusCode(400)
+                .body("details.code", hasItem("ECFG-0101"));
+        assertThat(
+                        jdbc.queryForObject(
+                                "select count(*) from workspace_environment_configurations",
+                                Integer.class))
+                .isZero();
     }
 
     private void publishConstraint(String code, String required) {
@@ -312,19 +320,19 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
         input.put("publishers", List.of(publisher(appconfig, 1)));
         post(base(false), input).statusCode(400);
         post(base(true), input).statusCode(201);
-        jdbc.update("update publishers set deprecated=true where identifier=?", http);
+        jdbc.update("update publishers set deprecated=true where code=?", http);
         String id =
                 post(base(false), create(globalEnvironment))
                         .statusCode(201)
                         .extract()
                         .path("identifier");
-        jdbc.update("update publishers set lifecycle_code='INACTIVE' where identifier=?", http);
+        jdbc.update("update publishers set is_active=false where code=?", http);
         get(base(false) + "/" + id).statusCode(200).body("publishers", hasSize(2));
         put(base(false) + "/" + id, update(0)).statusCode(200);
         post(base(false), create(ownEnvironment)).statusCode(400);
         Map<String, Object> missing = create(ownEnvironment);
         missing.put("publishers", List.of(publisher(UUID.randomUUID().toString(), 1)));
-        post(base(false), missing).statusCode(404);
+        post(base(false), missing).statusCode(400);
     }
 
     @Test

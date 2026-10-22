@@ -50,14 +50,15 @@ class EnvironmentConfigurationDomainTest {
                         1L, 2L, mapper.createObjectNode(), LocalDateTime.now());
         ObjectNode parameters = mapper.createObjectNode().put("destination", "one");
         WorkspaceEnvironmentConfigurationPublisher publisher =
-                new WorkspaceEnvironmentConfigurationPublisher(configuration, 3L, 1, parameters);
+                new WorkspaceEnvironmentConfigurationPublisher(
+                        configuration, "KAFKA", 1, parameters);
         parameters.put("destination", "two");
         ((ObjectNode) publisher.getParameters()).put("destination", "three");
         assertThat(publisher.getParameters().get("destination").asString()).isEqualTo("one");
         assertThatThrownBy(
                         () ->
                                 new WorkspaceEnvironmentConfigurationPublisher(
-                                        configuration, 3L, 0, parameters))
+                                        configuration, "KAFKA", 0, parameters))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }

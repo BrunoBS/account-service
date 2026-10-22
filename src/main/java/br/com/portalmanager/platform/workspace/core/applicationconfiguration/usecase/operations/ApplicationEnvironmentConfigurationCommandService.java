@@ -76,12 +76,15 @@ public class ApplicationEnvironmentConfigurationCommandService {
                                 .map(
                                         publisher ->
                                                 new PublisherInput(
-                                                        publisher.publisherIdentifier(),
+                                                        publisher.publisherCode(),
                                                         publisher.sortOrder(),
                                                         publisher.parameters()))
                                 .toList()
                         : input.publishers();
         List<ResolvedPublisher> selected = validator.validatePublishers(publisherInput, Set.of());
+        if (input.copyWorkspacePublishers())
+            validator.validateCopiedRequest(
+                    input.environmentIdentifier(), null, input.settings(), publisherInput);
         ApplicationEnvironmentConfiguration configuration =
                 repository.saveAndFlush(
                         new ApplicationEnvironmentConfiguration(
@@ -120,20 +123,23 @@ public class ApplicationEnvironmentConfigurationCommandService {
                                 .map(
                                         publisher ->
                                                 new PublisherInput(
-                                                        publisher.publisherIdentifier(),
+                                                        publisher.publisherCode(),
                                                         publisher.sortOrder(),
                                                         publisher.parameters()))
                                 .toList()
                         : input.publishers();
-        Set<Long> existingIds =
+        Set<String> existingIds =
                 associations
                         .findByConfigurationIdOrderBySortOrderAsc(configuration.getId())
                         .stream()
-                        .map(ApplicationEnvironmentConfigurationPublisher::getPublisherId)
+                        .map(ApplicationEnvironmentConfigurationPublisher::getPublisherCode)
                         .collect(Collectors.toSet());
         List<ResolvedPublisher> selected =
                 validator.validatePublishers(
                         publisherInput, input.copyWorkspacePublishers() ? Set.of() : existingIds);
+        if (input.copyWorkspacePublishers())
+            validator.validateCopiedRequest(
+                    null, input.version(), input.settings(), publisherInput);
         configuration.updateSettings(input.settings(), LocalDateTime.now());
         repository.saveAndFlush(configuration);
         associations.deleteAssociations(configuration.getId());
@@ -185,7 +191,7 @@ public class ApplicationEnvironmentConfigurationCommandService {
                                 publisher ->
                                         new ApplicationEnvironmentConfigurationPublisher(
                                                 configuration,
-                                                publisher.publisherId(),
+                                                publisher.publisherCode(),
                                                 publisher.sortOrder(),
                                                 publisher.parameters()))
                         .toList());

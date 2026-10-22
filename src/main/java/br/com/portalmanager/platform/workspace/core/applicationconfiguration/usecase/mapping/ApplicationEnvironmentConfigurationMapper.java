@@ -5,27 +5,19 @@ import br.com.portalmanager.platform.workspace.core.applicationconfiguration.rep
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.ApplicationEnvironmentConfigurationOutput;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.PublisherOutput;
 import br.com.portalmanager.platform.workspace.foundation.integration.EnvironmentReferencePort;
-import br.com.portalmanager.platform.workspace.foundation.integration.PublisherReferencePort;
-import br.com.portalmanager.platform.workspace.foundation.integration.PublisherReferencePort.PublisherReference;
 
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class ApplicationEnvironmentConfigurationMapper {
     private final ApplicationEnvironmentConfigurationPublisherRepository associations;
     private final EnvironmentReferencePort environments;
-    private final PublisherReferencePort publishers;
 
     public ApplicationEnvironmentConfigurationMapper(
             ApplicationEnvironmentConfigurationPublisherRepository associations,
-            EnvironmentReferencePort environments,
-            PublisherReferencePort publishers) {
+            EnvironmentReferencePort environments) {
         this.associations = associations;
         this.environments = environments;
-        this.publishers = publishers;
     }
 
     public ApplicationEnvironmentConfigurationOutput toOutput(
@@ -38,14 +30,6 @@ public class ApplicationEnvironmentConfigurationMapper {
                 stored =
                         associations.findByConfigurationIdOrderBySortOrderAsc(
                                 configuration.getId());
-        Map<Long, PublisherReference> references =
-                publishers
-                        .findReferences(
-                                stored.stream()
-                                        .map(association -> association.getPublisherId())
-                                        .toList())
-                        .stream()
-                        .collect(Collectors.toMap(PublisherReference::id, reference -> reference));
         return new ApplicationEnvironmentConfigurationOutput(
                 configuration.getIdentifier(),
                 workspaceIdentifier,
@@ -58,9 +42,7 @@ public class ApplicationEnvironmentConfigurationMapper {
                         .map(
                                 association ->
                                         new PublisherOutput(
-                                                references
-                                                        .get(association.getPublisherId())
-                                                        .identifier(),
+                                                association.getPublisherCode(),
                                                 association.getSortOrder(),
                                                 association.getParameters()))
                         .toList(),

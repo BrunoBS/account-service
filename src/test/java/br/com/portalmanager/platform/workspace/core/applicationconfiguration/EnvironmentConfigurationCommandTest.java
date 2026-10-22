@@ -54,7 +54,7 @@ class EnvironmentConfigurationCommandTest {
         when(origin.copyPublishers(1L, 3L))
                 .thenReturn(List.of(new PublisherCopy("publisher", 4, parameters)));
         when(validator.validatePublishers(anyList(), eq(Set.of())))
-                .thenReturn(List.of(new ResolvedPublisher(10L, "publisher", 4, parameters)));
+                .thenReturn(List.of(new ResolvedPublisher("publisher", 4, parameters)));
         when(repository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
         commands.create(
                 "workspace",
@@ -118,7 +118,7 @@ class EnvironmentConfigurationCommandTest {
                 .thenReturn(
                         List.of(
                                 new ApplicationEnvironmentConfigurationPublisher(
-                                        configuration, 10L, 1, parameters)));
+                                        configuration, "KAFKA", 1, parameters)));
         when(validator.validatePublishers(anyList(), eq(Set.of())))
                 .thenThrow(new ValidationException(PlatformMessageKeys.VALIDATION_FAILED));
         assertThatThrownBy(

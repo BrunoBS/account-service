@@ -92,11 +92,11 @@ public class WorkspaceEnvironmentConfigurationCommandService {
                 scope.workspaceId(), environments.resolveIdentifier(environmentId));
         validator.validateSettings(input.settings());
         List<PublisherInput> publisherInput = input.publishers();
-        Set<Long> existingIds =
+        Set<String> existingIds =
                 associations
                         .findByConfigurationIdOrderBySortOrderAsc(configuration.getId())
                         .stream()
-                        .map(WorkspaceEnvironmentConfigurationPublisher::getPublisherId)
+                        .map(WorkspaceEnvironmentConfigurationPublisher::getPublisherCode)
                         .collect(Collectors.toSet());
         List<ResolvedPublisher> selected =
                 validator.validatePublishers(publisherInput, existingIds);
@@ -151,7 +151,7 @@ public class WorkspaceEnvironmentConfigurationCommandService {
                                 publisher ->
                                         new WorkspaceEnvironmentConfigurationPublisher(
                                                 configuration,
-                                                publisher.publisherId(),
+                                                publisher.publisherCode(),
                                                 publisher.sortOrder(),
                                                 publisher.parameters()))
                         .toList());

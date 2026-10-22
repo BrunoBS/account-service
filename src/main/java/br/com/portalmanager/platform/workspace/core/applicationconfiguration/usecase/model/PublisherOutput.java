@@ -2,4 +2,4 @@ package br.com.portalmanager.platform.workspace.core.applicationconfiguration.us
 
 import tools.jackson.databind.JsonNode;
 
-public record PublisherOutput(String publisherIdentifier, Integer sortOrder, JsonNode parameters) {}
+public record PublisherOutput(String publisherCode, Integer sortOrder, JsonNode parameters) {}

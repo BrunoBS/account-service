@@ -25,15 +25,11 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "publisherIdentifier",
+          "publisherCode",
           "sortOrder",
           "parameters"
         ],
         "properties": {
-          "publisherIdentifier": {
-            "type": "string",
-            "format": "uuid"
-          },
           "sortOrder": {
             "type": "integer",
             "minimum": 1,
@@ -42,6 +38,14 @@
           "parameters": {
             "type": "object",
             "additionalProperties": true
+          },
+          "publisherCode": {
+            "type": "string",
+            "enum": [
+              "WEB_SOCKET",
+              "KAFKA",
+              "APP_CONFIG"
+            ]
           }
         }
       }

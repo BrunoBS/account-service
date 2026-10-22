@@ -7,5 +7,5 @@ import java.util.List;
 public interface WorkspaceEnvironmentConfigurationPort {
     List<PublisherCopy> copyPublishers(Long workspaceId, Long environmentId);
 
-    record PublisherCopy(String publisherIdentifier, Integer sortOrder, JsonNode parameters) {}
+    record PublisherCopy(String publisherCode, Integer sortOrder, JsonNode parameters) {}
 }

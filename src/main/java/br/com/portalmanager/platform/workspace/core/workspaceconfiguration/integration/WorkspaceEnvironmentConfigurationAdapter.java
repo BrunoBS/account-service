@@ -5,8 +5,6 @@ import br.com.portalmanager.platform.library.messaging.message.PlatformMessageKe
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain.WorkspaceEnvironmentConfiguration;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.repository.WorkspaceEnvironmentConfigurationPublisherRepository;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.repository.WorkspaceEnvironmentConfigurationRepository;
-import br.com.portalmanager.platform.workspace.foundation.integration.PublisherReferencePort;
-import br.com.portalmanager.platform.workspace.foundation.integration.PublisherReferencePort.PublisherReference;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceEnvironmentConfigurationPort;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceEnvironmentConfigurationPort.PublisherCopy;
 
@@ -14,23 +12,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class WorkspaceEnvironmentConfigurationAdapter
         implements WorkspaceEnvironmentConfigurationPort {
     private final WorkspaceEnvironmentConfigurationRepository repository;
     private final WorkspaceEnvironmentConfigurationPublisherRepository associations;
-    private final PublisherReferencePort publishers;
 
     public WorkspaceEnvironmentConfigurationAdapter(
             WorkspaceEnvironmentConfigurationRepository repository,
-            WorkspaceEnvironmentConfigurationPublisherRepository associations,
-            PublisherReferencePort publishers) {
+            WorkspaceEnvironmentConfigurationPublisherRepository associations) {
         this.repository = repository;
         this.associations = associations;
-        this.publishers = publishers;
     }
 
     @Override
@@ -49,19 +42,11 @@ public class WorkspaceEnvironmentConfigurationAdapter
                 source =
                         associations.findByConfigurationIdOrderBySortOrderAsc(
                                 configuration.getId());
-        Map<Long, PublisherReference> references =
-                publishers
-                        .findReferences(
-                                source.stream()
-                                        .map(association -> association.getPublisherId())
-                                        .toList())
-                        .stream()
-                        .collect(Collectors.toMap(PublisherReference::id, reference -> reference));
         return source.stream()
                 .map(
                         association ->
                                 new PublisherCopy(
-                                        references.get(association.getPublisherId()).identifier(),
+                                        association.getPublisherCode(),
                                         association.getSortOrder(),
                                         association.getParameters()))
                 .toList();

@@ -29,7 +29,7 @@ class EnvironmentConfigurationCopyIT extends EnvironmentConfigurationHttpFixture
         String destination =
                 post(base(true), copy)
                         .statusCode(201)
-                        .body("publishers.publisherIdentifier", contains(kafka, http))
+                        .body("publishers.publisherCode", contains(kafka, http))
                         .extract()
                         .path("identifier");
         request().delete(base(false) + "/" + origin).then().statusCode(204);
@@ -39,7 +39,7 @@ class EnvironmentConfigurationCopyIT extends EnvironmentConfigurationHttpFixture
         put(base(true) + "/" + destination, update)
                 .statusCode(200)
                 .body("version", equalTo(1))
-                .body("publishers.publisherIdentifier", contains(kafka, http));
+                .body("publishers.publisherCode", contains(kafka, http));
     }
 
     @Test
@@ -49,7 +49,7 @@ class EnvironmentConfigurationCopyIT extends EnvironmentConfigurationHttpFixture
                         .statusCode(201)
                         .extract()
                         .path("identifier");
-        jdbc.update("update publishers set deprecated=true where identifier=?", http);
+        jdbc.update("update publishers set deprecated=true where code=?", http);
         Map<String, Object> copy = create(globalEnvironment);
         copy.remove("publishers");
         copy.put("copyWorkspacePublishers", true);
@@ -58,7 +58,7 @@ class EnvironmentConfigurationCopyIT extends EnvironmentConfigurationHttpFixture
                 post(base(true), copy)
                         .statusCode(201)
                         .body("settings.applicationOnly", equalTo(true))
-                        .body("publishers.publisherIdentifier", contains(kafka, http))
+                        .body("publishers.publisherCode", contains(kafka, http))
                         .extract()
                         .path("identifier");
         Map<String, Object> originUpdate = update(0);
@@ -66,7 +66,7 @@ class EnvironmentConfigurationCopyIT extends EnvironmentConfigurationHttpFixture
                 "publishers",
                 List.of(
                         Map.of(
-                                "publisherIdentifier",
+                                "publisherCode",
                                 http,
                                 "sortOrder",
                                 5,
@@ -76,7 +76,7 @@ class EnvironmentConfigurationCopyIT extends EnvironmentConfigurationHttpFixture
         put(base(false) + "/" + origin, originUpdate).statusCode(200);
         get(base(true) + "/" + destination)
                 .statusCode(200)
-                .body("publishers.publisherIdentifier", contains(kafka, http))
+                .body("publishers.publisherCode", contains(kafka, http))
                 .body("settings.applicationOnly", equalTo(true))
                 .body("publishers[1].parameters.channel", equalTo("orders"))
                 .body("publishers[1].parameters.onlySource", nullValue());
@@ -87,7 +87,7 @@ class EnvironmentConfigurationCopyIT extends EnvironmentConfigurationHttpFixture
         put(base(true) + "/" + destination, recopy)
                 .statusCode(200)
                 .body("version", equalTo(1))
-                .body("publishers.publisherIdentifier", contains(http))
+                .body("publishers.publisherCode", contains(http))
                 .body("publishers.sortOrder", contains(5))
                 .body("publishers[0].parameters.channel", equalTo("updated"))
                 .body("settings.own", equalTo(123))
@@ -135,7 +135,7 @@ class EnvironmentConfigurationCopyIT extends EnvironmentConfigurationHttpFixture
                         .statusCode(201)
                         .extract()
                         .path("identifier");
-        jdbc.update("update publishers set lifecycle_code='INACTIVE' where identifier=?", http);
+        jdbc.update("update publishers set is_active=false where code=?", http);
         Map<String, Object> copy = update(0);
         copy.remove("publishers");
         copy.put("copyWorkspacePublishers", true);
@@ -144,7 +144,7 @@ class EnvironmentConfigurationCopyIT extends EnvironmentConfigurationHttpFixture
                 .statusCode(200)
                 .body("version", equalTo(0))
                 .body("settings", anEmptyMap())
-                .body("publishers.publisherIdentifier", contains(kafka, http));
+                .body("publishers.publisherCode", contains(kafka, http));
         Map<String, Object> createCopy = create(globalEnvironment);
         createCopy.remove("publishers");
         createCopy.put("copyWorkspacePublishers", true);
@@ -170,10 +170,10 @@ class EnvironmentConfigurationCopyIT extends EnvironmentConfigurationHttpFixture
         jdbc.update(
                 "insert into"
                     + " schema_versions(identifier,schema_id,schema_version,version_name,definition,status,created_at)"
-                    + " select uuid(),id,2,'Restricted"
-                    + " association','{\"type\":\"object\",\"properties\":{\"parameters\":{\"required\":[\"newRequired\"]}}}','PUBLISHED',now()"
-                    + " from schema_definitions where"
-                    + " code='environment-configuration-publisher-kafka'");
+                    + " select uuid(),d.id,2,'Restrict"
+                    + " copy',json_set(v.definition,'$.properties.publishers.items.properties.parameters.required',json_array('newRequired')),'PUBLISHED',now()"
+                    + " from schema_definitions d join schema_versions v on d.id=v.schema_id where"
+                    + " d.code='application-environment-configuration' and v.schema_version=1");
         Map<String, Object> copy = update(0);
         copy.remove("publishers");
         copy.put("copyWorkspacePublishers", true);
@@ -182,6 +182,6 @@ class EnvironmentConfigurationCopyIT extends EnvironmentConfigurationHttpFixture
                 .statusCode(200)
                 .body("version", equalTo(0))
                 .body("settings", anEmptyMap())
-                .body("publishers.publisherIdentifier", contains(kafka, http));
+                .body("publishers.publisherCode", contains(kafka, http));
     }
 }

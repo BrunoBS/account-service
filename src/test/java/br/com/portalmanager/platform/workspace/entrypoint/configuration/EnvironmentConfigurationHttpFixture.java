@@ -26,9 +26,9 @@ abstract class EnvironmentConfigurationHttpFixture {
     final String globalEnvironment = UUID.randomUUID().toString();
     final String ownEnvironment = UUID.randomUUID().toString();
     final String foreignEnvironment = UUID.randomUUID().toString();
-    final String http = UUID.randomUUID().toString();
-    final String kafka = UUID.randomUUID().toString();
-    final String appconfig = UUID.randomUUID().toString();
+    final String http = "WEB_SOCKET";
+    final String kafka = "KAFKA";
+    final String appconfig = "APP_CONFIG";
 
     @BeforeEach
     void prepareConfigurations() {
@@ -82,14 +82,13 @@ abstract class EnvironmentConfigurationHttpFixture {
                 "CUSTOM");
         for (String code : List.of("WEB_SOCKET", "KAFKA", "APP_CONFIG"))
             jdbc.update(
-                    "insert into"
-                        + " publishers(version,identifier,code,name,description,publisher_scope,deprecated,settings,lifecycle_code,created_at,updated_at)"
-                        + " values (0,?,?,?,'Configuration"
-                        + " publisher',?,false,'{}','ACTIVE',now(6),now(6))",
-                    code.equals("WEB_SOCKET") ? http : code.equals("KAFKA") ? kafka : appconfig,
+                    "insert into publishers(code,label,sort_order,is_active,settings) values"
+                        + " (?,?,1,true,?)",
                     code,
                     code,
-                    code.equals("APP_CONFIG") ? "APPLICATION" : "WORKSPACE");
+                    "{\"scope\":\""
+                            + (code.equals("APP_CONFIG") ? "APPLICATION" : "WORKSPACE")
+                            + "\"}");
         ownerAccess();
     }
 
@@ -124,7 +123,7 @@ abstract class EnvironmentConfigurationHttpFixture {
 
     Map<String, Object> publisher(String id, int order) {
         return Map.of(
-                "publisherIdentifier",
+                "publisherCode",
                 id,
                 "sortOrder",
                 order,

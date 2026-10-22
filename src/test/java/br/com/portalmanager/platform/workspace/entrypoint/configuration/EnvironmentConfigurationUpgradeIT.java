@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.configuration;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.*;
+
 import javax.sql.DataSource;
 
 @PlatformIntegrationTest
@@ -20,7 +22,7 @@ import javax.sql.DataSource;
 @Import(MigrationSchemaValidationTestConfiguration.class)
 @TestPropertySource(
         properties = {
-            "spring.flyway.target=83",
+            "spring.flyway.target=86",
             "platform.schema-validation.enabled=false",
             "spring.jpa.hibernate.ddl-auto=none",
             "platform.authorization.mode=MOCK",
@@ -31,39 +33,22 @@ class EnvironmentConfigurationUpgradeIT {
     @Autowired Flyway flyway;
 
     @Test
-    void upgradeFromV83PreservesExistingWorkspaceSettingsAndVersion() {
+    void migratesCatalogAndBothExistingConfigurationAssociationsWithoutLosingData() {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("83");
-        jdbc.update(
-                "insert ignore into type_life_cycle(code,label,sort_order,is_active,settings)"
-                        + " values ('ACTIVE','Active',1,true,'{}')");
-        jdbc.update(
-                "insert ignore into type_workspaces(code,label,sort_order,is_active,settings)"
-                        + " values ('MANAGER','Manager',1,true,'{}')");
-        String identifier = "2a55e118-a599-42f0-8528-06d11b2e287b";
-        jdbc.update(
-                """
-                insert into workspaces(version,identifier,workspace_type_code,name,description,requester,acronym,settings,email_group,onboarding,lifecycle_code,created_at,updated_at)
-                values (7,?,'MANAGER','Preserved owner','Preserved description','requester','PRES','{"registered":true,"limit":123}','test@example.com',false,'ACTIVE',now(6),now(6))
-                """,
-                identifier);
-        jdbc.update(
-                "insert ignore into type_resource_scopes(code,label,sort_order,is_active,settings)"
-                    + " values"
-                    + " ('WORKSPACE','Workspace',1,true,'{}'),('APPLICATION','Application',2,true,'{}')");
-        for (String code : java.util.List.of("HTTP", "APPCONFIG")) {
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("86");
+        for (String code : List.of("ACTIVE", "INACTIVE", "QUARANTINED"))
             jdbc.update(
-                    "insert into"
-                        + " publishers(version,identifier,code,name,description,publisher_scope,deprecated,settings,lifecycle_code,created_at,updated_at)"
-                        + " values (7,uuid(),?,?,?"
-                        + " ,?,true,'{\"preserved\":true}','ACTIVE',now(),now())",
+                    "insert ignore into type_life_cycle(code,label,sort_order,is_active,settings)"
+                        + " values (?,?,1,true,'{}')",
                     code,
+                    code);
+        for (String code : List.of("WORKSPACE", "APPLICATION"))
+            jdbc.update(
+                    "insert ignore into"
+                        + " type_resource_scopes(code,label,sort_order,is_active,settings) values"
+                        + " (?,?,1,true,'{}')",
                     code,
-                    "Legacy publisher",
-                    code.equals("HTTP") ? "WORKSPACE" : "APPLICATION");
-        }
-        java.util.List<Long> publisherIds =
-                jdbc.queryForList("select id from publishers order by id", Long.class);
+                    code);
         jdbc.update(
                 "insert ignore into type_schema_scopes(code,label,sort_order,is_active,settings)"
                     + " values ('PLATFORM','Platform',1,true,'{}')");
@@ -72,31 +57,66 @@ class EnvironmentConfigurationUpgradeIT {
                     + " type_schema_version_status(code,label,sort_order,is_active,settings) values"
                     + " ('PUBLISHED','Published',1,true,'{}')");
         jdbc.update(
-                "insert into"
-                    + " schema_definitions(version,identifier,scope_code,code,name,lifecycle_code,created_at,updated_at)"
-                    + " values"
-                    + " (0,uuid(),'PLATFORM','publisher-resource','Publisher','ACTIVE',now(),now())");
-        try {
-            String legacy =
-                    new org.springframework.core.io.ClassPathResource("schemas/publisher.json")
-                            .getContentAsString(java.nio.charset.StandardCharsets.UTF_8)
-                            .replace("WEB_SOCKET", "HTTP")
-                            .replace("APP_CONFIG", "APPCONFIG")
-                            .replace("60000", "1234");
-            jdbc.update(
-                    "insert into"
-                        + " schema_versions(identifier,schema_id,schema_version,version_name,definition,status,created_at)"
-                        + " select uuid(),id,1,'Legacy customized',?,'PUBLISHED',now() from"
-                        + " schema_definitions where code='publisher-resource'",
-                    legacy);
-        } catch (java.io.IOException exception) {
-            throw new java.io.UncheckedIOException(exception);
-        }
+                "insert ignore into type_workspaces(code,label,sort_order,is_active,settings)"
+                    + " values ('MANAGER','Manager',1,true,'{}')");
+        jdbc.update(
+                "insert ignore into"
+                    + " type_application_scopes(code,label,sort_order,is_active,settings) values"
+                    + " ('BACKEND','Backend',1,true,'{}')");
+        jdbc.update(
+                "insert ignore into type_authorizations(code,label,sort_order,is_active,settings)"
+                    + " values ('DEV','Dev',1,true,'{}')");
         jdbc.update(
                 "insert into"
-                    + " schema_binding(version,identifier,resource_type,resource_code,schema_id,lifecycle_code,created_at,updated_at)"
-                    + " select 0,uuid(),'PUBLISHER','HTTP',id,'ACTIVE',now(),now() from"
-                    + " schema_definitions where code='publisher-resource'");
+                    + " publishers(version,identifier,code,name,description,publisher_scope,deprecated,settings,lifecycle_code,created_at,updated_at)"
+                    + " values (7,'11111111-1111-1111-1111-111111111111','KAFKA','Kafka','Legacy"
+                    + " kafka','WORKSPACE',true,'{\"topic\":\"events\",\"address\":\"broker\"}','ACTIVE',now(),now()),(3,uuid(),'WEB_SOCKET','WebSocket','Quarantined"
+                    + " legacy','WORKSPACE',false,'{}','QUARANTINED',now(),now())");
+        Long publisherId =
+                jdbc.queryForObject("select id from publishers where code='KAFKA'", Long.class);
+        jdbc.update(
+                "insert into"
+                    + " workspaces(version,identifier,workspace_type_code,name,description,requester,acronym,settings,email_group,onboarding,lifecycle_code,created_at,updated_at)"
+                    + " values (7,uuid(),'MANAGER','Migration workspace','Migration"
+                    + " workspace','requester','MIG','{\"preserved\":true}','migration@example.com',false,'ACTIVE',now(),now())");
+        Long workspaceId = jdbc.queryForObject("select id from workspaces", Long.class);
+        jdbc.update(
+                "insert into"
+                    + " applications(version,identifier,workspace_id,name,alias,acronym,application_scope_code,settings,lifecycle_code,created_at,updated_at)"
+                    + " values (0,uuid(),?,'Migration"
+                    + " app','app','APP','BACKEND','{}','ACTIVE',now(),now())",
+                workspaceId);
+        jdbc.update(
+                "insert into"
+                    + " environment_types(code,name,description,root_allowed,allows_children,workspace_required,lifecycle_code,display_order,created_at,updated_at)"
+                    + " values"
+                    + " ('DEFAULT','Default','Default',true,true,false,'ACTIVE',1,now(),now())");
+        jdbc.update(
+                "insert into"
+                    + " environments(version,identifier,workspace_id,environment_type_code,name,description,authorization_type_code,settings,sort_order,lifecycle_code,created_at,updated_at)"
+                    + " values (0,uuid(),null,'DEFAULT','Migration environment','Migration"
+                    + " environment','DEV','{}',1,'ACTIVE',now(),now())");
+        for (String owner : List.of("workspace", "application")) {
+            jdbc.update(
+                    "insert into "
+                            + owner
+                            + "_environment_configurations(version,identifier,"
+                            + owner
+                            + "_id,environment_id,lifecycle_code,settings,created_at,updated_at)"
+                            + " select 5,uuid(),o.id,e.id,'ACTIVE','{\"own\":\""
+                            + owner
+                            + "\"}',now(),now() from "
+                            + owner
+                            + "s o cross join environments e");
+            jdbc.update(
+                    "insert into "
+                            + owner
+                            + "_environment_configuration_publishers(configuration_id,publisher_id,sort_order,parameters)"
+                            + " select id,?,3,'{\"nested\":{\"preserved\":true}}' from "
+                            + owner
+                            + "_environment_configurations",
+                    publisherId);
+        }
         Flyway upgraded =
                 Flyway.configure()
                         .dataSource(dataSource)
@@ -104,109 +124,68 @@ class EnvironmentConfigurationUpgradeIT {
                         .load();
         upgraded.migrate();
         upgraded.validate();
-        assertThat(upgraded.info().current().getVersion().getVersion()).isEqualTo("86");
+        assertThat(upgraded.info().current().getVersion().getVersion()).isEqualTo("87");
+        assertThat(jdbc.queryForList("select code from publishers order by code", String.class))
+                .containsExactly("APP_CONFIG", "KAFKA", "WEB_SOCKET");
         assertThat(
                         jdbc.queryForObject(
-                                "select version from workspaces where identifier=?",
-                                Long.class,
-                                identifier))
+                                "select identifier from publishers where code='KAFKA'",
+                                String.class))
+                .isEqualTo("11111111-1111-1111-1111-111111111111");
+        assertThat(
+                        jdbc.queryForObject(
+                                "select version from publishers where code='KAFKA'", Long.class))
                 .isEqualTo(7L);
         assertThat(
                         jdbc.queryForObject(
-                                "select json_extract(settings,'$.limit') from workspaces where"
-                                        + " identifier=?",
-                                String.class,
-                                identifier))
-                .isEqualTo("123");
-        assertThat(jdbc.queryForList("select id from publishers order by id", Long.class))
-                .isEqualTo(publisherIds);
-        assertThat(jdbc.queryForList("select code from publishers order by id", String.class))
-                .containsExactly("WEB_SOCKET", "APP_CONFIG");
-        assertThat(jdbc.queryForList("select version from publishers order by id", Long.class))
-                .containsExactly(8L, 8L);
-        assertThat(
-                        jdbc.queryForList(
-                                "select json_extract(settings,'$.preserved') from publishers",
+                                "select json_unquote(json_extract(settings,'$.scope')) from"
+                                    + " publishers where code='KAFKA'",
                                 String.class))
-                .containsOnly("true");
+                .isEqualTo("WORKSPACE");
         assertThat(
                         jdbc.queryForObject(
-                                "select count(*) from schema_binding where"
-                                    + " resource_type='PUBLISHER' and resource_code='WEB_SOCKET'",
-                                Integer.class))
-                .isEqualTo(1);
+                                "select json_unquote(json_extract(settings,'$.topic')) from"
+                                    + " publishers where code='KAFKA'",
+                                String.class))
+                .isEqualTo("events");
         assertThat(
                         jdbc.queryForObject(
-                                "select"
-                                    + " json_extract(definition,'$.allOf[2].then.properties.settings.properties.timeout.maximum')"
-                                    + " from schema_versions v join schema_definitions d on"
-                                    + " d.id=v.schema_id where d.code='publisher-resource' order by"
-                                    + " v.schema_version desc limit 1",
-                                String.class))
-                .isEqualTo("1234");
+                                "select is_active from publishers where code='WEB_SOCKET'",
+                                Boolean.class))
+                .isFalse();
         assertThat(
                         jdbc.queryForObject(
-                                "select"
-                                    + " json_unquote(json_extract(definition,'$.allOf[2].if.properties.code.const'))"
-                                    + " from schema_versions v join schema_definitions d on"
-                                    + " d.id=v.schema_id where d.code='publisher-resource' order by"
-                                    + " v.schema_version desc limit 1",
+                                "select json_unquote(json_extract(settings,'$.scope')) from"
+                                    + " publishers where code='APP_CONFIG'",
                                 String.class))
-                .isEqualTo("WEB_SOCKET");
-        for (String code :
-                java.util.List.of(
-                        "workspace-environment-configuration",
-                        "application-environment-configuration",
-                        "environment-configuration-publisher-web-socket",
-                        "environment-configuration-publisher-kafka",
-                        "environment-configuration-publisher-app-config")) {
+                .isEqualTo("APPLICATION");
+        for (String owner : List.of("workspace", "application")) {
             assertThat(
                             jdbc.queryForObject(
-                                    "select count(*) from schema_binding b join schema_versions v"
-                                        + " on b.schema_id=v.schema_id where"
-                                        + " b.resource_type='PLATFORM' and b.resource_code=? and"
-                                        + " b.lifecycle_code='ACTIVE' and v.status='PUBLISHED'",
-                                    Integer.class,
-                                    code))
-                    .isEqualTo(1);
-        }
-        for (String table :
-                java.util.List.of(
-                        "workspace_environment_configurations",
-                        "application_environment_configurations",
-                        "workspace_environment_configuration_publishers",
-                        "application_environment_configuration_publishers")) {
-            assertThat(jdbc.queryForObject("select count(*) from " + table, Long.class)).isZero();
-        }
-        try {
-            String migration =
-                    new org.springframework.core.io.ClassPathResource(
-                                    "db/migration/V86__configuration_publisher_contracts.sql")
-                            .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
-            String guard =
-                    migration.substring(
-                            migration.indexOf("CREATE PROCEDURE"), migration.indexOf("END$$") + 3);
-            jdbc.update(
-                    "insert into"
-                        + " publishers(version,identifier,code,name,description,publisher_scope,deprecated,settings,lifecycle_code,created_at,updated_at)"
-                        + " values"
-                        + " (0,uuid(),'HTTP','Collision','Collision','WORKSPACE',false,'{}','ACTIVE',now(),now())");
-            jdbc.execute(guard);
-            try {
-                org.assertj.core.api.Assertions.assertThatThrownBy(
-                                () -> jdbc.execute("CALL validate_publisher_code_rename_v86()"))
-                        .hasMessageContaining("Publisher code rename collision");
-                assertThat(
-                                jdbc.queryForObject(
-                                        "select count(*) from publishers where code in"
-                                            + " ('HTTP','WEB_SOCKET')",
-                                        Integer.class))
-                        .isEqualTo(2);
-            } finally {
-                jdbc.execute("DROP PROCEDURE validate_publisher_code_rename_v86");
-            }
-        } catch (java.io.IOException exception) {
-            throw new java.io.UncheckedIOException(exception);
+                                    "select publisher_code from "
+                                            + owner
+                                            + "_environment_configuration_publishers",
+                                    String.class))
+                    .isEqualTo("KAFKA");
+            assertThat(
+                            jdbc.queryForObject(
+                                    "select publisher_id from "
+                                            + owner
+                                            + "_environment_configuration_publishers",
+                                    Long.class))
+                    .isEqualTo(publisherId);
+            assertThat(
+                            jdbc.queryForObject(
+                                    "select json_extract(parameters,'$.nested.preserved') from "
+                                            + owner
+                                            + "_environment_configuration_publishers",
+                                    String.class))
+                    .isEqualTo("true");
+            assertThat(
+                            jdbc.queryForObject(
+                                    "select version from " + owner + "_environment_configurations",
+                                    Long.class))
+                    .isEqualTo(5L);
         }
     }
 }

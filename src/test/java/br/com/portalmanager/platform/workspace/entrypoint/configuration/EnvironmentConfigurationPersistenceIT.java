@@ -47,8 +47,8 @@ class EnvironmentConfigurationPersistenceIT {
                 jdbc.queryForObject(
                         "select id from environments where name='Configuration environment'",
                         Long.class);
-        List<Long> publisherIds =
-                jdbc.queryForList("select id from publishers order by code", Long.class);
+        List<String> publisherIds =
+                jdbc.queryForList("select code from publishers order by code", String.class);
         LocalDateTime now = LocalDateTime.now();
         WorkspaceEnvironmentConfiguration workspace =
                 workspaces.saveAndFlush(
@@ -130,8 +130,8 @@ class EnvironmentConfigurationPersistenceIT {
                 jdbc.queryForObject(
                         "select id from environments where name='Configuration environment'",
                         Long.class);
-        List<Long> publishers =
-                jdbc.queryForList("select id from publishers order by code", Long.class);
+        List<String> publishers =
+                jdbc.queryForList("select code from publishers order by code", String.class);
         WorkspaceEnvironmentConfiguration configuration =
                 workspaces.saveAndFlush(
                         new WorkspaceEnvironmentConfiguration(
@@ -153,7 +153,7 @@ class EnvironmentConfigurationPersistenceIT {
                         configuration, publishers.get(0), 1, mapper.createObjectNode()));
         String insert =
                 "insert into"
-                    + " workspace_environment_configuration_publishers(configuration_id,publisher_id,sort_order,parameters)"
+                    + " workspace_environment_configuration_publishers(configuration_id,publisher_code,sort_order,parameters)"
                     + " values (?,?,?,'{}')";
         assertThatThrownBy(() -> jdbc.update(insert, configuration.getId(), publishers.get(0), 2))
                 .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
@@ -162,7 +162,7 @@ class EnvironmentConfigurationPersistenceIT {
         assertThatThrownBy(() -> jdbc.update(insert, configuration.getId(), publishers.get(1), 0))
                 .isInstanceOf(org.springframework.jdbc.UncategorizedSQLException.class)
                 .hasMessageContaining("ck_workspace_env_config_order");
-        assertThatThrownBy(() -> jdbc.update(insert, configuration.getId(), Long.MAX_VALUE, 2))
+        assertThatThrownBy(() -> jdbc.update(insert, configuration.getId(), "UNKNOWN", 2))
                 .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
         assertThatThrownBy(
                         () ->
@@ -183,8 +183,8 @@ class EnvironmentConfigurationPersistenceIT {
                 jdbc.queryForObject(
                         "select id from environments where name='Configuration environment'",
                         Long.class);
-        List<Long> publishers =
-                jdbc.queryForList("select id from publishers order by code", Long.class);
+        List<String> publishers =
+                jdbc.queryForList("select code from publishers order by code", String.class);
         ApplicationEnvironmentConfiguration configuration =
                 applications.saveAndFlush(
                         new ApplicationEnvironmentConfiguration(
@@ -198,7 +198,7 @@ class EnvironmentConfigurationPersistenceIT {
         Long configurationId = configuration.getId();
         String insert =
                 "insert into"
-                    + " application_environment_configuration_publishers(configuration_id,publisher_id,sort_order,parameters)"
+                    + " application_environment_configuration_publishers(configuration_id,publisher_code,sort_order,parameters)"
                     + " values (?,?,?,'{}')";
         assertThatThrownBy(() -> jdbc.update(insert, configurationId, publishers.get(0), 2))
                 .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
@@ -207,7 +207,7 @@ class EnvironmentConfigurationPersistenceIT {
         assertThatThrownBy(() -> jdbc.update(insert, configurationId, publishers.get(1), 0))
                 .isInstanceOf(org.springframework.jdbc.UncategorizedSQLException.class)
                 .hasMessageContaining("ck_application_env_config_order");
-        assertThatThrownBy(() -> jdbc.update(insert, configurationId, Long.MAX_VALUE, 2))
+        assertThatThrownBy(() -> jdbc.update(insert, configurationId, "UNKNOWN", 2))
                 .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
         configuration.inactivate(LocalDateTime.now());
         applications.saveAndFlush(configuration);
@@ -319,10 +319,8 @@ class EnvironmentConfigurationPersistenceIT {
                     + " environment','DEV','{}',1,'ACTIVE',now(6),now(6))");
         for (String code : List.of("WEB_SOCKET", "KAFKA"))
             jdbc.update(
-                    "insert into"
-                        + " publishers(version,identifier,code,name,description,publisher_scope,deprecated,settings,lifecycle_code,created_at,updated_at)"
-                        + " values (0,uuid(),?,?,'Configuration"
-                        + " publisher','WORKSPACE',false,'{}','ACTIVE',now(6),now(6))",
+                    "insert into publishers(code,label,sort_order,is_active,settings) values"
+                        + " (?,?,1,true,'{\"scope\":\"WORKSPACE\"}')",
                     code,
                     code);
     }

@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.support;
 
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
@@ -173,9 +173,7 @@ public final class SchemaDefaultFixture {
                                     connection, "db/migration/V42__workspace_resource_schema.sql");
                             executeSchemaSeed(
                                     connection,
-                                    "db/migration/V50__publisher_resource_schema_and_limits.sql");
-                            executeSchemaSeed(
-                                    connection, "db/migration/V52__environment_resource_schemas.sql");
+                                    "db/migration/V52__environment_resource_schemas.sql");
                             executeSchemaSeed(
                                     connection,
                                     "db/migration/V55__environment_type_compatibility_identifiers.sql");
@@ -202,23 +200,16 @@ public final class SchemaDefaultFixture {
                             executeSchemaSeed(
                                     connection,
                                     "db/migration/V85__environment_configuration_schemas.sql");
-                            executeSchemaSeed(connection, "migration/dynamic-bundle-schema-seed.sql");
-                            executeSchemaSeed(connection, "migration/service-context-schema-seed.sql");
+                            executeSchemaSeed(
+                                    connection, "migration/dynamic-bundle-schema-seed.sql");
+                            executeSchemaSeed(
+                                    connection, "migration/service-context-schema-seed.sql");
                             executeSchemaSeed(connection, "migration/segmentation-schema-seed.sql");
                             return null;
                         });
         try {
             seedDynamicParameterSchemas(jdbc);
             seedEnvironmentConfigurationSchemas(jdbc);
-            jdbc.update(
-                    """
-                    INSERT IGNORE INTO schema_versions
-                        (identifier, schema_id, schema_version, version_name, definition, status, created_at)
-                    SELECT UUID(), id, 2, 'Publisher Resource v2', ?, 'PUBLISHED', CURRENT_TIMESTAMP
-                    FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'publisher-resource'
-                    """,
-                    new ClassPathResource("schemas/publisher.json")
-                            .getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
             jdbc.update(
                     """
                     INSERT IGNORE INTO schema_versions
@@ -256,13 +247,14 @@ public final class SchemaDefaultFixture {
             throws java.sql.SQLException {
         ClassPathResource resource = new ClassPathResource(path);
         try (java.io.InputStream input = resource.getInputStream()) {
-            String sql = new String(input.readAllBytes(), StandardCharsets.UTF_8)
-                    .replace("schema_configuration", "schema_binding");
+            String sql =
+                    new String(input.readAllBytes(), StandardCharsets.UTF_8)
+                            .replace("schema_configuration", "schema_binding");
             ScriptUtils.executeSqlScript(
-                    connection,
-                    new ByteArrayResource(sql.getBytes(StandardCharsets.UTF_8), path));
+                    connection, new ByteArrayResource(sql.getBytes(StandardCharsets.UTF_8), path));
         } catch (IOException exception) {
-            throw new IllegalStateException("Could not load historical schema seed: " + path, exception);
+            throw new IllegalStateException(
+                    "Could not load historical schema seed: " + path, exception);
         }
     }
 
@@ -272,32 +264,31 @@ public final class SchemaDefaultFixture {
                 java.util.List.of(
                         "workspace-environment-configuration",
                         "application-environment-configuration",
-                        "environment-configuration-publisher-web-socket",
-                        "environment-configuration-publisher-kafka",
-                        "environment-configuration-publisher-app-config")) {
+                        "publisher-type-settings")) {
             jdbc.update(
-                    "INSERT IGNORE INTO schema_definitions"
-                        + " (version,identifier,scope_code,code,name,lifecycle_code,created_at,updated_at)"
-                        + " VALUES (0,UUID(),'PLATFORM',?,?,'ACTIVE',NOW(),NOW())",
+                    "insert ignore into"
+                        + " schema_definitions(version,identifier,scope_code,code,name,lifecycle_code,created_at,updated_at)"
+                        + " values (0,uuid(),'PLATFORM',?,?,'ACTIVE',now(),now())",
                     code,
                     code);
             String definition =
                     new ClassPathResource("schemas/" + code + ".json")
                             .getContentAsString(StandardCharsets.UTF_8);
             jdbc.update(
-                    "INSERT IGNORE INTO schema_versions"
-                        + " (identifier,schema_id,schema_version,version_name,definition,status,created_at)"
-                        + " SELECT UUID(),id,1,?,?,'PUBLISHED',NOW() FROM schema_definitions WHERE"
-                        + " scope_code='PLATFORM' AND code=?",
+                    "insert ignore into"
+                        + " schema_versions(identifier,schema_id,schema_version,version_name,definition,status,created_at)"
+                        + " select uuid(),id,1,?,?,'PUBLISHED',now() from schema_definitions where"
+                        + " code=?",
                     code,
                     definition,
                     code);
             jdbc.update(
-                    "INSERT IGNORE INTO schema_binding"
-                        + " (version,identifier,resource_type,resource_code,schema_id,lifecycle_code,created_at,updated_at)"
-                        + " SELECT 0,UUID(),'PLATFORM',?,id,'ACTIVE',NOW(),NOW() FROM"
-                        + " schema_definitions WHERE scope_code='PLATFORM' AND code=?",
-                    code,
+                    "insert ignore into"
+                        + " schema_binding(version,identifier,resource_type,resource_code,schema_id,lifecycle_code,created_at,updated_at)"
+                        + " select 0,uuid(),?,?,id,'ACTIVE',now(),now() from schema_definitions"
+                        + " where code=?",
+                    code.equals("publisher-type-settings") ? "CATALOG" : "PLATFORM",
+                    code.equals("publisher-type-settings") ? "publisher-type" : code,
                     code);
         }
     }
