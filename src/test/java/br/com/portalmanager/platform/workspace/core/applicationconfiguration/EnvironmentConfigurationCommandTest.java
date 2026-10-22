@@ -13,6 +13,7 @@ import br.com.portalmanager.platform.workspace.core.applicationconfiguration.use
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.*;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.operations.*;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.validation.ApplicationEnvironmentConfigurationValidator;
+import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.domain.PublisherTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.EnvironmentReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceEnvironmentConfigurationPort;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceEnvironmentConfigurationPort.PublisherCopy;
@@ -52,9 +53,15 @@ class EnvironmentConfigurationCommandTest {
         ObjectNode parameters = json.createObjectNode().put("topic", "source");
         ObjectNode settings = json.createObjectNode().put("application", true);
         when(origin.copyPublishers(1L, 3L))
-                .thenReturn(List.of(new PublisherCopy("publisher", 4, parameters)));
+                .thenReturn(
+                        List.of(
+                                new PublisherCopy(
+                                        PublisherTypeCode.kafka().value(), 4, parameters)));
         when(validator.validatePublishers(anyList(), eq(Set.of())))
-                .thenReturn(List.of(new ResolvedPublisher("publisher", 4, parameters)));
+                .thenReturn(
+                        List.of(
+                                new ResolvedPublisher(
+                                        PublisherTypeCode.kafka().value(), 4, parameters)));
         when(repository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
         commands.create(
                 "workspace",
@@ -70,14 +77,19 @@ class EnvironmentConfigurationCommandTest {
         verify(origin).copyPublishers(1L, 3L);
         verify(validator)
                 .validatePublishers(
-                        List.of(new PublisherInput("publisher", 4, parameters)), Set.of());
+                        List.of(
+                                new PublisherInput(
+                                        PublisherTypeCode.kafka().value(), 4, parameters)),
+                        Set.of());
     }
 
     @Test
     void explicitPublishersDoNotConsultTheWorkspaceOrigin() {
         setupScope();
         List<PublisherInput> explicit =
-                List.of(new PublisherInput("publisher", 1, json.createObjectNode()));
+                List.of(
+                        new PublisherInput(
+                                PublisherTypeCode.kafka().value(), 1, json.createObjectNode()));
         when(validator.validatePublishers(explicit, Set.of())).thenReturn(List.of());
         when(repository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
         commands.create(
@@ -113,12 +125,15 @@ class EnvironmentConfigurationCommandTest {
         ObjectNode parameters = json.createObjectNode();
         when(environments.resolveIdentifier(3L)).thenReturn("environment");
         when(origin.copyPublishers(1L, 3L))
-                .thenReturn(List.of(new PublisherCopy("publisher", 1, parameters)));
+                .thenReturn(
+                        List.of(
+                                new PublisherCopy(
+                                        PublisherTypeCode.kafka().value(), 1, parameters)));
         when(associations.findByConfigurationIdOrderBySortOrderAsc(9L))
                 .thenReturn(
                         List.of(
                                 new ApplicationEnvironmentConfigurationPublisher(
-                                        configuration, "KAFKA", 1, parameters)));
+                                        configuration, PublisherTypeCode.kafka(), 1, parameters)));
         when(validator.validatePublishers(anyList(), eq(Set.of())))
                 .thenThrow(new ValidationException(PlatformMessageKeys.VALIDATION_FAILED));
         assertThatThrownBy(

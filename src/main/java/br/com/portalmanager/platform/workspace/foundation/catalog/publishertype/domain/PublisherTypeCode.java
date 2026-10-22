@@ -19,4 +19,16 @@ public class PublisherTypeCode extends AbstractCatalogCode {
     public static PublisherTypeCode of(PublisherTypeEnum value) {
         return new PublisherTypeCode(value == null ? null : value.name());
     }
+
+    public static PublisherTypeCode webSocket() {
+        return of(PublisherTypeEnum.WEB_SOCKET);
+    }
+
+    public static PublisherTypeCode kafka() {
+        return of(PublisherTypeEnum.KAFKA);
+    }
+
+    public static PublisherTypeCode appConfig() {
+        return of(PublisherTypeEnum.APP_CONFIG);
+    }
 }

@@ -13,6 +13,7 @@ import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.useca
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.PublisherInput;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.ResolvedPublisher;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.validation.WorkspaceEnvironmentConfigurationValidator;
+import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.domain.PublisherTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.EnvironmentReferencePort;
 
 import org.springframework.stereotype.Service;
@@ -97,6 +98,7 @@ public class WorkspaceEnvironmentConfigurationCommandService {
                         .findByConfigurationIdOrderBySortOrderAsc(configuration.getId())
                         .stream()
                         .map(WorkspaceEnvironmentConfigurationPublisher::getPublisherCode)
+                        .map(PublisherTypeCode::value)
                         .collect(Collectors.toSet());
         List<ResolvedPublisher> selected =
                 validator.validatePublishers(publisherInput, existingIds);
@@ -151,7 +153,7 @@ public class WorkspaceEnvironmentConfigurationCommandService {
                                 publisher ->
                                         new WorkspaceEnvironmentConfigurationPublisher(
                                                 configuration,
-                                                publisher.publisherCode(),
+                                                PublisherTypeCode.of(publisher.publisherCode()),
                                                 publisher.sortOrder(),
                                                 publisher.parameters()))
                         .toList());

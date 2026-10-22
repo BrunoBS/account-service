@@ -13,6 +13,7 @@ import br.com.portalmanager.platform.workspace.core.applicationconfiguration.use
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.PublisherInput;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.ResolvedPublisher;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.validation.ApplicationEnvironmentConfigurationValidator;
+import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.domain.PublisherTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.EnvironmentReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceEnvironmentConfigurationPort;
 
@@ -133,6 +134,7 @@ public class ApplicationEnvironmentConfigurationCommandService {
                         .findByConfigurationIdOrderBySortOrderAsc(configuration.getId())
                         .stream()
                         .map(ApplicationEnvironmentConfigurationPublisher::getPublisherCode)
+                        .map(PublisherTypeCode::value)
                         .collect(Collectors.toSet());
         List<ResolvedPublisher> selected =
                 validator.validatePublishers(
@@ -191,7 +193,7 @@ public class ApplicationEnvironmentConfigurationCommandService {
                                 publisher ->
                                         new ApplicationEnvironmentConfigurationPublisher(
                                                 configuration,
-                                                publisher.publisherCode(),
+                                                PublisherTypeCode.of(publisher.publisherCode()),
                                                 publisher.sortOrder(),
                                                 publisher.parameters()))
                         .toList());

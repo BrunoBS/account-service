@@ -39,7 +39,7 @@ public class WorkspaceEnvironmentConfigurationMapper {
                         .map(
                                 association ->
                                         new PublisherOutput(
-                                                association.getPublisherCode(),
+                                                association.getPublisherCode().value(),
                                                 association.getSortOrder(),
                                                 association.getParameters()))
                         .toList(),

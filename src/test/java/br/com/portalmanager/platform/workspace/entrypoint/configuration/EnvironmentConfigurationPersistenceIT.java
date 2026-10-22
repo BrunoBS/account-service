@@ -8,6 +8,7 @@ import br.com.portalmanager.platform.workspace.core.applicationconfiguration.dom
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.repository.*;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain.*;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.repository.*;
+import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.domain.PublisherTypeCode;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,19 +68,19 @@ class EnvironmentConfigurationPersistenceIT {
         workspacePublishers.saveAndFlush(
                 new WorkspaceEnvironmentConfigurationPublisher(
                         workspace,
-                        publisherIds.get(0),
+                        PublisherTypeCode.of(publisherIds.get(0)),
                         2,
                         mapper.createObjectNode().put("channel", "a")));
         workspacePublishers.saveAndFlush(
                 new WorkspaceEnvironmentConfigurationPublisher(
                         workspace,
-                        publisherIds.get(1),
+                        PublisherTypeCode.of(publisherIds.get(1)),
                         1,
                         mapper.createObjectNode().put("channel", "b")));
         applicationPublishers.saveAndFlush(
                 new ApplicationEnvironmentConfigurationPublisher(
                         application,
-                        publisherIds.get(0),
+                        PublisherTypeCode.of(publisherIds.get(0)),
                         1,
                         mapper.createObjectNode().put("channel", "c")));
         assertThat(workspacePublishers.findByConfigurationIdOrderBySortOrderAsc(workspace.getId()))
@@ -150,7 +151,10 @@ class EnvironmentConfigurationPersistenceIT {
                 .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
         workspacePublishers.saveAndFlush(
                 new WorkspaceEnvironmentConfigurationPublisher(
-                        configuration, publishers.get(0), 1, mapper.createObjectNode()));
+                        configuration,
+                        PublisherTypeCode.of(publishers.get(0)),
+                        1,
+                        mapper.createObjectNode()));
         String insert =
                 "insert into"
                     + " workspace_environment_configuration_publishers(configuration_id,publisher_code,sort_order,parameters)"
@@ -194,7 +198,10 @@ class EnvironmentConfigurationPersistenceIT {
                                 LocalDateTime.now()));
         applicationPublishers.saveAndFlush(
                 new ApplicationEnvironmentConfigurationPublisher(
-                        configuration, publishers.get(0), 1, mapper.createObjectNode()));
+                        configuration,
+                        PublisherTypeCode.of(publishers.get(0)),
+                        1,
+                        mapper.createObjectNode()));
         Long configurationId = configuration.getId();
         String insert =
                 "insert into"
@@ -320,7 +327,7 @@ class EnvironmentConfigurationPersistenceIT {
         for (String code : List.of("WEB_SOCKET", "KAFKA"))
             jdbc.update(
                     "insert into publishers(code,label,sort_order,is_active,settings) values"
-                        + " (?,?,1,true,'{\"scope\":\"WORKSPACE\"}')",
+                            + " (?,?,1,true,'{\"scope\":\"WORKSPACE\"}')",
                     code,
                     code);
     }

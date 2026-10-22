@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain;
 
+import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.domain.PublisherTypeCode;
+
 import jakarta.persistence.*;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -29,8 +31,16 @@ public class WorkspaceEnvironmentConfigurationPublisher {
     @JoinColumn(name = "configuration_id", nullable = false, updatable = false)
     private WorkspaceEnvironmentConfiguration configuration;
 
-    @Column(name = "publisher_code", nullable = false, updatable = false)
-    private String publisherCode;
+    @Embedded
+    @AttributeOverride(
+            name = "value",
+            column =
+                    @Column(
+                            name = "publisher_code",
+                            nullable = false,
+                            updatable = false,
+                            length = 50))
+    private PublisherTypeCode publisherCode;
 
     @Column(name = "sort_order", nullable = false)
     private Integer sortOrder;
@@ -43,7 +53,7 @@ public class WorkspaceEnvironmentConfigurationPublisher {
 
     public WorkspaceEnvironmentConfigurationPublisher(
             WorkspaceEnvironmentConfiguration configuration,
-            String publisherCode,
+            PublisherTypeCode publisherCode,
             Integer sortOrder,
             JsonNode parameters) {
         this.configuration = Objects.requireNonNull(configuration);
@@ -61,7 +71,7 @@ public class WorkspaceEnvironmentConfigurationPublisher {
         return configuration;
     }
 
-    public String getPublisherCode() {
+    public PublisherTypeCode getPublisherCode() {
         return publisherCode;
     }
 

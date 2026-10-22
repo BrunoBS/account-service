@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.*;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain.WorkspaceEnvironmentConfiguration;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain.WorkspaceEnvironmentConfigurationPublisher;
+import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.domain.PublisherTypeCode;
 
 import org.junit.jupiter.api.Test;
 
@@ -51,14 +52,24 @@ class EnvironmentConfigurationDomainTest {
         ObjectNode parameters = mapper.createObjectNode().put("destination", "one");
         WorkspaceEnvironmentConfigurationPublisher publisher =
                 new WorkspaceEnvironmentConfigurationPublisher(
-                        configuration, "KAFKA", 1, parameters);
+                        configuration, PublisherTypeCode.kafka(), 1, parameters);
+        assertThat(publisher.getPublisherCode()).isEqualTo(PublisherTypeCode.kafka());
         parameters.put("destination", "two");
         ((ObjectNode) publisher.getParameters()).put("destination", "three");
         assertThat(publisher.getParameters().get("destination").asString()).isEqualTo("one");
         assertThatThrownBy(
                         () ->
                                 new WorkspaceEnvironmentConfigurationPublisher(
-                                        configuration, "KAFKA", 0, parameters))
+                                        configuration, PublisherTypeCode.kafka(), 0, parameters))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void publisherCatalogHelpersResolveOfficialCodes() {
+        assertThat(PublisherTypeCode.webSocket()).isEqualTo(PublisherTypeCode.of("WEB_SOCKET"));
+        assertThat(PublisherTypeCode.kafka()).isEqualTo(PublisherTypeCode.of("KAFKA"));
+        assertThat(PublisherTypeCode.appConfig()).isEqualTo(PublisherTypeCode.of("APP_CONFIG"));
+        assertThatThrownBy(() -> PublisherTypeCode.of("HTTP"))
+                .isInstanceOf(ValidationException.class);
     }
 }

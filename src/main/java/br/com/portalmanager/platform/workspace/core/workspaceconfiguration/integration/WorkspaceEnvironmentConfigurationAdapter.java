@@ -46,7 +46,7 @@ public class WorkspaceEnvironmentConfigurationAdapter
                 .map(
                         association ->
                                 new PublisherCopy(
-                                        association.getPublisherCode(),
+                                        association.getPublisherCode().value(),
                                         association.getSortOrder(),
                                         association.getParameters()))
                 .toList();
