@@ -4,10 +4,10 @@ import static org.assertj.core.api.Assertions.*;
 
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
-import br.com.portalmanager.platform.workspace.core.application.environmentconfiguration.domain.*;
-import br.com.portalmanager.platform.workspace.core.application.environmentconfiguration.repository.*;
-import br.com.portalmanager.platform.workspace.core.workspace.environmentconfiguration.domain.*;
-import br.com.portalmanager.platform.workspace.core.workspace.environmentconfiguration.repository.*;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.domain.*;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.repository.*;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain.*;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.repository.*;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
