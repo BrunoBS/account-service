@@ -358,6 +358,21 @@ class GoldenArchitectureTest {
     }
 
     @Test
+    void everyPublicFacadeOperationMustDeclareAuthorization() {
+        List<Method> operations = classes.stream()
+                .filter(c -> c.getPackageName().endsWith(".facade")
+                        || c.getPackageName().contains(".facade."))
+                .map(JavaClass::reflect)
+                .flatMap(c -> Arrays.stream(c.getDeclaredMethods()))
+                .filter(m -> java.lang.reflect.Modifier.isPublic(m.getModifiers()))
+                .filter(m -> !m.isSynthetic())
+                .toList();
+        assertThat(operations).isNotEmpty().allSatisfy(method ->
+                assertThat(method.isAnnotationPresent(AuthorizationRequired.class))
+                        .as(method.toGenericString()).isTrue());
+    }
+
+    @Test
     void authorizedFacadeMethodsMustReceiveAuthorizationContext() {
         List<Method> methods =
                 classes.stream()

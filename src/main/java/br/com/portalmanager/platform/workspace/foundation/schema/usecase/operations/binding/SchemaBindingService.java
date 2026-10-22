@@ -64,34 +64,41 @@ public class SchemaBindingService {
         SchemaBinding binding = required(identifier);
         validator.validateUpdate(binding, input);
         binding.update(platformSchema(input.schemaIdentifier()), LocalDateTime.now());
+        repository.flush();
         return mapper.toOutput(binding);
     }
 
     @Transactional
+    @Auditable(action = AuditAction.ACTIVATE, event = "SCHEMA_BINDING_ACTIVATED", resourceType = "SCHEMA_BINDING")
     public SchemaBindingOutput activate(String identifier) {
         SchemaBinding binding = required(identifier);
         binding.activate(LocalDateTime.now());
+        repository.flush();
         return mapper.toOutput(binding);
     }
 
     @Transactional
+    @Auditable(action = AuditAction.DEACTIVATE, event = "SCHEMA_BINDING_DEACTIVATED", resourceType = "SCHEMA_BINDING")
     public SchemaBindingOutput inactivate(String identifier) {
         SchemaBinding binding = required(identifier);
         binding.inactivate(LocalDateTime.now());
+        repository.flush();
         return mapper.toOutput(binding);
     }
 
     @Transactional
     @Auditable(
-        action = AuditAction.DELETE,
+        action = AuditAction.PURGE,
         event = "SCHEMA_BINDING_DELETED",
         resourceType = "SCHEMA_BINDING"
     )
     public SchemaBindingOutput delete(String identifier) {
         SchemaBinding binding = required(identifier);
         validator.validateDeletion(binding);
+        SchemaBindingOutput snapshot = mapper.toOutput(binding);
         repository.delete(binding);
-        return mapper.toOutput(binding);
+        repository.flush();
+        return snapshot;
     }
 
     @Transactional(readOnly = true)

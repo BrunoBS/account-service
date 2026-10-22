@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.parameter.repository;
 
+import tools.jackson.databind.JsonNode;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -13,7 +15,7 @@ class ParameterKeyJsonConverterTest {
 
     @Test
     void convertsJsonBetweenDatabaseAndDomainRepresentations() {
-        var json = tools.jackson.databind.json.JsonMapper.builder().build().readTree("{\"x\":1}");
+        JsonNode json = tools.jackson.databind.json.JsonMapper.builder().build().readTree("{\"x\":1}");
 
         assertThat(converter.convertToDatabaseColumn(json)).isEqualTo("{\"x\":1}");
         assertThat(converter.convertToEntityAttribute("{\"x\":1}")).isEqualTo(json);
@@ -27,7 +29,7 @@ class ParameterKeyJsonConverterTest {
                 .isInstanceOf(ApiException.class)
                 .satisfies(
                         exception -> {
-                            var apiException = (ApiException) exception;
+                            ApiException apiException = (ApiException) exception;
                             assertThat(apiException.getMessageKey())
                                     .isEqualTo(PlatformMessageKeys.INTERNAL_SERVER_ERROR);
                             assertThat(apiException.getCause()).isNull();

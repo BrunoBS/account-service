@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.schema;
 
+import io.restassured.path.json.JsonPath;
+
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -173,6 +175,82 @@ class SchemaApiIT {
             .body("code", equalTo(code));
         get("/api/v1/schemas/" + schema).statusCode(404);
         assertThat(resolver.resolve("WORKSPACE", code)).isEqualTo(defaultDefinition("WORKSPACE"));
+    }
+
+    @Test
+    void schemaMutationReturnsTheCommittedVersionForTheNextUpdate() {
+        String code = "version-" + UUID.randomUUID().toString().substring(0, 8);
+        JsonPath created = post("/api/v1/schemas", Map.of(
+                "code", code, "name", "Before", "definition", Map.of("type", "object")))
+                .statusCode(201).extract().jsonPath();
+        String path = "/api/v1/schemas/" + created.getString("identifier");
+        long initial = created.getLong("version");
+        long updated = request().contentType(ContentType.JSON)
+                .body(Map.of("version", initial, "name", "After"))
+                .put(path).then().statusCode(200).extract().jsonPath().getLong("version");
+        assertThat(updated).isEqualTo(initial + 1);
+        assertThat(get(path).statusCode(200).extract().jsonPath().getLong("version")).isEqualTo(updated);
+        request().contentType(ContentType.JSON).body(Map.of("version", updated, "name", "Again"))
+                .put(path).then().statusCode(200);
+        long inactive = patch(path + "/inactivate").statusCode(200)
+                .extract().jsonPath().getLong("version");
+        assertThat(get(path).statusCode(200).extract().jsonPath().getLong("version")).isEqualTo(inactive);
+        long active = patch(path + "/activate").statusCode(200)
+                .extract().jsonPath().getLong("version");
+        assertThat(active).isEqualTo(inactive + 1);
+    }
+
+    @Test
+    void bindingMutationReturnsTheCommittedVersionForTheNextUpdate() {
+        String code = "binding-" + UUID.randomUUID().toString().substring(0, 8);
+        String schema = post("/api/v1/schemas", Map.of(
+                "code", code, "name", "Contract", "definition", Map.of("type", "object")))
+                .statusCode(201).extract().path("identifier");
+        JsonPath created = post("/api/v1/schema-bindings", Map.of(
+                "resourceType", "FEATURE", "resourceCode", code, "schemaIdentifier", schema))
+                .statusCode(201).extract().jsonPath();
+        String path = "/api/v1/schema-bindings/" + created.getString("identifier");
+        long inactive = patch(path + "/inactivate").statusCode(200)
+                .extract().jsonPath().getLong("version");
+        assertThat(inactive).isEqualTo(created.getLong("version") + 1);
+        long active = patch(path + "/activate").statusCode(200)
+                .extract().jsonPath().getLong("version");
+        assertThat(active).isEqualTo(inactive + 1);
+        long updated = request().contentType(ContentType.JSON)
+                .body(Map.of("version", active, "schemaIdentifier", schema))
+                .put(path).then().statusCode(200).extract().jsonPath().getLong("version");
+        assertThat(updated).isEqualTo(active + 1);
+        assertThat(get(path).statusCode(200).extract().jsonPath().getLong("version")).isEqualTo(updated);
+    }
+
+    @Test
+    void schemaRejectsOversizedFieldsBeforePersistenceAndAcceptsStorageLimits() {
+        String code = "limits-" + UUID.randomUUID().toString().substring(0, 8);
+        for (String field : List.of("code", "name", "description", "versionName")) {
+            Map<String, Object> body = new java.util.HashMap<>(Map.of(
+                    "code", code, "name", "Contract", "definition", Map.of("type", "object")));
+            int limit = switch (field) { case "code" -> 50; case "description" -> 500; default -> 100; };
+            body.put(field, "x".repeat(limit + 1));
+            post("/api/v1/schemas", body).statusCode(400);
+        }
+        assertThat(jdbc.queryForObject("select count(*) from schema_definitions where code=?",
+                Integer.class, code)).isZero();
+        JsonPath schema = post("/api/v1/schemas", Map.of(
+                "code", "x".repeat(42) + UUID.randomUUID().toString().substring(0, 8),
+                "name", "n".repeat(100), "description", "d".repeat(500),
+                "versionName", "v".repeat(100), "definition", Map.of("type", "object")))
+                .statusCode(201).extract().jsonPath();
+        String path = "/api/v1/schemas/" + schema.getString("identifier");
+        for (String field : List.of("name", "description")) {
+            Map<String, Object> body = new java.util.HashMap<>(Map.of(
+                    "version", schema.getLong("version"), "name", "Valid"));
+            body.put(field, "x".repeat(field.equals("name") ? 101 : 501));
+            request().contentType(ContentType.JSON).body(body).put(path).then().statusCode(400);
+        }
+        post(path + "/versions", Map.of("versionName", "v".repeat(101),
+                "definition", Map.of("type", "object"))).statusCode(400);
+        get(path).statusCode(200).body("name", equalTo("n".repeat(100)))
+                .body("description", equalTo("d".repeat(500)));
     }
 
     private String defaultDefinition(String resourceType) {

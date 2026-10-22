@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.parameter.usecase.validation;
 
+import tools.jackson.databind.node.ObjectNode;
+
 import br.com.portalmanager.platform.library.messaging.exception.ConflictException;
 import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
@@ -69,7 +71,7 @@ public class ParameterKeyValidator {
     public void validatePublication(ParameterKey resource) {
         resource.requirePublishable();
         validateTypeAvailability(resource.getType().value());
-        var request =
+        ObjectNode request =
                 mapper.createObjectNode()
                         .put("version", resource.getVersion())
                         .put("type", resource.getType().value());

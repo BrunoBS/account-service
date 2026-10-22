@@ -1,5 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.environment.repository;
 
+import java.io.InputStream;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -127,7 +129,7 @@ class EnvironmentTypeCodeMigrationIT {
                 SELECT sv.definition FROM schema_versions sv JOIN schema_definitions sd ON sd.id=sv.schema_id
                 WHERE sd.code=? AND sv.status='PUBLISHED' ORDER BY sv.schema_version DESC LIMIT 1
                 """, String.class, resource + "-resource");
-            try (var stream = new ClassPathResource("schemas/" + resource + ".json").getInputStream()) {
+            try (InputStream stream = new ClassPathResource("schemas/" + resource + ".json").getInputStream()) {
                 assertThat(mapper.readTree(definition)).isEqualTo(mapper.readTree(stream));
             }
         }

@@ -97,13 +97,15 @@ public class SchemaVersionCommandService {
     }
 
     @Transactional
-    public void deletePlatformDraft(String schemaIdentifier, String versionIdentifier) {
-        deleteDraft(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null), versionIdentifier);
+    @Auditable(action = AuditAction.PURGE, event = "SCHEMA_VERSION_DELETED", resourceType = "SCHEMA_VERSION")
+    public SchemaVersionOutput deletePlatformDraft(String schemaIdentifier, String versionIdentifier) {
+        return deleteDraft(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null), versionIdentifier);
     }
 
     @Transactional
-    public void deleteWorkspaceDraft(String workspaceIdentifier, String schemaIdentifier, String versionIdentifier) {
-        deleteDraft(
+    @Auditable(action = AuditAction.PURGE, event = "SCHEMA_VERSION_DELETED", resourceType = "SCHEMA_VERSION")
+    public SchemaVersionOutput deleteWorkspaceDraft(String workspaceIdentifier, String schemaIdentifier, String versionIdentifier) {
+        return deleteDraft(
             requiredScoped(
                 schemaIdentifier,
                 SchemaScopeTypeCode.workspace(),
@@ -114,6 +116,7 @@ public class SchemaVersionCommandService {
     }
 
     private SchemaVersionOutput createOrUpdateDraft(Schema schema, CreateSchemaVersionInput input) {
+        operationValidator.validateVersionName(input == null ? null : input.versionName());
         JsonNode definition = input == null ? null : input.definition();
         validator.requireValidSchemaSyntax(definition, DEFINITION);
         String serialized = validator.toJsonString(definition, DEFINITION);
@@ -158,13 +161,16 @@ public class SchemaVersionCommandService {
         return mapper.toOutput(version);
     }
 
-    private void deleteDraft(Schema schema, String versionIdentifier) {
+    private SchemaVersionOutput deleteDraft(Schema schema, String versionIdentifier) {
         versionRepository.findAllForUpdate(schema.getId());
         SchemaVersion version = versionRepository
             .findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
             .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.VERSION_NOT_FOUND));
         operationValidator.validateDraft(version);
+        SchemaVersionOutput snapshot = mapper.toOutput(version);
         versionRepository.delete(version);
+        versionRepository.flush();
+        return snapshot;
     }
 
     private Schema requiredScoped(String identifier, SchemaScopeTypeCode scope, Long workspaceId) {

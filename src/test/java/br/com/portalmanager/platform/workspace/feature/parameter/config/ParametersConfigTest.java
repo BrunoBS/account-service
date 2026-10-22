@@ -23,7 +23,7 @@ class ParametersConfigTest {
                     assertThat(context)
                             .hasSingleBean(WorkspaceProperties.class)
                             .hasSingleBean(ScheduledAnnotationBeanPostProcessor.class);
-                    var properties = context.getBean(WorkspaceProperties.class).parameter();
+                    ParameterProperties properties = context.getBean(WorkspaceProperties.class).parameter();
                     assertThat(properties.runtime().enabled()).isTrue();
                     assertThat(properties.runtime().batchSize()).isEqualTo(500);
                     assertThat(properties.reconciliation().enabled()).isTrue();

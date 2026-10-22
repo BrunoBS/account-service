@@ -56,11 +56,8 @@ public class WorkspaceEnvironmentConfigurationCommandService {
     public WorkspaceEnvironmentConfigurationOutput create(
             String workspaceIdentifier, CreateWorkspaceEnvironmentConfigurationInput input) {
         validator.validateCreateVersion(input.version());
-        WorkspaceEnvironmentConfigurationScope.Scope scope =
-                scopes.resolve(workspaceIdentifier, true);
-        Long environmentId =
-                environments.resolveActiveForUpdate(
-                        scope.workspaceId(), input.environmentIdentifier());
+        WorkspaceEnvironmentConfigurationScope.Scope scope = scopes.resolve(workspaceIdentifier, true);
+        Long environmentId = environments.resolveActiveForUpdate( scope.workspaceId(), input.environmentIdentifier());
         validator.validateSettings(input.settings());
         List<PublisherInput> publisherInput = input.publishers();
         List<ResolvedPublisher> selected = validator.validatePublishers(publisherInput, Set.of());
@@ -84,13 +81,12 @@ public class WorkspaceEnvironmentConfigurationCommandService {
             String workspaceIdentifier,
             String identifier,
             UpdateWorkspaceEnvironmentConfigurationInput input) {
-        WorkspaceEnvironmentConfigurationScope.Scope scope =
-                scopes.resolve(workspaceIdentifier, true);
+
+        WorkspaceEnvironmentConfigurationScope.Scope scope = scopes.resolve(workspaceIdentifier, true);
         WorkspaceEnvironmentConfiguration configuration = findConfigurationOrThrow(scope.ownerId(), identifier);
         validator.validateUpdateVersion(input.version(), configuration.getVersion());
         Long environmentId = configuration.getEnvironmentId();
-        environments.resolveActiveForUpdate(
-                scope.workspaceId(), environments.resolveIdentifier(environmentId));
+        environments.resolveActiveForUpdate(scope.workspaceId(), environments.resolveIdentifier(environmentId));
         validator.validateSettings(input.settings());
         List<PublisherInput> publisherInput = input.publishers();
         Set<String> existingIds =
@@ -100,8 +96,7 @@ public class WorkspaceEnvironmentConfigurationCommandService {
                         .map(WorkspaceEnvironmentConfigurationPublisher::getPublisherCode)
                         .map(PublisherTypeCode::value)
                         .collect(Collectors.toSet());
-        List<ResolvedPublisher> selected =
-                validator.validatePublishers(publisherInput, existingIds);
+        List<ResolvedPublisher> selected = validator.validatePublishers(publisherInput, existingIds);
         configuration.updateSettings(input.settings(), LocalDateTime.now());
         repository.saveAndFlush(configuration);
         associations.deleteAssociations(configuration.getId());
@@ -116,8 +111,7 @@ public class WorkspaceEnvironmentConfigurationCommandService {
             resourceType = "WORKSPACE_ENVIRONMENT_CONFIGURATION")
     public WorkspaceEnvironmentConfigurationOutput inactivate(
             String workspaceIdentifier, String identifier) {
-        WorkspaceEnvironmentConfigurationScope.Scope scope =
-                scopes.resolve(workspaceIdentifier, true);
+        WorkspaceEnvironmentConfigurationScope.Scope scope = scopes.resolve(workspaceIdentifier, true);
         WorkspaceEnvironmentConfiguration configuration = findConfigurationOrThrow(scope.ownerId(), identifier);
         configuration.inactivate(LocalDateTime.now());
         repository.saveAndFlush(configuration);
@@ -131,8 +125,7 @@ public class WorkspaceEnvironmentConfigurationCommandService {
             resourceType = "WORKSPACE_ENVIRONMENT_CONFIGURATION")
     public WorkspaceEnvironmentConfigurationOutput quarantine(
             String workspaceIdentifier, String identifier) {
-        WorkspaceEnvironmentConfigurationScope.Scope scope =
-                scopes.resolve(workspaceIdentifier, true);
+        WorkspaceEnvironmentConfigurationScope.Scope scope = scopes.resolve(workspaceIdentifier, true);
         WorkspaceEnvironmentConfiguration configuration = findConfigurationOrThrow(scope.ownerId(), identifier);
         configuration.quarantine(LocalDateTime.now());
         repository.saveAndFlush(configuration);

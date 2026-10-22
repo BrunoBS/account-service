@@ -24,10 +24,11 @@ public class SchemaOperationValidator {
 
     public void validateCreateInput(CreateSchemaInput input) {
         if (input == null) throw invalid("schema", SchemaMessageKeys.REQUEST_INVALID);
-        if (input.code() == null || !CODE.matcher(input.code()).matches()) {
+        if (input.code() == null || input.code().length() > 50 || !CODE.matcher(input.code()).matches()) {
             throw invalid("code", SchemaMessageKeys.CODE_INVALID);
         }
         validateName(input.name());
+        validateDescription(input.description());
     }
 
     public void validateOwnership(SchemaScopeTypeCode scope, Long workspaceId) {
@@ -57,6 +58,7 @@ public class SchemaOperationValidator {
             throw new ResourceVersionConflictException();
         }
         validateName(input.name());
+        validateDescription(input.description());
     }
 
     public void validateResolutionType(String type) {
@@ -71,6 +73,13 @@ public class SchemaOperationValidator {
 
     private void validateName(String name) {
         if (name == null || name.isBlank()) throw invalid("name", SchemaMessageKeys.NAME_REQUIRED);
+        if (name.trim().length() > 100) throw invalid("name", SchemaMessageKeys.REQUEST_INVALID);
+    }
+
+    private void validateDescription(String description) {
+        if (description != null && description.length() > 500) {
+            throw invalid("description", SchemaMessageKeys.REQUEST_INVALID);
+        }
     }
 
     private ValidationException invalid(String field, String key) {

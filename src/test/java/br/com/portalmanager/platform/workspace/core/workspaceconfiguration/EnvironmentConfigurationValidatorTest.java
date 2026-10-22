@@ -26,7 +26,7 @@ class EnvironmentConfigurationValidatorTest {
     private final ResourceScopeTypeService scopes = mock(ResourceScopeTypeService.class);
     private final WorkspaceEnvironmentConfigurationValidator validator =
             new WorkspaceEnvironmentConfigurationValidator(
-                    publishers, mock(SchemaSettingsValidationAdapter.class), json, scopes);
+                    publishers, mock(SchemaSettingsValidationAdapter.class), scopes);
 
     private PublisherInput input(String code) {
         return new PublisherInput(code, 1, json.createObjectNode());

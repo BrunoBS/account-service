@@ -11,16 +11,10 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface WorkspaceEnvironmentConfigurationRepository
-        extends JpaRepository<WorkspaceEnvironmentConfiguration, Long> {
-    Optional<WorkspaceEnvironmentConfiguration> findByIdentifierAndWorkspaceId(
-            String identifier, Long workspaceId);
+public interface WorkspaceEnvironmentConfigurationRepository extends JpaRepository<WorkspaceEnvironmentConfiguration, Long> {
 
-    Optional<WorkspaceEnvironmentConfiguration> findByWorkspaceIdAndEnvironmentId(
-            Long workspaceId, Long environmentId);
-
+    Optional<WorkspaceEnvironmentConfiguration> findByIdentifierAndWorkspaceId(String identifier, Long workspaceId);
+    Optional<WorkspaceEnvironmentConfiguration> findByWorkspaceIdAndEnvironmentId(Long workspaceId, Long environmentId);
     boolean existsByWorkspaceIdAndEnvironmentId(Long workspaceId, Long environmentId);
-
-    Page<WorkspaceEnvironmentConfiguration> findByWorkspaceIdAndLifecycle(
-            Long workspaceId, LifecycleTypeCode lifecycle, Pageable pageable);
+    Page<WorkspaceEnvironmentConfiguration> findByWorkspaceIdAndLifecycle(Long workspaceId, LifecycleTypeCode lifecycle, Pageable pageable);
 }

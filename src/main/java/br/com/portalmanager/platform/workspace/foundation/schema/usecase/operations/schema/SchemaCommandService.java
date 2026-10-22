@@ -89,11 +89,13 @@ public class SchemaCommandService {
     }
 
     @Transactional
+    @Auditable(action = AuditAction.ACTIVATE, event = "SCHEMA_ACTIVATED", resourceType = "SCHEMA")
     public SchemaOutput activatePlatform(String identifier) {
         return activate(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null));
     }
 
     @Transactional
+    @Auditable(action = AuditAction.ACTIVATE, event = "SCHEMA_ACTIVATED", resourceType = "SCHEMA")
     public SchemaOutput activateWorkspace(String workspaceIdentifier, String identifier) {
         return activate(
             requiredScoped(
@@ -105,11 +107,13 @@ public class SchemaCommandService {
     }
 
     @Transactional
+    @Auditable(action = AuditAction.DEACTIVATE, event = "SCHEMA_DEACTIVATED", resourceType = "SCHEMA")
     public SchemaOutput inactivatePlatform(String identifier) {
         return inactivate(requiredScoped(identifier, SchemaScopeTypeCode.platform(), null));
     }
 
     @Transactional
+    @Auditable(action = AuditAction.DEACTIVATE, event = "SCHEMA_DEACTIVATED", resourceType = "SCHEMA")
     public SchemaOutput inactivateWorkspace(String workspaceIdentifier, String identifier) {
         return inactivate(
             requiredScoped(
@@ -127,6 +131,7 @@ public class SchemaCommandService {
     }
 
     @Transactional
+    @Auditable(action = AuditAction.DELETE, event = "SCHEMA_DELETED", resourceType = "SCHEMA")
     public SchemaOutput quarantineWorkspace(String workspaceIdentifier, String identifier) {
         return quarantine(
             requiredScoped(
@@ -159,6 +164,7 @@ public class SchemaCommandService {
     }
 
     private SchemaOutput create(CreateSchemaInput input, SchemaScopeTypeCode scope, Long workspaceId) {
+        versionValidator.validateVersionName(input.versionName());
         operationValidator.validateOwnership(scope, workspaceId);
         operationValidator.validateCodeAvailable(
             repository.findByScopeAndCode(scope.value(), workspaceId, input.code()).isPresent()
@@ -186,6 +192,7 @@ public class SchemaCommandService {
     }
 
     private SchemaOutput output(Schema schema) {
+        repository.flush();
         String workspaceIdentifier =
             schema.getWorkspaceId() == null
                 ? null

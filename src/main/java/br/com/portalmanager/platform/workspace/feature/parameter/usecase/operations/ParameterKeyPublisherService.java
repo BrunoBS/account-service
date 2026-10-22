@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -119,7 +118,8 @@ public class ParameterKeyPublisherService {
                 afterId = page.getLast().getId();
             }
         } catch (RuntimeException exception) {
-            LOG.error("Falha na reconciliação de parâmetros dinâmicos", exception);
+            LOG.error("Falha na reconciliação de parâmetros dinâmicos: errorType={}",
+                    exception.getClass().getName());
         }
     }
 
@@ -129,18 +129,16 @@ public class ParameterKeyPublisherService {
             publicationStore.remove(parameterKey.fullKey());
         } catch (RuntimeException exception) {
             LOG.error(
-                    "Falha ao remover parâmetro do Redis: identifier={}, fullKey={}",
+                    "Falha ao remover parâmetro do Redis: identifier={}, errorType={}",
                     parameterKey.identifier(),
-                    parameterKey.fullKey(),
-                    exception);
+                    exception.getClass().getName());
         }
     }
 
     private void send(List<ParameterKeyRuntimeProjection> snapshots) {
         if (!properties.parameter().runtime().enabled() || snapshots.isEmpty()) return;
-        Map<Long, Reference> references = Map.of();
         try {
-            references =
+            Map<Long, Reference> references =
                     microservices.findByInternalIds(
                             snapshots.stream()
                                     .map(ParameterKeyRuntimeProjection::getMicroserviceId)
@@ -157,43 +155,16 @@ public class ParameterKeyPublisherService {
             publicationStore.publish(values);
         } catch (RuntimeException exception) {
             for (ParameterKeyRuntimeProjection snapshot : snapshots) {
-                Reference reference = references.get(snapshot.getMicroserviceId());
-                String fullKey =
-                        reference == null ? null : reference.code() + "." + snapshot.getKey();
-                LOG.error(
-                        "Falha ao publicar parâmetro dinâmico: identifier={}, fullKey={}, publishedValue={}",
-                        snapshot.getIdentifier(),
-                        fullKey,
-                        snapshot.getValue(),
-                        exception);
+                logPublicationFailure(snapshot.getIdentifier(), exception);
             }
         }
     }
 
     private void logPublicationFailure(String identifier, RuntimeException exception) {
-        String fullKey = null;
-        String publishedValue = null;
-        try {
-            Optional<ParameterKeyRuntimeProjection> state =
-                    repository.findRuntimeSnapshot(identifier);
-            if (state.isPresent()) {
-                ParameterKeyRuntimeProjection snapshot = state.get();
-                publishedValue = snapshot.getValue() == null ? null : snapshot.getValue().toString();
-                Reference reference = reference(snapshot.getMicroserviceId());
-                fullKey = reference.code() + "." + snapshot.getKey();
-            }
-        } catch (RuntimeException lookupFailure) {
-            // Preserve the publication error if its diagnostic context cannot be read.
-        }
+        // Exception messages, causes and parameter values may contain secrets.
         LOG.error(
-                "Falha ao publicar parâmetro dinâmico: identifier={}, fullKey={}, publishedValue={}",
+                "Falha ao publicar parâmetro dinâmico: identifier={}, errorType={}",
                 identifier,
-                fullKey,
-                publishedValue,
-                exception);
-    }
-
-    private Reference reference(Long microserviceId) {
-        return microservices.findByInternalIds(List.of(microserviceId)).get(microserviceId);
+                exception.getClass().getName());
     }
 }

@@ -80,6 +80,12 @@ class LifecycleListingIT {
             FROM workspaces
             WHERE identifier='filter-owner'
             """);
+        jdbc.update(
+            """
+            INSERT INTO publishers (code, label, description, sort_order, is_active, settings)
+            VALUES ('WEB_SOCKET', 'WebSocket', 'Active catalog publisher', 1, true, '{"scope":"WORKSPACE"}'),
+                   ('KAFKA', 'Kafka', 'Inactive catalog publisher', 2, false, '{"scope":"WORKSPACE"}')
+            """);
         for (String lifecycle : List.of("ACTIVE", "INACTIVE", "QUARANTINED")) {
             String suffix = lifecycle.toLowerCase(Locale.ROOT);
             jdbc.update(
@@ -94,11 +100,6 @@ class LifecycleListingIT {
                 FROM workspaces
                 WHERE identifier='filter-owner'
                 """, "filter-app-" + suffix, "App " + suffix, lifecycle);
-            jdbc.update(
-                """
-                INSERT INTO publishers (identifier, code, name, description, publisher_scope, settings, lifecycle_code, created_at, updated_at)
-                VALUES (?, ?, ?, 'Filter', 'WORKSPACE', '{}', ?, NOW(6), NOW(6))
-                """, "filter-publisher-" + suffix, "FILTER_" + lifecycle, "Publisher " + suffix, lifecycle);
             jdbc.update(
                 """
                 INSERT INTO service_context_microservices (identifier, code, name, settings, lifecycle_code, created_at, updated_at)
@@ -223,6 +224,18 @@ class LifecycleListingIT {
     }
 
     @Test
+    void publishersUseTheCatalogActiveFilterInsteadOfGeneralLifecycle() {
+        List<String> active = request().get("/api/v1/publishers")
+                .then().statusCode(200).extract().path("code");
+        assertThat(active).containsExactly("WEB_SOCKET");
+        List<String> inactive = request().queryParam("active", false).get("/api/v1/publishers")
+                .then().statusCode(200).extract().path("code");
+        assertThat(inactive).containsExactly("KAFKA");
+        request().queryParam("lifecycle", "QUARANTINED").get("/api/v1/publishers")
+                .then().statusCode(400);
+    }
+
+    @Test
     void combinesLifecycleWithContextAndPagination() {
         jdbc.update(
             """
@@ -243,7 +256,6 @@ class LifecycleListingIT {
         return Map.ofEntries(
             Map.entry("/api/v1/workspaces", "content.lifecycle"),
             Map.entry("/api/v1/workspaces/filter-owner/applications", "content.lifecycle"),
-            Map.entry("/api/v1/publishers", "content.lifecycle"),
             Map.entry("/api/v1/service-contexts/microservices", "content.lifecycle"),
             Map.entry("/api/v1/service-contexts/features", "content.lifecycle"),
             Map.entry("/api/v1/service-contexts/feature-groups", "content.lifecycle"),

@@ -24,6 +24,12 @@ public class SchemaVersionOperationValidator {
         validateDefinition(definition);
     }
 
+    public void validateVersionName(String versionName) {
+        if (versionName != null && versionName.trim().length() > 100) {
+            throw invalid("versionName", SchemaMessageKeys.REQUEST_INVALID);
+        }
+    }
+
     public void validateDraft(SchemaVersion version) {
         if (!version.isDraft()) {
             throw new ConflictException(SchemaMessageKeys.VERSION_IMMUTABLE);

@@ -18,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,7 +27,6 @@ public class WorkspaceEnvironmentConfigurationValidator {
     private static final String SCHEMA_TYPE = "PLATFORM";
     private static final String SETTINGS_SCHEMA_CODE =
             "workspace-environment-configuration-settings";
-    private final ObjectMapper objectMapper;
     private final ResourceScopeTypeService scopes;
     private final PublisherReferencePort publishers;
     private final SchemaSettingsValidationAdapter schemas;
@@ -36,9 +34,7 @@ public class WorkspaceEnvironmentConfigurationValidator {
     public WorkspaceEnvironmentConfigurationValidator(
             PublisherReferencePort publishers,
             SchemaSettingsValidationAdapter schemas,
-            ObjectMapper objectMapper,
             ResourceScopeTypeService scopes) {
-        this.objectMapper = objectMapper;
         this.scopes = scopes;
         this.publishers = publishers;
         this.schemas = schemas;

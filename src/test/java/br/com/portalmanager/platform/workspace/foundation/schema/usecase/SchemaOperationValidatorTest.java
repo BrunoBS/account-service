@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.usecase;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import br.com.portalmanager.platform.library.messaging.exception.ConflictException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
@@ -24,6 +25,23 @@ class SchemaOperationValidatorTest {
         assertThatThrownBy(() ->
             schemas.validateCreateInput(new CreateSchemaInput("INVALID_CODE", "My schema", null, null, "v1", null))
         ).isInstanceOf(ValidationException.class);
+    }
+
+    @Test
+    void validatesStorageLengthsAfterTheSameTrimmingUsedByTheDomain() {
+        assertThatCode(() -> schemas.validateCreateInput(new CreateSchemaInput(
+                "a".repeat(50), " " + "n".repeat(100) + " ", "d".repeat(500), null, null, null)))
+                .doesNotThrowAnyException();
+        assertThatThrownBy(() -> schemas.validateCreateInput(new CreateSchemaInput(
+                "a".repeat(51), "Name", null, null, null, null))).isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() -> schemas.validateCreateInput(new CreateSchemaInput(
+                "code", "n".repeat(101), null, null, null, null))).isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() -> schemas.validateCreateInput(new CreateSchemaInput(
+                "code", "Name", "d".repeat(501), null, null, null))).isInstanceOf(ValidationException.class);
+        assertThatCode(() -> versions.validateVersionName(" " + "v".repeat(100) + " "))
+                .doesNotThrowAnyException();
+        assertThatThrownBy(() -> versions.validateVersionName("v".repeat(101)))
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test

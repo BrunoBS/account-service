@@ -5,8 +5,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.ParameterPublicationStore;
-import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.PublishedParameterValue;
-import br.com.portalmanager.platform.library.observability.logging.sanitizer.LogSanitizers;
 import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
@@ -108,13 +106,20 @@ class ParameterKeyRedisIT extends DynamicParameterRuntimeTestSupport {
             assertThat(runtimeValue("failure")).isNull();
             assertThat(runtimeValue("same-batch")).isNull();
             assertThat(events.list).hasSize(2);
-            ILoggingEvent event = events.list.getFirst();
-            assertThat(event.getLevel()).isEqualTo(Level.ERROR);
-            String message = LogSanitizers.sanitize(event.getFormattedMessage());
-            assertThat(message)
-                    .contains(first, "account-service.failure", "publishedValue", "visible")
-                    .doesNotContain("do-not-log");
-            assertThat(event.getThrowableProxy()).isNotNull();
+            assertThat(events.list).extracting(ILoggingEvent::getFormattedMessage)
+                    .anySatisfy(message -> assertThat(message).contains(first))
+                    .anySatisfy(message -> assertThat(message).contains(second));
+            assertThat(events.list).allSatisfy(event -> {
+                assertThat(event.getLevel()).isEqualTo(Level.ERROR);
+                assertThat(event.getFormattedMessage())
+                        .contains("errorType=java.lang.IllegalStateException")
+                        .doesNotContain("account-service.", "publishedValue", "visible", "do-not-log");
+                assertThat(event.getThrowableProxy()).isNull();
+                assertThat(event.getArgumentArray()).allSatisfy(argument -> {
+                    assertThat(argument).isNotInstanceOf(Throwable.class);
+                    assertThat(String.valueOf(argument)).doesNotContain("do-not-log", "visible");
+                });
+            });
         } finally {
             logger.detachAppender(events);
             events.stop();
