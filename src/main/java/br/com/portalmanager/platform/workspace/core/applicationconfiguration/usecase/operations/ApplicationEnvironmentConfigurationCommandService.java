@@ -109,7 +109,7 @@ public class ApplicationEnvironmentConfigurationCommandService {
             UpdateApplicationEnvironmentConfigurationInput input) {
         ApplicationEnvironmentConfigurationScope.Scope scope =
                 scopes.resolve(workspaceIdentifier, applicationIdentifier, true);
-        ApplicationEnvironmentConfiguration configuration = find(scope.ownerId(), identifier);
+        ApplicationEnvironmentConfiguration configuration = findConfigurationOrThrow(scope.ownerId(), identifier);
         validator.validateUpdateVersion(input.version(), configuration.getVersion());
         Long environmentId = configuration.getEnvironmentId();
         environments.resolveActiveForUpdate(
@@ -130,12 +130,14 @@ public class ApplicationEnvironmentConfigurationCommandService {
                                 .toList()
                         : input.publishers();
         Set<String> existingIds =
-                associations
-                        .findByConfigurationIdOrderBySortOrderAsc(configuration.getId())
-                        .stream()
-                        .map(ApplicationEnvironmentConfigurationPublisher::getPublisherCode)
-                        .map(PublisherTypeCode::value)
-                        .collect(Collectors.toSet());
+                input.copyWorkspacePublishers()
+                        ? Set.of()
+                        : associations
+                                .findByConfigurationIdOrderBySortOrderAsc(configuration.getId())
+                                .stream()
+                                .map(ApplicationEnvironmentConfigurationPublisher::getPublisherCode)
+                                .map(PublisherTypeCode::value)
+                                .collect(Collectors.toSet());
         List<ResolvedPublisher> selected =
                 validator.validatePublishers(
                         publisherInput, input.copyWorkspacePublishers() ? Set.of() : existingIds);
@@ -158,7 +160,7 @@ public class ApplicationEnvironmentConfigurationCommandService {
             String workspaceIdentifier, String applicationIdentifier, String identifier) {
         ApplicationEnvironmentConfigurationScope.Scope scope =
                 scopes.resolve(workspaceIdentifier, applicationIdentifier, true);
-        ApplicationEnvironmentConfiguration configuration = find(scope.ownerId(), identifier);
+        ApplicationEnvironmentConfiguration configuration = findConfigurationOrThrow(scope.ownerId(), identifier);
         configuration.inactivate(LocalDateTime.now());
         repository.saveAndFlush(configuration);
         return mapper.toOutput(workspaceIdentifier, applicationIdentifier, configuration);
@@ -173,13 +175,32 @@ public class ApplicationEnvironmentConfigurationCommandService {
             String workspaceIdentifier, String applicationIdentifier, String identifier) {
         ApplicationEnvironmentConfigurationScope.Scope scope =
                 scopes.resolve(workspaceIdentifier, applicationIdentifier, true);
-        ApplicationEnvironmentConfiguration configuration = find(scope.ownerId(), identifier);
+        ApplicationEnvironmentConfiguration configuration = findConfigurationOrThrow(scope.ownerId(), identifier);
         configuration.quarantine(LocalDateTime.now());
         repository.saveAndFlush(configuration);
         return mapper.toOutput(workspaceIdentifier, applicationIdentifier, configuration);
     }
 
-    private ApplicationEnvironmentConfiguration find(Long ownerId, String identifier) {
+    private List<PublisherInput> resolvePublisherInput(
+            Long workspaceId,
+            Long environmentId,
+            boolean copyWorkspacePublishers,
+            List<PublisherInput> explicitPublishers) {
+        if (!copyWorkspacePublishers) {
+            return explicitPublishers;
+        }
+
+        return workspaceConfigurations.copyPublishers(workspaceId, environmentId).stream()
+                .map(
+                        publisher ->
+                                new PublisherInput(
+                                        publisher.publisherCode(),
+                                        publisher.sortOrder(),
+                                        publisher.parameters()))
+                .toList();
+    }
+
+    private ApplicationEnvironmentConfiguration findConfigurationOrThrow(Long ownerId, String identifier) {
         return repository
                 .findByIdentifierAndApplicationId(identifier, ownerId)
                 .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.RESOURCE_NOT_FOUND));
