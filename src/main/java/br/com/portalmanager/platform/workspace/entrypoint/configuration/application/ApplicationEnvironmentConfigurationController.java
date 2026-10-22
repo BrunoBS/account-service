@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.configuration.application;
 
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
-import br.com.portalmanager.platform.workspace.core.configuration.application.facade.ApplicationEnvironmentConfigurationFacade;
+import br.com.portalmanager.platform.workspace.core.application.environmentconfiguration.facade.ApplicationEnvironmentConfigurationFacade;
 import br.com.portalmanager.platform.workspace.entrypoint.configuration.application.request.*;
 import br.com.portalmanager.platform.workspace.entrypoint.configuration.application.response.ApplicationEnvironmentConfigurationResponse;
 

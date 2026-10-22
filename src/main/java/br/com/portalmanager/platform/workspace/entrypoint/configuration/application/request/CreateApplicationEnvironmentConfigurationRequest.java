@@ -1,17 +1,17 @@
 package br.com.portalmanager.platform.workspace.entrypoint.configuration.application.request;
 
 import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
-import br.com.portalmanager.platform.workspace.core.configuration.application.usecase.model.CreateApplicationEnvironmentConfigurationInput;
-import br.com.portalmanager.platform.workspace.core.configuration.contract.EnvironmentConfigurationContracts;
-import br.com.portalmanager.platform.workspace.core.configuration.model.PublisherInput;
+import br.com.portalmanager.platform.workspace.core.application.environmentconfiguration.usecase.contract.ApplicationEnvironmentConfigurationContracts;
+import br.com.portalmanager.platform.workspace.core.application.environmentconfiguration.usecase.model.CreateApplicationEnvironmentConfigurationInput;
+import br.com.portalmanager.platform.workspace.core.application.environmentconfiguration.usecase.model.PublisherInput;
 
 import tools.jackson.databind.JsonNode;
 
 import java.util.List;
 
 @ValidateResourceSchemaRequest(
-        type = EnvironmentConfigurationContracts.TYPE,
-        code = EnvironmentConfigurationContracts.APPLICATION_CREATE)
+        type = ApplicationEnvironmentConfigurationContracts.TYPE,
+        code = ApplicationEnvironmentConfigurationContracts.APPLICATION_CREATE)
 public record CreateApplicationEnvironmentConfigurationRequest(
         Long version,
         String environmentIdentifier,

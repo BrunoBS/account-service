@@ -395,6 +395,32 @@ class GoldenArchitectureTest {
                                         .contains(AuthorizationContext.class));
     }
 
+    @Test
+    void environmentConfigurationMustNotCreateTransversalCorePackages() {
+        noClasses().should().resideInAnyPackage(
+                ROOT + ".core.configuration..",
+                ROOT + ".core.environmentconfiguration..",
+                ROOT + ".core.common..",
+                ROOT + ".core.shared..",
+                ROOT + ".core.contract..",
+                ROOT + ".core.validation..")
+                .check(classes);
+    }
+
+    @Test
+    void applicationEnvironmentConfigurationMustNotDependOnWorkspaceInternals() {
+        noClasses().that().resideInAPackage(ROOT + ".core.application.environmentconfiguration..")
+                .should().dependOnClassesThat().resideInAPackage(ROOT + ".core.workspace.environmentconfiguration..")
+                .check(classes);
+    }
+
+    @Test
+    void workspaceEnvironmentConfigurationMustNotDependOnApplicationInternals() {
+        noClasses().that().resideInAPackage(ROOT + ".core.workspace.environmentconfiguration..")
+                .should().dependOnClassesThat().resideInAPackage(ROOT + ".core.application.environmentconfiguration..")
+                .check(classes);
+    }
+
     private boolean isEndpoint(Method method) {
         return (method.isAnnotationPresent(RequestMapping.class)
                 || method.isAnnotationPresent(GetMapping.class)

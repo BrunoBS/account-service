@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.configuration.workspace.response;
 
-import br.com.portalmanager.platform.workspace.core.configuration.model.PublisherOutput;
-import br.com.portalmanager.platform.workspace.core.configuration.workspace.usecase.model.WorkspaceEnvironmentConfigurationOutput;
+import br.com.portalmanager.platform.workspace.core.workspace.environmentconfiguration.usecase.model.PublisherOutput;
+import br.com.portalmanager.platform.workspace.core.workspace.environmentconfiguration.usecase.model.WorkspaceEnvironmentConfigurationOutput;
 
 import tools.jackson.databind.JsonNode;
 
