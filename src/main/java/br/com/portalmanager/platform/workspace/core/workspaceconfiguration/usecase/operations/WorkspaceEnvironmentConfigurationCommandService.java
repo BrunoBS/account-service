@@ -86,7 +86,7 @@ public class WorkspaceEnvironmentConfigurationCommandService {
             UpdateWorkspaceEnvironmentConfigurationInput input) {
         WorkspaceEnvironmentConfigurationScope.Scope scope =
                 scopes.resolve(workspaceIdentifier, true);
-        WorkspaceEnvironmentConfiguration configuration = find(scope.ownerId(), identifier);
+        WorkspaceEnvironmentConfiguration configuration = findConfigurationOrThrow(scope.ownerId(), identifier);
         validator.validateUpdateVersion(input.version(), configuration.getVersion());
         Long environmentId = configuration.getEnvironmentId();
         environments.resolveActiveForUpdate(
@@ -118,7 +118,7 @@ public class WorkspaceEnvironmentConfigurationCommandService {
             String workspaceIdentifier, String identifier) {
         WorkspaceEnvironmentConfigurationScope.Scope scope =
                 scopes.resolve(workspaceIdentifier, true);
-        WorkspaceEnvironmentConfiguration configuration = find(scope.ownerId(), identifier);
+        WorkspaceEnvironmentConfiguration configuration = findConfigurationOrThrow(scope.ownerId(), identifier);
         configuration.inactivate(LocalDateTime.now());
         repository.saveAndFlush(configuration);
         return mapper.toOutput(workspaceIdentifier, configuration);
@@ -133,13 +133,13 @@ public class WorkspaceEnvironmentConfigurationCommandService {
             String workspaceIdentifier, String identifier) {
         WorkspaceEnvironmentConfigurationScope.Scope scope =
                 scopes.resolve(workspaceIdentifier, true);
-        WorkspaceEnvironmentConfiguration configuration = find(scope.ownerId(), identifier);
+        WorkspaceEnvironmentConfiguration configuration = findConfigurationOrThrow(scope.ownerId(), identifier);
         configuration.quarantine(LocalDateTime.now());
         repository.saveAndFlush(configuration);
         return mapper.toOutput(workspaceIdentifier, configuration);
     }
 
-    private WorkspaceEnvironmentConfiguration find(Long ownerId, String identifier) {
+    private WorkspaceEnvironmentConfiguration findConfigurationOrThrow(Long ownerId, String identifier) {
         return repository
                 .findByIdentifierAndWorkspaceId(identifier, ownerId)
                 .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.RESOURCE_NOT_FOUND));
