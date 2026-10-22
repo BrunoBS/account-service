@@ -217,6 +217,37 @@ class SchemaResolutionAdapterTest {
         assertThat(resolver.resolve("PUBLISHER", "KAAS")).isEqualTo(kaasVersion.getDefinition());
     }
 
+    @Test
+    void requiredResolutionNeverFallsBackToDefault() {
+        assertThatThrownBy(
+                        () ->
+                                resolver.resolveRequired(
+                                        "PLATFORM", "environment-configuration-publisher-kafka"))
+                .isInstanceOf(
+                        br.com.portalmanager.platform.library.messaging.exception
+                                .ValidationException.class);
+        verify(configurations, never()).findByResourceTypeAndResourceCode("PLATFORM", "DEFAULT");
+    }
+
+    @Test
+    void requiredResolutionRejectsInactiveBindingAndUnpublishedDefinition() {
+        Schema schema = schema("association", SchemaScopeTypeCode.platform());
+        SchemaBinding binding =
+                new SchemaBinding("PLATFORM", "association", schema, LocalDateTime.now());
+        when(configurations.findByResourceTypeAndResourceCode("PLATFORM", "association"))
+                .thenReturn(Optional.of(binding));
+        assertThatThrownBy(() -> resolver.resolveRequired("PLATFORM", "association"))
+                .isInstanceOf(
+                        br.com.portalmanager.platform.library.messaging.exception
+                                .ValidationException.class);
+        binding.inactivate(LocalDateTime.now());
+        assertThatThrownBy(() -> resolver.resolveRequired("PLATFORM", "association"))
+                .isInstanceOf(
+                        br.com.portalmanager.platform.library.messaging.exception
+                                .ValidationException.class);
+        verify(configurations, never()).findByResourceTypeAndResourceCode("PLATFORM", "DEFAULT");
+    }
+
     private Schema schema(String code, SchemaScopeTypeCode scope) {
         Schema schema = mock(Schema.class);
         when(schema.getId()).thenReturn(9L);

@@ -40,7 +40,7 @@ class PublisherDomainTest {
     }
 
     private Publisher publisher(ObjectNode settings) {
-        return new Publisher("HTTP", details(settings), LocalDateTime.now());
+        return new Publisher("WEB_SOCKET", details(settings), LocalDateTime.now());
     }
 
     private PublisherDetails details(ObjectNode settings) {

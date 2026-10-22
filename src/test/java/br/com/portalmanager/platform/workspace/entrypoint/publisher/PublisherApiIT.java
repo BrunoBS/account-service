@@ -170,13 +170,13 @@ class PublisherApiIT {
     private Map<String, Object> settingsFor(String code) {
         return switch (code) {
             case "KAFKA" -> Map.of("topic", "events", "address", "broker:9092");
-            case "APPCONFIG" -> Map.of(
+            case "APP_CONFIG" -> Map.of(
                 "arn",
                 "arn:aws:appconfig:region:account:application/app",
                 "name",
                 "config"
             );
-            case "HTTP" -> Map.of("clientId", "publisher", "timeout", 30);
+            case "WEB_SOCKET" -> Map.of("clientId", "publisher", "timeout", 30);
             default -> Map.of();
         };
     }
@@ -219,13 +219,13 @@ class PublisherApiIT {
 
     @Test
     void validatesConcreteSettingsOnCreateAndUpdateWithoutCoercingTypes() {
-        jdbc.update("delete from publishers where code in ('KAFKA','APPCONFIG','HTTP')");
+        jdbc.update("delete from publishers where code in ('KAFKA','APP_CONFIG','WEB_SOCKET')");
         Map<String, Object> validSettings = Map.of(
             "KAFKA",
             Map.of("topic", "events", "address", "broker:9092"),
-            "APPCONFIG",
+            "APP_CONFIG",
             Map.of("arn", "arn:aws:appconfig:region:account:application/app", "name", "config"),
-            "HTTP",
+            "WEB_SOCKET",
             Map.of("clientId", "publisher", "timeout", 30)
         );
         for (String code : validSettings.keySet()) {
@@ -257,7 +257,7 @@ class PublisherApiIT {
                 .then()
                 .statusCode(400);
             body.put("version", 0);
-            String changedCode = code.equals("KAFKA") ? "HTTP" : "KAFKA";
+            String changedCode = code.equals("KAFKA") ? "WEB_SOCKET" : "KAFKA";
             body.put("code", changedCode);
             body.put("settings", settingsFor(changedCode));
             request()
@@ -279,7 +279,7 @@ class PublisherApiIT {
                 .then()
                 .statusCode(409);
         }
-        java.util.HashMap<String, Object> body = payload("HTTP");
+        java.util.HashMap<String, Object> body = payload("WEB_SOCKET");
         body.put("settings", Map.of("clientId", "client", "timeout", "30"));
         request().body(body).post("/api/v1/publishers").then().statusCode(400);
     }
@@ -357,7 +357,7 @@ class PublisherApiIT {
     @Test
     void paginatesFiltersAndRejectsUnsupportedSorts() {
         create("KAFKA");
-        create("HTTP");
+        create("WEB_SOCKET");
         request()
             .queryParam("size", 1)
             .queryParam("scope", "workspace")

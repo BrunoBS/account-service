@@ -1,5 +1,8 @@
 package br.com.portalmanager.platform.workspace.foundation.integration;
 
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeCode;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -12,7 +15,7 @@ public interface PublisherReferencePort {
             Long id,
             String identifier,
             String code,
-            String scope,
-            String lifecycle,
+            ResourceScopeTypeCode scope,
+            LifecycleTypeCode lifecycle,
             boolean deprecated) {}
 }

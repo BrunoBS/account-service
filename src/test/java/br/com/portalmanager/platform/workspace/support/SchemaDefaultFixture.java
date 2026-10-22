@@ -209,6 +209,7 @@ public final class SchemaDefaultFixture {
                         });
         try {
             seedDynamicParameterSchemas(jdbc);
+            seedEnvironmentConfigurationSchemas(jdbc);
             jdbc.update(
                     """
                     INSERT IGNORE INTO schema_versions
@@ -254,7 +255,7 @@ public final class SchemaDefaultFixture {
     private static void executeSchemaSeed(Connection connection, String path)
             throws java.sql.SQLException {
         ClassPathResource resource = new ClassPathResource(path);
-        try (var input = resource.getInputStream()) {
+        try (java.io.InputStream input = resource.getInputStream()) {
             String sql = new String(input.readAllBytes(), StandardCharsets.UTF_8)
                     .replace("schema_configuration", "schema_binding");
             ScriptUtils.executeSqlScript(
@@ -262,6 +263,42 @@ public final class SchemaDefaultFixture {
                     new ByteArrayResource(sql.getBytes(StandardCharsets.UTF_8), path));
         } catch (IOException exception) {
             throw new IllegalStateException("Could not load historical schema seed: " + path, exception);
+        }
+    }
+
+    private static void seedEnvironmentConfigurationSchemas(JdbcTemplate jdbc)
+            throws java.io.IOException {
+        for (String code :
+                java.util.List.of(
+                        "workspace-environment-configuration",
+                        "application-environment-configuration",
+                        "environment-configuration-publisher-web-socket",
+                        "environment-configuration-publisher-kafka",
+                        "environment-configuration-publisher-app-config")) {
+            jdbc.update(
+                    "INSERT IGNORE INTO schema_definitions"
+                        + " (version,identifier,scope_code,code,name,lifecycle_code,created_at,updated_at)"
+                        + " VALUES (0,UUID(),'PLATFORM',?,?,'ACTIVE',NOW(),NOW())",
+                    code,
+                    code);
+            String definition =
+                    new ClassPathResource("schemas/" + code + ".json")
+                            .getContentAsString(StandardCharsets.UTF_8);
+            jdbc.update(
+                    "INSERT IGNORE INTO schema_versions"
+                        + " (identifier,schema_id,schema_version,version_name,definition,status,created_at)"
+                        + " SELECT UUID(),id,1,?,?,'PUBLISHED',NOW() FROM schema_definitions WHERE"
+                        + " scope_code='PLATFORM' AND code=?",
+                    code,
+                    definition,
+                    code);
+            jdbc.update(
+                    "INSERT IGNORE INTO schema_binding"
+                        + " (version,identifier,resource_type,resource_code,schema_id,lifecycle_code,created_at,updated_at)"
+                        + " SELECT 0,UUID(),'PLATFORM',?,id,'ACTIVE',NOW(),NOW() FROM"
+                        + " schema_definitions WHERE scope_code='PLATFORM' AND code=?",
+                    code,
+                    code);
         }
     }
 

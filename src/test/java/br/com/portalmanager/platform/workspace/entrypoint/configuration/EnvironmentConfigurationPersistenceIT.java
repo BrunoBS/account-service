@@ -317,7 +317,7 @@ class EnvironmentConfigurationPersistenceIT {
                     + " environments(version,identifier,workspace_id,environment_type_code,name,description,authorization_type_code,settings,sort_order,lifecycle_code,created_at,updated_at)"
                     + " values (0,uuid(),null,'DEFAULT','Configuration environment','Configuration"
                     + " environment','DEV','{}',1,'ACTIVE',now(6),now(6))");
-        for (String code : List.of("HTTP", "KAFKA"))
+        for (String code : List.of("WEB_SOCKET", "KAFKA"))
             jdbc.update(
                     "insert into"
                         + " publishers(version,identifier,code,name,description,publisher_scope,deprecated,settings,lifecycle_code,created_at,updated_at)"

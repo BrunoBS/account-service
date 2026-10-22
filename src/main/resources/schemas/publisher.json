@@ -15,8 +15,8 @@
             "type": "string",
             "enum": [
                 "KAFKA",
-                "HTTP",
-                "APPCONFIG"
+                "WEB_SOCKET",
+                "APP_CONFIG"
             ],
             "maxLength": 50
         },
@@ -98,7 +98,7 @@
             "if": {
                 "properties": {
                     "code": {
-                        "const": "APPCONFIG"
+                        "const": "APP_CONFIG"
                     }
                 },
                 "required": [
@@ -136,7 +136,7 @@
             "if": {
                 "properties": {
                     "code": {
-                        "const": "HTTP"
+                        "const": "WEB_SOCKET"
                     }
                 },
                 "required": [

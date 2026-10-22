@@ -3,12 +3,16 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "settings",
-    "environmentIdentifier"
+    "settings"
   ],
   "properties": {
     "version": {
-      "type": "null"
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 9223372036854775807
     },
     "settings": {
       "type": "object",
@@ -51,26 +55,54 @@
       "default": false
     }
   },
-  "if": {
-    "required": [
-      "copyWorkspacePublishers"
-    ],
-    "properties": {
-      "copyWorkspacePublishers": {
-        "const": true
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "version"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer"
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "environmentIdentifier"
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "environmentIdentifier"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "copyWorkspacePublishers"
+        ],
+        "properties": {
+          "copyWorkspacePublishers": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "publishers"
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "publishers"
+        ]
       }
     }
-  },
-  "then": {
-    "not": {
-      "required": [
-        "publishers"
-      ]
-    }
-  },
-  "else": {
-    "required": [
-      "publishers"
-    ]
-  }
+  ]
 }

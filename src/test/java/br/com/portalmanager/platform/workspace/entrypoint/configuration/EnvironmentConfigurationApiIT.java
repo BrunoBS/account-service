@@ -168,7 +168,13 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
         Map<String, Object> input = create(globalEnvironment);
         post(base(false), input).statusCode(400);
         input.put("settings", Map.of("requiredSetting", true));
-        publishConstraint("environment-configuration-publisher-parameters", "requiredParameter");
+        jdbc.update(
+                "insert into"
+                    + " schema_versions(identifier,schema_id,schema_version,version_name,definition,status,created_at)"
+                    + " select uuid(),id,2,'Association constraint',?, 'PUBLISHED',now() from"
+                    + " schema_definitions where"
+                    + " code='environment-configuration-publisher-web-socket'",
+                "{\"type\":\"object\",\"properties\":{\"parameters\":{\"type\":\"object\",\"required\":[\"requiredParameter\"]}}}");
         post(base(false), input).statusCode(400);
         input.put(
                 "publishers",
@@ -181,6 +187,111 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
                                 "parameters",
                                 Map.of("requiredParameter", true))));
         post(base(false), input).statusCode(201);
+    }
+
+    @Test
+    void acceptsEmptyAndNestedParametersForEverySupportedType() {
+        for (String id : List.of(http, kafka, appconfig)) {
+            boolean app = id.equals(appconfig);
+            Map<String, Object> body =
+                    create(id.equals(kafka) ? ownEnvironment : globalEnvironment);
+            body.put(
+                    "publishers",
+                    List.of(
+                            Map.of(
+                                    "publisherIdentifier",
+                                    id,
+                                    "sortOrder",
+                                    1,
+                                    "parameters",
+                                    Map.of())));
+            String created = post(base(app), body).statusCode(201).extract().path("identifier");
+            Map<String, Object> replacement = update(0);
+            replacement.put(
+                    "publishers",
+                    List.of(
+                            Map.of(
+                                    "publisherIdentifier",
+                                    id,
+                                    "sortOrder",
+                                    1,
+                                    "parameters",
+                                    Map.of(
+                                            "nested",
+                                            Map.of("arbitrary", List.of(true, 1, "text"))))));
+            put(base(app) + "/" + created, replacement)
+                    .statusCode(200)
+                    .body("publishers[0].parameters.nested.arbitrary", hasSize(3));
+        }
+    }
+
+    @Test
+    void rejectsInvalidParametersAndAssociationFieldsWithoutPersisting() {
+        for (boolean app : List.of(false, true)) {
+            for (String missing : List.of("publisherIdentifier", "sortOrder", "parameters")) {
+                Map<String, Object> association = new LinkedHashMap<>(publisher(http, 1));
+                association.remove(missing);
+                Map<String, Object> request = create(globalEnvironment);
+                request.put("publishers", List.of(association));
+                post(base(app), request).statusCode(400);
+            }
+            for (Object invalid : Arrays.asList(null, List.of(), "text", 1, true)) {
+                Map<String, Object> item = new LinkedHashMap<>(publisher(http, 1));
+                item.put("parameters", invalid);
+                Map<String, Object> body = create(globalEnvironment);
+                body.put("publishers", List.of(item));
+                post(base(app), body).statusCode(400);
+            }
+            Map<String, Object> item = new LinkedHashMap<>(publisher(http, 1));
+            item.put("extra", true);
+            Map<String, Object> body = create(globalEnvironment);
+            body.put("publishers", List.of(item));
+            post(base(app), body).statusCode(400);
+        }
+        assertThat(
+                        jdbc.queryForObject(
+                                "select count(*) from workspace_environment_configurations",
+                                Integer.class))
+                .isZero();
+        assertThat(
+                        jdbc.queryForObject(
+                                "select count(*) from application_environment_configurations",
+                                Integer.class))
+                .isZero();
+    }
+
+    @Test
+    void missingSpecificSchemaRejectsPutAndDoesNotReplaceExistingAssociations() {
+        jdbc.update(
+                "insert into"
+                    + " schema_binding(version,identifier,resource_type,resource_code,schema_id,lifecycle_code,created_at,updated_at)"
+                    + " select 0,uuid(),'PLATFORM','DEFAULT',id,'ACTIVE',now(),now() from"
+                    + " schema_definitions where code='default'");
+        for (boolean app : List.of(false, true)) {
+            String id =
+                    post(base(app), create(globalEnvironment))
+                            .statusCode(201)
+                            .extract()
+                            .path("identifier");
+            jdbc.update(
+                    "update schema_binding set lifecycle_code='INACTIVE' where"
+                            + " resource_type='PLATFORM' and"
+                            + " resource_code='environment-configuration-publisher-kafka'");
+            put(base(app) + "/" + id, update(0)).statusCode(400);
+            get(base(app) + "/" + id)
+                    .statusCode(200)
+                    .body("version", equalTo(0))
+                    .body("settings", anEmptyMap())
+                    .body("publishers", hasSize(2));
+            jdbc.update(
+                    "update schema_binding set lifecycle_code='ACTIVE' where"
+                            + " resource_type='PLATFORM' and"
+                            + " resource_code='environment-configuration-publisher-kafka'");
+        }
+        jdbc.update(
+                "delete from schema_binding where resource_type='PLATFORM' and"
+                    + " resource_code='environment-configuration-publisher-kafka'");
+        post(base(false), create(ownEnvironment)).statusCode(400);
     }
 
     private void publishConstraint(String code, String required) {

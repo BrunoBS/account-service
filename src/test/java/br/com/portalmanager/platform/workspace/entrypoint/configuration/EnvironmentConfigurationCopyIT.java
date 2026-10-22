@@ -158,4 +158,30 @@ class EnvironmentConfigurationCopyIT extends EnvironmentConfigurationHttpFixture
                 workspaceId());
         post(base(true).replace(application, secondApplication), createCopy).statusCode(400);
     }
+
+    @Test
+    void copiedAssociationsAreRevalidatedAgainstTheirSpecificSchemaAndRollbackPut() {
+        post(base(false), create(globalEnvironment)).statusCode(201);
+        String destination =
+                post(base(true), create(globalEnvironment))
+                        .statusCode(201)
+                        .extract()
+                        .path("identifier");
+        jdbc.update(
+                "insert into"
+                    + " schema_versions(identifier,schema_id,schema_version,version_name,definition,status,created_at)"
+                    + " select uuid(),id,2,'Restricted"
+                    + " association','{\"type\":\"object\",\"properties\":{\"parameters\":{\"required\":[\"newRequired\"]}}}','PUBLISHED',now()"
+                    + " from schema_definitions where"
+                    + " code='environment-configuration-publisher-kafka'");
+        Map<String, Object> copy = update(0);
+        copy.remove("publishers");
+        copy.put("copyWorkspacePublishers", true);
+        put(base(true) + "/" + destination, copy).statusCode(400);
+        get(base(true) + "/" + destination)
+                .statusCode(200)
+                .body("version", equalTo(0))
+                .body("settings", anEmptyMap())
+                .body("publishers.publisherIdentifier", contains(kafka, http));
+    }
 }

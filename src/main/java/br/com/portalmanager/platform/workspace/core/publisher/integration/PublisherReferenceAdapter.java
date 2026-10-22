@@ -39,8 +39,8 @@ public class PublisherReferenceAdapter implements PublisherReferencePort {
                 publisher.getId(),
                 publisher.getIdentifier(),
                 publisher.getCode(),
-                publisher.getScope().value(),
-                publisher.getLifecycle().value(),
+                publisher.getScope(),
+                publisher.getLifecycle(),
                 publisher.isDeprecated());
     }
 }

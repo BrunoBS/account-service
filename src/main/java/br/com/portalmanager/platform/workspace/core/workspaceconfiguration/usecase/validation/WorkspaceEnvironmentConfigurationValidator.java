@@ -5,9 +5,11 @@ import br.com.portalmanager.platform.library.messaging.exception.ResourceVersion
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.message.PlatformMessageKeys;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.contract.WorkspaceEnvironmentConfigurationContracts;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain.PublisherType;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.PublisherInput;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.ResolvedPublisher;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
+import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.integration.PublisherReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.integration.PublisherReferencePort.PublisherReference;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidationAdapter;
@@ -16,17 +18,25 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 public class WorkspaceEnvironmentConfigurationValidator {
+    private static final String SCHEMA_TYPE = "PLATFORM";
+    private static final String SETTINGS_SCHEMA_CODE =
+            "workspace-environment-configuration-settings";
+    private final ObjectMapper objectMapper;
     private final PublisherReferencePort publishers;
     private final SchemaSettingsValidationAdapter schemas;
 
     public WorkspaceEnvironmentConfigurationValidator(
-            PublisherReferencePort publishers, SchemaSettingsValidationAdapter schemas) {
+            PublisherReferencePort publishers,
+            SchemaSettingsValidationAdapter schemas,
+            ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
         this.publishers = publishers;
         this.schemas = schemas;
     }
@@ -42,12 +52,7 @@ public class WorkspaceEnvironmentConfigurationValidator {
 
     public void validateSettings(JsonNode settings) {
         ValidationResult result = new ValidationResult();
-        schemas.validate(
-                WorkspaceEnvironmentConfigurationContracts.TYPE,
-                WorkspaceEnvironmentConfigurationContracts.WORKSPACE_SETTINGS,
-                "settings",
-                settings,
-                result);
+        schemas.validate(SCHEMA_TYPE, SETTINGS_SCHEMA_CODE, "settings", settings, result);
         reject(result);
     }
 
@@ -65,12 +70,6 @@ public class WorkspaceEnvironmentConfigurationValidator {
                     || publisher.sortOrder() < 1) invalid("publishers[" + index + "]");
             if (!identifiers.add(publisher.publisherIdentifier())
                     || !orders.add(publisher.sortOrder())) invalid("publishers[" + index + "]");
-            schemas.validate(
-                    WorkspaceEnvironmentConfigurationContracts.TYPE,
-                    WorkspaceEnvironmentConfigurationContracts.PUBLISHER_PARAMETERS,
-                    "publishers[" + index + "].parameters",
-                    publisher.parameters(),
-                    result);
         }
         reject(result);
         Map<String, PublisherReference> references =
@@ -79,16 +78,25 @@ public class WorkspaceEnvironmentConfigurationValidator {
                                 Collectors.toMap(
                                         PublisherReference::identifier, reference -> reference));
         List<ResolvedPublisher> resolved = new ArrayList<>();
-        for (PublisherInput publisher : input) {
+        for (int index = 0; index < input.size(); index++) {
+            PublisherInput publisher = input.get(index);
             PublisherReference reference = references.get(publisher.publisherIdentifier());
             if (reference == null)
                 throw new NotFoundException(PlatformMessageKeys.RESOURCE_NOT_FOUND);
+            PublisherType type = PublisherType.fromCode(reference.code());
             boolean workspacePublisher =
-                    Set.of("HTTP", "KAFKA").contains(reference.code())
-                            && "WORKSPACE".equals(reference.scope());
+                    (type == PublisherType.WEB_SOCKET || type == PublisherType.KAFKA)
+                            && ResourceScopeTypeCode.workspace().equals(reference.scope());
             if (!workspacePublisher) invalid("publishers");
-            if (!"ACTIVE".equals(reference.lifecycle()) && !existingIds.contains(reference.id()))
-                invalid("publishers");
+            if (!LifecycleTypeCode.active().equals(reference.lifecycle())
+                    && !existingIds.contains(reference.id())) invalid("publishers");
+            schemas.validateRequired(
+                    SCHEMA_TYPE,
+                    type.schemaCode(),
+                    "publishers[" + index + "]",
+                    objectMapper.valueToTree(publisher),
+                    result);
+            reject(result);
             resolved.add(
                     new ResolvedPublisher(
                             reference.id(),

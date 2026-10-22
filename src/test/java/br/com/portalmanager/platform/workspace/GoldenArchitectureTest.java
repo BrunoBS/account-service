@@ -430,14 +430,14 @@ class GoldenArchitectureTest {
                 "ApplicationEnvironmentConfigurationOutput", "CreateApplicationEnvironmentConfigurationInput",
                 "UpdateApplicationEnvironmentConfigurationInput", "ApplicationEnvironmentConfigurationCommandService",
                 "ApplicationEnvironmentConfigurationQueryService", "ApplicationEnvironmentConfigurationScope",
-                "ApplicationEnvironmentConfigurationContracts", "ApplicationEnvironmentConfigurationValidator",
+                "ApplicationEnvironmentConfigurationValidator",
                 "WorkspaceEnvironmentConfiguration", "WorkspaceEnvironmentConfigurationPublisher",
                 "WorkspaceEnvironmentConfigurationFacade", "WorkspaceEnvironmentConfigurationRepository",
                 "WorkspaceEnvironmentConfigurationPublisherRepository", "WorkspaceEnvironmentConfigurationMapper",
                 "WorkspaceEnvironmentConfigurationOutput", "CreateWorkspaceEnvironmentConfigurationInput",
                 "UpdateWorkspaceEnvironmentConfigurationInput", "WorkspaceEnvironmentConfigurationCommandService",
                 "WorkspaceEnvironmentConfigurationQueryService", "WorkspaceEnvironmentConfigurationScope",
-                "WorkspaceEnvironmentConfigurationContracts", "WorkspaceEnvironmentConfigurationValidator",
+                "WorkspaceEnvironmentConfigurationValidator",
                 "WorkspaceEnvironmentConfigurationAdapter");
         List<JavaClass> components = classes.stream().filter(type -> names.contains(type.getSimpleName())).toList();
         assertThat(components).extracting(JavaClass::getSimpleName).containsExactlyInAnyOrderElementsOf(names);
@@ -463,6 +463,22 @@ class GoldenArchitectureTest {
             assertThat(controller.isAnnotatedWith(RestController.class)).isTrue();
             assertThat(controller.getDirectDependenciesFromSelf().stream().map(dependency -> dependency.getTargetClass().getPackageName())
                     .filter(name -> name.startsWith(ROOT + ".core."))).allMatch(name -> name.startsWith(ROOT + ".core." + owner.toLowerCase(java.util.Locale.ROOT) + "configuration."));
+        }
+    }
+
+    @Test
+    void configurationSchemasHaveNoContractPackageAndEnumsRemainLocal() {
+        assertThat(
+                        classes.stream()
+                                .filter(
+                                        type ->
+                                                type.getPackageName()
+                                                        .contains(
+                                                                "configuration.usecase.contract")))
+                .isEmpty();
+        for (String aggregate : List.of("applicationconfiguration", "workspaceconfiguration")) {
+            assertThat(classes.get(ROOT + ".core." + aggregate + ".domain.PublisherType").isEnum())
+                    .isTrue();
         }
     }
 

@@ -80,16 +80,16 @@ abstract class EnvironmentConfigurationHttpFixture {
                 jdbc.queryForObject(
                         "select id from workspaces where identifier=?", Long.class, otherWorkspace),
                 "CUSTOM");
-        for (String code : List.of("HTTP", "KAFKA", "APPCONFIG"))
+        for (String code : List.of("WEB_SOCKET", "KAFKA", "APP_CONFIG"))
             jdbc.update(
                     "insert into"
                         + " publishers(version,identifier,code,name,description,publisher_scope,deprecated,settings,lifecycle_code,created_at,updated_at)"
                         + " values (0,?,?,?,'Configuration"
                         + " publisher',?,false,'{}','ACTIVE',now(6),now(6))",
-                    code.equals("HTTP") ? http : code.equals("KAFKA") ? kafka : appconfig,
+                    code.equals("WEB_SOCKET") ? http : code.equals("KAFKA") ? kafka : appconfig,
                     code,
                     code,
-                    code.equals("APPCONFIG") ? "APPLICATION" : "WORKSPACE");
+                    code.equals("APP_CONFIG") ? "APPLICATION" : "WORKSPACE");
         ownerAccess();
     }
 
