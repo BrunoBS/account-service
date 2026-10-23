@@ -3,6 +3,7 @@ package br.com.portalmanager.platform.workspace.foundation.schema.integration;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaMessageKeys;
+import br.com.portalmanager.platform.workspace.foundation.integration.JsonSchemaValidationPort;
 import com.networknt.schema.Error;
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaRegistry;
@@ -14,7 +15,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
-public class SchemaDefinitionValidationAdapter {
+public class SchemaDefinitionValidationAdapter implements JsonSchemaValidationPort {
 
     private final ObjectMapper objectMapper;
     private final SchemaRegistry schemaRegistry;
@@ -24,6 +25,7 @@ public class SchemaDefinitionValidationAdapter {
         this.schemaRegistry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
     }
 
+    @Override
     public void validateJson(
         String schemaDefinition,
         JsonNode configNode,
@@ -76,6 +78,7 @@ public class SchemaDefinitionValidationAdapter {
         }
     }
 
+    @Override
     public JsonNode fromString(String json, String attributeName) {
         if (json == null || json.isBlank()) {
             return objectMapper.createObjectNode();
