@@ -32,7 +32,7 @@ class EnvironmentConfigurationPersistenceIT  extends br.com.portalmanager.platfo
     private final JsonMapper mapper = JsonMapper.builder().build();
 
     @Test
-    void flywayCreatesIndependentJsonAggregatesAndOrderedRelationshipsWithOptimisticVersion() {
+    void currentSchemaPersistsIndependentJsonAggregatesAndOrderedRelationshipsWithOptimisticVersion() {
         seed();
         Long workspaceId =
                 jdbc.queryForObject(
@@ -109,12 +109,6 @@ class EnvironmentConfigurationPersistenceIT  extends br.com.portalmanager.platfo
                                 String.class,
                                 workspaceId))
                 .isEqualTo("true");
-        assertThat(
-                        jdbc.queryForObject(
-                                "select count(*) from flyway_schema_history where version='84' and"
-                                        + " success=true",
-                                Integer.class))
-                .isEqualTo(1);
     }
 
     @Test

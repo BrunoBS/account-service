@@ -105,7 +105,7 @@ class ParameterKeyConcurrencyIT  extends br.com.portalmanager.platform.workspace
         Long id = jdbc.queryForObject("SELECT id FROM parameter_keys", Long.class);
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> stale =
                     executor.submit(
                             () ->
@@ -145,7 +145,7 @@ class ParameterKeyConcurrencyIT  extends br.com.portalmanager.platform.workspace
                     + " published_value=value,published_type_code=type_code,status_code='PUBLISHED'");
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<ParameterKeyMetadata>> waiting = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {
@@ -187,7 +187,7 @@ class ParameterKeyConcurrencyIT  extends br.com.portalmanager.platform.workspace
 
     private List<Object> concurrently(Callable<?> first, Callable<?> second) throws Exception {
         CountDownLatch start = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
+        try (ExecutorService executor = testUserExecutor(Executors.newFixedThreadPool(2))) {
             Future<Object> one = executor.submit(() -> result(start, first));
             Future<Object> two = executor.submit(() -> result(start, second));
             start.countDown();

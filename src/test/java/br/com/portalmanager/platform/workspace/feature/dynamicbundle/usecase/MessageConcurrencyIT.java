@@ -73,7 +73,7 @@ class MessageConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
         MessageOutput created = messages.create(input("review.lock"));
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<MessageTranslatorOutput>> blocked = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {
@@ -105,7 +105,7 @@ class MessageConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
         MessageOutput created = messages.create(input("review.cached"));
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch deleted = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<MessageTranslatorOutput> pending =
                     executor.submit(
                             () ->
@@ -138,7 +138,7 @@ class MessageConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
         MessageTranslatorOutput translator = translators.create(created.identifier(), translated());
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch updated = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<MessageTranslatorOutput> pending =
                     executor.submit(
                             () ->
@@ -188,7 +188,7 @@ class MessageConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
         MessageTranslatorOutput translator = translators.create(created.identifier(), translated());
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch updated = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -236,7 +236,7 @@ class MessageConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
     void activeMicroserviceRemainsStableUntilMessageTransactionCommits() throws Exception {
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<Integer>> blocked = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {

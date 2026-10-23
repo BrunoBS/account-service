@@ -73,7 +73,7 @@ class FeatureConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
         FeatureOutput feature = create();
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -110,7 +110,7 @@ class FeatureConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
         FeatureOutput feature = create();
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<?>> pending = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {
@@ -140,7 +140,7 @@ class FeatureConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
         FeatureOutput feature = create();
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -176,7 +176,7 @@ class FeatureConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
                 other);
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -210,7 +210,7 @@ class FeatureConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
                 groups.create(new CreateFeatureGroupInput("review-group", "Review group", null));
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<?>> pending = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {
@@ -245,7 +245,7 @@ class FeatureConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
                 groups.create(new CreateFeatureGroupInput("review-group", "Review group", null));
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -286,7 +286,7 @@ class FeatureConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
                 groups.create(new CreateFeatureGroupInput("review-group", "Review group", null));
         CountDownLatch snapshot = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<FeatureOutput> pending =
                     executor.submit(
                             () ->
@@ -344,7 +344,7 @@ class FeatureConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
         Long featureId = query.findShareableInternalIdByIdentifier(feature.identifier());
         CountDownLatch snapshot = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -392,7 +392,7 @@ class FeatureConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
                 groups.create(new CreateFeatureGroupInput("review-group", "Review group", null));
         CountDownLatch snapshot = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -441,7 +441,7 @@ class FeatureConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
                 groups.create(new CreateFeatureGroupInput("review-group", "Review group", null));
         CountDownLatch snapshot = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->

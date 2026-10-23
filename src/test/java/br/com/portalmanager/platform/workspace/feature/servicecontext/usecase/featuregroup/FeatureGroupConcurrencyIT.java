@@ -63,7 +63,7 @@ class FeatureGroupConcurrencyIT  extends br.com.portalmanager.platform.workspace
                 groups.create(new CreateFeatureGroupInput("review-group", "Review group", null));
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -95,7 +95,7 @@ class FeatureGroupConcurrencyIT  extends br.com.portalmanager.platform.workspace
         FeatureOutput first = feature("first-feature");
         FeatureOutput second = feature("second-feature");
         CountDownLatch start = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
+        try (ExecutorService executor = testUserExecutor(Executors.newFixedThreadPool(2))) {
             Future<?> one =
                     executor.submit(
                             () -> {
@@ -134,7 +134,7 @@ class FeatureGroupConcurrencyIT  extends br.com.portalmanager.platform.workspace
         FeatureGroupOutput secondContext =
                 groups.create(new CreateFeatureGroupInput("second-group", "Second group", null));
         CountDownLatch start = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
+        try (ExecutorService executor = testUserExecutor(Executors.newFixedThreadPool(2))) {
             Future<?> one =
                     executor.submit(
                             () -> {
@@ -189,7 +189,7 @@ class FeatureGroupConcurrencyIT  extends br.com.portalmanager.platform.workspace
         FeatureOutput feature = feature("review-feature");
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<?>> pending = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {

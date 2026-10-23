@@ -56,7 +56,7 @@ class MicroserviceConcurrencyIT  extends br.com.portalmanager.platform.workspace
         MicroserviceOutput parent = microservices.create(input("review-service", "Review service"));
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<MicroserviceOutput>> pending = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {
@@ -98,7 +98,7 @@ class MicroserviceConcurrencyIT  extends br.com.portalmanager.platform.workspace
         MicroserviceOutput parent = microservices.create(input("review-service", "Review service"));
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<?>> pending = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {
@@ -129,7 +129,7 @@ class MicroserviceConcurrencyIT  extends br.com.portalmanager.platform.workspace
         MicroserviceOutput parent = microservices.create(input("review-service", "Review service"));
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch updated = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
