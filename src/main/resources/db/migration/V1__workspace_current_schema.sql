@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 63600)
-Total output lines: 6075
-
 -- Golden Platform workspace-service current schema baseline.
 -- Compiled from the current ordered schema definition on the test branch.
 
@@ -2146,7 +2143,2671 @@ ALTER TABLE shared_environment_mappings
 DROP INDEX uk_shared_mapping_destination,
 MODIFY source_environment_id BIGINT NOT NULL,
 MODIFY destination_environment_id BIGINT NOT NULL,
-DROP COLUMN source_environme…23600 tokens truncated…      "DECIMAL"
+DROP COLUMN source_environment_identifier,
+DROP COLUMN destination_environment_identifier,
+ADD CONSTRAINT uk_shared_mapping_destination UNIQUE (participation_id, destination_environment_id),
+ADD CONSTRAINT fk_shared_mapping_source_environment FOREIGN KEY (source_environment_id) REFERENCES environments (id),
+ADD CONSTRAINT fk_shared_mapping_destination_environment FOREIGN KEY (destination_environment_id) REFERENCES environments (id);
+
+
+-- Current schema statements sourced from V40__shared_feature_reference.sql
+ALTER TABLE platform_features
+ADD COLUMN shareable BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE shared_contracts
+ADD COLUMN feature_id BIGINT NOT NULL,
+ADD INDEX idx_shared_contracts_feature (feature_id),
+ADD CONSTRAINT fk_shared_contracts_feature FOREIGN KEY (feature_id) REFERENCES platform_features (id);
+
+
+-- Current schema statements sourced from V41__shared_contract_feature_identity.sql
+ALTER TABLE shared_contracts
+DROP INDEX uk_shared_contracts_scope_name,
+DROP COLUMN name,
+ADD CONSTRAINT uk_shared_contracts_scope_feature UNIQUE (
+    owner_workspace_id,
+    owner_application_id,
+    feature_id
+);
+
+
+-- Current schema statements sourced from V42__workspace_resource_schema.sql
+-- One structural contract for Workspace creation and update.
+INSERT IGNORE INTO
+    schema_definitions (
+        version,
+        identifier,
+        scope_code,
+        code,
+        name,
+        lifecycle_code,
+        created_at,
+        updated_at
+    )
+VALUES
+    (
+        0,
+        UUID(),
+        'PLATFORM',
+        'workspace-resource',
+        'Workspace Resource',
+        'ACTIVE',
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+    );
+
+INSERT IGNORE INTO
+    schema_versions (
+        identifier,
+        schema_id,
+        schema_version,
+        version_name,
+        definition,
+        status,
+        created_at
+    )
+SELECT
+    UUID(),
+    id,
+    1,
+    'Workspace Resource v1',
+    '{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "workspaceType",
+        "name",
+        "description",
+        "requester",
+        "acronym",
+        "emailGroup",
+        "approvers"
+    ],
+    "properties": {
+        "workspaceType": {
+            "type": "string",
+            "minLength": 1,
+            "enum": [
+                "ADMIN",
+                "MANAGER"
+            ],
+            "maxLength": 20
+        },
+        "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80,
+            "pattern": "\\\\S"
+        },
+        "description": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 200,
+            "pattern": "\\\\S"
+        },
+        "requester": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 10,
+            "pattern": "\\\\S"
+        },
+        "acronym": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5,
+            "pattern": "\\\\S"
+        },
+        "authorizerGroup": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 20
+        },
+        "settings": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": true
+        },
+        "emailGroup": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "^[^\\\\s@]+@[^\\\\s@]+\\\\.[^\\\\s@]+$",
+            "format": "email"
+        },
+        "approvers": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "functional",
+                    "email"
+                ],
+                "properties": {
+                    "functional": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 10,
+                        "pattern": "\\\\S"
+                    },
+                    "email": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200,
+                        "pattern": "^[^\\\\s@]+@[^\\\\s@]+\\\\.[^\\\\s@]+$",
+                        "format": "email"
+                    }
+                }
+            },
+            "maxItems": 5
+        },
+        "tags": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "type": "string",
+                "maxLength": 50
+            },
+            "maxItems": 20
+        },
+        "version": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        }
+    },
+    "title": "Workspace",
+    "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
+',
+    'PUBLISHED',
+    CURRENT_TIMESTAMP
+FROM
+    schema_definitions
+WHERE
+    scope_code = 'PLATFORM'
+    AND code = 'workspace-resource';
+
+INSERT IGNORE INTO
+    schema_configuration (
+        version,
+        identifier,
+        resource_type,
+        resource_code,
+        schema_id,
+        lifecycle_code,
+        created_at,
+        updated_at
+    )
+SELECT
+    0,
+    UUID(),
+    'WORKSPACE',
+    'workspace',
+    id,
+    'ACTIVE',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM
+    schema_definitions
+WHERE
+    scope_code = 'PLATFORM'
+    AND code = 'workspace-resource';
+
+
+-- Current schema statements sourced from V43__workspace_column_limits.sql
+-- Match Workspace storage limits to its structural resource schema.
+ALTER TABLE workspaces
+DROP FOREIGN KEY fk_workspaces_workspace_type,
+DROP FOREIGN KEY fk_workspaces_lifecycle;
+
+ALTER TABLE workspaces
+MODIFY COLUMN workspace_type_code VARCHAR(20) NOT NULL,
+MODIFY COLUMN name VARCHAR(80) NOT NULL,
+MODIFY COLUMN description VARCHAR(200) NOT NULL,
+MODIFY COLUMN requester VARCHAR(10) NOT NULL,
+MODIFY COLUMN authorizer_group VARCHAR(20) NULL,
+MODIFY COLUMN email_group VARCHAR(200) NOT NULL,
+MODIFY COLUMN lifecycle_code VARCHAR(20) NOT NULL,
+ADD CONSTRAINT fk_workspaces_workspace_type FOREIGN KEY (workspace_type_code) REFERENCES type_workspaces (code),
+ADD CONSTRAINT fk_workspaces_lifecycle FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle (code);
+
+ALTER TABLE workspace_approvers
+MODIFY COLUMN functional VARCHAR(10) NOT NULL,
+MODIFY COLUMN email VARCHAR(200) NOT NULL;
+
+-- System tags include the Workspace name (up to 80 characters).
+-- Manual tags are limited to 50 characters by the Workspace resource schema.
+ALTER TABLE workspace_tag
+MODIFY COLUMN name VARCHAR(80) COLLATE utf8mb4_unicode_ci NOT NULL;
+
+
+-- Current schema statements sourced from V44__workspace_supported_types.sql
+-- Workspace types are restricted to ADMIN and MANAGER.
+UPDATE type_workspaces
+SET
+    is_active = false
+WHERE
+    code = 'CATALOG';
+
+ALTER TABLE workspaces
+ADD CONSTRAINT ck_workspaces_supported_type CHECK (workspace_type_code IN ('ADMIN', 'MANAGER'));
+
+
+-- Current schema statements sourced from V45__workspace_name_case_insensitive.sql
+-- Enforce global case-insensitive Workspace name uniqueness regardless of database defaults.
+-- The existing uk_workspaces_name index uses the column collation.
+ALTER TABLE workspaces
+MODIFY COLUMN name VARCHAR(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL;
+
+
+-- Current schema statements sourced from V46__workspace_onboarding_registration.sql
+CREATE TABLE workspace_onboarding_completions
+(
+    id                   BIGINT       NOT NULL AUTO_INCREMENT,
+    workspace_id         BIGINT       NOT NULL,
+    onboarding_phase_code VARCHAR(50)  NOT NULL,
+    user_identifier      VARCHAR(200) NOT NULL,
+    completed_at         DATETIME(6)  NOT NULL,
+    CONSTRAINT pk_workspace_onboarding_completions PRIMARY KEY (id),
+    CONSTRAINT uk_workspace_onboarding_phase UNIQUE (workspace_id, onboarding_phase_code),
+    CONSTRAINT fk_workspace_onboarding_workspace FOREIGN KEY (workspace_id) REFERENCES workspaces (id),
+    CONSTRAINT fk_workspace_onboarding_phase FOREIGN KEY (onboarding_phase_code) REFERENCES type_onboardings (code)
+);
+
+INSERT INTO type_onboardings (code, label, description, sort_order, is_active, settings)
+VALUES
+    ('WORKSPACE_REGISTRATION', 'Cadastro do workspace', 'Cadastro dos dados principais do workspace.', 1, TRUE, '{"orientation":"Revise os dados principais do workspace."}'),
+    ('WORKSPACE_FIRST_ENVIRONMENT', 'Configuração do ambiente do workspace', 'Configuração do primeiro ambiente do workspace.', 2, TRUE, '{"orientation":"Configure o ambiente padrão do workspace quando a configuração de ambientes estiver disponível."}'),
+    ('FIRST_APPLICATION_REGISTRATION', 'Cadastro da primeira aplicação', 'Cadastro da primeira aplicação vinculada ao workspace.', 3, TRUE, '{"orientation":"Cadastre a primeira aplicação vinculada ao workspace."}'),
+    ('APPLICATION_FIRST_ENVIRONMENT', 'Configuração do ambiente da aplicação', 'Configuração do primeiro ambiente da aplicação.', 4, TRUE, '{"orientation":"Configure o ambiente padrão da aplicação quando a configuração de ambientes estiver disponível."}');
+
+
+-- Current schema statements sourced from V47__application_json_and_resource_schema.sql
+-- Persist structured settings and align the published contract with the reference JSON Schema.
+ALTER TABLE applications
+    MODIFY settings JSON NOT NULL,
+    MODIFY name VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL;
+
+INSERT INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), sd.id, 2, 'Application Resource v2',
+    '
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Application",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "name",
+        "alias",
+        "acronym",
+        "applicationScope"
+    ],
+    "properties": {
+        "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        },
+        "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100,
+            "pattern": "\\\\S"
+        },
+        "alias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\\\S"
+        },
+        "acronym": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "pattern": "\\\\S"
+        },
+        "applicationScope": {
+            "type": "string",
+            "enum": [
+                "BACKEND",
+                "FRONTEND",
+                "SHARED"
+            ]
+        },
+        "authorizerGroup": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+        },
+        "settings": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "tags": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 150
+            }
+        }
+    }
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions sd
+WHERE sd.scope_code = 'PLATFORM' AND sd.code = 'application-resource';
+
+
+-- Current schema statements sourced from V48__application_column_limits.sql
+-- Align equivalent Application attributes with the Workspace storage/schema standard.
+ALTER TABLE applications
+    DROP FOREIGN KEY fk_applications_scope,
+    DROP FOREIGN KEY fk_applications_lifecycle;
+
+ALTER TABLE applications
+    MODIFY name VARCHAR(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+    MODIFY alias VARCHAR(80) NOT NULL,
+    MODIFY acronym VARCHAR(5) NOT NULL,
+    MODIFY authorizer_group VARCHAR(20) NULL,
+    MODIFY application_scope_code VARCHAR(20) NOT NULL,
+    MODIFY lifecycle_code VARCHAR(20) NOT NULL,
+    MODIFY settings JSON NOT NULL,
+    ADD CONSTRAINT fk_applications_scope FOREIGN KEY (application_scope_code) REFERENCES type_application_scopes(code),
+    ADD CONSTRAINT fk_applications_lifecycle FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle(code);
+
+-- System tags contain names/aliases up to 80 characters; manual tags are limited to 50 by the schema.
+ALTER TABLE application_tag
+    MODIFY name VARCHAR(80) COLLATE utf8mb4_unicode_ci NOT NULL;
+
+INSERT INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 3, 'Application Resource v3',
+    '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Application",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "name",
+        "alias",
+        "acronym",
+        "applicationScope",
+        "settings"
+    ],
+    "properties": {
+        "version": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        },
+        "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80,
+            "pattern": "\\\\S"
+        },
+        "alias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "pattern": "\\\\S"
+        },
+        "acronym": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5,
+            "pattern": "\\\\S"
+        },
+        "applicationScope": {
+            "type": "string",
+            "enum": [
+                "BACKEND",
+                "FRONTEND",
+                "SHARED"
+            ],
+            "minLength": 1,
+            "maxLength": 20
+        },
+        "authorizerGroup": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 20
+        },
+        "settings": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "language",
+                "infrastructure"
+            ],
+            "properties": {
+                "language": {
+                    "type": "string",
+                    "enum": [
+                        "JAVA",
+                        "C#",
+                        "NODE",
+                        "GO"
+                    ]
+                },
+                "infrastructure": {
+                    "type": "string",
+                    "enum": [
+                        "VM",
+                        "ECS",
+                        "EKS"
+                    ]
+                }
+            }
+        },
+        "tags": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "maxItems": 20,
+            "items": {
+                "type": "string",
+                "maxLength": 50
+            }
+        }
+    }
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions
+WHERE scope_code = 'PLATFORM' AND code = 'application-resource';
+
+
+-- Current schema statements sourced from V49__workspace_application_attribute_limits.sql
+-- Align Workspace and Application attribute limits; add Application description.
+ALTER TABLE workspaces
+    MODIFY name VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+    MODIFY authorizer_group VARCHAR(10) NULL,
+    MODIFY email_group VARCHAR(100) NOT NULL;
+ALTER TABLE workspace_approvers MODIFY email VARCHAR(100) NOT NULL;
+ALTER TABLE applications
+    MODIFY name VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+    MODIFY alias VARCHAR(50) NOT NULL,
+    MODIFY authorizer_group VARCHAR(10) NULL,
+    ADD COLUMN description VARCHAR(200) NULL AFTER alias;
+ALTER TABLE workspace_tag MODIFY name VARCHAR(50) COLLATE utf8mb4_unicode_ci NOT NULL;
+ALTER TABLE application_tag MODIFY name VARCHAR(50) COLLATE utf8mb4_unicode_ci NOT NULL;
+
+INSERT INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 4, 'Application Resource v4',
+    '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Application",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "name",
+        "alias",
+        "acronym",
+        "applicationScope",
+        "settings"
+    ],
+    "properties": {
+        "version": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        },
+        "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50,
+            "pattern": "\\\\S"
+        },
+        "alias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "pattern": "\\\\S"
+        },
+        "acronym": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5,
+            "pattern": "\\\\S"
+        },
+        "applicationScope": {
+            "type": "string",
+            "enum": [
+                "BACKEND",
+                "FRONTEND",
+                "SHARED"
+            ],
+            "minLength": 1,
+            "maxLength": 20
+        },
+        "authorizerGroup": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 10
+        },
+        "settings": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "language",
+                "infrastructure"
+            ],
+            "properties": {
+                "language": {
+                    "type": "string",
+                    "enum": [
+                        "JAVA",
+                        "C#",
+                        "NODE",
+                        "GO"
+                    ]
+                },
+                "infrastructure": {
+                    "type": "string",
+                    "enum": [
+                        "VM",
+                        "ECS",
+                        "EKS"
+                    ]
+                }
+            }
+        },
+        "tags": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "maxItems": 20,
+            "items": {
+                "type": "string",
+                "maxLength": 50
+            }
+        },
+        "description": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 200
+        }
+    }
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code='PLATFORM' AND code='application-resource';
+
+INSERT INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 2, 'Workspace Resource v2',
+    '{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "workspaceType",
+        "name",
+        "description",
+        "requester",
+        "acronym",
+        "emailGroup",
+        "approvers"
+    ],
+    "properties": {
+        "workspaceType": {
+            "type": "string",
+            "minLength": 1,
+            "enum": [
+                "ADMIN",
+                "MANAGER"
+            ],
+            "maxLength": 20
+        },
+        "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50,
+            "pattern": "\\\\S"
+        },
+        "description": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 200,
+            "pattern": "\\\\S"
+        },
+        "requester": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 10,
+            "pattern": "\\\\S"
+        },
+        "acronym": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5,
+            "pattern": "\\\\S"
+        },
+        "authorizerGroup": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 10
+        },
+        "settings": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": true
+        },
+        "emailGroup": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[^\\\\s@]+@[^\\\\s@]+\\\\.[^\\\\s@]+$",
+            "format": "email"
+        },
+        "approvers": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "functional",
+                    "email"
+                ],
+                "properties": {
+                    "functional": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 10,
+                        "pattern": "\\\\S"
+                    },
+                    "email": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100,
+                        "pattern": "^[^\\\\s@]+@[^\\\\s@]+\\\\.[^\\\\s@]+$",
+                        "format": "email"
+                    }
+                }
+            },
+            "maxItems": 5
+        },
+        "tags": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "type": "string",
+                "maxLength": 50
+            },
+            "maxItems": 20
+        },
+        "version": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        }
+    },
+    "title": "Workspace",
+    "$schema": "https://json-schema.org/draft/2020-12/schema"
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code='PLATFORM' AND code='workspace-resource';
+
+
+-- Current schema statements sourced from V50__publisher_resource_schema_and_limits.sql
+-- One request schema for Publisher creation and update, including conditional settings.
+ALTER TABLE publishers MODIFY description VARCHAR(200) NOT NULL;
+INSERT IGNORE INTO schema_definitions (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'publisher-resource', 'Publisher Resource', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT IGNORE INTO schema_versions (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'Publisher Resource v1', '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Publisher request",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "name",
+        "description",
+        "scope",
+        "settings",
+        "code"
+    ],
+    "properties": {
+        "code": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{0,39}$",
+            "maxLength": 40
+        },
+        "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50,
+            "pattern": "\\\\S"
+        },
+        "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "\\\\S"
+        },
+        "scope": {
+            "type": "string",
+            "enum": [
+                "WORKSPACE",
+                "APPLICATION"
+            ],
+            "maxLength": 50
+        },
+        "deprecated": {
+            "type": "boolean"
+        },
+        "settings": {
+            "type": "object"
+        },
+        "version": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "code": {
+                        "const": "KAFKA"
+                    }
+                },
+                "required": [
+                    "code"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "settings": {
+                        "type": "object",
+                        "required": [
+                            "topic",
+                            "address"
+                        ],
+                        "properties": {
+                            "topic": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 249,
+                                "pattern": "\\\\S"
+                            },
+                            "address": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 1000,
+                                "pattern": "\\\\S"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "code": {
+                        "const": "APPCONFIG"
+                    }
+                },
+                "required": [
+                    "code"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "settings": {
+                        "type": "object",
+                        "required": [
+                            "arn",
+                            "name"
+                        ],
+                        "properties": {
+                            "arn": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 2048,
+                                "pattern": "\\\\S"
+                            },
+                            "name": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 64,
+                                "pattern": "\\\\S"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "code": {
+                        "const": "HTTP"
+                    }
+                },
+                "required": [
+                    "code"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "settings": {
+                        "type": "object",
+                        "required": [
+                            "clientId",
+                            "timeout"
+                        ],
+                        "properties": {
+                            "clientId": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 100,
+                                "pattern": "\\\\S"
+                            },
+                            "timeout": {
+                                "type": "integer",
+                                "minimum": 1
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            }
+        }
+    ]
+}', 'PUBLISHED', CURRENT_TIMESTAMP FROM schema_definitions WHERE scope_code='PLATFORM' AND code='publisher-resource';
+INSERT IGNORE INTO schema_configuration (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'PUBLISHER', 'publisher', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP FROM schema_definitions WHERE scope_code='PLATFORM' AND code='publisher-resource';
+
+
+-- Current schema statements sourced from V51__publisher_code_column_limit.sql
+ALTER TABLE publishers
+    MODIFY COLUMN code VARCHAR(50) NOT NULL,
+    DROP CHECK ck_publishers_code;
+
+INSERT INTO schema_versions (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT
+    UUID(),
+    schema_id,
+    2,
+    'Publisher Resource v2',
+    JSON_SET(
+        definition,
+        '$.properties.code',
+        JSON_OBJECT('type', 'string', 'enum', JSON_ARRAY('KAFKA', 'HTTP', 'APPCONFIG'), 'maxLength', 50),
+        '$.allOf[2].then.properties.settings.properties.timeout.maximum',
+        60000,
+        '$.allOf[2].then.properties.settings.properties.timeout.description',
+        'Timeout in milliseconds.'
+    ),
+    'PUBLISHED',
+    CURRENT_TIMESTAMP
+FROM schema_versions
+WHERE schema_version = 1
+  AND status = 'PUBLISHED'
+  AND schema_id = (
+      SELECT id FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'publisher-resource'
+  );
+
+
+-- Current schema statements sourced from V52__environment_resource_schemas.sql
+-- Publish one complete request schema for each environment resource.
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES
+    (0, UUID(), 'PLATFORM', 'environment-resource', 'Environment Resource', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (0, UUID(), 'PLATFORM', 'environment-type-resource', 'Environment Type Resource', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (0, UUID(), 'PLATFORM', 'environment-type-compatibility-resource', 'Environment Type Compatibility Resource', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), sd.id, 1, 'Environment Resource v1',
+    '{
+      "$schema":"https://json-schema.org/draft/2020-12/schema",
+      "title":"Environment request",
+      "type":"object",
+      "additionalProperties":false,
+      "required":["name","description","authorizationType","settings"],
+      "properties":{
+        "version":{"type":["integer","null"],"minimum":0,"maximum":9223372036854775807},
+        "name":{"type":"string","minLength":3,"maxLength":50,"pattern":"\\\\S"},
+        "description":{"type":"string","minLength":3,"maxLength":250,"pattern":"\\\\S"},
+        "authorizationType":{"type":"string","enum":["DEV","TST","ADM"],"maxLength":50},
+        "sortOrder":{"type":["integer","null"],"minimum":1,"maximum":2147483647},
+        "authorizerGroup":{"type":["string","null"],"maxLength":253},
+        "settings":{"type":"object","description":"Environment-specific settings; properties are configurable by the platform.","additionalProperties":true},
+        "environmentTypeCode":{"type":["string","null"],"minLength":1,"maxLength":50,"pattern":"\\\\S"},
+        "parentIdentifier":{"type":["string","null"],"minLength":1,"maxLength":36,"pattern":"\\\\S"}
+      }
+    }',
+    'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions sd
+WHERE sd.scope_code = 'PLATFORM' AND sd.code = 'environment-resource';
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), sd.id, 1, 'Environment Type Resource v1',
+    '{
+      "$schema":"https://json-schema.org/draft/2020-12/schema",
+      "title":"Environment type request",
+      "type":"object",
+      "additionalProperties":false,
+      "required":["code","name","description","rootAllowed","allowsChildren","workspaceRequired","displayOrder"],
+      "properties":{
+        "version":{"type":["integer","null"],"minimum":0,"maximum":9223372036854775807},
+        "code":{"type":"string","enum":["DEFAULT","CUSTOM","SHARD","CELL"],"maxLength":50},
+        "name":{"type":"string","minLength":1,"maxLength":100,"pattern":"\\\\S"},
+        "description":{"type":"string","minLength":1,"maxLength":250,"pattern":"\\\\S"},
+        "rootAllowed":{"type":"boolean"},
+        "allowsChildren":{"type":"boolean"},
+        "workspaceRequired":{"type":"boolean"},
+        "displayOrder":{"type":"integer","minimum":0,"maximum":2147483647}
+      }
+    }',
+    'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions sd
+WHERE sd.scope_code = 'PLATFORM' AND sd.code = 'environment-type-resource';
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), sd.id, 1, 'Environment Type Compatibility Resource v1',
+    '{
+      "$schema":"https://json-schema.org/draft/2020-12/schema",
+      "title":"Environment type compatibility request",
+      "type":"object",
+      "additionalProperties":false,
+      "required":["parentTypeCode","childTypeCode"],
+      "properties":{
+        "parentTypeCode":{"type":"string","minLength":1,"maxLength":50,"pattern":"\\\\S"},
+        "childTypeCode":{"type":"string","minLength":1,"maxLength":50,"pattern":"\\\\S"}
+      }
+    }',
+    'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions sd
+WHERE sd.scope_code = 'PLATFORM' AND sd.code = 'environment-type-compatibility-resource';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'ENVIRONMENT', bindings.resource_code, sd.id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions sd
+CROSS JOIN (
+    SELECT 'environment-resource' AS definition_code, 'environment' AS resource_code UNION ALL
+    SELECT 'environment-type-resource', 'environment-type' UNION ALL
+    SELECT 'environment-type-compatibility-resource', 'environment-type-compatibility'
+) bindings
+WHERE sd.scope_code = 'PLATFORM' AND sd.code = bindings.definition_code;
+
+
+-- Current schema statements sourced from V53__environment_json_settings_and_name_limit.sql
+-- Environment names are limited to 50 characters by the published request contract.
+-- Settings are JSON documents and are now persisted as native JSON values.
+ALTER TABLE environments
+    MODIFY name VARCHAR(50) NOT NULL,
+    MODIFY settings JSON NOT NULL;
+
+
+-- Current schema statements sourced from V54__environment_type_allows_children.sql
+ALTER TABLE environment_types
+    ADD COLUMN allows_children BOOLEAN NOT NULL DEFAULT FALSE AFTER root_allowed;
+
+UPDATE environment_types
+SET allows_children = EXISTS (
+    SELECT 1
+    FROM environment_type_compatibilities compatibility
+    WHERE compatibility.parent_type_id = environment_types.id
+      AND compatibility.lifecycle_code = 'ACTIVE'
+) OR EXISTS (
+    SELECT 1
+    FROM environments parent_environment
+    JOIN environments child_environment
+      ON child_environment.parent_environment_id = parent_environment.id
+    WHERE parent_environment.environment_type_id = environment_types.id
+);
+
+INSERT INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), sd.id, 2, 'Environment Type Resource v2',
+    '{
+      "$schema":"https://json-schema.org/draft/2020-12/schema",
+      "title":"Environment type request",
+      "type":"object",
+      "additionalProperties":false,
+      "required":["code","name","description","rootAllowed","allowsChildren","workspaceRequired","displayOrder"],
+      "properties":{
+        "version":{"type":["integer","null"],"minimum":0,"maximum":9223372036854775807},
+        "code":{"type":"string","enum":["DEFAULT","CUSTOM","SHARD","CELL"],"maxLength":50},
+        "name":{"type":"string","minLength":1,"maxLength":100,"pattern":"\\\\S"},
+        "description":{"type":"string","minLength":1,"maxLength":250,"pattern":"\\\\S"},
+        "rootAllowed":{"type":"boolean"},
+        "allowsChildren":{"type":"boolean"},
+        "workspaceRequired":{"type":"boolean"},
+        "displayOrder":{"type":"integer","minimum":0,"maximum":2147483647}
+      }
+    }',
+    'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions sd
+WHERE sd.scope_code = 'PLATFORM' AND sd.code = 'environment-type-resource';
+
+
+-- Current schema statements sourced from V55__environment_type_compatibility_identifiers.sql
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), sd.id, 2, 'Environment Type Compatibility Resource v2',
+    '{
+      "$schema":"https://json-schema.org/draft/2020-12/schema",
+      "title":"Environment type compatibility request",
+      "type":"object",
+      "additionalProperties":false,
+      "required":["parentTypeIdentifier","childTypeIdentifier"],
+      "properties":{
+        "parentTypeIdentifier":{"type":"string","format":"uuid"},
+        "childTypeIdentifier":{"type":"string","format":"uuid"}
+      }
+    }',
+    'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions sd
+WHERE sd.scope_code = 'PLATFORM' AND sd.code = 'environment-type-compatibility-resource';
+
+
+-- Current schema statements sourced from V56__environment_type_code_primary_key.sql
+-- Preserve existing references while replacing the surrogate type ID with the immutable business code.
+ALTER TABLE environments DROP FOREIGN KEY fk_environments_type;
+ALTER TABLE environment_type_compatibilities
+    DROP FOREIGN KEY fk_environment_compatibility_parent,
+    DROP FOREIGN KEY fk_environment_compatibility_child;
+
+ALTER TABLE environments ADD COLUMN environment_type_code VARCHAR(50) NULL;
+UPDATE environments environment
+JOIN environment_types type ON type.id = environment.environment_type_id
+SET environment.environment_type_code = type.code;
+
+ALTER TABLE environment_type_compatibilities
+    ADD COLUMN parent_type_code VARCHAR(50) NULL,
+    ADD COLUMN child_type_code VARCHAR(50) NULL;
+UPDATE environment_type_compatibilities compatibility
+JOIN environment_types parent_type ON parent_type.id = compatibility.parent_type_id
+JOIN environment_types child_type ON child_type.id = compatibility.child_type_id
+SET compatibility.parent_type_code = parent_type.code,
+    compatibility.child_type_code = child_type.code;
+
+ALTER TABLE environment_type_compatibilities DROP INDEX uk_environment_compatibility;
+ALTER TABLE environment_type_compatibilities
+    DROP COLUMN parent_type_id,
+    DROP COLUMN child_type_id,
+    MODIFY parent_type_code VARCHAR(50) NOT NULL,
+    MODIFY child_type_code VARCHAR(50) NOT NULL,
+    ADD CONSTRAINT uk_environment_compatibility UNIQUE (parent_type_code, child_type_code);
+
+ALTER TABLE environments
+    DROP COLUMN environment_type_id,
+    MODIFY environment_type_code VARCHAR(50) NOT NULL;
+
+-- MySQL requires removing AUTO_INCREMENT before dropping the old primary key.
+ALTER TABLE environment_types MODIFY id BIGINT NOT NULL;
+ALTER TABLE environment_types
+    DROP PRIMARY KEY,
+    DROP INDEX identifier,
+    DROP INDEX code,
+    DROP COLUMN id,
+    DROP COLUMN identifier,
+    ADD PRIMARY KEY (code);
+
+ALTER TABLE environment_type_compatibilities
+    ADD CONSTRAINT fk_environment_compatibility_parent FOREIGN KEY (parent_type_code) REFERENCES environment_types(code),
+    ADD CONSTRAINT fk_environment_compatibility_child FOREIGN KEY (child_type_code) REFERENCES environment_types(code);
+ALTER TABLE environments
+    ADD CONSTRAINT fk_environments_type FOREIGN KEY (environment_type_code) REFERENCES environment_types(code);
+
+ALTER TABLE environment_types
+    ADD CONSTRAINT chk_environment_type_builtin_scope CHECK (
+        (code <> 'DEFAULT' OR (root_allowed AND NOT workspace_required))
+        AND (code <> 'CUSTOM' OR (root_allowed AND workspace_required))
+        AND (code NOT IN ('SHARD', 'CELL') OR (NOT root_allowed AND workspace_required))
+    );
+
+
+-- Current schema statements sourced from V57__environment_type_code_schemas.sql
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), sd.id, 2, 'Environment Resource v2',
+    '{
+      "$schema":"https://json-schema.org/draft/2020-12/schema",
+      "title":"Environment request",
+      "type":"object",
+      "additionalProperties":false,
+      "required":["name","description","authorizationType","settings","environmentTypeCode"],
+      "properties":{
+        "version":{"type":["integer","null"],"minimum":0,"maximum":9223372036854775807},
+        "name":{"type":"string","minLength":3,"maxLength":50,"pattern":"\\\\S"},
+        "description":{"type":"string","minLength":3,"maxLength":200,"pattern":"\\\\S"},
+        "authorizationType":{"type":"string","enum":["DEV","TST","ADM"],"maxLength":50},
+        "sortOrder":{"type":["integer","null"],"minimum":1,"maximum":2147483647},
+        "authorizerGroup":{"type":["string","null"],"maxLength":253},
+        "settings":{"type":"object","description":"Environment-specific settings; properties are configurable by the platform.","additionalProperties":true},
+        "environmentTypeCode":{"type":"string","enum":["DEFAULT","CUSTOM","SHARD","CELL"],"maxLength":50},
+        "parentIdentifier":{"type":["string","null"],"minLength":1,"maxLength":36,"format":"uuid"}
+      }
+    }',
+    'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions sd
+WHERE sd.scope_code = 'PLATFORM' AND sd.code = 'environment-resource';
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), sd.id, 3, 'Environment Type Resource v3',
+    '{
+      "$schema":"https://json-schema.org/draft/2020-12/schema",
+      "title":"Environment type request",
+      "type":"object",
+      "additionalProperties":false,
+      "required":["code","name","description","rootAllowed","allowsChildren","workspaceRequired","displayOrder"],
+      "properties":{
+        "version":{"type":["integer","null"],"minimum":0,"maximum":9223372036854775807},
+        "code":{"type":"string","enum":["DEFAULT","CUSTOM","SHARD","CELL"],"minLength":1,"maxLength":50,"pattern":"\\\\S"},
+        "name":{"type":"string","minLength":1,"maxLength":100,"pattern":"\\\\S"},
+        "description":{"type":"string","minLength":1,"maxLength":250,"pattern":"\\\\S"},
+        "rootAllowed":{"type":"boolean"},
+        "allowsChildren":{"type":"boolean"},
+        "workspaceRequired":{"type":"boolean"},
+        "displayOrder":{"type":"integer","minimum":0,"maximum":2147483647}
+      }
+    }',
+    'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions sd
+WHERE sd.scope_code = 'PLATFORM' AND sd.code = 'environment-type-resource';
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), sd.id, 3, 'Environment Type Compatibility Resource v3',
+    '{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Environment type compatibility request","type":"object","additionalProperties":false,"required":["parentTypeCode","childTypeCode"],"properties":{"parentTypeCode":{"type":"string","enum":["DEFAULT","CUSTOM","SHARD","CELL"],"minLength":1,"maxLength":50,"pattern":"\\\\S"},"childTypeCode":{"type":"string","enum":["DEFAULT","CUSTOM","SHARD","CELL"],"minLength":1,"maxLength":50,"pattern":"\\\\S"}}}',
+    'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions sd
+WHERE sd.scope_code = 'PLATFORM' AND sd.code = 'environment-type-compatibility-resource';
+
+
+-- Current schema statements sourced from V58__message_resource_schemas.sql
+-- Publish shared create/update request contracts for message and translation.
+
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'message-resource', 'Message request', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'message v1',
+    '{"$schema": "https://json-schema.org/draft/2020-12/schema", "title": "Message request", "type": "object", "additionalProperties": false, "required": ["microserviceIdentifier", "messageKey", "code", "httpStatus"], "properties": {"version": {"type": ["integer", "null"], "minimum": 0, "maximum": 9223372036854775807}, "microserviceIdentifier": {"type": "string", "format": "uuid", "minLength": 36, "maxLength": 36}, "messageKey": {"type": "string", "minLength": 1, "maxLength": 255, "pattern": "^[a-z0-9][a-z0-9._-]{0,254}$"}, "code": {"type": "string", "minLength": 3, "maxLength": 50, "pattern": "^[A-Z][A-Z0-9-]{2,49}$"}, "httpStatus": {"type": "integer", "minimum": 100, "maximum": 599}, "observation": {"type": ["string", "null"], "maxLength": 500}, "translations": {"type": ["array", "null"], "maxItems": 100, "items": {"type": "object", "additionalProperties": false, "required": ["locale", "title", "detail", "suggestion"], "properties": {"version": {"type": ["integer", "null"], "minimum": 0, "maximum": 9223372036854775807}, "locale": {"type": "string", "minLength": 2, "maxLength": 35, "pattern": "^[A-Za-z0-9]+(-[A-Za-z0-9]+)*$"}, "title": {"type": "string", "minLength": 1, "maxLength": 150, "pattern": "\\\\S"}, "detail": {"type": "string", "minLength": 1, "maxLength": 1000, "pattern": "\\\\S"}, "suggestion": {"type": "string", "minLength": 1, "maxLength": 1000, "pattern": "\\\\S"}}}}}, "allOf": [{"if": {"required": ["version"], "properties": {"version": {"type": "integer"}}}, "then": {"not": {"required": ["translations"]}}}]}',
+    'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'message-resource';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'MESSAGE', 'message', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'message-resource';
+
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'message-translation-resource', 'Message translation request', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'message-translation v1',
+    '{"$schema": "https://json-schema.org/draft/2020-12/schema", "title": "Message translation request", "type": "object", "additionalProperties": false, "required": ["locale", "title", "detail", "suggestion"], "properties": {"version": {"type": ["integer", "null"], "minimum": 0, "maximum": 9223372036854775807}, "locale": {"type": "string", "minLength": 2, "maxLength": 35, "pattern": "^[A-Za-z0-9]+(-[A-Za-z0-9]+)*$"}, "title": {"type": "string", "minLength": 1, "maxLength": 150, "pattern": "\\\\S"}, "detail": {"type": "string", "minLength": 1, "maxLength": 1000, "pattern": "\\\\S"}, "suggestion": {"type": "string", "minLength": 1, "maxLength": 1000, "pattern": "\\\\S"}}}',
+    'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'message-translation-resource';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'MESSAGE', 'message-translation', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'message-translation-resource';
+
+
+-- Current schema statements sourced from V59__message_physical_deletion_lifecycle.sql
+-- Preserve legacy quarantined records as inactive; future DELETE removes them physically.
+UPDATE messages
+SET lifecycle_code = 'INACTIVE', version = version + 1, updated_at = CURRENT_TIMESTAMP(6)
+WHERE lifecycle_code = 'QUARANTINED';
+
+UPDATE message_translations
+SET lifecycle_code = 'INACTIVE', version = version + 1, updated_at = CURRENT_TIMESTAMP(6)
+WHERE lifecycle_code = 'QUARANTINED';
+
+ALTER TABLE messages
+    ADD CONSTRAINT ck_messages_supported_lifecycle
+        CHECK (lifecycle_code IN ('ACTIVE', 'INACTIVE'));
+
+ALTER TABLE message_translations
+    ADD CONSTRAINT ck_message_translations_supported_lifecycle
+        CHECK (lifecycle_code IN ('ACTIVE', 'INACTIVE'));
+
+
+-- Current schema statements sourced from V60__onboarding_requester.sql
+-- Validate existing history before reducing the column size; do not truncate identities.
+ALTER TABLE workspace_onboarding_completions
+    ADD CONSTRAINT chk_onboarding_requester
+        CHECK (CHAR_LENGTH(TRIM(user_identifier)) > 0 AND CHAR_LENGTH(user_identifier) <= 10);
+
+ALTER TABLE workspace_onboarding_completions
+    DROP CHECK chk_onboarding_requester,
+    CHANGE COLUMN user_identifier requester VARCHAR(10) NOT NULL,
+    ADD CONSTRAINT chk_onboarding_requester
+        CHECK (CHAR_LENGTH(TRIM(requester)) > 0 AND CHAR_LENGTH(requester) <= 10);
+
+
+-- Current schema statements sourced from V61__onboarding_phase_settings_schema.sql
+-- Publish the settings contract consumed by onboarding and catalog administration.
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'onboarding-phase-type-settings', 'Onboarding phase settings',
+        'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'Onboarding phase settings v1',
+    '{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Onboarding phase settings","type":"object","additionalProperties":true,"properties":{"orientation":{"type":["string","null"]}}}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'onboarding-phase-type-settings';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'CATALOG', 'onboarding-phase-type', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'onboarding-phase-type-settings';
+
+
+-- Current schema statements sourced from V62__microservice_resource_schema.sql
+-- Separate HTTP resource contracts from per-microservice settings schemas.
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'microservice-resource', 'Microservice Resource',
+        'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'Microservice Resource v1',
+    '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Microservice request",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "code",
+        "name",
+        "settings"
+    ],
+    "properties": {
+        "version": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        },
+        "code": {
+            "type": "string",
+            "maxLength": 50,
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\\\S"
+        },
+        "description": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 500
+        },
+        "settings": {
+            "type": "object"
+        }
+    }
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'microservice-resource';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'PLATFORM', 'microservice', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'microservice-resource';
+
+
+-- Current schema statements sourced from V63__feature_resource_schema.sql
+-- Separate the feature HTTP contract from per-feature settings schemas.
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'feature-resource', 'Feature Resource',
+        'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'Feature Resource v1',
+    '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Feature request",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "code",
+        "name",
+        "settings",
+        "microserviceIdentifier"
+    ],
+    "properties": {
+        "version": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        },
+        "code": {
+            "type": "string",
+            "maxLength": 50,
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\\\S"
+        },
+        "description": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 500
+        },
+        "settings": {
+            "type": "object"
+        },
+        "microserviceIdentifier": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "shareable": {
+            "type": "boolean",
+            "default": false
+        }
+    }
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'feature-resource';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'PLATFORM', 'feature', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'feature-resource';
+
+
+-- Current schema statements sourced from V64__context_resource_schema.sql
+-- Publish the context HTTP contract without changing existing context data.
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'context-resource', 'Context Resource',
+        'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'Context Resource v1',
+    '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Context request",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "code",
+        "name"
+    ],
+    "properties": {
+        "version": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        },
+        "code": {
+            "type": "string",
+            "maxLength": 50,
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\\\S"
+        },
+        "description": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 500
+        },
+        "featureIdentifiers": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "maxItems": 100,
+            "items": {
+                "type": "string",
+                "format": "uuid"
+            }
+        }
+    }
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'context-resource';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'PLATFORM', 'context', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'context-resource';
+
+
+-- Current schema statements sourced from V65__separate_feature_context_resource_schema.sql
+-- Separate context attributes from feature/context association management.
+-- Existing contexts, relations and applied schema versions remain unchanged.
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 2, 'Context Resource v2', '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Context request",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "code",
+        "name"
+    ],
+    "properties": {
+        "version": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        },
+        "code": {
+            "type": "string",
+            "maxLength": 50,
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\\\S"
+        },
+        "description": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 500
+        }
+    }
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'context-resource';
+
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'feature-context-resource', 'Feature Context Resource',
+        'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'Feature Context Resource v1', '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Feature context associations request",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "version",
+        "featureIdentifiers"
+    ],
+    "properties": {
+        "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        },
+        "featureIdentifiers": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+                "type": "string",
+                "format": "uuid"
+            }
+        }
+    }
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'feature-context-resource';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'PLATFORM', 'feature-context', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'feature-context-resource';
+
+
+-- Current schema statements sourced from V66__create_segments_and_categories.sql
+-- Global segment catalog. No workspace/application association and no deletion cascades.
+CREATE TABLE segment
+(
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    version BIGINT NOT NULL DEFAULT 0,
+    identifier VARCHAR(36) NOT NULL,
+    code VARCHAR(100) NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    lifecycle_code VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    CONSTRAINT pk_segment PRIMARY KEY (id),
+    CONSTRAINT uk_segment_identifier UNIQUE (identifier),
+    CONSTRAINT uk_segment_code UNIQUE (code),
+    CONSTRAINT ck_segment_code CHECK (REGEXP_LIKE(code, '^[a-z0-9]+(-[a-z0-9]+)*$', 'c')),
+    CONSTRAINT ck_segment_name CHECK (CHAR_LENGTH(TRIM(name)) > 0),
+    CONSTRAINT ck_segment_lifecycle CHECK (lifecycle_code IN ('ACTIVE', 'INACTIVE')),
+    CONSTRAINT fk_segment_lifecycle FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle(code)
+);
+
+CREATE TABLE segment_category
+(
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    version BIGINT NOT NULL DEFAULT 0,
+    identifier VARCHAR(36) NOT NULL,
+    code VARCHAR(100) NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    segment_id BIGINT NOT NULL,
+    lifecycle_code VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    CONSTRAINT pk_segment_category PRIMARY KEY (id),
+    CONSTRAINT uk_segment_category_identifier UNIQUE (identifier),
+    CONSTRAINT uk_segment_category_code UNIQUE (segment_id, code),
+    CONSTRAINT ck_segment_category_code CHECK (REGEXP_LIKE(code, '^[a-z0-9]+(-[a-z0-9]+)*$', 'c')),
+    CONSTRAINT ck_segment_category_name CHECK (CHAR_LENGTH(TRIM(name)) > 0),
+    CONSTRAINT ck_segment_category_lifecycle CHECK (lifecycle_code IN ('ACTIVE', 'INACTIVE')),
+    CONSTRAINT fk_segment_category_lifecycle FOREIGN KEY (lifecycle_code) REFERENCES type_life_cycle(code),
+    CONSTRAINT fk_segment_category_segment FOREIGN KEY (segment_id) REFERENCES segment(id)
+);
+
+
+-- Current schema statements sourced from V67__segment_resource_schemas.sql
+-- Publish the global segment/category contracts using existing PLATFORM schema infrastructure.
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'segment-resource', 'Segment Resource', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'Segment Resource v1', '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Segment request",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "code",
+        "name"
+    ],
+    "properties": {
+        "version": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        },
+        "code": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150,
+            "pattern": "\\\\S"
+        }
+    }
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'segment-resource';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'PLATFORM', 'segment', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'segment-resource';
+
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'segment-category-resource', 'Segment Category Resource', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'Segment Category Resource v1', '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Segment Category request",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "code",
+        "name"
+    ],
+    "properties": {
+        "version": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        },
+        "code": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150,
+            "pattern": "\\\\S"
+        }
+    }
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'segment-category-resource';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'PLATFORM', 'segment-category', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'segment-category-resource';
+
+
+-- Current schema statements sourced from V68__configuration_catalogs_and_platform_microservice.sql
+CREATE TABLE type_configuration_types (
+    code VARCHAR(50) NOT NULL,
+    label VARCHAR(100) NOT NULL,
+    description TEXT,
+    sort_order INT NOT NULL,
+    is_active BOOLEAN NOT NULL,
+    settings TEXT NOT NULL,
+    CONSTRAINT pk_type_configuration_types PRIMARY KEY (code),
+    CONSTRAINT ck_type_configuration_types_code CHECK (code IN ('CONFIGURATION', 'EXPRESSION'))
+);
+
+INSERT INTO type_configuration_types (code, label, description, sort_order, is_active, settings) VALUES
+('CONFIGURATION', 'Configuration', NULL, 1, true, '{}'),
+('EXPRESSION', 'Expression', NULL, 2, true, '{}');
+
+CREATE TABLE type_configuration_statuses (
+    code VARCHAR(50) NOT NULL,
+    label VARCHAR(100) NOT NULL,
+    description TEXT,
+    sort_order INT NOT NULL,
+    is_active BOOLEAN NOT NULL,
+    settings TEXT NOT NULL,
+    CONSTRAINT pk_type_configuration_statuses PRIMARY KEY (code),
+    CONSTRAINT ck_type_configuration_statuses_code CHECK (code IN ('DRAFT', 'PUBLISHED'))
+);
+
+INSERT INTO type_configuration_statuses (code, label, description, sort_order, is_active, settings) VALUES
+('DRAFT', 'Draft', NULL, 1, true, '{}'),
+('PUBLISHED', 'Published', NULL, 2, true, '{}');
+
+-- Keep an existing global registration intact, including its UUID and settings.
+INSERT INTO platform_microservices
+    (version, identifier, code, name, description, settings, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'platform', 'Platform', 'Global platform configuration namespace', '{}',
+       'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM platform_microservices WHERE code = 'platform');
+
+
+-- Current schema statements sourced from V69__create_configurations.sql
+CREATE TABLE configurations (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    version BIGINT NOT NULL DEFAULT 0,
+    identifier VARCHAR(36) NOT NULL,
+    microservice_id BIGINT NOT NULL,
+    configuration_key VARCHAR(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+    description VARCHAR(200),
+    type_code VARCHAR(50) NOT NULL,
+    value JSON NOT NULL,
+    published_value JSON,
+    published_type_code VARCHAR(50),
+    status_code VARCHAR(50) NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    CONSTRAINT pk_configurations PRIMARY KEY (id),
+    CONSTRAINT uk_configuration_identifier UNIQUE (identifier),
+    CONSTRAINT uk_configuration_microservice_key UNIQUE (microservice_id, configuration_key),
+    CONSTRAINT ck_configuration_key CHECK (REGEXP_LIKE(configuration_key, '^[A-Za-z0-9]+([._-][A-Za-z0-9]+)*$', 'c')),
+    CONSTRAINT ck_configuration_snapshot CHECK (
+        (published_value IS NULL AND published_type_code IS NULL)
+        OR (published_value IS NOT NULL AND published_type_code IS NOT NULL)
+    ),
+    CONSTRAINT ck_configuration_inactive CHECK (
+        active = true OR (status_code = 'DRAFT' AND published_value IS NULL AND published_type_code IS NULL)
+    ),
+    CONSTRAINT ck_configuration_published CHECK (
+        status_code <> 'PUBLISHED' OR (active = true AND published_value IS NOT NULL)
+    ),
+    CONSTRAINT fk_configuration_microservice FOREIGN KEY (microservice_id) REFERENCES platform_microservices(id),
+    CONSTRAINT fk_configuration_type FOREIGN KEY (type_code) REFERENCES type_configuration_types(code),
+    CONSTRAINT fk_configuration_published_type FOREIGN KEY (published_type_code) REFERENCES type_configuration_types(code),
+    CONSTRAINT fk_configuration_status FOREIGN KEY (status_code) REFERENCES type_configuration_statuses(code)
+);
+
+CREATE INDEX idx_configuration_active_id ON configurations (active, id);
+
+
+-- Current schema statements sourced from V70__configuration_resource_schemas.sql
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'configuration-resource', 'configuration-resource', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'configuration-resource v1', '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Configuration request",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "type",
+        "value"
+    ],
+    "properties": {
+        "version": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "minimum": 0,
+            "maximum": 9223372036854775807
+        },
+        "microserviceIdentifier": {
+            "type": "string",
+            "format": "uuid",
+            "maxLength": 36
+        },
+        "key": {
+            "type": "string",
+            "maxLength": 80,
+            "pattern": "^[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)*$"
+        },
+        "description": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 200
+        },
+        "type": {
+            "type": "string",
+            "enum": [
+                "CONFIGURATION",
+                "EXPRESSION"
+            ]
+        },
+        "value": {}
+    },
+    "oneOf": [
+        {
+            "required": [
+                "microserviceIdentifier",
+                "key"
+            ],
+            "properties": {
+                "version": {
+                    "type": "null"
+                }
+            }
+        },
+        {
+            "required": [
+                "version"
+            ],
+            "properties": {
+                "version": {
+                    "type": "integer"
+                },
+                "microserviceIdentifier": false,
+                "key": false
+            }
+        }
+    ]
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'configuration-resource';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'PLATFORM', 'configuration', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'configuration-resource';
+
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'configuration-expression', 'configuration-expression', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'configuration-expression v1', '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Configuration Expression V1",
+    "type": "object",
+    "required": [
+        "operator",
+        "valueType",
+        "value"
+    ],
+    "properties": {
+        "operator": {
+            "enum": [
+                "EQUALS",
+                "NOT_EQUALS",
+                "CONTAINS",
+                "NOT_CONTAINS",
+                "GREATER_THAN",
+                "GREATER_THAN_OR_EQUALS",
+                "LESS_THAN",
+                "LESS_THAN_OR_EQUALS"
+            ]
+        },
+        "valueType": {
+            "enum": [
+                "STRING",
+                "INTEGER",
+                "LONG",
+                "DECIMAL"
+            ]
+        },
+        "value": {}
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "operator": {
+                        "enum": [
+                            "CONTAINS",
+                            "NOT_CONTAINS"
+                        ]
+                    }
+                },
+                "required": [
+                    "operator"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "value": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": true
+                    }
+                }
+            },
+            "else": {
+                "properties": {
+                    "value": {
+                        "not": {
+                            "type": "array"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "operator": {
+                        "enum": [
+                            "GREATER_THAN",
+                            "GREATER_THAN_OR_EQUALS",
+                            "LESS_THAN",
+                            "LESS_THAN_OR_EQUALS"
+                        ]
+                    }
+                },
+                "required": [
+                    "operator"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "valueType": {
+                        "enum": [
+                            "INTEGER",
+                            "LONG",
+                            "DECIMAL"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "valueType": {
+                        "const": "STRING"
+                    }
+                },
+                "required": [
+                    "valueType"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "value": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "valueType": {
+                        "const": "INTEGER"
+                    }
+                },
+                "required": [
+                    "valueType"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "value": {
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "minimum": -2147483648,
+                                "maximum": 2147483647
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer",
+                                    "minimum": -2147483648,
+                                    "maximum": 2147483647
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "valueType": {
+                        "const": "LONG"
+                    }
+                },
+                "required": [
+                    "valueType"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "value": {
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "minimum": -9223372036854775808,
+                                "maximum": 9223372036854775807
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer",
+                                    "minimum": -9223372036854775808,
+                                    "maximum": 9223372036854775807
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "valueType": {
+                        "const": "DECIMAL"
+                    }
+                },
+                "required": [
+                    "valueType"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "value": {
+                        "oneOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "number"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "additionalProperties": false
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'configuration-expression';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'PLATFORM', 'configuration-expression', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'configuration-expression';
+
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'configuration-type-settings', 'configuration-type-settings', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'configuration-type-settings v1', '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "configuration-type settings",
+    "type": "object",
+    "additionalProperties": false
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'configuration-type-settings';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'CATALOG', 'configuration-type', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'configuration-type-settings';
+
+INSERT IGNORE INTO schema_definitions
+    (version, identifier, scope_code, code, name, lifecycle_code, created_at, updated_at)
+VALUES (0, UUID(), 'PLATFORM', 'configuration-status-type-settings', 'configuration-status-type-settings', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 1, 'configuration-status-type-settings v1', '{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "configuration-status-type settings",
+    "type": "object",
+    "additionalProperties": false
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'configuration-status-type-settings';
+
+INSERT IGNORE INTO schema_configuration
+    (version, identifier, resource_type, resource_code, schema_id, lifecycle_code, created_at, updated_at)
+SELECT 0, UUID(), 'CATALOG', 'configuration-status-type', id, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'configuration-status-type-settings';
+
+
+-- Current schema statements sourced from V71__unify_configuration_resource_schema.sql
+-- Ensure the catalog state required to retire the standalone contract on upgrades.
+INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings)
+VALUES ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}');
+
+-- Publish the unified request contract without changing previously applied migrations.
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 2, 'configuration-resource v2', '{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Configuration request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "value"
+  ],
+  "properties": {
+    "version": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 9223372036854775807
+    },
+    "microserviceIdentifier": {
+      "type": "string",
+      "format": "uuid",
+      "maxLength": 36
+    },
+    "key": {
+      "type": "string",
+      "maxLength": 80,
+      "pattern": "^[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)*$"
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 200
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "CONFIGURATION",
+        "EXPRESSION"
+      ]
+    },
+    "value": {}
+  },
+  "allOf": [
+    {
+      "oneOf": [
+        {
+          "required": [
+            "microserviceIdentifier",
+            "key"
+          ],
+          "properties": {
+            "version": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "version": {
+              "type": "integer"
+            },
+            "microserviceIdentifier": false,
+            "key": false
+          }
+        }
+      ]
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "EXPRESSION"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "value": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "operator",
+              "valueType",
+              "value"
+            ],
+            "properties": {
+              "operator": {
+                "enum": [
+                  "EQUALS",
+                  "NOT_EQUALS",
+                  "CONTAINS",
+                  "NOT_CONTAINS",
+                  "GREATER_THAN",
+                  "GREATER_THAN_OR_EQUALS",
+                  "LESS_THAN",
+                  "LESS_THAN_OR_EQUALS"
+                ]
+              },
+              "valueType": {
+                "enum": [
+                  "STRING",
+                  "INTEGER",
+                  "LONG",
+                  "DECIMAL"
+                ]
+              },
+              "value": {}
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "operator": {
+                      "enum": [
+                        "CONTAINS",
+                        "NOT_CONTAINS"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "operator"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "value": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true
+                    }
+                  }
+                },
+                "else": {
+                  "properties": {
+                    "value": {
+                      "not": {
+                        "type": "array"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "operator": {
+                      "enum": [
+                        "GREATER_THAN",
+                        "GREATER_THAN_OR_EQUALS",
+                        "LESS_THAN",
+                        "LESS_THAN_OR_EQUALS"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "operator"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "valueType": {
+                      "enum": [
+                        "INTEGER",
+                        "LONG",
+                        "DECIMAL"
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "valueType": {
+                      "const": "STRING"
+                    }
+                  },
+                  "required": [
+                    "valueType"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "value": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "valueType": {
+                      "const": "INTEGER"
+                    }
+                  },
+                  "required": [
+                    "valueType"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "value": {
+                      "oneOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -2147483648,
+                          "maximum": 2147483647
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "integer",
+                            "minimum": -2147483648,
+                            "maximum": 2147483647
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "valueType": {
+                      "const": "LONG"
+                    }
+                  },
+                  "required": [
+                    "valueType"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "value": {
+                      "oneOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9223372036854775808,
+                          "maximum": 9223372036854775807
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "integer",
+                            "minimum": -9223372036854775808,
+                            "maximum": 9223372036854775807
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "valueType": {
+                      "const": "DECIMAL"
+                    }
+                  },
+                  "required": [
+                    "valueType"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "value": {
+                      "oneOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}', 'PUBLISHED', CURRENT_TIMESTAMP
+FROM schema_definitions WHERE scope_code = 'PLATFORM' AND code = 'configuration-resource';
+
+-- Retire the standalone expression contract while retaining its published history.
+UPDATE schema_configuration
+SET lifecycle_code = 'INACTIVE', version = version + 1, updated_at = CURRENT_TIMESTAMP
+WHERE resource_type = 'PLATFORM' AND resource_code = 'configuration-expression' AND lifecycle_code = 'ACTIVE';
+
+UPDATE schema_definitions
+SET lifecycle_code = 'INACTIVE', version = version + 1, updated_at = CURRENT_TIMESTAMP
+WHERE scope_code = 'PLATFORM' AND code = 'configuration-expression' AND lifecycle_code = 'ACTIVE';
+
+
+-- Current schema statements sourced from V72__configuration_decimal_multiple_of_schema.sql
+-- Publish the approved hundredths rule in the unified Configuration request contract.
+-- Keep previous published versions and existing configuration values intact.
+INSERT IGNORE INTO schema_versions
+    (identifier, schema_id, schema_version, version_name, definition, status, created_at)
+SELECT UUID(), id, 3, 'configuration-resource v3', '{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Configuration request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "value"
+  ],
+  "properties": {
+    "version": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 9223372036854775807
+    },
+    "microserviceIdentifier": {
+      "type": "string",
+      "format": "uuid",
+      "maxLength": 36
+    },
+    "key": {
+      "type": "string",
+      "maxLength": 80,
+      "pattern": "^[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)*$"
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 200
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "CONFIGURATION",
+        "EXPRESSION"
+      ]
+    },
+    "value": {}
+  },
+  "allOf": [
+    {
+      "oneOf": [
+        {
+          "required": [
+            "microserviceIdentifier",
+            "key"
+          ],
+          "properties": {
+            "version": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "version": {
+              "type": "integer"
+            },
+            "microserviceIdentifier": false,
+            "key": false
+          }
+        }
+      ]
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "EXPRESSION"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "value": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "operator",
+              "valueType",
+              "value"
+            ],
+            "properties": {
+              "operator": {
+                "enum": [
+                  "EQUALS",
+                  "NOT_EQUALS",
+                  "CONTAINS",
+                  "NOT_CONTAINS",
+                  "GREATER_THAN",
+                  "GREATER_THAN_OR_EQUALS",
+                  "LESS_THAN",
+                  "LESS_THAN_OR_EQUALS"
+                ]
+              },
+              "valueType": {
+                "enum": [
+                  "STRING",
+                  "INTEGER",
+                  "LONG",
+                  "DECIMAL"
+                ]
+              },
+              "value": {}
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "operator": {
+                      "enum": [
+                        "CONTAINS",
+                        "NOT_CONTAINS"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "operator"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "value": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true
+                    }
+                  }
+                },
+                "else": {
+                  "properties": {
+                    "value": {
+                      "not": {
+                        "type": "array"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "operator": {
+                      "enum": [
+                        "GREATER_THAN",
+                        "GREATER_THAN_OR_EQUALS",
+                        "LESS_THAN",
+                        "LESS_THAN_OR_EQUALS"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "operator"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "valueType": {
+                      "enum": [
+                        "INTEGER",
+                        "LONG",
+                        "DECIMAL"
                       ]
                     }
                   }
