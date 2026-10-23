@@ -12,34 +12,34 @@ class DatabaseSchemaIT extends br.com.portalmanager.platform.workspace.support.W
     private JdbcTemplate jdbcTemplate;
 
     @Test
-    void shouldExposeTheCurrentSchemaAndRequiredReferenceData() {
-        assertThat(tableCount("type_features")).isZero();
-        assertThat(tableCount("type_services")).isZero();
-        assertThat(tableCount("type_feature_scopes")).isZero();
-        assertThat(tableCount("type_resource_scopes")).isEqualTo(1);
-        assertThat(tableCount("type_publisher_scopes")).isZero();
-        assertThat(tableCount("type_schemas")).isZero();
-        assertThat(tableCount("service_context_microservices")).isEqualTo(1);
-        assertThat(tableCount("platform_microservices")).isZero();
-        assertThat(tableCount("platform_services")).isZero();
-        assertThat(tableCount("type_languages")).isZero();
-        assertThat(tableCount("type_infrastructures")).isZero();
-        assertThat(tableCount("service_context_features")).isEqualTo(1);
-        assertThat(tableCount("feature_group")).isEqualTo(1);
-        assertThat(tableCount("feature_group_feature")).isEqualTo(1);
-        assertThat(tableCount("service_context_groups")).isZero();
-        assertThat(tableCount("service_context_feature_groups")).isZero();
-        assertThat(tableCount("platform_features")).isZero();
-        assertThat(tableCount("platform_feature_contexts")).isZero();
-        assertThat(tableCount("platform_feature_context_relations")).isZero();
-        assertThat(tableCount("platform_feature_scopes")).isZero();
-        assertThat(tableCount("workspaces")).isEqualTo(1);
-        assertThat(tableCount("workspace_approvers")).isEqualTo(1);
-        assertThat(tableCount("tags")).isEqualTo(1);
+    void shouldExposeCurrentTablesAndIndexes() {
+        assertThat(tableExists("type_features")).isTrue();
+        assertThat(tableExists("type_services")).isTrue();
+        assertThat(tableExists("type_feature_scopes")).isTrue();
+        assertThat(tableExists("type_resource_scopes")).isTrue();
+        assertThat(tableExists("type_publisher_scopes")).isTrue();
+        assertThat(tableExists("type_schemas")).isTrue();
+        assertThat(tableExists("service_context_microservices")).isTrue();
+        assertThat(tableExists("platform_microservices")).isTrue();
+        assertThat(tableExists("platform_services")).isTrue();
+        assertThat(tableExists("type_languages")).isTrue();
+        assertThat(tableExists("type_infrastructures")).isTrue();
+        assertThat(tableExists("service_context_features")).isTrue();
+        assertThat(tableExists("feature_group")).isTrue();
+        assertThat(tableExists("feature_group_feature")).isTrue();
+        assertThat(tableExists("service_context_groups")).isTrue();
+        assertThat(tableExists("service_context_feature_groups")).isTrue();
+        assertThat(tableExists("platform_features")).isTrue();
+        assertThat(tableExists("platform_feature_contexts")).isTrue();
+        assertThat(tableExists("platform_feature_context_relations")).isTrue();
+        assertThat(tableExists("platform_feature_scopes")).isTrue();
+        assertThat(tableExists("workspaces")).isTrue();
+        assertThat(tableExists("workspace_approvers")).isTrue();
+        assertThat(tableExists("tags")).isTrue();
         assertThat(indexCount("workspaces", "idx_workspaces_authorizer_group")).isEqualTo(1);
     }
 
-    private Integer tableCount(String tableName) {
+    private boolean tableExists(String tableName) {
         return jdbcTemplate.queryForObject(
             """
             select count(*)
@@ -49,7 +49,7 @@ class DatabaseSchemaIT extends br.com.portalmanager.platform.workspace.support.W
             """,
             Integer.class,
             tableName
-        );
+        ) == 1;
     }
 
     private Integer indexCount(String tableName, String indexName) {

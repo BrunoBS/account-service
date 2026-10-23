@@ -47,14 +47,20 @@ class MessageQueryIT  extends br.com.portalmanager.platform.workspace.support.Wo
                     identifier);
         }
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        boolean statisticsEnabled = statistics.isStatisticsEnabled();
+        statistics.setStatisticsEnabled(true);
         statistics.clear();
-        Page<MessageOutput> page = query.findAll(null, null, null, null, PageRequest.of(0, 2));
-        assertThat(page.getTotalElements()).isEqualTo(3);
-        assertThat(page.getContent())
-                .extracting(MessageOutput::microserviceIdentifier)
-                .containsExactly(
-                        "11111111-1111-1111-1111-111111111111",
-                        "11111111-1111-1111-1111-111111111112");
-        assertThat(statistics.getPrepareStatementCount()).isEqualTo(3);
+        try {
+            Page<MessageOutput> page = query.findAll(null, null, null, null, PageRequest.of(0, 2));
+            assertThat(page.getTotalElements()).isEqualTo(3);
+            assertThat(page.getContent())
+                    .extracting(MessageOutput::microserviceIdentifier)
+                    .containsExactly(
+                            "11111111-1111-1111-1111-111111111111",
+                            "11111111-1111-1111-1111-111111111112");
+            assertThat(statistics.getPrepareStatementCount()).isEqualTo(3);
+        } finally {
+            statistics.setStatisticsEnabled(statisticsEnabled);
+        }
     }
 }

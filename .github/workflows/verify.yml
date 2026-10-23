@@ -21,11 +21,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Checkout Platform Libraries test branch
+        uses: actions/checkout@v4
+        with:
+          repository: BrunoBS/platform-libraries
+          ref: 6875893fc764da09e9fb2c22221d01405dd696fc
+          token: ${{ secrets.PLATFORM_PACKAGES_TOKEN }}
+          path: platform-libraries
+
       - name: Set up Java 25
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "25"
+
+      - name: Cache isolated Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/account-service-m2
+          key: ${{ runner.os }}-maven-java25-${{ hashFiles('pom.xml', '.github/maven-settings.xml', 'platform-libraries/**/pom.xml', 'platform-libraries/.mvn/maven.config') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-java25-
 
       - name: Preload MySQL image from public mirrors
         run: |
@@ -49,6 +65,22 @@ jobs:
 
           echo "Unable to preload MySQL 8.4.11 from the configured public mirrors."
           exit 1
+
+      - name: Install branch Platform Testing modules into isolated Maven repository
+        env:
+          GITHUB_PACKAGES_USERNAME: BrunoBS
+          GITHUB_PACKAGES_TOKEN: ${{ secrets.PLATFORM_PACKAGES_TOKEN }}
+        working-directory: platform-libraries
+        run: >
+          mvn
+          --settings "${GITHUB_WORKSPACE}/.github/maven-settings.xml"
+          --batch-mode
+          --no-transfer-progress
+          -Dmaven.repo.local="${RUNNER_TEMP}/account-service-m2"
+          -pl modules/platform-testing/platform-testing-redis,modules/platform-testing/platform-testing-authorization
+          -am
+          -DskipTests
+          install
 
       - name: Verify with isolated Maven repository
         env:
