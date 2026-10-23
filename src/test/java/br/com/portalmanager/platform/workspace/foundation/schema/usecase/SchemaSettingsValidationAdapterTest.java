@@ -3,31 +3,29 @@ package br.com.portalmanager.platform.workspace.foundation.schema.usecase;
 import static org.mockito.Mockito.*;
 
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.workspace.foundation.integration.JsonSchemaValidationPort;
+import br.com.portalmanager.platform.library.schemavalidation.validation.JsonSchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaResolutionPort;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidationAdapter;
+
 import org.junit.jupiter.api.Test;
+
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 class SchemaSettingsValidationAdapterTest {
 
     @Test
     void forwardsTheOwningDomainsAttributeNameToJsonValidation() {
         SchemaResolutionPort resolver = mock(SchemaResolutionPort.class);
-        JsonSchemaValidationPort json = mock(JsonSchemaValidationPort.class);
-        JsonNode parsed = mock(JsonNode.class);
+        JsonSchemaValidator json = mock(JsonSchemaValidator.class);
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode parsed = mapper.readTree("{\"enabled\":true}");
         ValidationResult result = new ValidationResult();
         when(resolver.resolve("FEATURE", "flags")).thenReturn("{}");
-        when(json.fromString("{\"enabled\":true}", "configuration")).thenReturn(parsed);
 
-        new SchemaSettingsValidationAdapter(resolver, json).validate(
-            "FEATURE",
-            "flags",
-            "configuration",
-            "{\"enabled\":true}",
-            result
-        );
+        new SchemaSettingsValidationAdapter(resolver, json, mapper)
+                .validate("FEATURE", "flags", "configuration", "{\"enabled\":true}", result);
 
-        verify(json).validateJson("{}", parsed, "configuration", result);
+        verify(json).validate("{}", parsed, "configuration", result);
     }
 }

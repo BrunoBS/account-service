@@ -12,11 +12,12 @@ import br.com.portalmanager.platform.workspace.core.applicationconfiguration.rep
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.mapping.ApplicationEnvironmentConfigurationMapper;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.*;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.operations.*;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.EnvironmentReferencePort;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.PhaseCompletionPort;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.WorkspaceEnvironmentConfigurationPort;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.WorkspaceEnvironmentConfigurationPort.PublisherCopy;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.validation.ApplicationEnvironmentConfigurationValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.domain.PublisherTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.EnvironmentReferencePort;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceEnvironmentConfigurationPort;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceEnvironmentConfigurationPort.PublisherCopy;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -44,7 +45,14 @@ class EnvironmentConfigurationCommandTest {
             mock(WorkspaceEnvironmentConfigurationPort.class);
     private final ApplicationEnvironmentConfigurationCommandService commands =
             new ApplicationEnvironmentConfigurationCommandService(
-                    repository, associations, scopes, environments, validator, mapper, origin);
+                    repository,
+                    associations,
+                    scopes,
+                    environments,
+                    validator,
+                    mapper,
+                    origin,
+                    mock(PhaseCompletionPort.class));
     private final JsonMapper json = JsonMapper.builder().build();
 
     @Test

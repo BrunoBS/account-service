@@ -4,10 +4,10 @@ import br.com.portalmanager.platform.library.messaging.exception.NotFoundExcepti
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.ServiceContextMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.feature.FeatureRepository;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.featuregroup.FeatureGroupRepository;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.featuregroup.FeatureGroupMapper;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.featuregroup.FeatureGroupOutput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.featuregroup.FeatureGroupValidator;
-import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.featuregroup.FeatureGroupMapper;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -6,7 +6,7 @@ import br.com.portalmanager.platform.workspace.core.applicationconfiguration.rep
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.mapping.ApplicationEnvironmentConfigurationMapper;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.ApplicationEnvironmentConfigurationOutput;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.validation.ApplicationEnvironmentConfigurationValidator;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleFilter;
 
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;

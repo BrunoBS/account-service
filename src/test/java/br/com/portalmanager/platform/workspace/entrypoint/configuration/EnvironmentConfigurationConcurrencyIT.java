@@ -7,6 +7,9 @@ import br.com.portalmanager.platform.library.testing.authorization.annotation.Wi
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
 
+import io.restassured.response.ExtractableResponse;
+import io.restassured.response.Response;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -50,7 +53,7 @@ class EnvironmentConfigurationConcurrencyIT extends EnvironmentConfigurationHttp
                                     () -> put(base(app) + "/" + id, first).extract().statusCode(),
                                     () -> put(base(app) + "/" + id, second).extract().statusCode()))
                     .containsExactlyInAnyOrder(200, 409);
-            io.restassured.response.ExtractableResponse<io.restassured.response.Response> stored =
+            ExtractableResponse<Response> stored =
                     get(base(app) + "/" + id)
                             .statusCode(200)
                             .body("version", equalTo(1))
@@ -59,6 +62,33 @@ class EnvironmentConfigurationConcurrencyIT extends EnvironmentConfigurationHttp
             String winner = stored.path("settings.winner");
             assertThat(stored.<String>path("publishers[0].publisherCode"))
                     .isEqualTo(winner.equals("http") ? http : kafka);
+        }
+    }
+
+    @Test
+    void concurrentFirstConfigurationsOfDifferentEnvironmentsRecordEachPhaseOnce()
+            throws Exception {
+        for (boolean app : List.of(false, true)) {
+            assertThat(
+                            race(
+                                    () ->
+                                            post(base(app), create(globalEnvironment))
+                                                    .extract()
+                                                    .statusCode(),
+                                    () ->
+                                            post(base(app), create(ownEnvironment))
+                                                    .extract()
+                                                    .statusCode()))
+                    .containsExactly(201, 201);
+            String phase = app ? "APPLICATION_FIRST_ENVIRONMENT" : "WORKSPACE_FIRST_ENVIRONMENT";
+            assertThat(
+                            jdbc.queryForObject(
+                                    "select count(*) from workspace_onboarding_completions where"
+                                            + " workspace_id=? and onboarding_phase_code=?",
+                                    Integer.class,
+                                    workspaceId(),
+                                    phase))
+                    .isEqualTo(1);
         }
     }
 

@@ -11,9 +11,24 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface ContractRepository extends JpaRepository<Contract, Long> {
+    @Query(
+            "select distinct c.ownerApplicationId as applicationId, c.ownerWorkspaceId as"
+                    + " workspaceId from Contract c where c.ownerApplicationId in :ids")
+    List<ApplicationLink> findApplicationLinks(@Param("ids") Collection<Long> ids);
+
+    boolean existsByOwnerWorkspaceId(Long workspaceId);
+
+    interface ApplicationLink {
+        Long getApplicationId();
+
+        Long getWorkspaceId();
+    }
+
     @Query(
             value =
                     "SELECT id FROM resource_sharing_contracts WHERE feature_id = :featureId LIMIT"

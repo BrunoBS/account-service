@@ -1,17 +1,22 @@
 package br.com.portalmanager.platform.workspace.core.environment.integration;
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.EnvironmentReferencePort;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
 import br.com.portalmanager.platform.workspace.core.environment.domain.environment.Environment;
 import br.com.portalmanager.platform.workspace.core.environment.repository.environment.EnvironmentRepository;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environment.EnvironmentFinder;
-import br.com.portalmanager.platform.workspace.foundation.integration.EnvironmentReferencePort;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Component
-public class EnvironmentReferenceAdapter implements EnvironmentReferencePort {
+public class EnvironmentReferenceAdapter
+        implements EnvironmentReferencePort,
+                br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.port
+                        .EnvironmentReferencePort {
     private final EnvironmentRepository repository;
     private final EnvironmentFinder finder;
 
@@ -44,7 +49,7 @@ public class EnvironmentReferenceAdapter implements EnvironmentReferencePort {
         // The owning configuration has already passed workspace/application visibility.
         // Resolve only its persisted reference, including inactive environments, as in Shared
         // history.
-        return repository.findIdentifierReferences(java.util.List.of(id)).stream()
+        return repository.findIdentifierReferences(List.of(id)).stream()
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND))
                 .getIdentifier();

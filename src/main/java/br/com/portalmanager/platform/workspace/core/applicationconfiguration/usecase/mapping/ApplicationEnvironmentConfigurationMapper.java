@@ -4,9 +4,11 @@ import br.com.portalmanager.platform.workspace.core.applicationconfiguration.dom
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.repository.ApplicationEnvironmentConfigurationPublisherRepository;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.ApplicationEnvironmentConfigurationOutput;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.PublisherOutput;
-import br.com.portalmanager.platform.workspace.foundation.integration.EnvironmentReferencePort;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.EnvironmentReferencePort;
 
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class ApplicationEnvironmentConfigurationMapper {
@@ -24,7 +26,7 @@ public class ApplicationEnvironmentConfigurationMapper {
             String workspaceIdentifier,
             String applicationIdentifier,
             ApplicationEnvironmentConfiguration configuration) {
-        java.util.List<
+        List<
                         br.com.portalmanager.platform.workspace.core.applicationconfiguration.domain
                                 .ApplicationEnvironmentConfigurationPublisher>
                 stored =

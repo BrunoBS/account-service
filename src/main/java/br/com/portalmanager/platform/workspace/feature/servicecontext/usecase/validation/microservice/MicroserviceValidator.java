@@ -8,15 +8,15 @@ import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.mic
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.microservice.MicroserviceRepository;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.microservice.CreateMicroserviceInput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.microservice.UpdateMicroserviceInput;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.port.MicroserviceUsagePort;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.port.SchemaValidationPort;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.ServiceContextValidation;
-import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceUsagePort;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidationAdapter;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Component
@@ -26,12 +26,12 @@ public class MicroserviceValidator {
             Set.of("id", "identifier", "code", "name", "createdAt", "updatedAt");
 
     private final MicroserviceRepository repository;
-    private final SchemaSettingsValidationAdapter settingsValidator;
+    private final SchemaValidationPort settingsValidator;
     private final List<MicroserviceUsagePort> usagePorts;
 
     public MicroserviceValidator(
             MicroserviceRepository repository,
-            SchemaSettingsValidationAdapter settingsValidator,
+            SchemaValidationPort settingsValidator,
             List<MicroserviceUsagePort> usagePorts) {
         this.repository = repository;
         this.settingsValidator = settingsValidator;

@@ -3,6 +3,7 @@ package br.com.portalmanager.platform.workspace;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 
@@ -13,10 +14,10 @@ import java.util.stream.Collectors;
 
 class FeatureCapabilityArchitectureTest {
     private static final String PREFIX = "br.com.portalmanager.platform.workspace.feature.";
-    private final com.tngtech.archunit.core.domain.JavaClasses classes =
+    private final JavaClasses classes =
             new ClassFileImporter()
                     .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-                    .importPackages(PREFIX.substring(0, PREFIX.length() - 1));
+                    .importPackages("br.com.portalmanager.platform.workspace");
 
     @Test
     void featureCapabilitiesHaveOnlyTheApprovedNames() {
@@ -40,22 +41,6 @@ class FeatureCapabilityArchitectureTest {
     void singleDomainLayersAreNotWrappedInRedundantSubpackages() {
         Set<String> packageNames =
                 classes.stream().map(JavaClass::getPackageName).collect(Collectors.toSet());
-        assertThat(packageNames)
-                .noneMatch(
-                        name ->
-                                name.matches(
-                                        ".*\\.entrypoint\\.web\\.parameter\\.parameterkey(?:\\..*)?"))
-                .noneMatch(
-                        name ->
-                                name.matches(
-                                        ".*\\.feature\\.parameter\\.(domain|facade|repository|usecase\\.model|usecase\\.validation)\\.parameterkey(?:\\..*)?"))
-                .noneMatch(
-                        name ->
-                                name.matches(
-                                        ".*\\.feature\\.onboarding\\.(domain|facade|integration|repository|usecase\\.validation)\\.(completion|progress)(?:\\..*)?"))
-                .noneMatch(
-                        name ->
-                                name.matches(
-                                        ".*\\.feature\\.sharing\\.usecase\\.validation\\.participant(?:\\..*)?"));
+        GoldenArchitectureRules.requireNoRedundantWrappers(packageNames);
     }
 }

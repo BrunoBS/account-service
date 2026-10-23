@@ -1,16 +1,15 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice;
 
-import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.microservice.MicroserviceMapper;
-
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.ServiceContextMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.microservice.MicroserviceRepository;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.microservice.projection.MicroserviceReferenceProjection;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.microservice.MicroserviceMapper;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.microservice.MicroserviceOutput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.microservice.MicroserviceReference;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.microservice.MicroserviceValidator;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleFilter;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -137,8 +136,7 @@ public class MicroserviceQueryService {
                 .map(mapper::toOutput);
     }
 
-    private MicroserviceReference toReference(
-            MicroserviceReferenceProjection reference) {
+    private MicroserviceReference toReference(MicroserviceReferenceProjection reference) {
         return new MicroserviceReference(
                 reference.getId(), reference.getIdentifier(), reference.getCode());
     }

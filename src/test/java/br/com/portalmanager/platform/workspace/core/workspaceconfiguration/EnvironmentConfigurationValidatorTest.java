@@ -7,11 +7,11 @@ import static org.mockito.Mockito.*;
 import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.PublisherInput;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.port.PublisherReferencePort;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.port.PublisherReferencePort.PublisherReference;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.port.ResourceScopeTypePort;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.port.SchemaValidationPort;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.validation.WorkspaceEnvironmentConfigurationValidator;
-import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.usecase.ResourceScopeTypeService;
-import br.com.portalmanager.platform.workspace.foundation.integration.PublisherReferencePort;
-import br.com.portalmanager.platform.workspace.foundation.integration.PublisherReferencePort.PublisherReference;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidationAdapter;
 
 import org.junit.jupiter.api.Test;
 
@@ -23,10 +23,10 @@ import java.util.*;
 class EnvironmentConfigurationValidatorTest {
     private final JsonMapper json = JsonMapper.builder().build();
     private final PublisherReferencePort publishers = mock(PublisherReferencePort.class);
-    private final ResourceScopeTypeService scopes = mock(ResourceScopeTypeService.class);
+    private final ResourceScopeTypePort scopes = mock(ResourceScopeTypePort.class);
     private final WorkspaceEnvironmentConfigurationValidator validator =
             new WorkspaceEnvironmentConfigurationValidator(
-                    publishers, mock(SchemaSettingsValidationAdapter.class), scopes);
+                    publishers, mock(SchemaValidationPort.class), scopes);
 
     private PublisherInput input(String code) {
         return new PublisherInput(code, 1, json.createObjectNode());

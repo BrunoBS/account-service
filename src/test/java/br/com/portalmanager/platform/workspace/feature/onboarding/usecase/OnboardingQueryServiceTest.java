@@ -11,8 +11,6 @@ import br.com.portalmanager.platform.library.catalog.dto.CatalogDTO;
 import br.com.portalmanager.platform.library.catalog.exception.CatalogTechnicalException;
 import br.com.portalmanager.platform.library.catalog.message.CatalogMessageKeys;
 import br.com.portalmanager.platform.library.messaging.exception.ApiException;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOnboardingReferenceOutput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.feature.onboarding.domain.OnboardingMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.onboarding.domain.WorkspaceOnboardingCompletion;
 import br.com.portalmanager.platform.workspace.feature.onboarding.repository.WorkspaceOnboardingCompletionRepository;
@@ -21,9 +19,11 @@ import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.phase.OnboardingPhaseStatus;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.progress.OnboardingProgressOutput;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.operations.progress.OnboardingQueryService;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.port.OnboardingPhaseTypePort;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.port.WorkspaceOnboardingPort;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.port.WorkspaceOnboardingPort.WorkspaceOnboardingReference;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation.OnboardingValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.usecase.OnboardingPhaseTypeService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,9 +37,9 @@ import java.util.Map;
 
 class OnboardingQueryServiceTest {
 
-    private final WorkspaceQueryService workspaceQueryService = mock(WorkspaceQueryService.class);
-    private final OnboardingPhaseTypeService phaseCatalogService =
-            mock(OnboardingPhaseTypeService.class);
+    private final WorkspaceOnboardingPort workspaceQueryService =
+            mock(WorkspaceOnboardingPort.class);
+    private final OnboardingPhaseTypePort phaseCatalogService = mock(OnboardingPhaseTypePort.class);
     private final WorkspaceOnboardingCompletionRepository completionRepository =
             mock(WorkspaceOnboardingCompletionRepository.class);
     private final JsonMapper json = JsonMapper.builder().build();
@@ -54,7 +54,7 @@ class OnboardingQueryServiceTest {
     @BeforeEach
     void prepare() {
         when(workspaceQueryService.findOnboardingReference("workspace"))
-                .thenReturn(new WorkspaceOnboardingReferenceOutput(1L, "MANAGER", false));
+                .thenReturn(new WorkspaceOnboardingReference(1L, "MANAGER", false));
         when(phaseCatalogService.findByCodes(anyList()))
                 .thenReturn(phases(json.createObjectNode(), 1, 2, 3, 4));
         when(completionRepository.findByWorkspaceId(1L)).thenReturn(List.of());

@@ -2,7 +2,7 @@ package br.com.portalmanager.platform.workspace.feature.segmentation.usecase.val
 
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.SegmentationMessageKeys;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleFilter;
 
 import org.springframework.data.domain.Pageable;
 

@@ -12,9 +12,11 @@ import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.useca
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.*;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.PublisherInput;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.ResolvedPublisher;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.port.EnvironmentReferencePort;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.port.PhaseCompletionPort;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.validation.WorkspaceEnvironmentConfigurationValidator;
+import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.domain.PublisherTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.EnvironmentReferencePort;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class WorkspaceEnvironmentConfigurationCommandService {
+    private final PhaseCompletionPort phases;
     private final WorkspaceEnvironmentConfigurationRepository repository;
     private final WorkspaceEnvironmentConfigurationPublisherRepository associations;
     private final WorkspaceEnvironmentConfigurationScope scopes;
@@ -39,7 +42,9 @@ public class WorkspaceEnvironmentConfigurationCommandService {
             WorkspaceEnvironmentConfigurationScope scopes,
             EnvironmentReferencePort environments,
             WorkspaceEnvironmentConfigurationValidator validator,
-            WorkspaceEnvironmentConfigurationMapper mapper) {
+            WorkspaceEnvironmentConfigurationMapper mapper,
+            PhaseCompletionPort phases) {
+        this.phases = phases;
         this.repository = repository;
         this.associations = associations;
         this.scopes = scopes;
@@ -56,8 +61,11 @@ public class WorkspaceEnvironmentConfigurationCommandService {
     public WorkspaceEnvironmentConfigurationOutput create(
             String workspaceIdentifier, CreateWorkspaceEnvironmentConfigurationInput input) {
         validator.validateCreateVersion(input.version());
-        WorkspaceEnvironmentConfigurationScope.Scope scope = scopes.resolve(workspaceIdentifier, true);
-        Long environmentId = environments.resolveActiveForUpdate( scope.workspaceId(), input.environmentIdentifier());
+        WorkspaceEnvironmentConfigurationScope.Scope scope =
+                scopes.resolve(workspaceIdentifier, true);
+        Long environmentId =
+                environments.resolveActiveForUpdate(
+                        scope.workspaceId(), input.environmentIdentifier());
         validator.validateSettings(input.settings());
         List<PublisherInput> publisherInput = input.publishers();
         List<ResolvedPublisher> selected = validator.validatePublishers(publisherInput, Set.of());
@@ -69,6 +77,8 @@ public class WorkspaceEnvironmentConfigurationCommandService {
                                 input.settings(),
                                 LocalDateTime.now()));
         persistAssociations(configuration, selected);
+        phases.registerPhaseCompletion(
+                scope.workspaceId(), OnboardingPhaseTypeCode.workspaceFirstEnvironment());
         return mapper.toOutput(workspaceIdentifier, configuration);
     }
 
@@ -82,11 +92,14 @@ public class WorkspaceEnvironmentConfigurationCommandService {
             String identifier,
             UpdateWorkspaceEnvironmentConfigurationInput input) {
 
-        WorkspaceEnvironmentConfigurationScope.Scope scope = scopes.resolve(workspaceIdentifier, true);
-        WorkspaceEnvironmentConfiguration configuration = findConfigurationOrThrow(scope.ownerId(), identifier);
+        WorkspaceEnvironmentConfigurationScope.Scope scope =
+                scopes.resolve(workspaceIdentifier, true);
+        WorkspaceEnvironmentConfiguration configuration =
+                findConfigurationOrThrow(scope.ownerId(), identifier);
         validator.validateUpdateVersion(input.version(), configuration.getVersion());
         Long environmentId = configuration.getEnvironmentId();
-        environments.resolveActiveForUpdate(scope.workspaceId(), environments.resolveIdentifier(environmentId));
+        environments.resolveActiveForUpdate(
+                scope.workspaceId(), environments.resolveIdentifier(environmentId));
         validator.validateSettings(input.settings());
         List<PublisherInput> publisherInput = input.publishers();
         Set<String> existingIds =
@@ -96,7 +109,8 @@ public class WorkspaceEnvironmentConfigurationCommandService {
                         .map(WorkspaceEnvironmentConfigurationPublisher::getPublisherCode)
                         .map(PublisherTypeCode::value)
                         .collect(Collectors.toSet());
-        List<ResolvedPublisher> selected = validator.validatePublishers(publisherInput, existingIds);
+        List<ResolvedPublisher> selected =
+                validator.validatePublishers(publisherInput, existingIds);
         configuration.updateSettings(input.settings(), LocalDateTime.now());
         repository.saveAndFlush(configuration);
         associations.deleteAssociations(configuration.getId());
@@ -111,8 +125,10 @@ public class WorkspaceEnvironmentConfigurationCommandService {
             resourceType = "WORKSPACE_ENVIRONMENT_CONFIGURATION")
     public WorkspaceEnvironmentConfigurationOutput inactivate(
             String workspaceIdentifier, String identifier) {
-        WorkspaceEnvironmentConfigurationScope.Scope scope = scopes.resolve(workspaceIdentifier, true);
-        WorkspaceEnvironmentConfiguration configuration = findConfigurationOrThrow(scope.ownerId(), identifier);
+        WorkspaceEnvironmentConfigurationScope.Scope scope =
+                scopes.resolve(workspaceIdentifier, true);
+        WorkspaceEnvironmentConfiguration configuration =
+                findConfigurationOrThrow(scope.ownerId(), identifier);
         configuration.inactivate(LocalDateTime.now());
         repository.saveAndFlush(configuration);
         return mapper.toOutput(workspaceIdentifier, configuration);
@@ -125,14 +141,17 @@ public class WorkspaceEnvironmentConfigurationCommandService {
             resourceType = "WORKSPACE_ENVIRONMENT_CONFIGURATION")
     public WorkspaceEnvironmentConfigurationOutput quarantine(
             String workspaceIdentifier, String identifier) {
-        WorkspaceEnvironmentConfigurationScope.Scope scope = scopes.resolve(workspaceIdentifier, true);
-        WorkspaceEnvironmentConfiguration configuration = findConfigurationOrThrow(scope.ownerId(), identifier);
+        WorkspaceEnvironmentConfigurationScope.Scope scope =
+                scopes.resolve(workspaceIdentifier, true);
+        WorkspaceEnvironmentConfiguration configuration =
+                findConfigurationOrThrow(scope.ownerId(), identifier);
         configuration.quarantine(LocalDateTime.now());
         repository.saveAndFlush(configuration);
         return mapper.toOutput(workspaceIdentifier, configuration);
     }
 
-    private WorkspaceEnvironmentConfiguration findConfigurationOrThrow(Long ownerId, String identifier) {
+    private WorkspaceEnvironmentConfiguration findConfigurationOrThrow(
+            Long ownerId, String identifier) {
         return repository
                 .findByIdentifierAndWorkspaceId(identifier, ownerId)
                 .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.RESOURCE_NOT_FOUND));

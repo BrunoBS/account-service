@@ -20,7 +20,7 @@ import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.mod
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageCommandService;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageFinder;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.messagetranslator.MessageTranslatorCommandService;
-import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort;
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.port.MicroserviceReferencePort;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -206,7 +207,7 @@ class MessageConcurrencyIT {
                                                         Message parent =
                                                                 finder.findMessageForUpdate(
                                                                         created.identifier());
-                                                        java.util.List<
+                                                        List<
                                                                         MessageTranslatorRepository
                                                                                 .DeletionSnapshot>
                                                                 snapshots =
@@ -243,7 +244,8 @@ class MessageConcurrencyIT {
                     .executeWithoutResult(
                             status -> {
                                 assertThat(
-                                                microservices.findActiveByIdentifier(MICROSERVICE)
+                                                microservices
+                                                        .findActiveByIdentifier(MICROSERVICE)
                                                         .orElseThrow()
                                                         .internalId())
                                         .isPositive();

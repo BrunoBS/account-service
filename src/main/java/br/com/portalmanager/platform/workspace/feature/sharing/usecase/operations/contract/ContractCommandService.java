@@ -3,16 +3,16 @@ package br.com.portalmanager.platform.workspace.feature.sharing.usecase.operatio
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationScopeReferenceOutput;
-import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.ResourceSharingMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.contract.Contract;
 import br.com.portalmanager.platform.workspace.feature.sharing.integration.ResourceSharingReferenceAdapter;
 import br.com.portalmanager.platform.workspace.feature.sharing.repository.contract.ContractRepository;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.mapping.contract.ContractMapper;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.contract.ContractInput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.contract.ContractOutput;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.port.SharingReferencePort;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.port.SharingReferencePort.ApplicationScopeReferenceOutput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.validation.ResourceSharingValidator;
-import br.com.portalmanager.platform.workspace.feature.sharing.usecase.mapping.contract.ContractMapper;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ public class ContractCommandService {
 
     private final ResourceSharingReferenceAdapter referenceResolver;
     private final ContractRepository contractRepository;
-    private final ApplicationQueryService applicationQueryService;
+    private final SharingReferencePort references;
     private final ResourceSharingValidator resourceSharingValidator;
     private final ContractAccessService contractAccessService;
     private final ContractMapper mapper;
@@ -34,13 +34,13 @@ public class ContractCommandService {
     public ContractCommandService(
             ResourceSharingReferenceAdapter referenceResolver,
             ContractRepository contractRepository,
-            ApplicationQueryService applicationQueryService,
+            SharingReferencePort references,
             ResourceSharingValidator resourceSharingValidator,
             ContractAccessService contractAccessService,
             ContractMapper mapper) {
         this.referenceResolver = referenceResolver;
         this.contractRepository = contractRepository;
-        this.applicationQueryService = applicationQueryService;
+        this.references = references;
         this.resourceSharingValidator = resourceSharingValidator;
         this.contractAccessService = contractAccessService;
         this.mapper = mapper;
@@ -146,8 +146,7 @@ public class ContractCommandService {
     public ContractOutput deleteContract(
             String workspaceIdentifier, String applicationIdentifier, String contractIdentifier) {
         ApplicationScopeReferenceOutput ownerApplication =
-                applicationQueryService.findActiveScopeForUpdate(
-                        workspaceIdentifier, applicationIdentifier);
+                references.findActiveScopeForUpdate(workspaceIdentifier, applicationIdentifier);
         Contract contract =
                 contractAccessService.requiredContract(ownerApplication, contractIdentifier);
         if (!LifecycleTypeCode.inactive().equals(contract.getLifecycle()))
@@ -159,5 +158,4 @@ public class ContractCommandService {
                 contract); // FK cascades participantRepository and their mappings.
         return deletedContract;
     }
-
 }

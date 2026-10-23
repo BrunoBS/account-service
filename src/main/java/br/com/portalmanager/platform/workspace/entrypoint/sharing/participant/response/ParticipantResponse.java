@@ -1,10 +1,12 @@
 package br.com.portalmanager.platform.workspace.entrypoint.sharing.participant.response;
 
-import br.com.portalmanager.platform.workspace.entrypoint.environment.response.EnvironmentResponse;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.participant.EnvironmentMapping;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.participant.ParticipantOutput;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.port.SharingReferencePort.EnvironmentOutput;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+
+import tools.jackson.databind.JsonNode;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +22,8 @@ public record ParticipantResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         List<EnvironmentMapping> mappings,
-        @JsonInclude(JsonInclude.Include.NON_NULL) List<EnvironmentResponse> sourceEnvironments) {
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+                List<SourceEnvironmentResponse> sourceEnvironments) {
     public record ContractSummary(
             String identifier,
             String name,
@@ -59,7 +62,41 @@ public record ParticipantResponse(
                 output.sourceEnvironments() == null
                         ? null
                         : output.sourceEnvironments().stream()
-                                .map(EnvironmentResponse::from)
+                                .map(SourceEnvironmentResponse::from)
                                 .toList());
+    }
+
+    public record SourceEnvironmentResponse(
+            Long version,
+            String identifier,
+            String workspaceIdentifier,
+            String name,
+            String description,
+            String authorizationType,
+            String environmentTypeCode,
+            String parentIdentifier,
+            Integer sortOrder,
+            String authorizerGroup,
+            JsonNode settings,
+            String lifecycle,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt) {
+        public static SourceEnvironmentResponse from(EnvironmentOutput output) {
+            return new SourceEnvironmentResponse(
+                    output.version(),
+                    output.identifier(),
+                    output.workspaceIdentifier(),
+                    output.name(),
+                    output.description(),
+                    output.authorizationType(),
+                    output.environmentTypeCode(),
+                    output.parentIdentifier(),
+                    output.sortOrder(),
+                    output.authorizerGroup(),
+                    output.settings(),
+                    output.lifecycle(),
+                    output.createdAt(),
+                    output.updatedAt());
+        }
     }
 }

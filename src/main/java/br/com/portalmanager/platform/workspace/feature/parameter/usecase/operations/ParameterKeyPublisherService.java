@@ -2,28 +2,27 @@ package br.com.portalmanager.platform.workspace.feature.parameter.usecase.operat
 
 import br.com.portalmanager.platform.library.authorization.model.UserContext;
 import br.com.portalmanager.platform.library.authorization.model.UserSession;
-import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.ParameterPublicationStore;
-import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.PublishedParameterValue;
-import br.com.portalmanager.platform.workspace.config.WorkspaceProperties;
-import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort;
-import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort.Reference;
+import br.com.portalmanager.platform.workspace.feature.parameter.config.ParameterProperties;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.ParameterKeyRepository;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.projection.ParameterKeyRuntimeProjection;
-import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.PublishParameterKeysInput;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.ParameterKeyMetadata;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.PublishParameterKeysInput;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.PublishedParameterValue;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.MicroserviceReferencePort;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.MicroserviceReferencePort.Reference;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.ParameterPublicationStore;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.validation.ParameterKeyValidator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -37,20 +36,20 @@ public class ParameterKeyPublisherService {
 
     private final ParameterKeyRepository repository;
     private final MicroserviceReferencePort microservices;
-    private final ObjectProvider<ParameterKeyCommandService> commands;
+    private final ParameterKeyPublicationCommandService commands;
     private final ParameterKeyValidator validator;
     private final ParameterPublicationStore publicationStore;
     private final TaskExecutor executor;
-    private final WorkspaceProperties properties;
+    private final ParameterProperties properties;
 
     public ParameterKeyPublisherService(
             ParameterKeyRepository repository,
             MicroserviceReferencePort microservices,
-            ObjectProvider<ParameterKeyCommandService> commands,
+            ParameterKeyPublicationCommandService commands,
             ParameterKeyValidator validator,
             ParameterPublicationStore publicationStore,
             @Qualifier("applicationTaskExecutor") TaskExecutor executor,
-            WorkspaceProperties properties) {
+            ParameterProperties properties) {
         this.repository = repository;
         this.microservices = microservices;
         this.commands = commands;
@@ -73,7 +72,7 @@ public class ParameterKeyPublisherService {
                         UserContext.set(session);
                         if (context == null) MDC.clear();
                         else MDC.setContextMap(context);
-                        int batchSize = properties.parameter().runtime().batchSize();
+                        int batchSize = properties.runtime().batchSize();
                         for (int start = 0; start < identifiers.size(); start += batchSize) {
                             List<String> published = new ArrayList<>();
                             for (String identifier :
@@ -82,9 +81,7 @@ public class ParameterKeyPublisherService {
                                             Math.min(start + batchSize, identifiers.size()))) {
                                 try {
                                     published.add(
-                                            commands.getObject()
-                                                    .publishIdentifier(identifier)
-                                                    .identifier());
+                                            commands.publishIdentifier(identifier).identifier());
                                 } catch (RuntimeException exception) {
                                     logPublicationFailure(identifier, exception);
                                 }
@@ -103,7 +100,7 @@ public class ParameterKeyPublisherService {
             fixedDelayString = "${workspace.parameter.reconciliation.interval:PT1H}",
             initialDelayString = "${workspace.parameter.reconciliation.interval:PT1H}")
     public void reconcile() {
-        if (!properties.parameter().runtime().enabled()) return;
+        if (!properties.runtime().enabled()) return;
         try {
             long afterId = 0;
             while (true) {
@@ -111,20 +108,21 @@ public class ParameterKeyPublisherService {
                         repository
                                 .findPublishedSnapshots(
                                         afterId,
-                                        PageRequest.of(0, properties.parameter().runtime().batchSize()))
+                                        PageRequest.of(0, properties.runtime().batchSize()))
                                 .getContent();
                 if (page.isEmpty()) return;
                 send(page);
                 afterId = page.getLast().getId();
             }
         } catch (RuntimeException exception) {
-            LOG.error("Falha na reconciliação de parâmetros dinâmicos: errorType={}",
+            LOG.error(
+                    "Falha na reconciliação de parâmetros dinâmicos: errorType={}",
                     exception.getClass().getName());
         }
     }
 
     public void remove(ParameterKeyMetadata parameterKey) {
-        if (!properties.parameter().runtime().enabled()) return;
+        if (!properties.runtime().enabled()) return;
         try {
             publicationStore.remove(parameterKey.fullKey());
         } catch (RuntimeException exception) {
@@ -136,7 +134,7 @@ public class ParameterKeyPublisherService {
     }
 
     private void send(List<ParameterKeyRuntimeProjection> snapshots) {
-        if (!properties.parameter().runtime().enabled() || snapshots.isEmpty()) return;
+        if (!properties.runtime().enabled() || snapshots.isEmpty()) return;
         try {
             Map<Long, Reference> references =
                     microservices.findByInternalIds(

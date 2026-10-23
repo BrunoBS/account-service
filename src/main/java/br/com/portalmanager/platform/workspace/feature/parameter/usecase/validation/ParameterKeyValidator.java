@@ -1,7 +1,5 @@
 package br.com.portalmanager.platform.workspace.feature.parameter.usecase.validation;
 
-import tools.jackson.databind.node.ObjectNode;
-
 import br.com.portalmanager.platform.library.messaging.exception.ConflictException;
 import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
@@ -12,11 +10,12 @@ import br.com.portalmanager.platform.workspace.feature.parameter.domain.Paramete
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.ParameterKeyRepository;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.CreateParameterKeyInput;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.UpdateParameterKeyInput;
-import br.com.portalmanager.platform.workspace.foundation.catalog.parameterkeytype.usecase.ParameterKeyTypeService;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.ParameterKeyTypePort;
 
 import org.springframework.stereotype.Component;
 
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.util.HashSet;
 import java.util.List;
@@ -25,13 +24,13 @@ import java.util.Objects;
 @Component
 public class ParameterKeyValidator {
     private final ParameterKeyRepository repository;
-    private final ParameterKeyTypeService types;
+    private final ParameterKeyTypePort types;
     private final SchemaValidator schemas;
     private final ObjectMapper mapper;
 
     public ParameterKeyValidator(
             ParameterKeyRepository repository,
-            ParameterKeyTypeService types,
+            ParameterKeyTypePort types,
             SchemaValidator schemas,
             ObjectMapper mapper) {
         this.repository = repository;

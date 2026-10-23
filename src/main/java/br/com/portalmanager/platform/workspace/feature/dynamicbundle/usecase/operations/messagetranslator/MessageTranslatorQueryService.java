@@ -3,12 +3,11 @@ package br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.op
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.message.Message;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.messagetranslator.MessageTranslator;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.repository.messagetranslator.MessageTranslatorRepository;
-import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.messagetranslator.MessageTranslatorOutput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.mapping.messagetranslator.MessageTranslatorMapper;
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.messagetranslator.MessageTranslatorOutput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageFinder;
-import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.messagetranslator.MessageTranslatorNormalizer;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.validation.messagetranslator.MessageTranslatorValidator;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

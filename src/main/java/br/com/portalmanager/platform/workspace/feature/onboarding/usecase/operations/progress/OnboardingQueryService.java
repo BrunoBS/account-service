@@ -4,18 +4,18 @@ import br.com.portalmanager.platform.library.catalog.dto.CatalogDTO;
 import br.com.portalmanager.platform.library.catalog.exception.CatalogTechnicalException;
 import br.com.portalmanager.platform.library.catalog.message.CatalogMessageKeys;
 import br.com.portalmanager.platform.library.messaging.exception.ApiException;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOnboardingReferenceOutput;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceQueryService;
 import br.com.portalmanager.platform.workspace.feature.onboarding.domain.OnboardingMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.onboarding.domain.WorkspaceOnboardingCompletion;
 import br.com.portalmanager.platform.workspace.feature.onboarding.repository.WorkspaceOnboardingCompletionRepository;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.mapping.OnboardingProgressMapper;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.phase.OnboardingPhaseOutput;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.phase.OnboardingPhaseStatus;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.progress.OnboardingProgressOutput;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.port.OnboardingPhaseTypePort;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.port.WorkspaceOnboardingPort;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.port.WorkspaceOnboardingPort.WorkspaceOnboardingReference;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation.OnboardingValidator;
-import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.mapping.OnboardingProgressMapper;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.usecase.OnboardingPhaseTypeService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,19 +39,19 @@ public class OnboardingQueryService {
     private static final Comparator<CatalogDTO> PHASE_ORDER =
             Comparator.comparing(CatalogDTO::sortOrder).thenComparing(CatalogDTO::code);
 
-    private final WorkspaceQueryService workspaceQueryService;
-    private final OnboardingPhaseTypeService phaseCatalogService;
+    private final WorkspaceOnboardingPort workspaces;
+    private final OnboardingPhaseTypePort phaseCatalogService;
     private final WorkspaceOnboardingCompletionRepository completionRepository;
     private final OnboardingValidator validator;
     private final OnboardingProgressMapper mapper;
 
     public OnboardingQueryService(
-            WorkspaceQueryService workspaceQueryService,
-            OnboardingPhaseTypeService phaseCatalogService,
+            WorkspaceOnboardingPort workspaces,
+            OnboardingPhaseTypePort phaseCatalogService,
             WorkspaceOnboardingCompletionRepository completionRepository,
             OnboardingValidator validator,
             OnboardingProgressMapper mapper) {
-        this.workspaceQueryService = workspaceQueryService;
+        this.workspaces = workspaces;
         this.phaseCatalogService = phaseCatalogService;
         this.completionRepository = completionRepository;
         this.validator = validator;
@@ -60,8 +60,8 @@ public class OnboardingQueryService {
 
     @Transactional(readOnly = true)
     public OnboardingProgressOutput findProgress(String workspaceIdentifier) {
-        WorkspaceOnboardingReferenceOutput workspace =
-                workspaceQueryService.findOnboardingReference(workspaceIdentifier);
+        WorkspaceOnboardingReference workspace =
+                workspaces.findOnboardingReference(workspaceIdentifier);
         validator.requireSupportedWorkspace(workspace);
 
         List<CatalogDTO> configuredPhases = findConfiguredPhases();
@@ -73,8 +73,11 @@ public class OnboardingQueryService {
                 phaseOutputs.stream()
                         .allMatch(phase -> phase.status() == OnboardingPhaseStatus.COMPLETED);
         return mapper.toOutput(
-                workspaceIdentifier, workspace.workspaceType(), workspace.onboarding(),
-                readyToComplete, phaseOutputs);
+                workspaceIdentifier,
+                workspace.workspaceType(),
+                workspace.onboarding(),
+                readyToComplete,
+                phaseOutputs);
     }
 
     private Map<String, WorkspaceOnboardingCompletion> findCompletionsByPhase(Long workspaceId) {

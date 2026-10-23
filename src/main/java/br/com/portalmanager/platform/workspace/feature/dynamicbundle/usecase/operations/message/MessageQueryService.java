@@ -1,15 +1,13 @@
 package br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message;
 
-import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.mapping.message.MessageMapper;
-import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageNormalizer;
-
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.message.Message;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.repository.message.MessageRepository;
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.mapping.message.MessageMapper;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.MessageOutput;
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.port.MicroserviceReferencePort;
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.port.MicroserviceReferencePort.Reference;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.validation.message.MessageValidator;
-import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort;
-import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort.Reference;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -73,7 +71,9 @@ public class MessageQueryService {
         Long microserviceId =
                 normalizedMicroserviceIdentifier == null
                         ? null
-                        : microservices.findByIdentifier(normalizedMicroserviceIdentifier).internalId();
+                        : microservices
+                                .findByIdentifier(normalizedMicroserviceIdentifier)
+                                .internalId();
 
         Page<Message> messagePage =
                 messageRepository.findFiltered(
@@ -84,7 +84,8 @@ public class MessageQueryService {
                         sortedPageable);
         Set<Long> microserviceIds =
                 messagePage.stream().map(Message::getMicroserviceId).collect(Collectors.toSet());
-        Map<Long, Reference> microserviceReferences = microservices.findByInternalIds(microserviceIds);
+        Map<Long, Reference> microserviceReferences =
+                microservices.findByInternalIds(microserviceIds);
         return messagePage.map(
                 message ->
                         mapper.toOutput(

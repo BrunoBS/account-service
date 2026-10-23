@@ -11,15 +11,17 @@ import br.com.portalmanager.platform.workspace.core.application.usecase.mapping.
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationOutput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.CreateApplicationInput;
 import br.com.portalmanager.platform.workspace.core.application.usecase.model.UpdateApplicationInput;
+import br.com.portalmanager.platform.workspace.core.application.usecase.port.PhaseCompletionPort;
+import br.com.portalmanager.platform.workspace.core.application.usecase.port.WorkspaceReferencePort;
+import br.com.portalmanager.platform.workspace.core.application.usecase.port.WorkspaceReferencePort.ResolvedWorkspace;
 import br.com.portalmanager.platform.workspace.core.application.usecase.validation.ApplicationValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.PhaseCompletionPort;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort.ResolvedWorkspace;
-import java.time.LocalDateTime;
-import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class ApplicationCommandService {
@@ -33,14 +35,13 @@ public class ApplicationCommandService {
     private final PhaseCompletionPort phaseCompletion;
 
     public ApplicationCommandService(
-        ApplicationRepository repository,
-        ApplicationFinder finder,
-        WorkspaceReferencePort workspaces,
-        ApplicationMapper mapper,
-        ApplicationValidator validator,
-        TagManager<ApplicationTag, Application> tags,
-        PhaseCompletionPort phaseCompletion
-    ) {
+            ApplicationRepository repository,
+            ApplicationFinder finder,
+            WorkspaceReferencePort workspaces,
+            ApplicationMapper mapper,
+            ApplicationValidator validator,
+            TagManager<ApplicationTag, Application> tags,
+            PhaseCompletionPort phaseCompletion) {
         this.repository = repository;
         this.finder = finder;
         this.workspaces = workspaces;
@@ -51,46 +52,58 @@ public class ApplicationCommandService {
     }
 
     @Transactional
-    @Auditable(action = AuditAction.CREATE, event = "APPLICATION_CREATED", resourceType = "APPLICATION")
+    @Auditable(
+            action = AuditAction.CREATE,
+            event = "APPLICATION_CREATED",
+            resourceType = "APPLICATION")
     public ApplicationOutput create(String workspaceIdentifier, CreateApplicationInput input) {
         ResolvedWorkspace workspace = workspaces.resolveActiveForUpdate(workspaceIdentifier);
         Long workspaceId = workspace.id();
         validator.validateForCreate(workspace.workspaceType(), workspaceId, input);
 
         boolean firstApplication = !repository.existsByWorkspaceId(workspaceId);
-        Application application = new Application(workspaceId, mapper.toDetails(input), LocalDateTime.now());
+        Application application =
+                new Application(workspaceId, mapper.toDetails(input), LocalDateTime.now());
         Application savedApplication = repository.saveAndFlush(application);
-        List<String> manualTags = tags.createInitialTags(
-            savedApplication,
-            input.tags(),
-            ApplicationSystemTags.resolve(savedApplication, workspaceIdentifier)
-        );
+        List<String> manualTags =
+                tags.createInitialTags(
+                        savedApplication,
+                        input.tags(),
+                        ApplicationSystemTags.resolve(savedApplication, workspaceIdentifier));
 
         if (firstApplication) {
-            phaseCompletion.registerPhaseCompletion(workspaceId, OnboardingPhaseTypeCode.firstApplicationRegistration());
+            phaseCompletion.registerPhaseCompletion(
+                    workspaceId, OnboardingPhaseTypeCode.firstApplicationRegistration());
         }
         return mapper.toOutput(savedApplication, workspaceIdentifier, manualTags);
     }
 
     @Transactional
-    @Auditable(action = AuditAction.UPDATE, event = "APPLICATION_UPDATED", resourceType = "APPLICATION")
-    public ApplicationOutput update(String workspaceIdentifier, String identifier, UpdateApplicationInput input) {
+    @Auditable(
+            action = AuditAction.UPDATE,
+            event = "APPLICATION_UPDATED",
+            resourceType = "APPLICATION")
+    public ApplicationOutput update(
+            String workspaceIdentifier, String identifier, UpdateApplicationInput input) {
         ResolvedWorkspace workspace = workspaces.resolveActive(workspaceIdentifier);
         Long workspaceId = workspace.id();
         Application application = finder.findActiveForUpdate(identifier, workspaceId);
         validator.validateForUpdate(workspace.workspaceType(), application, input);
         application.update(mapper.toDetails(input), LocalDateTime.now());
         Application savedApplication = repository.saveAndFlush(application);
-        List<String> manualTags = tags.reconcileAndReturnManualTags(
-            savedApplication,
-            input.tags(),
-            ApplicationSystemTags.resolve(savedApplication, workspaceIdentifier)
-        );
+        List<String> manualTags =
+                tags.reconcileAndReturnManualTags(
+                        savedApplication,
+                        input.tags(),
+                        ApplicationSystemTags.resolve(savedApplication, workspaceIdentifier));
         return mapper.toOutput(savedApplication, workspaceIdentifier, manualTags);
     }
 
     @Transactional
-    @Auditable(action = AuditAction.DEACTIVATE, event = "APPLICATION_DEACTIVATED", resourceType = "APPLICATION")
+    @Auditable(
+            action = AuditAction.DEACTIVATE,
+            event = "APPLICATION_DEACTIVATED",
+            resourceType = "APPLICATION")
     public ApplicationOutput inactivate(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application application = finder.findActive(identifier, workspaceId);
@@ -101,7 +114,10 @@ public class ApplicationCommandService {
     }
 
     @Transactional
-    @Auditable(action = AuditAction.RESTORE, event = "APPLICATION_RESTORED", resourceType = "APPLICATION")
+    @Auditable(
+            action = AuditAction.RESTORE,
+            event = "APPLICATION_RESTORED",
+            resourceType = "APPLICATION")
     public ApplicationOutput restore(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application application = finder.findInactiveForRestore(identifier, workspaceId);
@@ -112,12 +128,16 @@ public class ApplicationCommandService {
     }
 
     @Transactional
-    @Auditable(action = AuditAction.DELETE, event = "APPLICATION_DELETED", resourceType = "APPLICATION")
+    @Auditable(
+            action = AuditAction.DELETE,
+            event = "APPLICATION_DELETED",
+            resourceType = "APPLICATION")
     public ApplicationOutput delete(String workspaceIdentifier, String identifier) {
         Long workspaceId = workspaces.resolveInternalId(workspaceIdentifier);
         Application application = finder.findInactiveForDeletion(identifier, workspaceId);
         application.quarantine(LocalDateTime.now());
         Application savedApplication = repository.saveAndFlush(application);
-        return mapper.toOutput(savedApplication, workspaceIdentifier, tags.findManual(savedApplication));
+        return mapper.toOutput(
+                savedApplication, workspaceIdentifier, tags.findManual(savedApplication));
     }
 }

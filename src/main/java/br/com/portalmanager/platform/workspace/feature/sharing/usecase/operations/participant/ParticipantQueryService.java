@@ -1,20 +1,19 @@
 package br.com.portalmanager.platform.workspace.feature.sharing.usecase.operations.participant;
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationScopeReferenceOutput;
-import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environment.EnvironmentQueryService;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.ResourceSharingMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.contract.Contract;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.participant.Participant;
 import br.com.portalmanager.platform.workspace.feature.sharing.integration.ResourceSharingReferenceAdapter;
 import br.com.portalmanager.platform.workspace.feature.sharing.repository.participant.ParticipantRepository;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.mapping.participant.ParticipantMapper;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.pagination.ResourceSharingPageInput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.participant.ParticipantOutput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.participant.ParticipantPageOutput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.operations.contract.ContractAccessService;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.port.SharingReferencePort;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.port.SharingReferencePort.ApplicationScopeReferenceOutput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.validation.ResourceSharingValidator;
-import br.com.portalmanager.platform.workspace.feature.sharing.usecase.mapping.participant.ParticipantMapper;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,8 +31,7 @@ public class ParticipantQueryService {
     private final ResourceSharingValidator resourceSharingValidator;
     private final ResourceSharingReferenceAdapter referenceResolver;
     private final ParticipantRepository participantRepository;
-    private final ApplicationQueryService applicationQueryService;
-    private final EnvironmentQueryService environmentQueryService;
+    private final SharingReferencePort references;
     private final ContractAccessService contractAccessService;
     private final ParticipantMapper mapper;
 
@@ -41,15 +39,13 @@ public class ParticipantQueryService {
             ResourceSharingValidator resourceSharingValidator,
             ResourceSharingReferenceAdapter referenceResolver,
             ParticipantRepository participantRepository,
-            ApplicationQueryService applicationQueryService,
-            EnvironmentQueryService environmentQueryService,
+            SharingReferencePort references,
             ContractAccessService contractAccessService,
             ParticipantMapper mapper) {
         this.resourceSharingValidator = resourceSharingValidator;
         this.referenceResolver = referenceResolver;
         this.participantRepository = participantRepository;
-        this.applicationQueryService = applicationQueryService;
-        this.environmentQueryService = environmentQueryService;
+        this.references = references;
         this.contractAccessService = contractAccessService;
         this.mapper = mapper;
     }
@@ -116,14 +112,15 @@ public class ParticipantQueryService {
         }
         return mapper.withSourceEnvironments(
                 output,
-                environmentQueryService.listActiveForShared(
+                references.listActiveForShared(
+                        participant.getParticipantWorkspaceId(),
                         output.participantWorkspaceIdentifier()));
     }
 
     private boolean canListSourceEnvironments(Participant participant) {
         Contract contract = participant.getContract();
         return contract.isActive()
-                && !applicationQueryService
+                && !references
                         .findActiveReferencesForResourceSharing(
                                 List.of(participant.getParticipantApplicationId()))
                         .isEmpty();
@@ -157,7 +154,7 @@ public class ParticipantQueryService {
         ResourceSharingPageInput pagination = resourceSharingValidator.parsePage(page, size);
         resourceSharingValidator.validateParticipantFilters(status, contractIdentifier);
         ApplicationScopeReferenceOutput applicationReference =
-                applicationQueryService.findActiveScope(workspaceIdentifier, applicationIdentifier);
+                references.findActiveScope(workspaceIdentifier, applicationIdentifier);
         Page<Long> participantIds =
                 participantRepository.findParticipantParticipantIds(
                         applicationReference.workspaceId(),
@@ -187,7 +184,7 @@ public class ParticipantQueryService {
             String applicationIdentifier,
             String participantIdentifier) {
         ApplicationScopeReferenceOutput applicationReference =
-                applicationQueryService.findActiveScope(workspaceIdentifier, applicationIdentifier);
+                references.findActiveScope(workspaceIdentifier, applicationIdentifier);
         Participant participant =
                 participantRepository
                         .findByIdentifierAndParticipantWorkspaceIdAndParticipantApplicationId(

@@ -4,19 +4,19 @@ import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationScopeReferenceOutput;
-import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.ResourceSharingMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.contract.Contract;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.participant.Participant;
 import br.com.portalmanager.platform.workspace.feature.sharing.integration.ResourceSharingReferenceAdapter;
 import br.com.portalmanager.platform.workspace.feature.sharing.repository.participant.ParticipantRepository;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.mapping.participant.ParticipantMapper;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.participant.ParticipantConfigurationInput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.participant.ParticipantOutput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.operations.contract.ContractAccessService;
-import br.com.portalmanager.platform.workspace.feature.sharing.usecase.validation.ResourceSharingValidator;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.port.SharingReferencePort;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.port.SharingReferencePort.ApplicationScopeReferenceOutput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.validation.ResourceSharingTransitionPolicy;
-import br.com.portalmanager.platform.workspace.feature.sharing.usecase.mapping.participant.ParticipantMapper;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.validation.ResourceSharingValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain.ShareStatusTypeEnum;
 
 import jakarta.persistence.EntityManager;
@@ -40,7 +40,7 @@ public class ParticipantCommandService {
     private final EntityManager entityManager;
     private final ResourceSharingReferenceAdapter referenceResolver;
     private final ParticipantRepository participantRepository;
-    private final ApplicationQueryService applicationQueryService;
+    private final SharingReferencePort references;
     private final ResourceSharingValidator resourceSharingValidator;
     private final ResourceSharingTransitionPolicy transitionPolicy;
     private final EnvironmentMappingService environmentMappingService;
@@ -51,7 +51,7 @@ public class ParticipantCommandService {
             EntityManager entityManager,
             ResourceSharingReferenceAdapter referenceResolver,
             ParticipantRepository participantRepository,
-            ApplicationQueryService applicationQueryService,
+            SharingReferencePort references,
             ResourceSharingValidator resourceSharingValidator,
             ResourceSharingTransitionPolicy transitionPolicy,
             EnvironmentMappingService environmentMappingService,
@@ -60,7 +60,7 @@ public class ParticipantCommandService {
         this.entityManager = entityManager;
         this.referenceResolver = referenceResolver;
         this.participantRepository = participantRepository;
-        this.applicationQueryService = applicationQueryService;
+        this.references = references;
         this.resourceSharingValidator = resourceSharingValidator;
         this.transitionPolicy = transitionPolicy;
         this.environmentMappingService = environmentMappingService;
@@ -77,7 +77,7 @@ public class ParticipantCommandService {
             String participantApplicationIdentifier,
             String contractIdentifier) {
         ApplicationScopeReferenceOutput participantApplicationReference =
-                applicationQueryService.findActiveScopeForUpdate(
+                references.findActiveScopeForUpdate(
                         participantWorkspaceIdentifier, participantApplicationIdentifier);
         Contract contract = contractAccessService.requiredAvailableContract(contractIdentifier);
         if (contract.getOwnerApplicationId()
@@ -114,7 +114,7 @@ public class ParticipantCommandService {
             String participantApplicationIdentifier,
             String participantIdentifier) {
         ApplicationScopeReferenceOutput participantApplicationReference =
-                applicationQueryService.findActiveScopeForUpdate(
+                references.findActiveScopeForUpdate(
                         participantWorkspaceIdentifier, participantApplicationIdentifier);
         Participant participant =
                 findParticipantParticipant(participantApplicationReference, participantIdentifier);
@@ -182,12 +182,14 @@ public class ParticipantCommandService {
         resourceSharingValidator.validateConfiguration(input);
         String participantWorkspaceIdentifier =
                 referenceResolver.workspaceIdentifier(participant.getParticipantWorkspaceId());
-        applicationQueryService.findActiveScopeForShared(
+        references.findActiveScopeForShared(
                 participant.getParticipantWorkspaceId(), participant.getParticipantApplicationId());
         LocalDateTime configurationTimestamp = LocalDateTime.now();
         participant.configure(
                 mapper.toPublicationMode(input.publicationModeCode()),
                 environmentMappingService.build(
+                        participant.getContract().getOwnerWorkspaceId(),
+                        participant.getParticipantWorkspaceId(),
                         ownerWorkspaceIdentifier,
                         participantWorkspaceIdentifier,
                         input.environmentMappings(),
@@ -244,7 +246,7 @@ public class ParticipantCommandService {
             String participantApplicationIdentifier,
             String participantIdentifier) {
         ApplicationScopeReferenceOutput participantApplicationReference =
-                applicationQueryService.findActiveScopeForUpdate(
+                references.findActiveScopeForUpdate(
                         participantWorkspaceIdentifier, participantApplicationIdentifier);
         Participant participant =
                 requiredParticipantParticipant(

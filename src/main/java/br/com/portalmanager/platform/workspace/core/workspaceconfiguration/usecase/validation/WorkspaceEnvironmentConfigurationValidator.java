@@ -7,12 +7,13 @@ import br.com.portalmanager.platform.library.messaging.validation.ValidationResu
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain.WorkspaceConfigurationMessageKeys;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.PublisherInput;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.ResolvedPublisher;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.port.PublisherReferencePort;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.port.PublisherReferencePort.PublisherReference;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.port.ResourceScopeTypePort;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.port.SchemaValidationPort;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.domain.PublisherTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.usecase.ResourceScopeTypeService;
-import br.com.portalmanager.platform.workspace.foundation.integration.PublisherReferencePort;
-import br.com.portalmanager.platform.workspace.foundation.integration.PublisherReferencePort.PublisherReference;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidationAdapter;
+import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -24,17 +25,17 @@ import java.util.stream.Collectors;
 
 @Component
 public class WorkspaceEnvironmentConfigurationValidator {
-    private static final String SCHEMA_TYPE = "PLATFORM";
+    private static final String SCHEMA_TYPE = SchemaScopeTypeCode.platform().value();
     private static final String SETTINGS_SCHEMA_CODE =
             "workspace-environment-configuration-settings";
-    private final ResourceScopeTypeService scopes;
+    private final ResourceScopeTypePort scopes;
     private final PublisherReferencePort publishers;
-    private final SchemaSettingsValidationAdapter schemas;
+    private final SchemaValidationPort schemas;
 
     public WorkspaceEnvironmentConfigurationValidator(
             PublisherReferencePort publishers,
-            SchemaSettingsValidationAdapter schemas,
-            ResourceScopeTypeService scopes) {
+            SchemaValidationPort schemas,
+            ResourceScopeTypePort scopes) {
         this.scopes = scopes;
         this.publishers = publishers;
         this.schemas = schemas;

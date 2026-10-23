@@ -3,21 +3,25 @@ package br.com.portalmanager.platform.workspace.entrypoint.configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import br.com.portalmanager.platform.library.audit.outbox.AuditOutboxAppender;
 import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.util.*;
 
 @PlatformIntegrationTest
 @WithMySql
 @WithMockAuthorization
-@org.springframework.test.context.TestPropertySource(properties = "platform.audit.enabled=true")
+@TestPropertySource(properties = "platform.audit.enabled=true")
 class EnvironmentConfigurationAuditIT extends EnvironmentConfigurationHttpFixture {
-    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
-    br.com.portalmanager.platform.library.audit.outbox.AuditOutboxAppender auditAppender;
+    @MockitoSpyBean AuditOutboxAppender auditAppender;
 
     @Test
     void auditsSnapshotsAndFlushedVersionsForBothAggregates() {
@@ -70,9 +74,9 @@ class EnvironmentConfigurationAuditIT extends EnvironmentConfigurationHttpFixtur
                             .statusCode(201)
                             .extract()
                             .path("identifier");
-            org.mockito.Mockito.doThrow(new IllegalStateException("Controlled audit test failure"))
+            Mockito.doThrow(new IllegalStateException("Controlled audit test failure"))
                     .when(auditAppender)
-                    .append(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+                    .append(ArgumentMatchers.any(), ArgumentMatchers.any());
             post(base(app), create(ownEnvironment)).statusCode(500);
             Map<String, Object> replacement = update(0);
             replacement.put("publishers", List.of(publisher(appconfig, 1)));
@@ -99,7 +103,31 @@ class EnvironmentConfigurationAuditIT extends EnvironmentConfigurationHttpFixtur
                     id);
             request().delete(base(app) + "/" + id).then().statusCode(500);
             get(base(app) + "/" + id).statusCode(200).body("lifecycle", equalTo("INACTIVE"));
-            org.mockito.Mockito.reset(auditAppender);
+            Mockito.reset(auditAppender);
         }
+    }
+
+    @Test
+    void auditFailureOfTheFirstConfigurationRollsBackItsOnboardingPhase() {
+        Mockito.doThrow(new IllegalStateException("Controlled audit failure"))
+                .when(auditAppender)
+                .append(ArgumentMatchers.any(), ArgumentMatchers.any());
+        for (boolean app : List.of(false, true)) {
+            post(base(app), create(globalEnvironment)).statusCode(500);
+            assertThat(
+                            jdbc.queryForObject(
+                                    "select count(*) from "
+                                            + (app ? "application" : "workspace")
+                                            + "_environment_configurations",
+                                    Integer.class))
+                    .isZero();
+        }
+        assertThat(
+                        jdbc.queryForObject(
+                                "select count(*) from workspace_onboarding_completions where"
+                                        + " workspace_id=?",
+                                Integer.class,
+                                workspaceId()))
+                .isZero();
     }
 }

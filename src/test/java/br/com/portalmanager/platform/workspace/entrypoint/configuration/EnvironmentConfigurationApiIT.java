@@ -3,11 +3,16 @@ package br.com.portalmanager.platform.workspace.entrypoint.configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidationAdapter;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.*;
 
@@ -374,7 +379,8 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
         authorization.reset();
         authorization.allow(
                 session ->
-                        session.groups("USER")
+                        session.userName("conf-adm")
+                                .groups("USER")
                                 .addAuthorizerGroup(
                                         "GRP_WORKSPACE_ADM_PARENT_A", "ADM", "ADM", "PARENT_A")
                                 .addAuthorizerGroup(
@@ -386,7 +392,8 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
         authorization.reset();
         authorization.allow(
                 session ->
-                        session.groups("USER")
+                        session.userName("conf-adm")
+                                .groups("USER")
                                 .addAuthorizerGroup(
                                         "GRP_WORKSPACE_ADM_PARENT_A", "ADM", "ADM", "PARENT_A")
                                 .addAuthorizerGroup(
@@ -417,7 +424,8 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
         authorization.reset();
         authorization.allow(
                 session ->
-                        session.groups("USER")
+                        session.userName("conf-adm")
+                                .groups("USER")
                                 .addAuthorizerGroup(
                                         "GRP_WORKSPACE_DEV_OTHER", "DEV", "DEV", "OTHER"));
         get(base(false)).statusCode(404);
@@ -426,7 +434,8 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
         authorization.reset();
         authorization.allow(
                 session ->
-                        session.groups("USER")
+                        session.userName("conf-adm")
+                                .groups("USER")
                                 .addAuthorizerGroup(
                                         "GRP_WORKSPACE_DEV_PARENT_A", "DEV", "DEV", "PARENT_A"));
         get(base(false)).statusCode(200);
@@ -434,11 +443,59 @@ class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture 
         authorization.reset();
         authorization.allow(
                 session ->
-                        session.groups("USER")
+                        session.userName("conf-adm")
+                                .groups("USER")
                                 .addAuthorizerGroup(
                                         "GRP_WORKSPACE_DEV_PARENT_A", "DEV", "DEV", "PARENT_A")
                                 .addAuthorizerGroup(
                                         "GRP_APPLICATION_DEV_TEAM_A", "DEV", "DEV", "A-TEAM_A"));
         get(base(true) + "/" + applicationConfig).statusCode(200);
+    }
+
+    @Autowired SchemaSettingsValidationAdapter programmaticSchemas;
+    @Autowired ObjectMapper jsonMapper;
+
+    @Test
+    void programmaticSettingsAndHttpAgreeOnUuidFormatsForBothAggregates() {
+        String definition =
+                "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"identifier\"],\"additionalProperties\":false,\"properties\":{\"identifier\":{\"type\":\"string\",\"format\":\"uuid\"}}}";
+        for (boolean app : List.of(false, true)) {
+            String code =
+                    (app ? "application" : "workspace") + "-environment-configuration-settings";
+            jdbc.update(
+                    "insert into"
+                        + " schema_versions(identifier,schema_id,schema_version,version_name,definition,status,created_at)"
+                        + " select uuid(),id,2,'Format parity',?,'PUBLISHED',now() from"
+                        + " schema_definitions where scope_code='PLATFORM' and code=?",
+                    definition,
+                    code);
+            ValidationResult errors = new ValidationResult();
+            programmaticSchemas.validate(
+                    "PLATFORM",
+                    code,
+                    "settings",
+                    jsonMapper.createObjectNode().put("identifier", "invalid-uuid"),
+                    errors);
+            assertThat(errors.hasErrors()).isTrue();
+            assertThat(errors.getDetails())
+                    .singleElement()
+                    .satisfies(
+                            detail -> assertThat(detail.field()).isEqualTo("settings.identifier"));
+            Map<String, Object> input = create(globalEnvironment);
+            input.put("settings", Map.of("identifier", "invalid-uuid"));
+            post(base(app), input)
+                    .statusCode(400)
+                    .body("details.field", hasItem("settings.identifier"));
+            input.put("settings", Map.of("identifier", globalEnvironment));
+            ValidationResult valid = new ValidationResult();
+            programmaticSchemas.validate(
+                    "PLATFORM",
+                    code,
+                    "settings",
+                    jsonMapper.valueToTree(input.get("settings")),
+                    valid);
+            assertThat(valid.hasErrors()).isFalse();
+            post(base(app), input).statusCode(201);
+        }
     }
 }

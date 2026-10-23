@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.operations;
 
-import br.com.portalmanager.platform.workspace.foundation.integration.ApplicationReferencePort;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.ApplicationReferencePort;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.WorkspaceReferencePort;
 
 import org.springframework.stereotype.Component;
 

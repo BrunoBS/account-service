@@ -14,16 +14,17 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.Appr
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOutput;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.port.PhaseCompletionPort;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
-import br.com.portalmanager.platform.workspace.foundation.integration.PhaseCompletionPort;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class WorkspaceCommandService {
@@ -36,13 +37,12 @@ public class WorkspaceCommandService {
     private final PhaseCompletionPort phaseCompletion;
 
     public WorkspaceCommandService(
-        WorkspaceRepository repository,
-        WorkspaceFinder finder,
-        WorkspaceValidator validator,
-        WorkspaceMapper mapper,
-        TagManager<WorkspaceTag, Workspace> tags,
-        PhaseCompletionPort phaseCompletion
-    ) {
+            WorkspaceRepository repository,
+            WorkspaceFinder finder,
+            WorkspaceValidator validator,
+            WorkspaceMapper mapper,
+            TagManager<WorkspaceTag, Workspace> tags,
+            PhaseCompletionPort phaseCompletion) {
         this.repository = repository;
         this.finder = finder;
         this.validator = validator;
@@ -57,16 +57,15 @@ public class WorkspaceCommandService {
         validator.validateForCreate(input);
         WorkspaceDetails details = mapper.toDetails(input);
         Workspace workspace = new Workspace(details, LocalDateTime.now());
-        input.approvers().forEach(approver -> workspace.addApprover(approver.functional(), approver.email()));
+        input.approvers()
+                .forEach(
+                        approver -> workspace.addApprover(approver.functional(), approver.email()));
         Workspace savedWorkspace = repository.saveAndFlush(workspace);
-        List<String> manualTags = tags.createInitialTags(
-            savedWorkspace,
-            input.tags(),
-            WorkspaceSystemTags.resolve(savedWorkspace)
-        );
-        if (WorkspaceTypeEnum.MANAGER.name().equals(savedWorkspace.getWorkspaceType().value())) {
-            phaseCompletion.registerPhaseCompletion(savedWorkspace.getId(), OnboardingPhaseTypeCode.workspaceRegistration());
-        }
+        List<String> manualTags =
+                tags.createInitialTags(
+                        savedWorkspace, input.tags(), WorkspaceSystemTags.resolve(savedWorkspace));
+        phaseCompletion.registerPhaseCompletion(
+                savedWorkspace.getId(), OnboardingPhaseTypeCode.workspaceRegistration());
         return mapper.toOutput(savedWorkspace, manualTags);
     }
 
@@ -88,16 +87,17 @@ public class WorkspaceCommandService {
         reconcileApprovers(workspace, input.approvers());
 
         Workspace savedWorkspace = repository.saveAndFlush(workspace);
-        List<String> manualTags = tags.reconcileAndReturnManualTags(
-            savedWorkspace,
-            input.tags(),
-            WorkspaceSystemTags.resolve(savedWorkspace)
-        );
+        List<String> manualTags =
+                tags.reconcileAndReturnManualTags(
+                        savedWorkspace, input.tags(), WorkspaceSystemTags.resolve(savedWorkspace));
         return mapper.toOutput(savedWorkspace, manualTags);
     }
 
     @Transactional
-    @Auditable(action = AuditAction.DEACTIVATE, event = "WORKSPACE_DEACTIVATED", resourceType = "WORKSPACE")
+    @Auditable(
+            action = AuditAction.DEACTIVATE,
+            event = "WORKSPACE_DEACTIVATED",
+            resourceType = "WORKSPACE")
     public WorkspaceOutput inactivate(String identifier) {
         Workspace workspace = finder.findActive(identifier);
         workspace.inactivate(LocalDateTime.now());
@@ -106,7 +106,10 @@ public class WorkspaceCommandService {
     }
 
     @Transactional
-    @Auditable(action = AuditAction.RESTORE, event = "WORKSPACE_RESTORED", resourceType = "WORKSPACE")
+    @Auditable(
+            action = AuditAction.RESTORE,
+            event = "WORKSPACE_RESTORED",
+            resourceType = "WORKSPACE")
     public WorkspaceOutput restore(String identifier) {
         Workspace workspace = finder.findInactiveForRestore(identifier);
         List<String> manualTags = tags.findManual(workspace);
@@ -127,7 +130,8 @@ public class WorkspaceCommandService {
     private void reconcileApprovers(Workspace workspace, List<ApproverInput> requestedApprovers) {
         Map<ApproverKey, ApproverInput> pendingApprovers = new LinkedHashMap<>();
         for (ApproverInput approver : requestedApprovers) {
-            pendingApprovers.put(new ApproverKey(approver.functional(), approver.email()), approver);
+            pendingApprovers.put(
+                    new ApproverKey(approver.functional(), approver.email()), approver);
         }
         boolean removedApprovers = false;
         for (WorkspaceApprover approver : List.copyOf(workspace.getApprovers())) {
@@ -139,7 +143,10 @@ public class WorkspaceCommandService {
         }
         // Release unique functional/email values before inserting replacements (including swaps).
         if (removedApprovers) repository.flush();
-        pendingApprovers.values().forEach(approver -> workspace.addApprover(approver.functional(), approver.email()));
+        pendingApprovers
+                .values()
+                .forEach(
+                        approver -> workspace.addApprover(approver.functional(), approver.email()));
     }
 
     private record ApproverKey(String functional, String email) {}

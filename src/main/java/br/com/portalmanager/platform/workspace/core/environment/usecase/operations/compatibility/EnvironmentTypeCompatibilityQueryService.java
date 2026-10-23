@@ -3,13 +3,15 @@ package br.com.portalmanager.platform.workspace.core.environment.usecase.operati
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.core.environment.domain.EnvironmentMessageKeys;
 import br.com.portalmanager.platform.workspace.core.environment.repository.compatibility.EnvironmentTypeCompatibilityRepository;
-import br.com.portalmanager.platform.workspace.core.environment.usecase.model.compatibility.EnvironmentCompatibilityOutput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.mapping.compatibility.EnvironmentCompatibilityMapper;
+import br.com.portalmanager.platform.workspace.core.environment.usecase.model.compatibility.EnvironmentCompatibilityOutput;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleFilter;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
-import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class EnvironmentTypeCompatibilityQueryService {
@@ -18,27 +20,28 @@ public class EnvironmentTypeCompatibilityQueryService {
     private final EnvironmentCompatibilityMapper mapper;
 
     public EnvironmentTypeCompatibilityQueryService(
-        EnvironmentTypeCompatibilityRepository repository,
-        EnvironmentCompatibilityMapper mapper
-    ) {
+            EnvironmentTypeCompatibilityRepository repository,
+            EnvironmentCompatibilityMapper mapper) {
         this.repository = repository;
         this.mapper = mapper;
     }
 
     @Transactional(readOnly = true)
     public EnvironmentCompatibilityOutput find(String identifier) {
-        return repository.findByIdentifier(identifier)
-            .map(mapper::toOutput)
-            .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.COMPATIBILITY_NOT_FOUND));
+        return repository
+                .findByIdentifier(identifier)
+                .map(mapper::toOutput)
+                .orElseThrow(
+                        () ->
+                                new NotFoundException(
+                                        EnvironmentMessageKeys.COMPATIBILITY_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
     public List<EnvironmentCompatibilityOutput> list(String lifecycle) {
         LifecycleTypeCode effectiveLifecycle = LifecycleFilter.resolve(lifecycle);
-        return repository
-            .findByLifecycleOrderByIdAsc(effectiveLifecycle)
-            .stream()
-            .map(mapper::toOutput)
-            .toList();
+        return repository.findByLifecycleOrderByIdAsc(effectiveLifecycle).stream()
+                .map(mapper::toOutput)
+                .toList();
     }
 }

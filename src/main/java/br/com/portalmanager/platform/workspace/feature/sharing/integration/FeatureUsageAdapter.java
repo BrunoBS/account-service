@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.sharing.integration;
 
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.port.FeatureUsagePort;
 import br.com.portalmanager.platform.workspace.feature.sharing.repository.contract.ContractRepository;
-import br.com.portalmanager.platform.workspace.foundation.integration.FeatureUsagePort;
 
 import org.springframework.stereotype.Component;
 

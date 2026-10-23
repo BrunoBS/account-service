@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.sharing.repository.participant;
 
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.participant.Participant;
+import br.com.portalmanager.platform.workspace.feature.sharing.repository.contract.ContractRepository.ApplicationLink;
 
 import jakarta.persistence.LockModeType;
 
@@ -17,6 +18,23 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ParticipantRepository extends JpaRepository<Participant, Long> {
+    @Query(
+            "select distinct p.participantApplicationId as applicationId, p.participantWorkspaceId"
+                    + " as workspaceId from Participant p where p.participantApplicationId in :ids")
+    List<ApplicationLink> findApplicationLinks(@Param("ids") Collection<Long> ids);
+
+    boolean existsByParticipantWorkspaceId(Long workspaceId);
+
+    @Query(
+            "select distinct mapping.sourceEnvironmentId from Participant p join p.mappings mapping"
+                    + " where mapping.sourceEnvironmentId in :ids")
+    List<Long> findSourceEnvironmentLinks(@Param("ids") Collection<Long> ids);
+
+    @Query(
+            "select distinct mapping.destinationEnvironmentId from Participant p join p.mappings"
+                    + " mapping where mapping.destinationEnvironmentId in :ids")
+    List<Long> findDestinationEnvironmentLinks(@Param("ids") Collection<Long> ids);
+
     Optional<Participant> findByIdentifier(String identifier);
 
     Optional<Participant> findByIdentifierAndContractIdentifier(

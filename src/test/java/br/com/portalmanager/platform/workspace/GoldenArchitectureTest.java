@@ -9,8 +9,10 @@ import br.com.portalmanager.platform.library.authorization.annotation.Authorizat
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -23,8 +25,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 class GoldenArchitectureTest {
@@ -39,7 +43,7 @@ class GoldenArchitectureTest {
     private static final Set<String> RESERVED_CATALOG_SEGMENTS =
             Set.of("domain", "usecase", "repository", "facade");
 
-    private final com.tngtech.archunit.core.domain.JavaClasses classes =
+    private final JavaClasses classes =
             new ClassFileImporter()
                     .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                     .importPackages(ROOT);
@@ -265,23 +269,29 @@ class GoldenArchitectureTest {
 
     @Test
     void featureAndGroupCommandsMustDelegateAssociationManagementToItsOwnFlow() {
-        noClasses()
-                .that()
-                .haveFullyQualifiedName(
-                        ROOT
-                                + ".feature.servicecontext.usecase.operations.feature.FeatureCommandService")
-                .or()
-                .haveFullyQualifiedName(
-                        ROOT
-                                + ".feature.servicecontext.usecase.operations.featuregroup.FeatureGroupCommandService")
-                .should()
-                .dependOnClassesThat()
-                .resideInAnyPackage(
-                        ROOT
-                                + ".feature.servicecontext.usecase.operations.featuregroup.FeatureGroupAssociation*",
-                        ROOT
-                                + ".feature.servicecontext.repository.featuregroup.FeatureGroupRelation*")
-                .check(classes);
+        assertThat(
+                        classes.stream()
+                                .filter(
+                                        type ->
+                                                type.getName()
+                                                        .matches(
+                                                                GoldenArchitectureRules
+                                                                        .ASSOCIATIONS)))
+                .isNotEmpty();
+        DescribedPredicate<JavaClass> commands =
+                DescribedPredicate.describe(
+                        "feature and group commands",
+                        type ->
+                                type.getName()
+                                                .equals(
+                                                        ROOT
+                                                                + ".feature.servicecontext.usecase.operations.feature.FeatureCommandService")
+                                        || type.getName()
+                                                .equals(
+                                                        ROOT
+                                                                + ".feature.servicecontext.usecase.operations.featuregroup.FeatureGroupCommandService"));
+        assertThat(classes.stream().filter(commands)).hasSize(2);
+        GoldenArchitectureRules.associationRule(commands).check(classes);
     }
 
     @Test
@@ -359,17 +369,24 @@ class GoldenArchitectureTest {
 
     @Test
     void everyPublicFacadeOperationMustDeclareAuthorization() {
-        List<Method> operations = classes.stream()
-                .filter(c -> c.getPackageName().endsWith(".facade")
-                        || c.getPackageName().contains(".facade."))
-                .map(JavaClass::reflect)
-                .flatMap(c -> Arrays.stream(c.getDeclaredMethods()))
-                .filter(m -> java.lang.reflect.Modifier.isPublic(m.getModifiers()))
-                .filter(m -> !m.isSynthetic())
-                .toList();
-        assertThat(operations).isNotEmpty().allSatisfy(method ->
-                assertThat(method.isAnnotationPresent(AuthorizationRequired.class))
-                        .as(method.toGenericString()).isTrue());
+        List<Method> operations =
+                classes.stream()
+                        .filter(
+                                c ->
+                                        c.getPackageName().endsWith(".facade")
+                                                || c.getPackageName().contains(".facade."))
+                        .map(JavaClass::reflect)
+                        .flatMap(c -> Arrays.stream(c.getDeclaredMethods()))
+                        .filter(m -> Modifier.isPublic(m.getModifiers()))
+                        .filter(m -> !m.isSynthetic())
+                        .toList();
+        assertThat(operations)
+                .isNotEmpty()
+                .allSatisfy(
+                        method ->
+                                assertThat(method.isAnnotationPresent(AuthorizationRequired.class))
+                                        .as(method.toGenericString())
+                                        .isTrue());
     }
 
     @Test
@@ -431,8 +448,18 @@ class GoldenArchitectureTest {
                 .that()
                 .resideInAPackage(ROOT + ".core.applicationconfiguration..")
                 .should()
-                .dependOnClassesThat()
-                .resideInAPackage(ROOT + ".core.workspaceconfiguration..")
+                .dependOnClassesThat(
+                        DescribedPredicate.describe(
+                                "other configuration internals",
+                                type ->
+                                        type.getPackageName()
+                                                        .startsWith(
+                                                                ROOT
+                                                                        + ".core.workspaceconfiguration.")
+                                                && !type.getPackageName()
+                                                        .startsWith(
+                                                                ROOT
+                                                                        + ".core.workspaceconfiguration.usecase.port")))
                 .check(classes);
     }
 
@@ -442,8 +469,18 @@ class GoldenArchitectureTest {
                 .that()
                 .resideInAPackage(ROOT + ".core.workspaceconfiguration..")
                 .should()
-                .dependOnClassesThat()
-                .resideInAPackage(ROOT + ".core.applicationconfiguration..")
+                .dependOnClassesThat(
+                        DescribedPredicate.describe(
+                                "other configuration internals",
+                                type ->
+                                        type.getPackageName()
+                                                        .startsWith(
+                                                                ROOT
+                                                                        + ".core.applicationconfiguration.")
+                                                && !type.getPackageName()
+                                                        .startsWith(
+                                                                ROOT
+                                                                        + ".core.applicationconfiguration.usecase.port")))
                 .check(classes);
     }
 
@@ -534,7 +571,7 @@ class GoldenArchitectureTest {
                     classes.get(
                             ROOT
                                     + ".entrypoint."
-                                    + owner.toLowerCase(java.util.Locale.ROOT)
+                                    + owner.toLowerCase(Locale.ROOT)
                                     + "configuration."
                                     + owner
                                     + "EnvironmentConfigurationController");
@@ -548,7 +585,7 @@ class GoldenArchitectureTest {
                                     name.startsWith(
                                             ROOT
                                                     + ".core."
-                                                    + owner.toLowerCase(java.util.Locale.ROOT)
+                                                    + owner.toLowerCase(Locale.ROOT)
                                                     + "configuration."));
         }
     }

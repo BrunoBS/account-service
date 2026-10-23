@@ -5,11 +5,11 @@ import br.com.portalmanager.platform.library.authorization.model.UserSession;
 import br.com.portalmanager.platform.library.catalog.dto.CatalogDTO;
 import br.com.portalmanager.platform.library.messaging.exception.ApiException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.WorkspaceOnboardingReferenceOutput;
 import br.com.portalmanager.platform.workspace.feature.onboarding.domain.OnboardingMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.progress.OnboardingProgressOutput;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.port.OnboardingPhaseTypePort;
+import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.port.WorkspaceOnboardingPort.WorkspaceOnboardingReference;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.domain.OnboardingPhaseTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.usecase.OnboardingPhaseTypeService;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 
 import org.springframework.stereotype.Component;
@@ -23,13 +23,13 @@ public class OnboardingValidator {
 
     private static final int REQUESTER_MAX_LENGTH = 10;
 
-    private final OnboardingPhaseTypeService phaseCatalogService;
+    private final OnboardingPhaseTypePort phaseCatalogService;
 
-    public OnboardingValidator(OnboardingPhaseTypeService phaseCatalogService) {
+    public OnboardingValidator(OnboardingPhaseTypePort phaseCatalogService) {
         this.phaseCatalogService = phaseCatalogService;
     }
 
-    public void requireSupportedWorkspace(WorkspaceOnboardingReferenceOutput workspace) {
+    public void requireSupportedWorkspace(WorkspaceOnboardingReference workspace) {
         if (!WorkspaceTypeCode.manager().value().equals(workspace.workspaceType())) {
             throw new ValidationException(OnboardingMessageKeys.WORKSPACE_TYPE_NOT_SUPPORTED);
         }

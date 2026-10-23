@@ -83,7 +83,7 @@ abstract class EnvironmentConfigurationHttpFixture {
         for (String code : List.of("WEB_SOCKET", "KAFKA", "APP_CONFIG"))
             jdbc.update(
                     "insert into publishers(code,label,sort_order,is_active,settings) values"
-                        + " (?,?,1,true,?)",
+                            + " (?,?,1,true,?)",
                     code,
                     code,
                     "{\"scope\":\""
@@ -94,7 +94,7 @@ abstract class EnvironmentConfigurationHttpFixture {
 
     void ownerAccess() {
         authorization.reset();
-        authorization.allow(session -> session.userName("configuration-user").groups("PM5_OWNER"));
+        authorization.allow(session -> session.userName("conf-user").groups("PM5_OWNER"));
     }
 
     Long workspaceId() {

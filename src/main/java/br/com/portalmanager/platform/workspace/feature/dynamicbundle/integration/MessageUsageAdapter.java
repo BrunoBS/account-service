@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.dynamicbundle.integration;
 
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.repository.message.MessageRepository;
-import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceUsagePort;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.port.MicroserviceUsagePort;
 
 import org.springframework.stereotype.Component;
 

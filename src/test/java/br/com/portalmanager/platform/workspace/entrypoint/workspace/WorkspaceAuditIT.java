@@ -61,7 +61,7 @@ class WorkspaceAuditIT {
         authorizationMock.allow(session ->
             session
                 .groups("PM5_OWNER")
-                .userName("golden-auditor")
+                .userName("auditor")
                 .accountId("audit-account")
                 .applicationId("audit-application")
                 .environmentId("audit-environment")
@@ -99,7 +99,7 @@ class WorkspaceAuditIT {
         assertThat(jsonValues("$.resourceType")).containsOnly("WORKSPACE");
         assertThat(jsonValues("$.resourceIdentifier")).containsOnly(identifier);
         assertThat(jsonValues("$.service")).containsOnly("workspace-service");
-        assertThat(jsonValues("$.username")).containsOnly("golden-auditor");
+        assertThat(jsonValues("$.username")).containsOnly("auditor");
         assertThat(jsonValues("$.correlationId")).containsOnly("audit-trace");
         List<String> deactivationSnapshots = jdbcTemplate.queryForList(
             "SELECT CAST(payload AS CHAR) FROM audit_outbox WHERE JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.eventType')) = 'WORKSPACE_DEACTIVATED' ORDER BY id",

@@ -7,37 +7,39 @@ import br.com.portalmanager.platform.library.messaging.validation.ValidationResu
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.domain.ApplicationConfigurationMessageKeys;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.PublisherInput;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.ResolvedPublisher;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.PublisherReferencePort;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.PublisherReferencePort.PublisherReference;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.ResourceScopeTypePort;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.SchemaValidationPort;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.domain.PublisherTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.domain.ResourceScopeTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.resourcescopetype.usecase.ResourceScopeTypeService;
-import br.com.portalmanager.platform.workspace.foundation.integration.PublisherReferencePort;
-import br.com.portalmanager.platform.workspace.foundation.integration.PublisherReferencePort.PublisherReference;
-import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidationAdapter;
+import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 public class ApplicationEnvironmentConfigurationValidator {
-    private static final String SCHEMA_TYPE = "PLATFORM";
+    private static final String SCHEMA_TYPE = SchemaScopeTypeCode.platform().value();
     private static final String SETTINGS_SCHEMA_CODE =
             "application-environment-configuration-settings";
     private final ObjectMapper objectMapper;
-    private final ResourceScopeTypeService scopes;
+    private final ResourceScopeTypePort scopes;
     private final PublisherReferencePort publishers;
-    private final SchemaSettingsValidationAdapter schemas;
+    private final SchemaValidationPort schemas;
 
     public ApplicationEnvironmentConfigurationValidator(
             PublisherReferencePort publishers,
-            SchemaSettingsValidationAdapter schemas,
+            SchemaValidationPort schemas,
             ObjectMapper objectMapper,
-            ResourceScopeTypeService scopes) {
+            ResourceScopeTypePort scopes) {
         this.objectMapper = objectMapper;
         this.scopes = scopes;
         this.publishers = publishers;
@@ -114,7 +116,7 @@ public class ApplicationEnvironmentConfigurationValidator {
             Long version,
             JsonNode settings,
             List<PublisherInput> publishers) {
-        tools.jackson.databind.node.ObjectNode request = objectMapper.createObjectNode();
+        ObjectNode request = objectMapper.createObjectNode();
         if (version == null) request.put("environmentIdentifier", environmentIdentifier);
         else request.put("version", version);
         request.set("settings", settings);

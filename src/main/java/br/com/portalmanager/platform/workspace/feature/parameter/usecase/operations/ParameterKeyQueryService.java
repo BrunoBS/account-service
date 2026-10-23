@@ -4,11 +4,11 @@ import br.com.portalmanager.platform.library.messaging.exception.NotFoundExcepti
 import br.com.portalmanager.platform.workspace.feature.parameter.domain.ParameterKeyMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.ParameterKeyRepository;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.projection.ParameterKeyReadProjection;
-import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.ParameterKeyOutput;
-import br.com.portalmanager.platform.workspace.feature.parameter.usecase.validation.ParameterKeyQueryValidation;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.mapping.ParameterKeyMapper;
-import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort;
-import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort.Reference;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.ParameterKeyOutput;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.MicroserviceReferencePort;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.MicroserviceReferencePort.Reference;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.validation.ParameterKeyQueryValidation;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,9 +40,14 @@ public class ParameterKeyQueryService {
     @Transactional(readOnly = true)
     public ParameterKeyOutput findByIdentifier(String identifier) {
         ParameterKeyReadProjection resource =
-                repository.findProjection(identifier).orElseThrow(() -> new NotFoundException(ParameterKeyMessageKeys.NOT_FOUND));
-        Reference reference = microservices.findByInternalIds(
-                List.of(resource.getMicroserviceId())).get(resource.getMicroserviceId());
+                repository
+                        .findProjection(identifier)
+                        .orElseThrow(
+                                () -> new NotFoundException(ParameterKeyMessageKeys.NOT_FOUND));
+        Reference reference =
+                microservices
+                        .findByInternalIds(List.of(resource.getMicroserviceId()))
+                        .get(resource.getMicroserviceId());
         return mapper.toOutput(resource, reference);
     }
 
@@ -81,6 +86,7 @@ public class ParameterKeyQueryService {
                         .collect(Collectors.toSet());
         Map<Long, Reference> references = microservices.findByInternalIds(ids);
         return page.map(
-                resource -> mapper.toOutput(resource, references.get(resource.getMicroserviceId())));
+                resource ->
+                        mapper.toOutput(resource, references.get(resource.getMicroserviceId())));
     }
 }

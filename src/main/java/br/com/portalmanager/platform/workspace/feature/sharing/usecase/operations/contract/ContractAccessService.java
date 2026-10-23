@@ -2,12 +2,12 @@ package br.com.portalmanager.platform.workspace.feature.sharing.usecase.operatio
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationScopeReferenceOutput;
-import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.ResourceSharingMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.contract.Contract;
 import br.com.portalmanager.platform.workspace.feature.sharing.integration.ResourceSharingReferenceAdapter;
 import br.com.portalmanager.platform.workspace.feature.sharing.repository.contract.ContractRepository;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.port.SharingReferencePort;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.port.SharingReferencePort.ApplicationScopeReferenceOutput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.validation.ResourceSharingValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 
@@ -20,25 +20,24 @@ public class ContractAccessService {
 
     private final ResourceSharingReferenceAdapter referenceResolver;
     private final ContractRepository contractRepository;
-    private final ApplicationQueryService applicationQueryService;
+    private final SharingReferencePort references;
     private final ResourceSharingValidator resourceSharingValidator;
 
     public ContractAccessService(
             ResourceSharingReferenceAdapter referenceResolver,
             ContractRepository contractRepository,
-            ApplicationQueryService applicationQueryService,
+            SharingReferencePort references,
             ResourceSharingValidator resourceSharingValidator) {
         this.referenceResolver = referenceResolver;
         this.contractRepository = contractRepository;
-        this.applicationQueryService = applicationQueryService;
+        this.references = references;
         this.resourceSharingValidator = resourceSharingValidator;
     }
 
     public ApplicationScopeReferenceOutput requiredSharedOwnerApplication(
             String workspaceIdentifier, String applicationIdentifier) {
         ApplicationScopeReferenceOutput ownerApplication =
-                applicationQueryService.findActiveScopeForUpdate(
-                        workspaceIdentifier, applicationIdentifier);
+                references.findActiveScopeForUpdate(workspaceIdentifier, applicationIdentifier);
         resourceSharingValidator.validateContractOwnerApplication(
                 ownerApplication.applicationScope());
         return ownerApplication;
@@ -80,7 +79,7 @@ public class ContractAccessService {
 
     public void requireActiveContractOwner(Contract contract) {
         ApplicationScopeReferenceOutput ownerApplication =
-                applicationQueryService.findActiveScopeForShared(
+                references.findActiveScopeForShared(
                         contract.getOwnerWorkspaceId(), contract.getOwnerApplicationId());
         resourceSharingValidator.validateContractOwnerApplication(
                 ownerApplication.applicationScope());
@@ -89,7 +88,7 @@ public class ContractAccessService {
     public Contract findOwnedContract(
             String workspaceIdentifier, String applicationIdentifier, String contractIdentifier) {
         return findOwnedContract(
-                applicationQueryService.findActiveScope(workspaceIdentifier, applicationIdentifier),
+                references.findActiveScope(workspaceIdentifier, applicationIdentifier),
                 contractIdentifier);
     }
 

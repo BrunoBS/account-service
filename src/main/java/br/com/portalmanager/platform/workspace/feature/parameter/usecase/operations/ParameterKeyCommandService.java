@@ -2,27 +2,22 @@ package br.com.portalmanager.platform.workspace.feature.parameter.usecase.operat
 
 import br.com.portalmanager.platform.library.audit.annotation.Auditable;
 import br.com.portalmanager.platform.library.audit.model.AuditAction;
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.feature.parameter.domain.ParameterKey;
 import br.com.portalmanager.platform.workspace.feature.parameter.domain.ParameterKeyMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.ParameterKeyRepository;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.mapping.ParameterKeyMapper;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.CreateParameterKeyInput;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.ParameterKeyMetadata;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.UpdateParameterKeyInput;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.MicroserviceReferencePort;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.MicroserviceReferencePort.Reference;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.validation.ParameterKeyValidator;
-import br.com.portalmanager.platform.workspace.feature.parameter.usecase.mapping.ParameterKeyMapper;
-import br.com.portalmanager.platform.workspace.foundation.catalog.parameterkeytype.domain.ParameterKeyTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort;
-import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort.Reference;
-
-import jakarta.persistence.EntityManager;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -32,7 +27,7 @@ import java.util.List;
 @Service
 public class ParameterKeyCommandService {
     private final ParameterKeyRepository repository;
-    private final EntityManager entityManager;
+    private final ParameterKeyFinder finder;
     private final ParameterKeyValidator validator;
     private final ParameterKeyMapper mapper;
     private final MicroserviceReferencePort microservices;
@@ -41,14 +36,14 @@ public class ParameterKeyCommandService {
 
     public ParameterKeyCommandService(
             ParameterKeyRepository repository,
-            EntityManager entityManager,
+            ParameterKeyFinder finder,
             ParameterKeyValidator validator,
             ParameterKeyMapper mapper,
             MicroserviceReferencePort microservices,
             ParameterKeyPublisherService publisher,
             ObjectProvider<ParameterKeyCommandService> self) {
         this.repository = repository;
-        this.entityManager = entityManager;
+        this.finder = finder;
         this.validator = validator;
         this.mapper = mapper;
         this.microservices = microservices;
@@ -84,7 +79,7 @@ public class ParameterKeyCommandService {
             event = "PARAMETER_KEY_UPDATED",
             resourceType = "PARAMETER_KEY")
     public ParameterKeyMetadata update(String identifier, UpdateParameterKeyInput input) {
-        ParameterKey resource = findForUpdate(identifier);
+        ParameterKey resource = finder.findForUpdate(identifier);
         validator.validateUpdate(resource, input);
         resource.update(
                 input.description(),
@@ -96,7 +91,7 @@ public class ParameterKeyCommandService {
 
     @Transactional
     public ParameterKeyMetadata activate(String identifier) {
-        ParameterKey resource = findForUpdate(identifier);
+        ParameterKey resource = finder.findForUpdate(identifier);
         Reference reference = reference(resource);
         return resource.isActive()
                 ? mapper.toMetadata(resource, reference)
@@ -105,7 +100,7 @@ public class ParameterKeyCommandService {
 
     @Transactional
     public ParameterKeyMetadata inactivate(String identifier) {
-        ParameterKey resource = findForUpdate(identifier);
+        ParameterKey resource = finder.findForUpdate(identifier);
         Reference reference = reference(resource);
         ParameterKeyMetadata metadata =
                 !resource.isActive()
@@ -121,26 +116,13 @@ public class ParameterKeyCommandService {
             event = "PARAMETER_KEY_DELETED",
             resourceType = "PARAMETER_KEY")
     public ParameterKeyMetadata delete(String identifier) {
-        ParameterKey resource = findForUpdate(identifier);
+        ParameterKey resource = finder.findForUpdate(identifier);
         resource.requireDeletable();
         ParameterKeyMetadata snapshot = mapper.toMetadata(resource, reference(resource));
         repository.delete(resource);
         repository.flush();
         removeFromRuntimeAfterCommit(snapshot);
         return snapshot;
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @Auditable(
-            action = AuditAction.UPDATE,
-            event = "PARAMETER_KEY_PUBLISHED",
-            resourceType = "PARAMETER_KEY")
-    public ParameterKeyMetadata publishIdentifier(String identifier) {
-        ParameterKey resource = findForUpdate(identifier);
-        validator.validatePublication(resource);
-        Reference reference = reference(resource);
-        resource.publish(LocalDateTime.now());
-        return mapper.toMetadata(repository.saveAndFlush(resource), reference);
     }
 
     @Transactional
@@ -171,19 +153,6 @@ public class ParameterKeyCommandService {
                         publisher.remove(parameterKey);
                     }
                 });
-    }
-
-    private ParameterKey findForUpdate(String identifier) {
-        Long id =
-                repository
-                        .findInternalIdForUpdate(identifier)
-                        .orElseThrow(
-                                () -> new NotFoundException(ParameterKeyMessageKeys.NOT_FOUND));
-        // Reload the locked row outside an earlier JPA/repeatable-read snapshot.
-        entityManager.detach(entityManager.getReference(ParameterKey.class, id));
-        return repository
-                .findForUpdate(identifier)
-                .orElseThrow(() -> new NotFoundException(ParameterKeyMessageKeys.NOT_FOUND));
     }
 
     private Reference reference(ParameterKey resource) {

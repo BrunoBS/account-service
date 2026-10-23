@@ -13,24 +13,28 @@ import br.com.portalmanager.platform.workspace.core.workspace.repository.Workspa
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.port.WorkspaceTypePort;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeEnum;
-import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.usecase.WorkspaceTypeService;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
 
 @Component
 public class WorkspaceValidator {
 
-    private final WorkspaceTypeService workspaceTypeService;
+    private final WorkspaceTypePort workspaceTypeService;
     private final WorkspaceRepository repository;
 
-    public WorkspaceValidator(WorkspaceTypeService workspaceTypeService, WorkspaceRepository repository) {
+    public WorkspaceValidator(
+            WorkspaceTypePort workspaceTypeService, WorkspaceRepository repository) {
         this.workspaceTypeService = workspaceTypeService;
         this.repository = repository;
     }
@@ -46,8 +50,10 @@ public class WorkspaceValidator {
     }
 
     private void validateCreationPermissions(CreateWorkspaceInput input) {
-        boolean authorizerGroupProvided = input.authorizerGroup() != null && !input.authorizerGroup().isBlank();
-        if (authorizerGroupProvided || WorkspaceTypeEnum.ADMIN.name().equals(input.workspaceType())) {
+        boolean authorizerGroupProvided =
+                input.authorizerGroup() != null && !input.authorizerGroup().isBlank();
+        if (authorizerGroupProvided
+                || WorkspaceTypeEnum.ADMIN.name().equals(input.workspaceType())) {
             requireOwner();
         }
     }
@@ -59,8 +65,10 @@ public class WorkspaceValidator {
     }
 
     private void validateSensitiveChanges(Workspace workspace, UpdateWorkspaceInput input) {
-        boolean typeChanged = !Objects.equals(workspace.getWorkspaceType().value(), input.workspaceType());
-        boolean groupChanged = !Objects.equals(workspace.getAuthorizerGroup(), input.authorizerGroup());
+        boolean typeChanged =
+                !Objects.equals(workspace.getWorkspaceType().value(), input.workspaceType());
+        boolean groupChanged =
+                !Objects.equals(workspace.getAuthorizerGroup(), input.authorizerGroup());
         if (typeChanged || groupChanged) requireOwner();
         if (typeChanged && repository.findAssociatedApplicationId(workspace.getId()).isPresent()) {
             ValidationResult result = new ValidationResult();
@@ -82,24 +90,20 @@ public class WorkspaceValidator {
         if (pageable.isUnpaged() || pageable.getOffset() > Integer.MAX_VALUE) {
             throw new ValidationException(WorkspaceMessageKeys.PAGE_INVALID);
         }
-        Set<String> sortableProperties = Set.of(
-            "id",
-            "identifier",
-            "name",
-            "description",
-            "requester",
-            "acronym",
-            "emailGroup",
-            "onboarding",
-            "createdAt",
-            "updatedAt"
-        );
-        if (
-            pageable
-                .getSort()
-                .stream()
-                .anyMatch(order -> !sortableProperties.contains(order.getProperty()))
-        ) {
+        Set<String> sortableProperties =
+                Set.of(
+                        "id",
+                        "identifier",
+                        "name",
+                        "description",
+                        "requester",
+                        "acronym",
+                        "emailGroup",
+                        "onboarding",
+                        "createdAt",
+                        "updatedAt");
+        if (pageable.getSort().stream()
+                .anyMatch(order -> !sortableProperties.contains(order.getProperty()))) {
             throw new ValidationException(WorkspaceMessageKeys.PAGE_INVALID);
         }
     }
@@ -119,20 +123,23 @@ public class WorkspaceValidator {
         requireUpdateVersion(workspace.getVersion(), input.version());
         validateSensitiveChanges(workspace, input);
         boolean nameChanged = !workspace.getName().equals(input.name());
-        boolean nameDuplicate = nameChanged && repository.existsByNameAndIdNot(input.name(), workspace.getId());
+        boolean nameDuplicate =
+                nameChanged && repository.existsByNameAndIdNot(input.name(), workspace.getId());
         validateBusiness(input.workspaceType(), input.approvers(), nameDuplicate);
     }
 
     public void validateTypeFilter(String normalizedTypeName) {
         if (normalizedTypeName == null) return;
         ValidationResult result = new ValidationResult();
-        if (!isSupportedType(normalizedTypeName) || !workspaceTypeService.existsActive(normalizedTypeName)) {
+        if (!isSupportedType(normalizedTypeName)
+                || !workspaceTypeService.existsActive(normalizedTypeName)) {
             result.addError("typeName", WorkspaceMessageKeys.TYPE_FILTER_INVALID);
         }
         rejectIfInvalid(result);
     }
 
-    private void validateBusiness(String workspaceType, List<ApproverInput> approvers, boolean nameDuplicate) {
+    private void validateBusiness(
+            String workspaceType, List<ApproverInput> approvers, boolean nameDuplicate) {
         ValidationResult result = new ValidationResult();
         if (!isSupportedType(workspaceType) || !workspaceTypeService.existsActive(workspaceType)) {
             result.addError("workspaceType", WorkspaceMessageKeys.WORKSPACE_TYPE_INVALID);
@@ -144,7 +151,8 @@ public class WorkspaceValidator {
             ApproverInput approver = approvers.get(index);
             String path = "approvers[" + index + "]";
             if (!functionals.add(approver.functional().toUpperCase(Locale.ROOT))) {
-                result.addError(path + ".functional", WorkspaceMessageKeys.APPROVER_FUNCTIONAL_DUPLICATE);
+                result.addError(
+                        path + ".functional", WorkspaceMessageKeys.APPROVER_FUNCTIONAL_DUPLICATE);
             }
             if (!emails.add(approver.email().toLowerCase(Locale.ROOT))) {
                 result.addError(path + ".email", WorkspaceMessageKeys.APPROVER_EMAIL_DUPLICATE);
@@ -154,7 +162,7 @@ public class WorkspaceValidator {
     }
 
     private boolean isSupportedType(String code) {
-        return java.util.Arrays.stream(WorkspaceTypeEnum.values()).anyMatch(type -> type.name().equals(code));
+        return Arrays.stream(WorkspaceTypeEnum.values()).anyMatch(type -> type.name().equals(code));
     }
 
     private void rejectIfInvalid(ValidationResult result) {

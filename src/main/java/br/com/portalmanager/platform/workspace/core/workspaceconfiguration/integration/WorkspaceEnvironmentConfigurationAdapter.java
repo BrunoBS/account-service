@@ -2,11 +2,11 @@ package br.com.portalmanager.platform.workspace.core.workspaceconfiguration.inte
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.library.messaging.message.PlatformMessageKeys;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.WorkspaceEnvironmentConfigurationPort;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.WorkspaceEnvironmentConfigurationPort.PublisherCopy;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain.WorkspaceEnvironmentConfiguration;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.repository.WorkspaceEnvironmentConfigurationPublisherRepository;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.repository.WorkspaceEnvironmentConfigurationRepository;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceEnvironmentConfigurationPort;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceEnvironmentConfigurationPort.PublisherCopy;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

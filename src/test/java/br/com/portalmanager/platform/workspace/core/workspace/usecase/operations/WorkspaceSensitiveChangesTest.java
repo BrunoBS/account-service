@@ -16,35 +16,37 @@ import br.com.portalmanager.platform.workspace.core.workspace.repository.Workspa
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.ApproverInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.CreateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
+import br.com.portalmanager.platform.workspace.core.workspace.usecase.port.WorkspaceTypePort;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.usecase.WorkspaceTypeService;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
+
 class WorkspaceSensitiveChangesTest {
 
     private final WorkspaceRepository repository = mock(WorkspaceRepository.class);
-    private final WorkspaceTypeService workspaceTypeService = mock(WorkspaceTypeService.class);
-    private final WorkspaceValidator validator = new WorkspaceValidator(workspaceTypeService, repository);
-    private final Workspace workspace = new Workspace(
-        new WorkspaceDetails(
-            WorkspaceTypeCode.of("ADMIN"),
-            "Workspace Security",
-            "Security validation workspace",
-            "requester",
-            "SEC",
-            null,
-            "TEAM_A",
-            "workspace@example.com"
-        ),
-        LocalDateTime.now()
-    );
+    private final WorkspaceTypePort workspaceTypeService = mock(WorkspaceTypePort.class);
+    private final WorkspaceValidator validator =
+            new WorkspaceValidator(workspaceTypeService, repository);
+    private final Workspace workspace =
+            new Workspace(
+                    new WorkspaceDetails(
+                            WorkspaceTypeCode.of("ADMIN"),
+                            "Workspace Security",
+                            "Security validation workspace",
+                            "requester",
+                            "SEC",
+                            null,
+                            "TEAM_A",
+                            "workspace@example.com"),
+                    LocalDateTime.now());
 
     @BeforeEach
     void initializeVersionAndCatalog() {
@@ -56,9 +58,8 @@ class WorkspaceSensitiveChangesTest {
     @Test
     void shouldRejectStaleVersionBeforePermissionAndDatabaseLookups() {
         ReflectionTestUtils.setField(workspace, "version", 1L);
-        assertThatThrownBy(() -> validator.validateForUpdate(workspace, input("MANAGER", "TEAM_B"))).isInstanceOf(
-            ResourceVersionConflictException.class
-        );
+        assertThatThrownBy(() -> validator.validateForUpdate(workspace, input("MANAGER", "TEAM_B")))
+                .isInstanceOf(ResourceVersionConflictException.class);
         verifyNoInteractions(repository, workspaceTypeService);
     }
 
@@ -70,40 +71,35 @@ class WorkspaceSensitiveChangesTest {
     @Test
     void shouldDenyPrivilegedCreationWithoutSession() {
         UserContext.clear();
-        assertThatThrownBy(() -> validator.validateForCreate(createInput("ADMIN", null))).isInstanceOf(
-            ForbiddenAccessException.class
-        );
-        assertThatThrownBy(() -> validator.validateForCreate(createInput("MANAGER", "TEAM_A"))).isInstanceOf(
-            ForbiddenAccessException.class
-        );
+        assertThatThrownBy(() -> validator.validateForCreate(createInput("ADMIN", null)))
+                .isInstanceOf(ForbiddenAccessException.class);
+        assertThatThrownBy(() -> validator.validateForCreate(createInput("MANAGER", "TEAM_A")))
+                .isInstanceOf(ForbiddenAccessException.class);
     }
 
     private CreateWorkspaceInput createInput(String type, String group) {
         UpdateWorkspaceInput input = input(type, group);
         return new CreateWorkspaceInput(
-            null,
-            input.workspaceType(),
-            input.name(),
-            input.description(),
-            input.requester(),
-            input.acronym(),
-            input.authorizerGroup(),
-            input.settings(),
-            input.emailGroup(),
-            input.approvers(),
-            input.tags()
-        );
+                null,
+                input.workspaceType(),
+                input.name(),
+                input.description(),
+                input.requester(),
+                input.acronym(),
+                input.authorizerGroup(),
+                input.settings(),
+                input.emailGroup(),
+                input.approvers(),
+                input.tags());
     }
 
     @Test
     void shouldDenySensitiveChangesWithoutSession() {
         UserContext.clear();
-        assertThatThrownBy(() -> validator.validateForUpdate(workspace, input("MANAGER", "TEAM_A"))).isInstanceOf(
-            ForbiddenAccessException.class
-        );
-        assertThatThrownBy(() -> validator.validateForUpdate(workspace, input("ADMIN", null))).isInstanceOf(
-            ForbiddenAccessException.class
-        );
+        assertThatThrownBy(() -> validator.validateForUpdate(workspace, input("MANAGER", "TEAM_A")))
+                .isInstanceOf(ForbiddenAccessException.class);
+        assertThatThrownBy(() -> validator.validateForUpdate(workspace, input("ADMIN", null)))
+                .isInstanceOf(ForbiddenAccessException.class);
     }
 
     @Test
@@ -111,15 +107,12 @@ class WorkspaceSensitiveChangesTest {
         UserSession session = new UserSession();
         session.setGroups(Set.of("USER"));
         UserContext.set(session);
-        assertThatThrownBy(() -> validator.validateForUpdate(workspace, input("MANAGER", "TEAM_A"))).isInstanceOf(
-            ForbiddenAccessException.class
-        );
-        assertThatThrownBy(() -> validator.validateForUpdate(workspace, input("ADMIN", "TEAM_B"))).isInstanceOf(
-            ForbiddenAccessException.class
-        );
-        assertThatCode(() ->
-            validator.validateForUpdate(workspace, input("ADMIN", "TEAM_A"))
-        ).doesNotThrowAnyException();
+        assertThatThrownBy(() -> validator.validateForUpdate(workspace, input("MANAGER", "TEAM_A")))
+                .isInstanceOf(ForbiddenAccessException.class);
+        assertThatThrownBy(() -> validator.validateForUpdate(workspace, input("ADMIN", "TEAM_B")))
+                .isInstanceOf(ForbiddenAccessException.class);
+        assertThatCode(() -> validator.validateForUpdate(workspace, input("ADMIN", "TEAM_A")))
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -127,24 +120,22 @@ class WorkspaceSensitiveChangesTest {
         UserSession session = new UserSession();
         session.setGroups(Set.of("PM5_OWNER"));
         UserContext.set(session);
-        assertThatCode(() ->
-            validator.validateForUpdate(workspace, input("MANAGER", "TEAM_B"))
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validateForUpdate(workspace, input("MANAGER", "TEAM_B")))
+                .doesNotThrowAnyException();
     }
 
     private UpdateWorkspaceInput input(String type, String group) {
         return new UpdateWorkspaceInput(
-            0L,
-            type,
-            "Workspace Security",
-            "Security validation workspace",
-            "requester",
-            "SEC",
-            group,
-            null,
-            "workspace@example.com",
-            List.of(new ApproverInput("F1234", "approver@example.com")),
-            List.of()
-        );
+                0L,
+                type,
+                "Workspace Security",
+                "Security validation workspace",
+                "requester",
+                "SEC",
+                group,
+                null,
+                "workspace@example.com",
+                List.of(new ApproverInput("F1234", "approver@example.com")),
+                List.of());
     }
 }

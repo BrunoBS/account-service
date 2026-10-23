@@ -1,5 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.validation.message;
 
+import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.MessageMessageKeys;
@@ -7,11 +8,13 @@ import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.mess
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.repository.message.MessageRepository;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.CreateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.UpdateMessageInput;
-import br.com.portalmanager.platform.workspace.foundation.integration.MicroserviceReferencePort;
-import java.util.Objects;
-import java.util.Set;
+import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.port.MicroserviceReferencePort;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
+import java.util.Set;
 
 @Component
 public class MessageValidator {
@@ -20,8 +23,7 @@ public class MessageValidator {
     private final MicroserviceReferencePort microservices;
 
     public MessageValidator(
-            MessageRepository messageRepository,
-            MicroserviceReferencePort microservices) {
+            MessageRepository messageRepository, MicroserviceReferencePort microservices) {
         this.messageRepository = messageRepository;
         this.microservices = microservices;
     }
@@ -46,7 +48,7 @@ public class MessageValidator {
 
     public void validateVersion(Long currentVersion, Long requestedVersion) {
         if (!Objects.equals(currentVersion, requestedVersion)) {
-            throw new br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException();
+            throw new ResourceVersionConflictException();
         }
     }
 
@@ -55,27 +57,39 @@ public class MessageValidator {
                 || pageable.getPageSize() > 100
                 || pageable.getOffset() > Integer.MAX_VALUE
                 || pageable.getSort().stream()
-                        .anyMatch(order -> !MESSAGE_SORT_PROPERTIES.contains(order.getProperty()))) {
+                        .anyMatch(
+                                order -> !MESSAGE_SORT_PROPERTIES.contains(order.getProperty()))) {
             throw new ValidationException(MessageMessageKeys.PAGE_INVALID);
         }
     }
 
     private static final Set<String> MESSAGE_SORT_PROPERTIES =
-            Set.of("id", "identifier", "messageKey", "code", "httpStatus", "createdAt", "updatedAt");
+            Set.of(
+                    "id",
+                    "identifier",
+                    "messageKey",
+                    "code",
+                    "httpStatus",
+                    "createdAt",
+                    "updatedAt");
 
     private Long resolveActiveMicroserviceId(String microserviceIdentifier) {
         return microservices
                 .findActiveByIdentifier(microserviceIdentifier)
                 .map(MicroserviceReferencePort.Reference::internalId)
                 .orElseThrow(
-                        () -> fieldError("microserviceIdentifier", MessageMessageKeys.MICROSERVICE_INVALID));
+                        () ->
+                                fieldError(
+                                        "microserviceIdentifier",
+                                        MessageMessageKeys.MICROSERVICE_INVALID));
     }
 
     private void validateUniqueMessage(
             Long microserviceId, String messageKey, String code, Long excludedMessageId) {
         boolean duplicateKey =
                 excludedMessageId == null
-                        ? messageRepository.existsByMicroserviceIdAndMessageKey(microserviceId, messageKey)
+                        ? messageRepository.existsByMicroserviceIdAndMessageKey(
+                                microserviceId, messageKey)
                         : messageRepository.existsByMicroserviceIdAndMessageKeyAndIdNot(
                                 microserviceId, messageKey, excludedMessageId);
         boolean duplicateCode =
@@ -94,7 +108,8 @@ public class MessageValidator {
     }
 
     private void rejectVersionOnCreate(Long version) {
-        if (version != null) rejectField("version", MessageMessageKeys.VERSION_NOT_ALLOWED_ON_CREATE);
+        if (version != null)
+            rejectField("version", MessageMessageKeys.VERSION_NOT_ALLOWED_ON_CREATE);
     }
 
     private void requireVersionForUpdate(Long version) {

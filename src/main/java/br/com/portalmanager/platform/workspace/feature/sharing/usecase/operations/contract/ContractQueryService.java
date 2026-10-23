@@ -1,19 +1,19 @@
 package br.com.portalmanager.platform.workspace.feature.sharing.usecase.operations.contract;
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.workspace.core.application.usecase.model.ApplicationScopeReferenceOutput;
-import br.com.portalmanager.platform.workspace.core.application.usecase.operations.ApplicationQueryService;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.ResourceSharingMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.contract.Contract;
 import br.com.portalmanager.platform.workspace.feature.sharing.integration.ResourceSharingReferenceAdapter;
 import br.com.portalmanager.platform.workspace.feature.sharing.repository.contract.ContractRepository;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.mapping.contract.ContractMapper;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.contract.ContractOutput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.contract.ContractPageOutput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.pagination.ResourceSharingPageInput;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.port.SharingReferencePort;
+import br.com.portalmanager.platform.workspace.feature.sharing.usecase.port.SharingReferencePort.ApplicationScopeReferenceOutput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.validation.ResourceSharingValidator;
-import br.com.portalmanager.platform.workspace.feature.sharing.usecase.mapping.contract.ContractMapper;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleFilter;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +29,7 @@ public class ContractQueryService {
     private final ResourceSharingValidator resourceSharingValidator;
     private final ResourceSharingReferenceAdapter referenceResolver;
     private final ContractRepository contractRepository;
-    private final ApplicationQueryService applicationQueryService;
+    private final SharingReferencePort references;
     private final ContractAccessService contractAccessService;
     private final ContractMapper mapper;
 
@@ -37,13 +37,13 @@ public class ContractQueryService {
             ResourceSharingValidator resourceSharingValidator,
             ResourceSharingReferenceAdapter referenceResolver,
             ContractRepository contractRepository,
-            ApplicationQueryService applicationQueryService,
+            SharingReferencePort references,
             ContractAccessService contractAccessService,
             ContractMapper mapper) {
         this.resourceSharingValidator = resourceSharingValidator;
         this.referenceResolver = referenceResolver;
         this.contractRepository = contractRepository;
-        this.applicationQueryService = applicationQueryService;
+        this.references = references;
         this.contractAccessService = contractAccessService;
         this.mapper = mapper;
     }
@@ -67,7 +67,7 @@ public class ContractQueryService {
             String size) {
         ResourceSharingPageInput pagination = resourceSharingValidator.parsePage(page, size);
         ApplicationScopeReferenceOutput applicationReference =
-                applicationQueryService.findActiveScope(workspaceIdentifier, applicationIdentifier);
+                references.findActiveScope(workspaceIdentifier, applicationIdentifier);
         Page<Contract> contractsPage =
                 contractRepository.findByOwnerWorkspaceIdAndOwnerApplicationIdAndLifecycleValue(
                         applicationReference.workspaceId(),
@@ -75,8 +75,7 @@ public class ContractQueryService {
                         LifecycleFilter.resolve(lifecycle).value(),
                         PageRequest.of(pagination.page(), pagination.size(), Sort.by("id")));
         return mapper.toPageOutput(
-                contractsPage,
-                referenceResolver.contractOutputs(contractsPage.getContent()));
+                contractsPage, referenceResolver.contractOutputs(contractsPage.getContent()));
     }
 
     @Transactional(readOnly = true)
@@ -91,7 +90,7 @@ public class ContractQueryService {
         resourceSharingValidator.validateContractOwnerFilters(
                 ownerWorkspaceIdentifier, ownerApplicationIdentifier);
         ApplicationScopeReferenceOutput participantApplication =
-                applicationQueryService.findActiveScope(
+                references.findActiveScope(
                         participantWorkspaceIdentifier, participantApplicationIdentifier);
         Page<Contract> contractsPage =
                 contractRepository.findAvailableContracts(
@@ -101,8 +100,7 @@ public class ContractQueryService {
                         ownerApplicationIdentifier,
                         PageRequest.of(pagination.page(), pagination.size()));
         return mapper.toPageOutput(
-                contractsPage,
-                referenceResolver.contractOutputs(contractsPage.getContent()));
+                contractsPage, referenceResolver.contractOutputs(contractsPage.getContent()));
     }
 
     @Transactional(readOnly = true)
@@ -111,7 +109,7 @@ public class ContractQueryService {
             String participantApplicationIdentifier,
             String contractIdentifier) {
         ApplicationScopeReferenceOutput participantApplicationReference =
-                applicationQueryService.findActiveScope(
+                references.findActiveScope(
                         participantWorkspaceIdentifier, participantApplicationIdentifier);
         Contract contract =
                 contractRepository
@@ -137,7 +135,7 @@ public class ContractQueryService {
     }
 
     private boolean hasActiveOwnerApplication(Contract contract) {
-        return applicationQueryService
+        return references
                 .findActiveReferencesForResourceSharing(List.of(contract.getOwnerApplicationId()))
                 .stream()
                 .anyMatch(owner -> owner.workspaceId().equals(contract.getOwnerWorkspaceId()));

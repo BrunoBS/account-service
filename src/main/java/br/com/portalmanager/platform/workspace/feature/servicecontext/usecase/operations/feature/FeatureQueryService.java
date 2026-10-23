@@ -1,18 +1,16 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature;
 
-import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.feature.FeatureMapper;
-
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.ServiceContextMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.feature.Feature;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.feature.FeatureRepository;
-import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.feature.FeatureRepository.FeatureReference;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.featuregroup.FeatureGroupRepository;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.feature.FeatureMapper;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.feature.FeatureOutput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.feature.FeatureReferenceOutput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.feature.FeatureValidator;
-import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleFilter;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -80,7 +78,8 @@ public class FeatureQueryService {
     public Map<Long, FeatureReferenceOutput> findAvailableReferencesForResourceSharing(
             Collection<Long> featureIds) {
         if (featureIds.isEmpty()) return Map.of();
-        return mapper.toReferences(repository.findAvailableReferencesForResourceSharing(featureIds));
+        return mapper.toReferences(
+                repository.findAvailableReferencesForResourceSharing(featureIds));
     }
 
     @Transactional(readOnly = true)
@@ -124,5 +123,4 @@ public class FeatureQueryService {
                         pageable)
                 .map(mapper::toOutput);
     }
-
 }

@@ -3,17 +3,17 @@ package br.com.portalmanager.platform.workspace.feature.parameter.config;
 import br.com.portalmanager.platform.library.messaging.exception.PlatformConfigurationException;
 import br.com.portalmanager.platform.library.messaging.model.PlatformErrorDefinition;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import java.time.Duration;
 
+@ConfigurationProperties("workspace.parameter")
 public record ParameterProperties(
-        @DefaultValue Runtime runtime,
-        @DefaultValue Reconciliation reconciliation) {
+        @DefaultValue Runtime runtime, @DefaultValue Reconciliation reconciliation) {
 
     public record Runtime(
-            @DefaultValue("true") boolean enabled,
-            @DefaultValue("500") int batchSize) {
+            @DefaultValue("true") boolean enabled, @DefaultValue("500") int batchSize) {
 
         public Runtime {
             if (batchSize < 1)
@@ -27,8 +27,7 @@ public record ParameterProperties(
     }
 
     public record Reconciliation(
-            @DefaultValue("true") boolean enabled,
-            @DefaultValue("PT1H") Duration interval) {
+            @DefaultValue("true") boolean enabled, @DefaultValue("PT1H") Duration interval) {
 
         public Reconciliation {
             if (interval == null

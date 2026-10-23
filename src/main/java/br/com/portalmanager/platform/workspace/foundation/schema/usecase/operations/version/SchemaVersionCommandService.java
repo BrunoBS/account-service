@@ -5,22 +5,25 @@ import br.com.portalmanager.platform.library.audit.model.AuditAction;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemaversionstatustype.domain.SchemaVersionStatusTypeCode;
-import br.com.portalmanager.platform.workspace.foundation.integration.WorkspaceReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.schema.Schema;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.version.SchemaVersion;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaDefinitionValidationAdapter;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.schema.SchemaRepository;
 import br.com.portalmanager.platform.workspace.foundation.schema.repository.version.SchemaVersionRepository;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.mapping.version.SchemaVersionMapper;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.version.CreateSchemaVersionInput;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.version.SchemaVersionOutput;
-import br.com.portalmanager.platform.workspace.foundation.schema.usecase.mapping.version.SchemaVersionMapper;
+import br.com.portalmanager.platform.workspace.foundation.schema.usecase.port.WorkspaceReferencePort;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.validation.version.SchemaVersionOperationValidator;
-import java.time.LocalDateTime;
-import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import tools.jackson.databind.JsonNode;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class SchemaVersionCommandService {
@@ -35,13 +38,12 @@ public class SchemaVersionCommandService {
     private final SchemaVersionMapper mapper;
 
     public SchemaVersionCommandService(
-        SchemaRepository schemaRepository,
-        SchemaVersionRepository versionRepository,
-        SchemaDefinitionValidationAdapter validator,
-        SchemaVersionOperationValidator operationValidator,
-        WorkspaceReferencePort workspaceReferencePort,
-        SchemaVersionMapper mapper
-    ) {
+            SchemaRepository schemaRepository,
+            SchemaVersionRepository versionRepository,
+            SchemaDefinitionValidationAdapter validator,
+            SchemaVersionOperationValidator operationValidator,
+            WorkspaceReferencePort workspaceReferencePort,
+            SchemaVersionMapper mapper) {
         this.schemaRepository = schemaRepository;
         this.versionRepository = versionRepository;
         this.validator = validator;
@@ -51,68 +53,82 @@ public class SchemaVersionCommandService {
     }
 
     @Transactional
-    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_VERSION_CREATED", resourceType = "SCHEMA_VERSION")
-    public SchemaVersionOutput createPlatformDraft(String schemaIdentifier, CreateSchemaVersionInput input) {
-        return createOrUpdateDraft(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null), input);
-    }
-
-    @Transactional
-    @Auditable(action = AuditAction.CREATE, event = "SCHEMA_VERSION_CREATED", resourceType = "SCHEMA_VERSION")
-    public SchemaVersionOutput createWorkspaceDraft(
-        String workspaceIdentifier,
-        String schemaIdentifier,
-        CreateSchemaVersionInput input
-    ) {
+    @Auditable(
+            action = AuditAction.CREATE,
+            event = "SCHEMA_VERSION_CREATED",
+            resourceType = "SCHEMA_VERSION")
+    public SchemaVersionOutput createPlatformDraft(
+            String schemaIdentifier, CreateSchemaVersionInput input) {
         return createOrUpdateDraft(
-            requiredScoped(
-                schemaIdentifier,
-                SchemaScopeTypeCode.workspace(),
-                workspaceReferencePort.resolveInternalId(workspaceIdentifier)
-            ),
-            input
-        );
+                requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null), input);
     }
 
     @Transactional
-    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_VERSION_PUBLISHED", resourceType = "SCHEMA_VERSION")
+    @Auditable(
+            action = AuditAction.CREATE,
+            event = "SCHEMA_VERSION_CREATED",
+            resourceType = "SCHEMA_VERSION")
+    public SchemaVersionOutput createWorkspaceDraft(
+            String workspaceIdentifier, String schemaIdentifier, CreateSchemaVersionInput input) {
+        return createOrUpdateDraft(
+                requiredScoped(
+                        schemaIdentifier,
+                        SchemaScopeTypeCode.workspace(),
+                        workspaceReferencePort.resolveInternalId(workspaceIdentifier)),
+                input);
+    }
+
+    @Transactional
+    @Auditable(
+            action = AuditAction.UPDATE,
+            event = "SCHEMA_VERSION_PUBLISHED",
+            resourceType = "SCHEMA_VERSION")
     public SchemaVersionOutput publishPlatform(String schemaIdentifier, String versionIdentifier) {
-        return publish(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null), versionIdentifier);
-    }
-
-    @Transactional
-    @Auditable(action = AuditAction.UPDATE, event = "SCHEMA_VERSION_PUBLISHED", resourceType = "SCHEMA_VERSION")
-    public SchemaVersionOutput publishWorkspace(
-        String workspaceIdentifier,
-        String schemaIdentifier,
-        String versionIdentifier
-    ) {
         return publish(
-            requiredScoped(
-                schemaIdentifier,
-                SchemaScopeTypeCode.workspace(),
-                workspaceReferencePort.resolveInternalId(workspaceIdentifier)
-            ),
-            versionIdentifier
-        );
+                requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null),
+                versionIdentifier);
     }
 
     @Transactional
-    @Auditable(action = AuditAction.PURGE, event = "SCHEMA_VERSION_DELETED", resourceType = "SCHEMA_VERSION")
-    public SchemaVersionOutput deletePlatformDraft(String schemaIdentifier, String versionIdentifier) {
-        return deleteDraft(requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null), versionIdentifier);
+    @Auditable(
+            action = AuditAction.UPDATE,
+            event = "SCHEMA_VERSION_PUBLISHED",
+            resourceType = "SCHEMA_VERSION")
+    public SchemaVersionOutput publishWorkspace(
+            String workspaceIdentifier, String schemaIdentifier, String versionIdentifier) {
+        return publish(
+                requiredScoped(
+                        schemaIdentifier,
+                        SchemaScopeTypeCode.workspace(),
+                        workspaceReferencePort.resolveInternalId(workspaceIdentifier)),
+                versionIdentifier);
     }
 
     @Transactional
-    @Auditable(action = AuditAction.PURGE, event = "SCHEMA_VERSION_DELETED", resourceType = "SCHEMA_VERSION")
-    public SchemaVersionOutput deleteWorkspaceDraft(String workspaceIdentifier, String schemaIdentifier, String versionIdentifier) {
+    @Auditable(
+            action = AuditAction.PURGE,
+            event = "SCHEMA_VERSION_DELETED",
+            resourceType = "SCHEMA_VERSION")
+    public SchemaVersionOutput deletePlatformDraft(
+            String schemaIdentifier, String versionIdentifier) {
         return deleteDraft(
-            requiredScoped(
-                schemaIdentifier,
-                SchemaScopeTypeCode.workspace(),
-                workspaceReferencePort.resolveInternalId(workspaceIdentifier)
-            ),
-            versionIdentifier
-        );
+                requiredScoped(schemaIdentifier, SchemaScopeTypeCode.platform(), null),
+                versionIdentifier);
+    }
+
+    @Transactional
+    @Auditable(
+            action = AuditAction.PURGE,
+            event = "SCHEMA_VERSION_DELETED",
+            resourceType = "SCHEMA_VERSION")
+    public SchemaVersionOutput deleteWorkspaceDraft(
+            String workspaceIdentifier, String schemaIdentifier, String versionIdentifier) {
+        return deleteDraft(
+                requiredScoped(
+                        schemaIdentifier,
+                        SchemaScopeTypeCode.workspace(),
+                        workspaceReferencePort.resolveInternalId(workspaceIdentifier)),
+                versionIdentifier);
     }
 
     private SchemaVersionOutput createOrUpdateDraft(Schema schema, CreateSchemaVersionInput input) {
@@ -122,28 +138,37 @@ public class SchemaVersionCommandService {
         String serialized = validator.toJsonString(definition, DEFINITION);
         List<SchemaVersion> versions = versionRepository.findAllForUpdate(schema.getId());
 
-        SchemaVersion existingDraft = versions.stream().filter(SchemaVersion::isDraft).findFirst().orElse(null);
+        SchemaVersion existingDraft =
+                versions.stream().filter(SchemaVersion::isDraft).findFirst().orElse(null);
         if (existingDraft != null) {
             operationValidator.validateDraftUpdate(existingDraft, serialized);
             existingDraft.updateDraft(input.versionName(), serialized);
             return mapper.toOutput(existingDraft);
         }
 
-        SchemaVersion latestPublished = versions.stream().filter(SchemaVersion::isPublished).findFirst().orElse(null);
-        int nextVersion = versions.isEmpty()
-            ? 1
-            : versions.stream().mapToInt(SchemaVersion::getSchemaVersion).max().orElse(0) + 1;
-        String initialDefinition = latestPublished == null ? serialized : latestPublished.getDefinition();
+        SchemaVersion latestPublished =
+                versions.stream().filter(SchemaVersion::isPublished).findFirst().orElse(null);
+        int nextVersion =
+                versions.isEmpty()
+                        ? 1
+                        : versions.stream()
+                                        .mapToInt(SchemaVersion::getSchemaVersion)
+                                        .max()
+                                        .orElse(0)
+                                + 1;
+        String initialDefinition =
+                latestPublished == null ? serialized : latestPublished.getDefinition();
 
-        operationValidator.validateCreate(schema, nextVersion, initialDefinition, SchemaVersionStatusTypeCode.draft());
-        SchemaVersion created = new SchemaVersion(
-            schema,
-            nextVersion,
-            input.versionName(),
-            initialDefinition,
-            SchemaVersionStatusTypeCode.draft(),
-            LocalDateTime.now()
-        );
+        operationValidator.validateCreate(
+                schema, nextVersion, initialDefinition, SchemaVersionStatusTypeCode.draft());
+        SchemaVersion created =
+                new SchemaVersion(
+                        schema,
+                        nextVersion,
+                        input.versionName(),
+                        initialDefinition,
+                        SchemaVersionStatusTypeCode.draft(),
+                        LocalDateTime.now());
 
         if (!initialDefinition.equals(serialized)) {
             operationValidator.validateDraftUpdate(created, serialized);
@@ -154,18 +179,22 @@ public class SchemaVersionCommandService {
 
     private SchemaVersionOutput publish(Schema schema, String versionIdentifier) {
         versionRepository.findAllForUpdate(schema.getId());
-        SchemaVersion version = versionRepository
-            .findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
-            .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.VERSION_NOT_FOUND));
+        SchemaVersion version =
+                versionRepository
+                        .findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
+                        .orElseThrow(
+                                () -> new NotFoundException(SchemaMessageKeys.VERSION_NOT_FOUND));
         version.publish();
         return mapper.toOutput(version);
     }
 
     private SchemaVersionOutput deleteDraft(Schema schema, String versionIdentifier) {
         versionRepository.findAllForUpdate(schema.getId());
-        SchemaVersion version = versionRepository
-            .findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
-            .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.VERSION_NOT_FOUND));
+        SchemaVersion version =
+                versionRepository
+                        .findByIdentifierAndSchema_Id(versionIdentifier, schema.getId())
+                        .orElseThrow(
+                                () -> new NotFoundException(SchemaMessageKeys.VERSION_NOT_FOUND));
         operationValidator.validateDraft(version);
         SchemaVersionOutput snapshot = mapper.toOutput(version);
         versionRepository.delete(version);
@@ -175,7 +204,7 @@ public class SchemaVersionCommandService {
 
     private Schema requiredScoped(String identifier, SchemaScopeTypeCode scope, Long workspaceId) {
         return schemaRepository
-            .findByIdentifierAndScopeForUpdate(identifier, scope.value(), workspaceId)
-            .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.NOT_FOUND));
+                .findByIdentifierAndScopeForUpdate(identifier, scope.value(), workspaceId)
+                .orElseThrow(() -> new NotFoundException(SchemaMessageKeys.NOT_FOUND));
     }
 }

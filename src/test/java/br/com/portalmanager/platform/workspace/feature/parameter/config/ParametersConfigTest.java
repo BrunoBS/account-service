@@ -2,8 +2,7 @@ package br.com.portalmanager.platform.workspace.feature.parameter.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.portalmanager.platform.workspace.config.WorkspaceConfiguration;
-import br.com.portalmanager.platform.workspace.config.WorkspaceProperties;
+import br.com.portalmanager.platform.library.messaging.exception.PlatformConfigurationException;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -13,17 +12,16 @@ import java.time.Duration;
 
 class ParametersConfigTest {
     private final ApplicationContextRunner runner =
-            new ApplicationContextRunner()
-                    .withUserConfiguration(WorkspaceConfiguration.class, ParametersConfig.class);
+            new ApplicationContextRunner().withUserConfiguration(ParametersConfig.class);
 
     @Test
     void runtimeAndHourlySchedulingAreEnabledByDefault() {
         runner.run(
                 context -> {
                     assertThat(context)
-                            .hasSingleBean(WorkspaceProperties.class)
+                            .hasSingleBean(ParameterProperties.class)
                             .hasSingleBean(ScheduledAnnotationBeanPostProcessor.class);
-                    ParameterProperties properties = context.getBean(WorkspaceProperties.class).parameter();
+                    ParameterProperties properties = context.getBean(ParameterProperties.class);
                     assertThat(properties.runtime().enabled()).isTrue();
                     assertThat(properties.runtime().batchSize()).isEqualTo(500);
                     assertThat(properties.reconciliation().enabled()).isTrue();
@@ -40,8 +38,7 @@ class ParametersConfigTest {
                             assertThat(context)
                                     .doesNotHaveBean(ScheduledAnnotationBeanPostProcessor.class);
                             assertThat(
-                                            context.getBean(WorkspaceProperties.class)
-                                                    .parameter()
+                                            context.getBean(ParameterProperties.class)
                                                     .runtime()
                                                     .enabled())
                                     .isTrue();
@@ -55,8 +52,6 @@ class ParametersConfigTest {
                         context ->
                                 assertThat(context.getStartupFailure())
                                         .hasRootCauseInstanceOf(
-                                                br.com.portalmanager.platform.library.messaging
-                                                        .exception.PlatformConfigurationException
-                                                        .class));
+                                                PlatformConfigurationException.class));
     }
 }

@@ -250,7 +250,8 @@ class ApplicationApiIT {
         get("/api/v1/workspaces/" + adminWorkspace + "/onboarding")
             .statusCode(400)
             .body("code", equalTo("ONBOARDING-0001"));
-        assertThat(onboardingCompletionCount(adminWorkspace, "WORKSPACE_REGISTRATION")).isZero();
+        // Registration history is independent of the MANAGER-only progress endpoint.
+        assertThat(onboardingCompletionCount(adminWorkspace, "WORKSPACE_REGISTRATION")).isEqualTo(1);
     }
 
     @Test
