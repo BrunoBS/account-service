@@ -15,6 +15,8 @@ import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.Pa
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.validation.ParameterKeyValidator;
 import br.com.portalmanager.platform.workspace.feature.segmentation.repository.category.CategoryRepository;
 import br.com.portalmanager.platform.workspace.feature.segmentation.repository.segment.SegmentRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.util.List;
@@ -27,6 +29,9 @@ import java.util.concurrent.TimeUnit;
 @WithMockAuthorization
 @WithRedis
 public abstract class WorkspaceIntegrationTestSupport {
+    private UserSession previousUser;
+    private UserSession testUser;
+
     @MockitoSpyBean protected AuditOutboxAppender auditAppender;
     @MockitoSpyBean protected ParameterPublicationStore publicationStore;
     @MockitoSpyBean protected ParameterKeyRepository parameterKeyRepository;
@@ -36,8 +41,25 @@ public abstract class WorkspaceIntegrationTestSupport {
     @MockitoSpyBean protected SegmentRepository segmentRepository;
     @MockitoSpyBean protected CategoryRepository categoryRepository;
 
+    @BeforeEach
+    void establishTestUserContext() {
+        previousUser = UserContext.get().orElse(null);
+        testUser = AuthorizationSessionBuilder.builder().build();
+        UserContext.set(testUser);
+    }
+
+    @AfterEach
+    void restoreTestUserContext() {
+        UserContext.set(previousUser);
+        testUser = null;
+        previousUser = null;
+    }
+
     protected ExecutorService testUserExecutor(ExecutorService delegate) {
-        return new TestUserExecutor(delegate, AuthorizationSessionBuilder.builder().build());
+        if (testUser == null) {
+            throw new IllegalStateException("Test user context must be established before creating an executor");
+        }
+        return new TestUserExecutor(delegate, testUser);
     }
 
     private static final class TestUserExecutor extends AbstractExecutorService {
