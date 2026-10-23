@@ -3,6 +3,7 @@ package br.com.portalmanager.platform.workspace.feature.parameter.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.portalmanager.platform.library.messaging.exception.PlatformConfigurationException;
+import br.com.portalmanager.platform.library.testing.lifecycle.PlatformContextRunners;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -12,7 +13,7 @@ import java.time.Duration;
 
 class ParametersConfigTest {
     private final ApplicationContextRunner runner =
-            new ApplicationContextRunner().withUserConfiguration(ParametersConfig.class);
+            PlatformContextRunners.forUserConfiguration(ParametersConfig.class);
 
     @Test
     void runtimeAndHourlySchedulingAreEnabledByDefault() {

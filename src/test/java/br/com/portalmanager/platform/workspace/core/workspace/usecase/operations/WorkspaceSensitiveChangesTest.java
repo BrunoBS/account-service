@@ -10,6 +10,7 @@ import br.com.portalmanager.platform.library.authorization.exception.ForbiddenAc
 import br.com.portalmanager.platform.library.authorization.model.UserContext;
 import br.com.portalmanager.platform.library.authorization.model.UserSession;
 import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
+import br.com.portalmanager.platform.library.testing.authorization.annotation.WithUserContextIsolation;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceDetails;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
@@ -20,7 +21,6 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.port.Works
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.validation.WorkspaceValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+@WithUserContextIsolation
 class WorkspaceSensitiveChangesTest {
 
     private final WorkspaceRepository repository = mock(WorkspaceRepository.class);
@@ -61,11 +62,6 @@ class WorkspaceSensitiveChangesTest {
         assertThatThrownBy(() -> validator.validateForUpdate(workspace, input("MANAGER", "TEAM_B")))
                 .isInstanceOf(ResourceVersionConflictException.class);
         verifyNoInteractions(repository, workspaceTypeService);
-    }
-
-    @AfterEach
-    void clearSession() {
-        UserContext.clear();
     }
 
     @Test

@@ -7,24 +7,20 @@ import br.com.portalmanager.platform.library.authorization.exception.Unauthorize
 import br.com.portalmanager.platform.library.authorization.model.UserContext;
 import br.com.portalmanager.platform.library.authorization.model.UserSession;
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.library.testing.authorization.annotation.WithUserContextIsolation;
 import br.com.portalmanager.platform.workspace.feature.sharing.repository.contract.ContractRepository;
 import br.com.portalmanager.platform.workspace.feature.sharing.repository.participant.ParticipantRepository;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.validation.SharingReferenceGuard;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+@WithUserContextIsolation
 class SharingReferenceGuardTest {
     private final ContractRepository contracts = mock(ContractRepository.class);
     private final ParticipantRepository participants = mock(ParticipantRepository.class);
     private final SharingReferenceGuard guard = new SharingReferenceGuard(contracts, participants);
-
-    @AfterEach
-    void clearContext() {
-        UserContext.clear();
-    }
 
     @Test
     void refusesPrivilegedReferencesWithoutAnAuthenticatedContext() {

@@ -2,18 +2,17 @@ package br.com.portalmanager.platform.workspace.feature.parameter.support;
 
 import static io.restassured.RestAssured.given;
 
-import br.com.portalmanager.platform.library.authorization.model.UserContext;
 import br.com.portalmanager.platform.library.redis.core.RedisStore;
 import br.com.portalmanager.platform.library.redis.annotation.RedisNamespace;
 import br.com.portalmanager.platform.library.redis.configuration.PlatformRedisProperties.NamespaceMode;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.lifecycle.PlatformAwait;
 import br.com.portalmanager.platform.library.testing.redis.annotation.WithRedis;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -22,6 +21,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.Duration;
 import java.util.Map;
 
 public abstract class DynamicParameterRuntimeTestSupport extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport {
@@ -56,11 +56,6 @@ public abstract class DynamicParameterRuntimeTestSupport extends br.com.portalma
                         .statusCode(201)
                         .extract()
                         .path("identifier");
-    }
-
-    @AfterEach
-    void clearOwner() {
-        UserContext.clear();
     }
 
     protected RequestSpecification request() {
@@ -109,17 +104,7 @@ public abstract class DynamicParameterRuntimeTestSupport extends br.com.portalma
     }
 
     protected void await(java.util.function.BooleanSupplier condition) {
-        long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(10);
-        while (System.nanoTime() < deadline) {
-            if (condition.getAsBoolean()) return;
-            try {
-                Thread.sleep(25);
-            } catch (InterruptedException exception) {
-                Thread.currentThread().interrupt();
-                throw new AssertionError(exception);
-            }
-        }
-        org.assertj.core.api.Assertions.assertThat(condition.getAsBoolean()).isTrue();
+        PlatformAwait.until(condition, Duration.ofSeconds(10), Duration.ofMillis(25));
     }
 
     protected JsonNode runtimeValue(String key) {

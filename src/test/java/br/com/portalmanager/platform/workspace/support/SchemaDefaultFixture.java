@@ -1,10 +1,11 @@
 package br.com.portalmanager.platform.workspace.support;
 
+import br.com.portalmanager.platform.library.testing.database.DatabaseScriptExecutor;
+
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.init.ScriptUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -250,8 +251,10 @@ public final class SchemaDefaultFixture {
             String sql =
                     new String(input.readAllBytes(), StandardCharsets.UTF_8)
                             .replace("schema_configuration", "schema_binding");
-            ScriptUtils.executeSqlScript(
-                    connection, new ByteArrayResource(sql.getBytes(StandardCharsets.UTF_8), path));
+            DatabaseScriptExecutor.execute(
+                    connection,
+                    new ByteArrayResource(sql.getBytes(StandardCharsets.UTF_8), path),
+                    false);
         } catch (IOException exception) {
             throw new IllegalStateException(
                     "Could not load historical schema seed: " + path, exception);
