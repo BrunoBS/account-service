@@ -24,10 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-class MessageApiIT {
+class MessageApiIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     private static final String MICROSERVICE_IDENTIFIER = "11111111-1111-1111-1111-111111111111";
 

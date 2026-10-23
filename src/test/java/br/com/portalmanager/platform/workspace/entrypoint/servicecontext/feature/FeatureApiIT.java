@@ -38,11 +38,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-@TestPropertySource(properties = "platform.audit.enabled=true")
-class FeatureApiIT {
+class FeatureApiIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     private static final String MICROSERVICE = "11111111-1111-1111-1111-111111111111";
     private static final String ROUTE = "/api/v1/service-contexts/features";
@@ -51,7 +47,6 @@ class FeatureApiIT {
     @Autowired private AuthorizationMock authorization;
     @Autowired private jakarta.persistence.EntityManagerFactory entityManagerFactory;
     @Autowired private FeatureQueryService queryService;
-    @MockitoSpyBean private AuditOutboxAppender appender;
 
     @BeforeEach
     void prepare() {
@@ -66,7 +61,7 @@ class FeatureApiIT {
                 MICROSERVICE);
         authorization.reset();
         authorization.allow(session -> session.groups("PM5_OWNER"));
-        reset(appender);
+        reset(auditAppender);
     }
 
     @Test
@@ -399,7 +394,7 @@ class FeatureApiIT {
     @Test
     void rollsBackTheWriteWhenTheAuditOutboxFails() {
         doThrow(new IllegalStateException("Simulated audit failure"))
-                .when(appender)
+                .when(auditAppender)
                 .append(any(), any());
         request()
                 .contentType(ContentType.JSON)
@@ -662,7 +657,7 @@ class FeatureApiIT {
         String group = createGroup("review-group");
         int events = jdbc.queryForObject("SELECT COUNT(*) FROM audit_outbox", Integer.class);
         doThrow(new IllegalStateException("Simulated association audit failure"))
-                .when(appender)
+                .when(auditAppender)
                 .append(any(), any());
         request()
                 .post("/api/v1/service-contexts/feature-groups/" + group + "/features/" + identifier)

@@ -20,11 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-@TestPropertySource(properties = "spring.jpa.properties.hibernate.generate_statistics=true")
-class MessageQueryIT {
+class MessageQueryIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @Autowired private JdbcTemplate jdbc;
     @Autowired private EntityManagerFactory entityManagerFactory;

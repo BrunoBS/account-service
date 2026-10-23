@@ -23,9 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class ParameterPublicationInteropIT extends DynamicParameterRuntimeTestSupport {
     @Autowired private ConfigurationProvider configurations;

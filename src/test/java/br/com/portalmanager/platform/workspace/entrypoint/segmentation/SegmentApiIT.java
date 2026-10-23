@@ -39,27 +39,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-@TestPropertySource(properties = "platform.audit.enabled=true")
-class SegmentApiIT {
+class SegmentApiIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     private static final String SEGMENTS = "/api/v1/segmentation/segments";
     @LocalServerPort private int port;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private AuthorizationMock authorization;
     @Autowired private CategoryQueryService categoryQueries;
     @Autowired private jakarta.persistence.EntityManagerFactory entityManagerFactory;
-    @MockitoSpyBean private AuditOutboxAppender appender;
-    @MockitoSpyBean private SegmentRepository segmentRepository;
-    @MockitoSpyBean private CategoryRepository categoryRepository;
-
     @BeforeEach
     void prepare() {
         SchemaDefaultFixture.seed(jdbc);
         authorization.reset();
         authorization.allow(session -> session.groups("PM5_OWNER"));
-        reset(appender, segmentRepository, categoryRepository);
+        reset(auditAppender, segmentRepository, categoryRepository);
     }
 
     @Test
@@ -622,7 +614,7 @@ class SegmentApiIT {
         String segment = create(SEGMENTS, payload("mobile-pf", "Mobile"));
         String category = create(categories(segment), categoryPayload("premium", "Premium"));
         doThrow(new IllegalStateException("Test audit failure"))
-                .when(appender)
+                .when(auditAppender)
                 .append(any(), any());
         request()
                 .contentType(ContentType.JSON)
@@ -666,13 +658,13 @@ class SegmentApiIT {
                 .isEqualTo(1);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM audit_outbox", Integer.class))
                 .isEqualTo(2);
-        reset(appender);
+        reset(auditAppender);
         for (String route :
                 List.of(SEGMENTS + "/" + segment, categories(segment) + "/" + category)) {
             request().patch(route + "/inactivate").then().statusCode(200);
         }
         doThrow(new IllegalStateException("Test audit failure"))
-                .when(appender)
+                .when(auditAppender)
                 .append(any(), any());
         for (String route :
                 List.of(SEGMENTS + "/" + segment, categories(segment) + "/" + category)) {

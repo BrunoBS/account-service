@@ -34,11 +34,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-class MicroserviceConcurrencyIT {
+class MicroserviceConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @Autowired private JdbcTemplate jdbc;
     @Autowired private MicroserviceCommandService microservices;

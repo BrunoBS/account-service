@@ -19,10 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@PlatformIntegrationTest
-@WithMySql
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-class FeatureGroupQueryIT {
+class FeatureGroupQueryIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @Autowired private JdbcTemplate jdbc;
 

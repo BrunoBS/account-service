@@ -24,17 +24,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
-@WithRedis
-@org.springframework.test.context.TestPropertySource(
-        properties = {
-            "spring.data.redis.timeout=500ms",
-            "spring.data.redis.connect-timeout=500ms",
-            "workspace.parameter.runtime.enabled=true",
-            "workspace.parameter.reconciliation.enabled=false",
-            "workspace.parameter.runtime.batch-size=2",
-            "platform.audit.enabled=true"
-        })
-public abstract class DynamicParameterRuntimeTestSupport {
+public abstract class DynamicParameterRuntimeTestSupport extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport {
     protected static final String BASE = "/api/v1/dynamic-parameters";
     @LocalServerPort protected int port;
     @Autowired protected JdbcTemplate jdbc;

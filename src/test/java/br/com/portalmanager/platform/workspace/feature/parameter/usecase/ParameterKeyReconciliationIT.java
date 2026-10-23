@@ -17,9 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class ParameterKeyReconciliationIT extends DynamicParameterRuntimeTestSupport {
     @Autowired private ParameterKeyPublisherService publisher;

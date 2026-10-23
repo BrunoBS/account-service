@@ -31,25 +31,21 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.util.List;
 import java.util.Map;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class ParameterKeyRedisIT extends DynamicParameterRuntimeTestSupport {
-    @MockitoSpyBean private ParameterPublicationStore store;
     @Autowired private ParameterKeyPublisherService publisher;
     @Autowired private PlatformTransactionManager transactions;
 
     @AfterEach
     void resetStore() {
-        reset(store);
+        reset(publicationStore);
     }
 
     @Test
     void redisFailureDoesNotUndoPublicationAndHourlyJobRecoversIt() {
         String identifier = create("recoverable", "CONFIGURATION", "1");
         doThrow(new IllegalStateException("Forced Redis failure"))
-                .when(store)
+                .when(publicationStore)
                 .publish(org.mockito.ArgumentMatchers.anyMap());
         request()
                 .contentType(ContentType.JSON)
@@ -68,10 +64,10 @@ class ParameterKeyRedisIT extends DynamicParameterRuntimeTestSupport {
                                                         identifier))
                                 && publishedAuditCount() == 1);
         // Wait for the worker to finish its Redis attempt before removing the failure.
-        org.mockito.Mockito.verify(store, org.mockito.Mockito.timeout(5000))
+        org.mockito.Mockito.verify(publicationStore, org.mockito.Mockito.timeout(5000))
                 .publish(org.mockito.ArgumentMatchers.anyMap());
         assertThat(runtimeValue("recoverable")).isNull();
-        reset(store);
+        reset(publicationStore);
         publisher.reconcile();
         assertThat(runtimeValue("recoverable").get("value").intValue()).isEqualTo(1);
     }
@@ -92,7 +88,7 @@ class ParameterKeyRedisIT extends DynamicParameterRuntimeTestSupport {
         redis.delete("account-service.same-batch");
         redis.delete("account-service.healthy");
         doThrow(new IllegalStateException("do-not-log"))
-                .when(store)
+                .when(publicationStore)
                 .publish(
                         org.mockito.ArgumentMatchers.argThat(
                                 batch -> batch.containsKey("account-service.failure")));

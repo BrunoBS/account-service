@@ -16,9 +16,6 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.*;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 class EnvironmentConfigurationApiIT extends EnvironmentConfigurationHttpFixture {
     @Test
     void supportsIndependentCrudLifecycleOrderingVersionsAndUniquenessForBothOwners() {

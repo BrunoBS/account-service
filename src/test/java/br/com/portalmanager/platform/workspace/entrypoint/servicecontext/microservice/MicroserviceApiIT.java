@@ -37,17 +37,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-@TestPropertySource(properties = "platform.audit.enabled=true")
-class MicroserviceApiIT {
+class MicroserviceApiIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     private static final String ROUTE = "/api/v1/service-contexts/microservices";
     @LocalServerPort private int port;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private AuthorizationMock authorization;
-    @MockitoSpyBean private AuditOutboxAppender appender;
 
     @BeforeEach
     void prepare() {
@@ -57,7 +52,7 @@ class MicroserviceApiIT {
                         + " VALUES ('QUARANTINED','Quarantined',3,true,'{}')");
         authorization.reset();
         authorization.allow(session -> session.groups("PM5_OWNER"));
-        reset(appender);
+        reset(auditAppender);
     }
 
     @Test
@@ -509,7 +504,7 @@ class MicroserviceApiIT {
     @Test
     void rollsBackTheWriteWhenTheAuditOutboxFails() {
         doThrow(new IllegalStateException("Simulated audit failure"))
-                .when(appender)
+                .when(auditAppender)
                 .append(any(), any());
         request()
                 .contentType(ContentType.JSON)

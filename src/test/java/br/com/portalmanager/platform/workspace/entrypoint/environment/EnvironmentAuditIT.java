@@ -26,11 +26,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-@TestPropertySource(properties = "platform.audit.enabled=true")
-class EnvironmentAuditIT {
+class EnvironmentAuditIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @LocalServerPort
     private int port;
@@ -41,8 +37,6 @@ class EnvironmentAuditIT {
     @Autowired
     private AuthorizationMock authorization;
 
-    @MockitoSpyBean
-    private AuditOutboxAppender auditAppender;
 
     @BeforeEach
     void prepare() {

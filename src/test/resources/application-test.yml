@@ -1,6 +1,21 @@
 spring:
   application:
     name: workspace-service
+  data:
+    redis:
+      timeout: 500ms
+      connect-timeout: 500ms
+  jpa:
+    properties:
+      hibernate:
+        generate_statistics: true
+        session:
+          events:
+            log: false
+
+logging:
+  level:
+    org.springframework.test.context.cache: DEBUG
 
 platform:
   authorization:
@@ -12,11 +27,13 @@ platform:
     cache:
       enabled: false
   audit:
-    enabled: false
+    enabled: true
+    service-name: workspace-service
 
 workspace:
   parameter:
     runtime:
-      enabled: false
+      enabled: true
+      batch-size: 2
     reconciliation:
       enabled: false

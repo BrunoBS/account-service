@@ -45,10 +45,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-class ResourceSharingApiIT {
+class ResourceSharingApiIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @LocalServerPort private int port;
 
@@ -59,14 +56,6 @@ class ResourceSharingApiIT {
     @Autowired private AuthorizationMock authorization;
 
     private String sharedFeatureIdentifier;
-
-    @DynamicPropertySource
-    static void auditProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.jpa.properties.hibernate.generate_statistics", () -> true);
-        registry.add("spring.jpa.properties.hibernate.session.events.log", () -> false);
-        registry.add("platform.audit.enabled", () -> true);
-        registry.add("platform.audit.service-name", () -> "workspace-service");
-    }
 
     @BeforeEach
     void prepare() {

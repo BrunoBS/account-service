@@ -16,7 +16,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.*;
 
-abstract class EnvironmentConfigurationHttpFixture {
+abstract class EnvironmentConfigurationHttpFixture extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport {
     @LocalServerPort int port;
     @Autowired JdbcTemplate jdbc;
     @Autowired AuthorizationMock authorization;

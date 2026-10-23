@@ -20,10 +20,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.*;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-class PublisherTypeApiIT {
+class PublisherTypeApiIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     @LocalServerPort int port;
     @Autowired JdbcTemplate jdbc;
     @Autowired AuthorizationMock authorization;

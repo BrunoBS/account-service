@@ -16,12 +16,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.util.*;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-@TestPropertySource(properties = "platform.audit.enabled=true")
 class EnvironmentConfigurationAuditIT extends EnvironmentConfigurationHttpFixture {
-    @MockitoSpyBean AuditOutboxAppender auditAppender;
 
     @Test
     void auditsSnapshotsAndFlushedVersionsForBothAggregates() {

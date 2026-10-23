@@ -5,18 +5,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
 import org.junit.jupiter.api.Test;
+import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-@PlatformIntegrationTest
-@WithMySql
-class DatabaseMigrationIT {
+class DatabaseMigrationIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private Flyway flyway;
+
     @Test
-    void shouldApplyGoldenMigrationsAndExposeWorkspaceSchema() {
+    void shouldCreateCurrentSchemaFromAnEmptyDatabase() {
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("1");
         assertThat(tableCount("type_features")).isZero();
         assertThat(tableCount("type_services")).isZero();
         assertThat(tableCount("type_feature_scopes")).isZero();

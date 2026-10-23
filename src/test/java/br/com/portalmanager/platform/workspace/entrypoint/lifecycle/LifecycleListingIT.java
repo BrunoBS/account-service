@@ -23,10 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-class LifecycleListingIT {
+class LifecycleListingIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @LocalServerPort
     private int port;

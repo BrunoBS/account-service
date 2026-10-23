@@ -22,10 +22,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-class WorkspaceAuditIT {
+class WorkspaceAuditIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @LocalServerPort
     private int port;
@@ -35,12 +32,6 @@ class WorkspaceAuditIT {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    @DynamicPropertySource
-    static void auditProperties(DynamicPropertyRegistry registry) {
-        registry.add("platform.audit.enabled", () -> true);
-        registry.add("platform.audit.service-name", () -> "workspace-service");
-    }
 
     @BeforeEach
     void setUp() {

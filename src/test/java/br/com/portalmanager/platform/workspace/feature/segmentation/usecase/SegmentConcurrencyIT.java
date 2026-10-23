@@ -46,20 +46,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-class SegmentConcurrencyIT {
+class SegmentConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     @Autowired private JdbcTemplate jdbc;
     @Autowired private SegmentCommandService segments;
     @Autowired private CategoryCommandService categories;
     @Autowired private SegmentQueryService segmentQueries;
     @Autowired private CategoryQueryService categoryQueries;
     @Autowired private PlatformTransactionManager transactionManager;
-    @MockitoSpyBean private SegmentRepository segmentRepository;
-    @MockitoSpyBean private CategoryRepository categoryRepository;
-
     @BeforeEach
     void prepare() {
         reset(segmentRepository, categoryRepository);

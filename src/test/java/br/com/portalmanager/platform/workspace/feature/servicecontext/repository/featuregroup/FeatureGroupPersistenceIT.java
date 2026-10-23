@@ -15,9 +15,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.time.LocalDateTime;
 
-@PlatformIntegrationTest
-@WithMySql
-class FeatureGroupPersistenceIT {
+class FeatureGroupPersistenceIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @Autowired private JdbcTemplate jdbc;
 

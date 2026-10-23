@@ -26,13 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-@PlatformIntegrationTest
-@WithMySql
-@org.springframework.test.context.TestPropertySource(
-    properties = "spring.jpa.properties.hibernate.query.fail_on_pagination_over_collection_fetch=true"
-)
-class WorkspacePersistenceIT {
+class WorkspacePersistenceIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @Autowired
     private JdbcTemplate jdbcTemplate;

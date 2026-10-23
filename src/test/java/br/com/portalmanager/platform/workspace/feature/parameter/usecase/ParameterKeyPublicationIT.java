@@ -25,19 +25,13 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class ParameterKeyPublicationIT extends DynamicParameterRuntimeTestSupport {
-    @MockitoSpyBean private ParameterPublicationStore store;
 
-    @MockitoSpyBean
-    private br.com.portalmanager.platform.library.audit.outbox.AuditOutboxAppender audit;
 
     @AfterEach
     void resetOperations() {
-        reset(store, audit);
+        reset(publicationStore, auditAppender);
     }
 
     @Test
@@ -121,7 +115,7 @@ class ParameterKeyPublicationIT extends DynamicParameterRuntimeTestSupport {
                                 throw new AssertionError("Worker not released");
                             return invocation.callRealMethod();
                         })
-                .when(store)
+                .when(publicationStore)
                 .publish(org.mockito.ArgumentMatchers.anyMap());
         try {
             request()
@@ -150,7 +144,7 @@ class ParameterKeyPublicationIT extends DynamicParameterRuntimeTestSupport {
                                 throw new IllegalStateException("Forced audit failure");
                             return invocation.callRealMethod();
                         })
-                .when(audit)
+                .when(auditAppender)
                 .append(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
         request()
                 .contentType(ContentType.JSON)

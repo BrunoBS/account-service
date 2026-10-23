@@ -22,11 +22,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@PlatformIntegrationTest
-@WithMySql
-@TestPropertySource(
-        properties = {"platform.authorization.mode=MOCK", "platform.audit.enabled=false"})
-class EnvironmentConfigurationPersistenceIT {
+class EnvironmentConfigurationPersistenceIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     @Autowired JdbcTemplate jdbc;
     @Autowired WorkspaceEnvironmentConfigurationRepository workspaces;
     @Autowired WorkspaceEnvironmentConfigurationPublisherRepository workspacePublishers;

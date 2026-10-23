@@ -42,22 +42,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-class ParameterKeyConcurrencyIT {
+class ParameterKeyConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     @Autowired private JdbcTemplate jdbc;
     @Autowired private ParameterKeyCommandService commands;
     @Autowired private ParameterKeyQueryService queries;
     @Autowired private PlatformTransactionManager transactionManager;
-    @MockitoSpyBean private ParameterKeyRepository repository;
     private String parent;
 
     @BeforeEach
     void prepare() {
         SchemaDefaultFixture.seed(jdbc);
-        reset(repository);
+        reset(parameterKeyRepository);
         parent = UUID.randomUUID().toString();
         jdbc.update(
                 "INSERT INTO"
@@ -73,7 +69,7 @@ class ParameterKeyConcurrencyIT {
                         "SELECT id FROM service_context_microservices WHERE identifier=?",
                         Long.class,
                         parent);
-        doReturn(false).when(repository).existsByMicroserviceIdAndKey(id, "retry");
+        doReturn(false).when(parameterKeyRepository).existsByMicroserviceIdAndKey(id, "retry");
         List<Object> results = concurrently(this::create, this::create);
         assertThat(results.stream().filter(ParameterKeyMetadata.class::isInstance)).hasSize(1);
         assertThat(results.stream().filter(DataIntegrityViolationException.class::isInstance))
@@ -116,7 +112,7 @@ class ParameterKeyConcurrencyIT {
                                     new TransactionTemplate(transactionManager)
                                             .executeWithoutResult(
                                                     status -> {
-                                                        repository.findById(id).orElseThrow();
+                                                        parameterKeyRepository.findById(id).orElseThrow();
                                                         cached.countDown();
                                                         await(changed);
                                                         commands.update(

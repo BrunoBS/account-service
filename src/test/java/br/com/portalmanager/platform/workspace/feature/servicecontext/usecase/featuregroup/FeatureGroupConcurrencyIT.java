@@ -37,11 +37,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-class FeatureGroupConcurrencyIT {
+class FeatureGroupConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     private static final String MICROSERVICE = "11111111-1111-1111-1111-111111111111";
     @Autowired private JdbcTemplate jdbc;
     @Autowired private FeatureGroupCommandService groups;
