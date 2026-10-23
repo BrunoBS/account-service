@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: BrunoBS/platform-libraries
-          ref: 6875893fc764da09e9fb2c22221d01405dd696fc
+          ref: c545dea3e8a59966a5009030711447ebe8d93841
           token: ${{ secrets.PLATFORM_PACKAGES_TOKEN }}
           path: platform-libraries
 
@@ -77,7 +77,7 @@ jobs:
           --batch-mode
           --no-transfer-progress
           -Dmaven.repo.local="${RUNNER_TEMP}/account-service-m2"
-          -pl modules/platform-testing/platform-testing-redis,modules/platform-testing/platform-testing-authorization
+          -pl modules/platform-testing/platform-testing-redis,modules/platform-testing/platform-testing-authorization,modules/platform-testing/platform-testing-database
           -am
           -DskipTests
           install
