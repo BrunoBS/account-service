@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
-class WorkspaceApiIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
+class WorkspaceApiIT extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
