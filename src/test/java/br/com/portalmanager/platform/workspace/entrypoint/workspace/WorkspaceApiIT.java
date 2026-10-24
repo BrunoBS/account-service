@@ -1,13 +1,12 @@
 package br.com.portalmanager.platform.workspace.entrypoint.workspace;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
 import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
-import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
+import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
 import java.util.LinkedHashMap;
@@ -16,16 +15,13 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
+import tools.jackson.databind.json.JsonMapper;
 
 @PlatformIntegrationTest
 @WithMySql
 @WithMockAuthorization
 class WorkspaceApiIT {
-
-    @LocalServerPort
-    private int port;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -33,13 +29,15 @@ class WorkspaceApiIT {
     @Autowired
     private AuthorizationMock authorizationMock;
 
+    @Autowired
+    private PlatformRequestSpecificationFactory requests;
+
+    private WorkspaceClient client;
+
     @BeforeEach
     void authorizeAsOwner() {
-        SchemaDefaultFixture.seed(jdbcTemplate);
-        seedWorkspaceTypes();
-        seedLifecycleTypes();
-        authorizationMock.reset();
-        authorizationMock.allow(session -> session.userName("test-user").groups("PM5_OWNER"));
+        client = new WorkspaceClient(requests, JsonMapper.builder().build());
+        new WorkspaceScenario(jdbcTemplate, authorizationMock).ownerCanManageWorkspaces();
     }
 
     @Test
@@ -120,16 +118,7 @@ class WorkspaceApiIT {
 
         post("/api/v1/workspaces/" + managerIdentifier + "/inactivate").statusCode(204);
 
-        given()
-            .port(port)
-            .header("correlation-id", "workspace-api-it")
-            .header("Authorization", "Bearer workspace-api-it")
-            .accept(ContentType.JSON)
-            .queryParam("lifecycle", "ACTIVE")
-            .queryParam("typeName", " admin ")
-            .when()
-            .get("/api/v1/workspaces")
-            .then()
+        client.listActiveByType(" admin ").response()
             .statusCode(200)
             .body("content.identifier", hasItem(adminIdentifier))
             .body("content.identifier", not(hasItem(managerIdentifier)))
@@ -560,10 +549,7 @@ class WorkspaceApiIT {
             request.putAll(invalidField);
             post(request).statusCode(400).body("code", equalTo("GLOBAL-0001"));
         }
-        given()
-            .port(port)
-            .header("correlation-id", "workspace-api-it")
-            .header("Authorization", "Bearer workspace-api-it")
+        client.protocolRequest()
             .contentType(ContentType.JSON)
             .body(List.of())
             .post("/api/v1/workspaces")
@@ -743,106 +729,31 @@ class WorkspaceApiIT {
     }
 
     private Map<String, Object> validCreate(String name, String type) {
-        Map<String, Object> request = new LinkedHashMap<>();
-        request.put("workspaceType", type);
-        request.put("name", name);
-        request.put("description", "Descrição válida para " + name.trim());
-        request.put("requester", "requester");
-        request.put("acronym", "WSP");
-        request.put("authorizerGroup", null);
-        request.put("settings", Map.of("feature", true));
-        request.put("emailGroup", "workspace@portalmanager.com");
-        request.put("approvers", List.of(Map.of("functional", "F1000", "email", "approver@portalmanager.com")));
-        request.put("tags", List.of());
-        return request;
+        return WorkspaceRequestFactory.validCreate(name, type);
     }
 
     private Map<String, Object> validUpdate(Integer version, String name, String type) {
-        Map<String, Object> request = validCreate(name, type);
-        request.put("version", version);
-        return request;
+        return WorkspaceRequestFactory.validUpdate(version, name, type);
     }
 
     private ValidatableResponse get(String path) {
-        return given()
-            .port(port)
-            .header("correlation-id", "workspace-api-it")
-            .header("Authorization", "Bearer workspace-api-it")
-            .accept(ContentType.JSON)
-            .when()
-            .get(path)
-            .then();
+        return client.find(path).response();
     }
 
     private ValidatableResponse post(Map<String, Object> body) {
-        return given()
-            .port(port)
-            .header("correlation-id", "workspace-api-it")
-            .header("Authorization", "Bearer workspace-api-it")
-            .contentType(ContentType.JSON)
-            .accept(ContentType.JSON)
-            .body(body)
-            .when()
-            .post("/api/v1/workspaces")
-            .then();
+        return client.create(body).response();
     }
 
     private ValidatableResponse post(String path) {
-        return given()
-            .port(port)
-            .header("correlation-id", "workspace-api-it")
-            .header("Authorization", "Bearer workspace-api-it")
-            .accept(ContentType.JSON)
-            .when()
-            .post(path)
-            .then();
+        return client.action(path).response();
     }
 
     private ValidatableResponse put(String path, Map<String, Object> body) {
-        return given()
-            .port(port)
-            .header("correlation-id", "workspace-api-it")
-            .header("Authorization", "Bearer workspace-api-it")
-            .contentType(ContentType.JSON)
-            .accept(ContentType.JSON)
-            .body(body)
-            .when()
-            .put(path)
-            .then();
+        return client.update(path, body).response();
     }
 
     private ValidatableResponse delete(String path) {
-        return given()
-            .port(port)
-            .header("correlation-id", "workspace-api-it")
-            .header("Authorization", "Bearer workspace-api-it")
-            .accept(ContentType.JSON)
-            .when()
-            .delete(path)
-            .then();
+        return client.delete(path).response();
     }
 
-    private void seedWorkspaceTypes() {
-        jdbcTemplate.update(
-            "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')"
-        );
-        jdbcTemplate.update(
-            "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('MANAGER', 'Manager', 'Management workspace', 2, true, '{}')"
-        );
-        jdbcTemplate.update(
-            "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('CATALOG', 'Catalog', 'Catalog workspace', 3, true, '{}')"
-        );
-    }
-
-    private void seedLifecycleTypes() {
-        jdbcTemplate.update(
-            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')"
-        );
-        jdbcTemplate.update(
-            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}')"
-        );
-        jdbcTemplate.update(
-            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')"
-        );
-    }
 }

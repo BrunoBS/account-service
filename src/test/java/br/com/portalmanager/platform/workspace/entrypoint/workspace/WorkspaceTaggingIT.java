@@ -1,12 +1,12 @@
 package br.com.portalmanager.platform.workspace.entrypoint.workspace;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
 import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;
 import io.restassured.response.ExtractableResponse;
@@ -17,16 +17,13 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
+import tools.jackson.databind.json.JsonMapper;
 
 @PlatformIntegrationTest
 @WithMySql
 @WithMockAuthorization
 class WorkspaceTaggingIT {
-
-    @LocalServerPort
-    private int port;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -34,8 +31,14 @@ class WorkspaceTaggingIT {
     @Autowired
     private AuthorizationMock authorizationMock;
 
+    @Autowired
+    private PlatformRequestSpecificationFactory requests;
+
+    private WorkspaceClient client;
+
     @BeforeEach
     void authorizeAsOwner() {
+        client = new WorkspaceClient(requests, JsonMapper.builder().build(), "tagging-it", "tagging-it");
         SchemaDefaultFixture.seed(jdbcTemplate);
         seedWorkspaceTypes();
         seedLifecycleTypes();
@@ -155,36 +158,23 @@ class WorkspaceTaggingIT {
     }
 
     private io.restassured.response.ValidatableResponse post(Map<String, Object> body) {
-        return authorized().contentType(ContentType.JSON).body(body).when().post("/api/v1/workspaces").then();
+        return client.create(body).response();
     }
 
     private io.restassured.response.ValidatableResponse put(String identifier, Map<String, Object> body) {
-        return authorized()
-            .contentType(ContentType.JSON)
-            .body(body)
-            .when()
-            .put("/api/v1/workspaces/" + identifier)
-            .then();
+        return client.updateByIdentifier(identifier, body).response();
     }
 
     private io.restassured.response.ValidatableResponse post(String path) {
-        return authorized().when().post(path).then();
+        return client.action(path).response();
     }
 
     private io.restassured.response.ValidatableResponse delete(String path) {
-        return authorized().when().delete(path).then();
+        return client.delete(path).response();
     }
 
     private io.restassured.response.ValidatableResponse getList(String tagName) {
-        return authorized().queryParam("tagName", tagName).when().get("/api/v1/workspaces").then();
-    }
-
-    private io.restassured.specification.RequestSpecification authorized() {
-        return given()
-            .port(port)
-            .header("correlation-id", "tagging-it")
-            .header("Authorization", "Bearer tagging-it")
-            .accept(ContentType.JSON);
+        return client.findByTag(tagName).response();
     }
 
     private void seedWorkspaceTypes() {

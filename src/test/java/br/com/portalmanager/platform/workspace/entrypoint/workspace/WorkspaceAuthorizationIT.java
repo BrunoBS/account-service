@@ -11,6 +11,7 @@ import br.com.portalmanager.platform.library.testing.authorization.Authorization
 import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;
 import java.util.LinkedHashMap;
@@ -21,12 +22,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
+import tools.jackson.databind.json.JsonMapper;
 
 @PlatformIntegrationTest
 @WithMySql
 @WithMockAuthorization
 class WorkspaceAuthorizationIT {
 
+    // These protocol tests deliberately construct requests with missing headers.
     @LocalServerPort
     private int port;
 
@@ -36,8 +39,14 @@ class WorkspaceAuthorizationIT {
     @Autowired
     private AuthorizationMock authorizationMock;
 
+    @Autowired
+    private PlatformRequestSpecificationFactory requests;
+
+    private WorkspaceClient client;
+
     @BeforeEach
     void resetAsOwner() {
+        client = new WorkspaceClient(requests, JsonMapper.builder().build(), "authorization-it", "authorization-it");
         SchemaDefaultFixture.seed(jdbcTemplate);
         seedWorkspaceTypes();
         seedLifecycleTypes();
@@ -185,36 +194,21 @@ class WorkspaceAuthorizationIT {
         update.put("description", "Alteração não autorizada");
         allowTeamAAdministrator();
         put(teamB, update).statusCode(404).body("code", equalTo("WORKSPACE-0001"));
-        authorized()
-            .when()
-            .post("/api/v1/workspaces/" + teamB + "/inactivate")
-            .then()
+        client.action("/api/v1/workspaces/" + teamB + "/inactivate").response()
             .statusCode(404);
         allowOwner();
         get("/api/v1/workspaces/" + teamB)
             .statusCode(200)
             .body("version", equalTo(version));
-        authorized()
-            .when()
-            .post("/api/v1/workspaces/" + teamB + "/inactivate")
-            .then()
+        client.action("/api/v1/workspaces/" + teamB + "/inactivate").response()
             .statusCode(204);
         allowTeamAAdministrator();
-        authorized()
-            .when()
-            .post("/api/v1/workspaces/" + teamB + "/restore")
-            .then()
+        client.action("/api/v1/workspaces/" + teamB + "/restore").response()
             .statusCode(404);
-        authorized()
-            .when()
-            .delete("/api/v1/workspaces/" + teamB)
-            .then()
+        client.delete("/api/v1/workspaces/" + teamB).response()
             .statusCode(404);
         allowOwner();
-        authorized()
-            .when()
-            .post("/api/v1/workspaces/" + teamB + "/restore")
-            .then()
+        client.action("/api/v1/workspaces/" + teamB + "/restore").response()
             .statusCode(200);
     }
 
@@ -232,25 +226,13 @@ class WorkspaceAuthorizationIT {
         put(teamA, update).statusCode(400);
         update.put("name", "Workspace Writable A");
         put(teamA, update).statusCode(200);
-        authorized()
-            .when()
-            .post("/api/v1/workspaces/" + teamA + "/inactivate")
-            .then()
+        client.action("/api/v1/workspaces/" + teamA + "/inactivate").response()
             .statusCode(204);
-        authorized()
-            .when()
-            .post("/api/v1/workspaces/" + teamA + "/restore")
-            .then()
+        client.action("/api/v1/workspaces/" + teamA + "/restore").response()
             .statusCode(200);
-        authorized()
-            .when()
-            .post("/api/v1/workspaces/" + teamA + "/inactivate")
-            .then()
+        client.action("/api/v1/workspaces/" + teamA + "/inactivate").response()
             .statusCode(204);
-        authorized()
-            .when()
-            .delete("/api/v1/workspaces/" + teamA)
-            .then()
+        client.delete("/api/v1/workspaces/" + teamA).response()
             .statusCode(204);
     }
 
@@ -347,28 +329,15 @@ class WorkspaceAuthorizationIT {
     }
 
     private io.restassured.response.ValidatableResponse get(String path) {
-        return authorized().when().get(path).then();
+        return client.find(path).response();
     }
 
     private io.restassured.response.ValidatableResponse post(Map<String, Object> body) {
-        return authorized().contentType(ContentType.JSON).body(body).when().post("/api/v1/workspaces").then();
+        return client.create(body).response();
     }
 
     private io.restassured.response.ValidatableResponse put(String identifier, Map<String, Object> body) {
-        return authorized()
-            .contentType(ContentType.JSON)
-            .body(body)
-            .when()
-            .put("/api/v1/workspaces/" + identifier)
-            .then();
-    }
-
-    private io.restassured.specification.RequestSpecification authorized() {
-        return given()
-            .port(port)
-            .header("correlation-id", "authorization-it")
-            .header("Authorization", "Bearer authorization-it")
-            .accept(ContentType.JSON);
+        return client.updateByIdentifier(identifier, body).response();
     }
 
     private void seedWorkspaceTypes() {

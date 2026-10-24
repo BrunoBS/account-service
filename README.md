@@ -14,6 +14,20 @@ mvn --settings .github/maven-settings.xml --batch-mode --no-transfer-progress cl
 
 Para execução local, configure MySQL com WORKSPACE_DB_URL/USERNAME/PASSWORD e Redis conforme application.yml. O perfil local usa autorização MOCK por padrão.
 
+## Testes HTTP
+
+Os testes de controller usam `@PlatformIntegrationTest` para subir o serviço em
+porta aleatória. `@WithMockAuthorization` usa WireMock para simular o provedor de
+autorização; cenários de acesso permitido, negado, escopo e visibilidade verificam
+o comportamento do Workspace Service diante dessa simulação, não a integração
+com o provedor real.
+
+Os cenários de Workspace, Environment Configuration e publicação de parâmetros usam clients
+de teste por recurso, responses tipadas, factories de payload e cenários de
+preparo. Payloads inválidos permanecem valores brutos, para verificar a
+validação HTTP sem conversão ou correção silenciosa. Versões usadas em updates
+são sempre fornecidas pelos testes após uma leitura explícita.
+
 ## Publicação de parâmetros
 
 A publicação encapsula Redis em `ParameterPublicationStore`, implementado por

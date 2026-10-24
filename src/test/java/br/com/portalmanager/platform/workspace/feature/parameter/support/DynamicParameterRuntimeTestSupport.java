@@ -1,13 +1,12 @@
 package br.com.portalmanager.platform.workspace.feature.parameter.support;
 
-import static io.restassured.RestAssured.given;
-
 import br.com.portalmanager.platform.library.authorization.model.UserContext;
 import br.com.portalmanager.platform.library.redis.core.RedisStore;
 import br.com.portalmanager.platform.library.redis.annotation.RedisNamespace;
 import br.com.portalmanager.platform.library.redis.configuration.PlatformRedisProperties.NamespaceMode;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
 import br.com.portalmanager.platform.library.testing.redis.annotation.WithRedis;
+import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 
 import io.restassured.http.ContentType;
@@ -16,11 +15,11 @@ import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
 
@@ -36,7 +35,8 @@ import java.util.Map;
         })
 public abstract class DynamicParameterRuntimeTestSupport {
     protected static final String BASE = "/api/v1/dynamic-parameters";
-    @LocalServerPort protected int port;
+    @Autowired protected PlatformRequestSpecificationFactory requests;
+    private DynamicParameterClient client;
     @Autowired protected JdbcTemplate jdbc;
     @Autowired protected ObjectMapper mapper;
     @Autowired
@@ -47,25 +47,12 @@ public abstract class DynamicParameterRuntimeTestSupport {
 
     @BeforeEach
     void prepareRuntime() {
+        client = new DynamicParameterClient(requests, JsonMapper.builder().build());
         SchemaDefaultFixture.seed(jdbc);
         authorization.reset();
         authorization.allow(session -> session.groups("PM5_OWNER").userName("parameter-owner"));
-        parent =
-                request()
-                        .contentType(ContentType.JSON)
-                        .body(
-                                Map.of(
-                                        "code",
-                                        "account-service",
-                                        "name",
-                                        "Account",
-                                        "settings",
-                                        Map.of()))
-                        .post("/api/v1/service-contexts/microservices")
-                        .then()
-                        .statusCode(201)
-                        .extract()
-                        .path("identifier");
+        parent = new MicroserviceClient(requests, JsonMapper.builder().build())
+                .createParent().expectCreated().identifier();
     }
 
     @AfterEach
@@ -74,38 +61,16 @@ public abstract class DynamicParameterRuntimeTestSupport {
     }
 
     protected RequestSpecification request() {
-        return given().port(port)
-                .header("Authorization", "Bearer dynamic-parameter-runtime-review")
-                .header("correlation-id", "dynamic-parameter-runtime-review")
-                .accept(ContentType.JSON);
+        return client.protocolRequest();
     }
 
     protected String create(String key, String type, String value) {
-        return request()
-                .contentType(ContentType.JSON)
-                .body(
-                        "{\"microserviceIdentifier\":\""
-                                + parent
-                                + "\",\"key\":\""
-                                + key
-                                + "\",\"type\":\""
-                                + type
-                                + "\",\"value\":"
-                                + value
-                                + "}")
-                .post(BASE)
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("identifier");
+        return client.createRaw(DynamicParameterRequestFactory.create(parent, key, type, value))
+                .expectCreated().identifier();
     }
 
     protected void publish(String identifier) {
-        request()
-                .contentType(ContentType.JSON)
-                .body(Map.of("identifiers", java.util.List.of(identifier)))
-                .post(BASE + "/publish")
-                .then()
+        client.publish(identifier).response()
                 .statusCode(202)
                 .body(org.hamcrest.Matchers.emptyString());
         await(() -> runtimeValue(parameterKey(identifier)) != null);

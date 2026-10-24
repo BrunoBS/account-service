@@ -1,8 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.configuration;
 
-import static io.restassured.RestAssured.given;
-
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 
 import io.restassured.http.ContentType;
@@ -11,15 +10,16 @@ import io.restassured.specification.RequestSpecification;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.*;
+import tools.jackson.databind.json.JsonMapper;
 
 abstract class EnvironmentConfigurationHttpFixture {
-    @LocalServerPort int port;
+    @Autowired PlatformRequestSpecificationFactory requests;
     @Autowired JdbcTemplate jdbc;
     @Autowired AuthorizationMock authorization;
+    private EnvironmentConfigurationClient client;
     final String workspace = UUID.randomUUID().toString();
     final String otherWorkspace = UUID.randomUUID().toString();
     final String application = UUID.randomUUID().toString();
@@ -32,6 +32,7 @@ abstract class EnvironmentConfigurationHttpFixture {
 
     @BeforeEach
     void prepareConfigurations() {
+        client = new EnvironmentConfigurationClient(requests, JsonMapper.builder().build());
         SchemaDefaultFixture.seed(jdbc);
         for (String code : List.of("ACTIVE", "INACTIVE", "QUARANTINED"))
             jdbc.update(
@@ -122,49 +123,30 @@ abstract class EnvironmentConfigurationHttpFixture {
     }
 
     Map<String, Object> publisher(String id, int order) {
-        return Map.of(
-                "publisherCode",
-                id,
-                "sortOrder",
-                order,
-                "parameters",
-                Map.of("channel", "orders", "free", List.of(1, true, "text")));
+        return EnvironmentConfigurationRequestFactory.publisher(id, order);
     }
 
     Map<String, Object> create(String environment) {
-        Map<String, Object> input = new LinkedHashMap<>();
-        input.put("environmentIdentifier", environment);
-        input.put("settings", Map.of());
-        input.put("publishers", List.of(publisher(http, 2), publisher(kafka, 1)));
-        return input;
+        return EnvironmentConfigurationRequestFactory.validCreate(environment, http, kafka);
     }
 
     Map<String, Object> update(int version) {
-        Map<String, Object> input = new LinkedHashMap<>();
-        input.put("version", version);
-        input.put("settings", Map.of("own", "application", "enabled", true));
-        input.put("publishers", List.of(publisher(http, 1), publisher(kafka, 2)));
-        return input;
+        return EnvironmentConfigurationRequestFactory.validUpdate(version, http, kafka);
     }
 
     RequestSpecification request() {
-        return given().port(port)
-                .header("correlation-id", "configuration-it")
-                .header("Authorization", "Bearer configuration-it")
-                .accept(ContentType.JSON);
+        return client.protocolRequest();
     }
 
     ValidatableResponse post(String path, Object body) {
-        RequestSpecification request = request();
-        if (body != null) request.contentType(ContentType.JSON).body(body);
-        return request.post(path).then();
+        return client.create(path, body).response();
     }
 
     ValidatableResponse put(String path, Object body) {
-        return request().contentType(ContentType.JSON).body(body).put(path).then();
+        return client.update(path, body).response();
     }
 
     ValidatableResponse get(String path) {
-        return request().get(path).then();
+        return client.find(path).response();
     }
 }

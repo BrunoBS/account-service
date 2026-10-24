@@ -1,12 +1,12 @@
 package br.com.portalmanager.platform.workspace.entrypoint.workspace;
 
-import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
 import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
 import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
 import io.restassured.http.ContentType;
 import io.restassured.response.ExtractableResponse;
@@ -17,8 +17,8 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -27,11 +27,13 @@ import org.springframework.test.context.DynamicPropertySource;
 @WithMockAuthorization
 class WorkspaceAuditIT {
 
-    @LocalServerPort
-    private int port;
-
     @Autowired
     private AuthorizationMock authorizationMock;
+
+    @Autowired
+    private PlatformRequestSpecificationFactory requests;
+
+    private WorkspaceClient client;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -44,6 +46,7 @@ class WorkspaceAuditIT {
 
     @BeforeEach
     void setUp() {
+        client = new WorkspaceClient(requests, JsonMapper.builder().build(), "workspace-audit-it", "workspace-audit-request");
         SchemaDefaultFixture.seed(jdbcTemplate);
         jdbcTemplate.update(
             "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')"
@@ -160,34 +163,19 @@ class WorkspaceAuditIT {
     }
 
     private io.restassured.response.ValidatableResponse post(Map<String, Object> body) {
-        return authorized().contentType(ContentType.JSON).body(body).when().post("/api/v1/workspaces").then();
+        return client.create(body).response();
     }
 
     private io.restassured.response.ValidatableResponse post(String path) {
-        return authorized().when().post(path).then();
+        return client.action(path).response();
     }
 
     private io.restassured.response.ValidatableResponse put(String identifier, Map<String, Object> body) {
-        return authorized()
-            .contentType(ContentType.JSON)
-            .body(body)
-            .when()
-            .put("/api/v1/workspaces/" + identifier)
-            .then();
+        return client.updateByIdentifier(identifier, body).response();
     }
 
     private io.restassured.response.ValidatableResponse delete(String identifier) {
-        return authorized()
-            .when()
-            .delete("/api/v1/workspaces/" + identifier)
-            .then();
+        return client.deleteByIdentifier(identifier).response();
     }
 
-    private io.restassured.specification.RequestSpecification authorized() {
-        return given()
-            .port(port)
-            .header("correlation-id", "workspace-audit-request")
-            .header("Authorization", "Bearer workspace-audit-it")
-            .accept(ContentType.JSON);
-    }
 }
