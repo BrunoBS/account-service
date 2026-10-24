@@ -5,30 +5,30 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.featuregroup.FeatureGroup;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.CatalogScenario;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.lifecycle.LifecycleTypeClient;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.lifecycle.LifecycleTypeFactory;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.time.LocalDateTime;
 
 class FeatureGroupPersistenceIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
-    @Autowired private JdbcTemplate jdbc;
-
     @Autowired private FeatureGroupRepository repository;
+
+    @Autowired private LifecycleTypeClient lifecycles;
+    private final LifecycleTypeFactory lifecycleTypeFactory = new LifecycleTypeFactory();
 
     @BeforeEach
     void seedLifecycleTypes() {
-        jdbc.update(
-                "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order,"
-                        + " is_active, settings) VALUES ('ACTIVE','Active','Active lifecycle"
-                        + " state',1,true,'{}'),('INACTIVE','Inactive','Inactive lifecycle"
-                        + " state',2,true,'{}'),('QUARANTINED','Quarantined','Quarantined lifecycle"
-                        + " state',3,true,'{}')");
+        CatalogScenario.builder()
+                .withLifecycleTypes(lifecycles, lifecycleTypeFactory.all())
+                .setup();
     }
 
     @Test
@@ -49,9 +49,9 @@ class FeatureGroupPersistenceIT  extends br.com.portalmanager.platform.workspace
                 repository.saveAndFlush(
                         new FeatureGroup("catalog-account", "Catalog Account", "Catalog group", now));
 
-        jdbc.update(
-                "update feature_group set version = version + 1 where id = ?",
-                saved.getId());
+        FeatureGroup current = repository.findById(saved.getId()).orElseThrow();
+        current.update("Catalog Account", "Current update", now.plusMinutes(1));
+        repository.saveAndFlush(current);
         saved.update("Catalog Account", "Outdated update", now.plusMinutes(1));
 
         assertThrows(

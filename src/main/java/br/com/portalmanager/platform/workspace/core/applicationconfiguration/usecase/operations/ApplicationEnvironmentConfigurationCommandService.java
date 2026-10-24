@@ -183,11 +183,11 @@ public class ApplicationEnvironmentConfigurationCommandService {
             Long environmentId,
             boolean copyWorkspacePublishers,
             List<PublisherInput> explicitPublishers) {
-        if (!copyWorkspacePublishers) {
-            return explicitPublishers;
-        }
+        List<WorkspaceEnvironmentConfigurationPort.PublisherCopy> configuredPublishers =
+                workspaceConfigurations.copyPublishers(workspaceId, environmentId);
+        if (!copyWorkspacePublishers) return explicitPublishers;
 
-        return workspaceConfigurations.copyPublishers(workspaceId, environmentId).stream()
+        return configuredPublishers.stream()
                 .map(
                         publisher ->
                                 new PublisherInput(

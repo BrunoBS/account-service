@@ -1,5 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.parameter.usecase;
 
+import org.junit.jupiter.api.DisplayName;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
@@ -11,7 +12,6 @@ import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.Pa
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.PublishedParameterValue;
 import br.com.portalmanager.platform.workspace.feature.parameter.support.DynamicParameterRuntimeTestSupport;
 
-import io.restassured.http.ContentType;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
+@DisplayName("Integração HTTP - Parameter Key Publication")
 class ParameterKeyPublicationIT extends DynamicParameterRuntimeTestSupport {
 
 
@@ -35,67 +36,35 @@ class ParameterKeyPublicationIT extends DynamicParameterRuntimeTestSupport {
     }
 
     @Test
+
+    @DisplayName("UPDATE - publishes one with an empty accepted response and preserves the snapshot on edit")
     void publishesOneWithAnEmptyAcceptedResponseAndPreservesTheSnapshotOnEdit() {
         String identifier = create("single", "CONFIGURATION", "{\"approved\":true}");
         publish(identifier);
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT status_code FROM parameter_keys WHERE identifier=?",
-                                String.class,
-                                identifier))
+        assertThat(parameterKeys.findProjection(identifier).orElseThrow().getStatus())
                 .isEqualTo("PUBLISHED");
         assertThat(runtimeValue("single").get("value").get("approved").booleanValue()).isTrue();
         assertThat(redis.ttl("account-service.single")).isEmpty();
-        request()
-                .contentType(ContentType.JSON)
-                .body(
-                        Map.of(
-                                "version",
-                                1,
-                                "type",
-                                "CONFIGURATION",
-                                "value",
-                                Map.of("approved", false)))
-                .put(BASE + "/" + identifier)
-                .then()
-                .statusCode(200);
+        updateParameter(identifier,
+                Map.of("version", 1, "type", "CONFIGURATION", "value", Map.of("approved", false)))
+                .expectOk();
         assertThat(runtimeValue("single").get("value").get("approved").booleanValue()).isTrue();
-        assertThat(
-                        mapper.readTree(
-                                        jdbc.queryForObject(
-                                                "SELECT published_value FROM parameter_keys WHERE"
-                                                        + " identifier=?",
-                                                String.class,
-                                                identifier))
-                                .get("approved")
-                                .booleanValue())
+        assertThat(parameterKeys.findRuntimeSnapshot(identifier).orElseThrow()
+                        .getValue().get("approved").booleanValue())
                 .isTrue();
-        assertThat(publishedAuditCount()).isEqualTo(1);
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM audit_outbox WHERE"
-                                    + " JSON_UNQUOTE(JSON_EXTRACT(metadata,'$.eventType'))='PARAMETER_KEY_PUBLISHED'"
-                                    + " AND CAST(metadata AS CHAR) LIKE '%parameter-owner%'",
-                                Integer.class))
-                .isEqualTo(1);
+        assertThat(publishedAuditCount("parameter-owner")).isEqualTo(1);
     }
 
     @Test
+
+    @DisplayName("VALIDATION - processes each identifier independently and continues after an invalid item")
     void processesEachIdentifierIndependentlyAndContinuesAfterAnInvalidItem() {
         String first = create("first", "CONFIGURATION", "1");
         String inactive = create("inactive", "CONFIGURATION", "2");
         String last = create("last", "CONFIGURATION", "3");
-        request().patch(BASE + "/" + inactive + "/inactivate").then().statusCode(200);
-        request()
-                .contentType(ContentType.JSON)
-                .body(
-                        Map.of(
-                                "identifiers",
-                                List.of(first, UUID.randomUUID().toString(), inactive, last)))
-                .post(BASE + "/publish")
-                .then()
-                .statusCode(202)
-                .body(org.hamcrest.Matchers.emptyString());
+        inactivateParameter(inactive).expectOk();
+        publishBatch(List.of(first, UUID.randomUUID().toString(), inactive, last))
+                .expectAcceptedWithEmptyBody();
         await(() -> runtimeValue("last") != null);
         assertThat(runtimeValue("first").get("value").intValue()).isEqualTo(1);
         assertThat(runtimeValue("last").get("value").intValue()).isEqualTo(3);
@@ -104,6 +73,8 @@ class ParameterKeyPublicationIT extends DynamicParameterRuntimeTestSupport {
     }
 
     @Test
+
+    @DisplayName("QUERY - returns accepted before the background work completes")
     void returnsAcceptedBeforeTheBackgroundWorkCompletes() throws Exception {
         String identifier = create("async", "CONFIGURATION", "1");
         CountDownLatch entered = new CountDownLatch(1);
@@ -118,13 +89,7 @@ class ParameterKeyPublicationIT extends DynamicParameterRuntimeTestSupport {
                 .when(publicationStore)
                 .publish(org.mockito.ArgumentMatchers.anyMap());
         try {
-            request()
-                    .contentType(ContentType.JSON)
-                    .body(Map.of("identifiers", List.of(identifier)))
-                    .post(BASE + "/publish")
-                    .then()
-                    .statusCode(202)
-                    .body(org.hamcrest.Matchers.emptyString());
+            publishBatch(List.of(identifier)).expectAcceptedWithEmptyBody();
             assertThat(entered.await(5, TimeUnit.SECONDS)).isTrue();
             assertThat(runtimeValue("async")).isNull();
         } finally {
@@ -134,6 +99,8 @@ class ParameterKeyPublicationIT extends DynamicParameterRuntimeTestSupport {
     }
 
     @Test
+
+    @DisplayName("SMOKE - one failed transaction does not roll back other items or send its value to redis")
     void oneFailedTransactionDoesNotRollBackOtherItemsOrSendItsValueToRedis() {
         String failed = create("transaction-failed", "CONFIGURATION", "1");
         String successful = create("transaction-successful", "CONFIGURATION", "2");
@@ -146,58 +113,29 @@ class ParameterKeyPublicationIT extends DynamicParameterRuntimeTestSupport {
                         })
                 .when(auditAppender)
                 .append(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
-        request()
-                .contentType(ContentType.JSON)
-                .body(Map.of("identifiers", List.of(failed, successful)))
-                .post(BASE + "/publish")
-                .then()
-                .statusCode(202);
+        publishBatch(List.of(failed, successful)).expectAcceptedWithEmptyBody();
         await(() -> runtimeValue("transaction-successful") != null);
         assertThat(runtimeValue("transaction-failed")).isNull();
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT status_code FROM parameter_keys WHERE identifier=?",
-                                String.class,
-                                failed))
-                .isEqualTo("DRAFT");
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT published_value IS NULL FROM parameter_keys WHERE"
-                                        + " identifier=?",
-                                Boolean.class,
-                                failed))
-                .isTrue();
+        assertThat(parameterKeys.findProjection(failed).orElseThrow().getStatus()).isEqualTo("DRAFT");
+        assertThat(parameterKeys.findRuntimeSnapshot(failed).orElseThrow().getValue()).isNull();
         assertThat(publishedAuditCount()).isEqualTo(1);
     }
 
     @Test
+
+    @DisplayName("AUTH - rejects malformed or unauthorized requests before accepting and removes legacy endpoints")
     void rejectsMalformedOrUnauthorizedRequestsBeforeAcceptingAndRemovesLegacyEndpoints() {
         String identifier = create("validation", "CONFIGURATION", "1");
         for (Object identifiers :
                 List.of(List.of(), List.of(identifier, identifier), List.of("invalid"))) {
-            request()
-                    .contentType(ContentType.JSON)
-                    .body(Map.of("identifiers", identifiers))
-                    .post(BASE + "/publish")
-                    .then()
-                    .statusCode(400);
+            publishBatch(identifiers).expectBadRequest();
         }
         authorization.reset();
         authorization.allow(session -> session.groups("PM5_DEV"));
         authorization.forbiddenResource(resource -> resource.header("policy", "OWNER"));
-        request()
-                .contentType(ContentType.JSON)
-                .body(Map.of("identifiers", List.of(identifier)))
-                .post(BASE + "/publish")
-                .then()
-                .statusCode(403);
-        request().patch(BASE + "/" + identifier + "/publish").then().statusCode(404);
-        request()
-                .contentType(ContentType.JSON)
-                .body(Map.of("identifiers", List.of(identifier)))
-                .post(BASE + "/publish-batch")
-                .then()
-                .statusCode(405);
+        publishBatch(List.of(identifier)).expectForbidden();
+        publishRemovedSingleEndpoint(identifier).expectNotFound();
+        publishRemovedBatchEndpoint(List.of(identifier)).expectMethodNotAllowed();
         assertThat(runtimeValue("validation")).isNull();
     }
 }

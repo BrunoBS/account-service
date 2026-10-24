@@ -21,12 +21,14 @@ import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.ope
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageFinder;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.messagetranslator.MessageTranslatorCommandService;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.port.MicroserviceReferencePort;
-import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
+import br.com.portalmanager.platform.workspace.feature.parameter.support.MicroserviceClient;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultScenario;
+import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,27 +47,23 @@ import java.util.concurrent.atomic.AtomicReference;
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class MessageConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
-    private static final String MICROSERVICE = "11111111-1111-1111-1111-111111111111";
-    @Autowired private JdbcTemplate jdbc;
+    @Autowired private SchemaDefaultScenario schemaDefaults;
+    @Autowired private PlatformRequestSpecificationFactory requests;
+    private String microserviceIdentifier;
     @Autowired private MessageCommandService messages;
     @Autowired private MessageTranslatorCommandService translators;
     @Autowired private MessageFinder finder;
     @Autowired private MessageRepository repository;
     @Autowired private MessageTranslatorRepository translatorRepository;
     @Autowired private MicroserviceReferencePort microservices;
+    @Autowired private br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceCommandService microserviceCommands;
     @Autowired private PlatformTransactionManager transactionManager;
 
     @BeforeEach
     void prepare() {
-        SchemaDefaultFixture.seed(jdbc);
-        jdbc.update(
-                "INSERT IGNORE INTO type_life_cycle (code,label,sort_order,is_active,settings)"
-                        + " VALUES ('QUARANTINED','Quarantined',3,true,'{}')");
-        jdbc.update(
-                "INSERT INTO service_context_microservices"
-                    + " (identifier,code,name,settings,lifecycle_code,created_at,updated_at) VALUES"
-                    + " (?,'review-service','Review service','{}','ACTIVE',NOW(6),NOW(6))",
-                MICROSERVICE);
+        schemaDefaults.setup();
+        microserviceIdentifier = new MicroserviceClient(requests, JsonMapper.builder().build())
+                .create("review-service", "Review service").identifier();
     }
 
     @Test
@@ -96,7 +94,7 @@ class MessageConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
             assertThatThrownBy(() -> blocked.get().get(10, TimeUnit.SECONDS))
                     .hasCauseInstanceOf(NotFoundException.class);
         }
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM message_translators", Integer.class))
+        assertThat(translatorRepository.count())
                 .isZero();
     }
 
@@ -128,7 +126,7 @@ class MessageConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
             assertThatThrownBy(() -> pending.get(10, TimeUnit.SECONDS))
                     .hasCauseInstanceOf(NotFoundException.class);
         }
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM message_translators", Integer.class))
+        assertThat(translatorRepository.count())
                 .isZero();
     }
 
@@ -175,10 +173,9 @@ class MessageConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
                     .hasCauseInstanceOf(ResourceVersionConflictException.class);
         }
         assertThat(
-                        jdbc.queryForObject(
-                                "SELECT title FROM message_translators WHERE identifier=?",
-                                String.class,
-                                translator.identifier()))
+                        translatorRepository.findByIdentifierAndMessageId(
+                                translator.identifier(), repository.findByIdentifier(created.identifier()).orElseThrow().getId())
+                                .orElseThrow().getTitle())
                 .isEqualTo("Current");
     }
 
@@ -242,7 +239,7 @@ class MessageConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
                             status -> {
                                 assertThat(
                                                 microservices
-                                                        .findActiveByIdentifier(MICROSERVICE)
+                                                        .findActiveByIdentifier(microserviceIdentifier)
                                                         .orElseThrow()
                                                         .internalId())
                                         .isPositive();
@@ -250,11 +247,8 @@ class MessageConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
                                         executor.submit(
                                                 () -> {
                                                     attempted.countDown();
-                                                    return jdbc.update(
-                                                            "UPDATE service_context_microservices"
-                                                                + " SET lifecycle_code='INACTIVE'"
-                                                                + " WHERE identifier=?",
-                                                            MICROSERVICE);
+                                                    microserviceCommands.inactivate(microserviceIdentifier);
+                                                    return 1;
                                                 }));
                                 await(attempted);
                                 assertThatThrownBy(
@@ -266,12 +260,12 @@ class MessageConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
         }
         assertThatThrownBy(() -> messages.create(input("review.microservice.invalid")))
                 .isInstanceOf(ValidationException.class);
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM messages", Integer.class))
+        assertThat(repository.count())
                 .isEqualTo(1);
     }
 
     private CreateMessageInput input(String key) {
-        return new CreateMessageInput(null, MICROSERVICE, key, "REVIEW-101", 400, null, null);
+        return new CreateMessageInput(null, microserviceIdentifier, key, "REVIEW-101", 400, null, null);
     }
 
     private CreateMessageTranslatorInput translated() {

@@ -16,13 +16,15 @@ import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.P
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.UpdateParameterKeyInput;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.operations.ParameterKeyCommandService;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.operations.ParameterKeyQueryService;
-import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
+import br.com.portalmanager.platform.workspace.feature.parameter.support.MicroserviceClient;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultScenario;
+import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.microservice.MicroserviceRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
@@ -32,7 +34,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.node.IntNode;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -41,41 +42,36 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.time.LocalDateTime;
+import tools.jackson.databind.json.JsonMapper;
 
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class ParameterKeyConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
-    @Autowired private JdbcTemplate jdbc;
     @Autowired private ParameterKeyCommandService commands;
     @Autowired private ParameterKeyQueryService queries;
     @Autowired private PlatformTransactionManager transactionManager;
+    @Autowired private PlatformRequestSpecificationFactory requests;
+    @Autowired private SchemaDefaultScenario schemaDefaults;
+    @Autowired private MicroserviceRepository microservices;
     private String parent;
 
     @BeforeEach
     void prepare() {
-        SchemaDefaultFixture.seed(jdbc);
+        schemaDefaults.setup();
         reset(parameterKeyRepository);
-        parent = UUID.randomUUID().toString();
-        jdbc.update(
-                "INSERT INTO"
-                    + " service_context_microservices(version,identifier,code,name,settings,lifecycle_code,created_at,updated_at)"
-                    + " VALUES (0,?,'account-service','Account','{}','ACTIVE',NOW(),NOW())",
-                parent);
+        parent = new MicroserviceClient(requests, JsonMapper.builder().build())
+                .createParent().expectCreated().identifier();
     }
 
     @Test
     void uniqueConstraintProtectsConcurrentCreationWhenBothPrechecksPass() throws Exception {
-        Long id =
-                jdbc.queryForObject(
-                        "SELECT id FROM service_context_microservices WHERE identifier=?",
-                        Long.class,
-                        parent);
+        Long id = microservices.findInternalIdByIdentifier(parent).orElseThrow();
         doReturn(false).when(parameterKeyRepository).existsByMicroserviceIdAndKey(id, "retry");
         List<Object> results = concurrently(this::create, this::create);
         assertThat(results.stream().filter(ParameterKeyMetadata.class::isInstance)).hasSize(1);
         assertThat(results.stream().filter(DataIntegrityViolationException.class::isInstance))
                 .hasSize(1);
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM parameter_keys", Integer.class))
-                .isEqualTo(1);
+        assertThat(parameterKeyRepository.count()).isEqualTo(1);
     }
 
     @Test
@@ -102,7 +98,7 @@ class ParameterKeyConcurrencyIT  extends br.com.portalmanager.platform.workspace
     @Test
     void updateRejectsTheStaleVersionEvenAfterAnEarlierCachedRepeatableRead() throws Exception {
         ParameterKeyMetadata resource = create();
-        Long id = jdbc.queryForObject("SELECT id FROM parameter_keys", Long.class);
+        Long id = parameterKeyRepository.findAll().getFirst().getId();
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
         try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
@@ -140,15 +136,16 @@ class ParameterKeyConcurrencyIT  extends br.com.portalmanager.platform.workspace
     @Test
     void updateWaitsForInactivationAndCannotRestoreItsClearedPublication() throws Exception {
         ParameterKeyMetadata resource = create();
-        jdbc.update(
-                "UPDATE parameter_keys SET"
-                    + " published_value=value,published_type_code=type_code,status_code='PUBLISHED'");
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<ParameterKeyMetadata>> waiting = new AtomicReference<>();
         try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {
+                                var parameter = parameterKeyRepository
+                                        .findForUpdate(resource.identifier()).orElseThrow();
+                                parameter.publish(LocalDateTime.now());
+                                parameterKeyRepository.saveAndFlush(parameter);
                                 commands.inactivate(resource.identifier());
                                 waiting.set(
                                         executor.submit(
@@ -171,12 +168,10 @@ class ParameterKeyConcurrencyIT  extends br.com.portalmanager.platform.workspace
             assertThat(updated.active()).isFalse();
             assertThat(updated.version()).isEqualTo(2L);
         }
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT published_value IS NULL AND published_type_code IS NULL AND"
-                                        + " status_code='DRAFT' FROM parameter_keys",
-                                Boolean.class))
-                .isTrue();
+        var snapshot = parameterKeyRepository.findRuntimeSnapshot(resource.identifier()).orElseThrow();
+        assertThat(snapshot.isActive()).isFalse();
+        assertThat(snapshot.getValue()).isNull();
+        assertThat(queries.findByIdentifier(resource.identifier()).status()).isEqualTo("DRAFT");
     }
 
     private ParameterKeyMetadata create() {

@@ -1,0 +1,11 @@
+package br.com.portalmanager.platform.workspace.entrypoint.catalog;
+
+import br.com.portalmanager.platform.library.catalog.dto.CatalogDTO;
+import br.com.portalmanager.platform.library.testing.http.response.BaseResponse;
+import io.restassured.response.ValidatableResponse;
+
+public final class CatalogResponse extends BaseResponse<CatalogResponse> {
+    public CatalogResponse(ValidatableResponse response) { super(response); }
+    public CatalogDTO extractBody() { return extract(CatalogDTO.class); }
+    public int statusCode() { return response.extract().statusCode(); }
+}

@@ -14,6 +14,11 @@ import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceDe
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceFinder;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.CatalogScenario;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.lifecycle.LifecycleTypeClient;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.lifecycle.LifecycleTypeFactory;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.workspace.WorkspaceTypeClient;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.workspace.WorkspaceTypeFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.RollbackException;
@@ -25,14 +30,16 @@ import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.jdbc.core.JdbcTemplate;
+// Persistence setup uses catalog HTTP clients; JDBC is reserved for platform infrastructure.
 class WorkspacePersistenceIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
     private WorkspaceRepository workspaceRepository;
+
+    @Autowired private WorkspaceTypeClient workspaceTypes;
+    @Autowired private LifecycleTypeClient lifecycles;
+    private final WorkspaceTypeFactory workspaceTypeFactory = new WorkspaceTypeFactory();
+    private final LifecycleTypeFactory lifecycleTypeFactory = new LifecycleTypeFactory();
 
     @Autowired
     private EntityManagerFactory entityManagerFactory;
@@ -156,32 +163,10 @@ class WorkspacePersistenceIT  extends br.com.portalmanager.platform.workspace.su
 
     @org.junit.jupiter.api.BeforeEach
     void seedWorkspaceTypeCatalog() {
-        seedWorkspaceTypes();
-        seedLifecycleTypes();
-    }
-
-    private void seedWorkspaceTypes() {
-        jdbcTemplate.update(
-            "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('ADMIN', 'Admin', 'Administrative workspace', 1, true, '{}')"
-        );
-        jdbcTemplate.update(
-            "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('MANAGER', 'Manager', 'Management workspace', 2, true, '{}')"
-        );
-        jdbcTemplate.update(
-            "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('CATALOG', 'Catalog', 'Catalog workspace', 3, true, '{}')"
-        );
-    }
-
-    private void seedLifecycleTypes() {
-        jdbcTemplate.update(
-            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('ACTIVE', 'Active', 'Active lifecycle state', 1, true, '{}')"
-        );
-        jdbcTemplate.update(
-            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('INACTIVE', 'Inactive', 'Inactive lifecycle state', 2, true, '{}')"
-        );
-        jdbcTemplate.update(
-            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('QUARANTINED', 'Quarantined', 'Quarantined lifecycle state', 3, true, '{}')"
-        );
+        CatalogScenario.builder()
+                .withWorkspaceTypes(workspaceTypes, workspaceTypeFactory.all())
+                .withLifecycleTypes(lifecycles, lifecycleTypeFactory.all())
+                .setup();
     }
 
     @Test

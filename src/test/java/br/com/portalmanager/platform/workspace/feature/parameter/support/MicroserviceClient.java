@@ -9,17 +9,21 @@ import tools.jackson.databind.json.JsonMapper;
 import java.util.Map;
 
 /** Prepares the parent resource for dynamic parameter scenarios. */
-final class MicroserviceClient extends BaseClient {
+public final class MicroserviceClient extends BaseClient {
 
-    MicroserviceClient(PlatformRequestSpecificationFactory requests, JsonMapper jsonMapper) {
+    public MicroserviceClient(PlatformRequestSpecificationFactory requests, JsonMapper jsonMapper) {
         super(requests, jsonMapper);
     }
 
-    MicroserviceResponse createParent() {
+    public MicroserviceResponse createParent() {
+        return create("account-service", "Account");
+    }
+
+    public MicroserviceResponse create(String code, String name) {
         ValidatableResponse created = authorizedRequest(AuthorizationRequestData.builder()
                 .token("dynamic-parameter-runtime-review").build())
                 .header("correlation-id", "dynamic-parameter-runtime-review")
-                .body(Map.of("code", "account-service", "name", "Account", "settings", Map.of()))
+                .body(Map.of("code", code, "name", name, "settings", Map.of()))
                 .post("/api/v1/service-contexts/microservices").then();
         return response(created, MicroserviceResponse::new);
     }

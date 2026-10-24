@@ -2,12 +2,14 @@ package br.com.portalmanager.platform.workspace.core.application.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
 
@@ -38,7 +40,16 @@ class ApplicationDomainTest {
         assertThrows(ValidationException.class, () -> application.restore(now));
     }
 
-    private Application application(ObjectNode settings) {
+    @Test
+    void treatsMissingAndExplicitNullSettingsAsAbsent() {
+        Application missingSettings = application(null);
+        Application explicitNullSettings = application(JsonNodeFactory.instance.nullNode());
+
+        assertNull(missingSettings.getSettings());
+        assertNull(explicitNullSettings.getSettings());
+    }
+
+    private Application application(JsonNode settings) {
         return new Application(
             1L,
             new ApplicationDetails(

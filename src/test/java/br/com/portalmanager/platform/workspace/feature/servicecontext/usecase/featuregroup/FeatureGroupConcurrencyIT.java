@@ -17,13 +17,18 @@ import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.op
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.featuregroup.FeatureGroupAssociationCommandService;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.featuregroup.FeatureGroupCommandService;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.featuregroup.FeatureGroupFinder;
-import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultScenario;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.feature.FeatureRepository;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.featuregroup.FeatureGroupRelationRepository;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.featuregroup.FeatureGroupRepository;
+import br.com.portalmanager.platform.workspace.feature.parameter.support.MicroserviceClient;
+import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,8 +44,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class FeatureGroupConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
-    private static final String MICROSERVICE = "11111111-1111-1111-1111-111111111111";
-    @Autowired private JdbcTemplate jdbc;
+    private String microservice;
+    @Autowired private SchemaDefaultScenario schemaDefaults;
+    @Autowired private PlatformRequestSpecificationFactory requests;
+    @Autowired private FeatureRepository featureRepository;
+    @Autowired private FeatureGroupRepository groupRepository;
+    @Autowired private FeatureGroupRelationRepository relations;
     @Autowired private FeatureGroupCommandService groups;
     @Autowired private FeatureGroupAssociationCommandService bindings;
     @Autowired private FeatureGroupFinder finder;
@@ -49,12 +58,9 @@ class FeatureGroupConcurrencyIT  extends br.com.portalmanager.platform.workspace
 
     @BeforeEach
     void prepare() {
-        SchemaDefaultFixture.seed(jdbc);
-        jdbc.update(
-                "INSERT INTO service_context_microservices"
-                    + " (identifier,code,name,settings,lifecycle_code,created_at,updated_at) VALUES"
-                    + " (?,'parent-service','Parent service','{}','ACTIVE',NOW(6),NOW(6))",
-                MICROSERVICE);
+        schemaDefaults.setup();
+        microservice = new MicroserviceClient(requests, JsonMapper.builder().build())
+                .create("parent-service", "Parent service").expectCreated().identifier();
     }
 
     @Test
@@ -86,7 +92,7 @@ class FeatureGroupConcurrencyIT  extends br.com.portalmanager.platform.workspace
             assertThatThrownBy(() -> pending.get(10, TimeUnit.SECONDS))
                     .hasCauseInstanceOf(ResourceVersionConflictException.class);
         }
-        assertThat(jdbc.queryForObject("SELECT name FROM feature_group", String.class))
+        assertThat(groupRepository.findAll().getFirst().getName())
                 .isEqualTo("Current");
     }
 
@@ -114,15 +120,8 @@ class FeatureGroupConcurrencyIT  extends br.com.portalmanager.platform.workspace
             one.get(10, TimeUnit.SECONDS);
             two.get(10, TimeUnit.SECONDS);
         }
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM feature_group", Integer.class))
-                .isEqualTo(2);
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM feature_group_feature",
-                                Integer.class))
-                .isEqualTo(2);
+        assertThat(groupRepository.count()).isEqualTo(2);
+        assertThat(relations.count()).isEqualTo(2);
     }
 
     @RepeatedTest(3)
@@ -153,21 +152,14 @@ class FeatureGroupConcurrencyIT  extends br.com.portalmanager.platform.workspace
             one.get(10, TimeUnit.SECONDS);
             two.get(10, TimeUnit.SECONDS);
         }
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM feature_group WHERE version=1",
-                                Integer.class))
+        assertThat(groupRepository.findAll().stream().filter(group -> group.getVersion() == 1L).count())
                 .isEqualTo(2);
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM feature_group_feature",
-                                Integer.class))
-                .isEqualTo(2);
+        assertThat(relations.count()).isEqualTo(2);
     }
 
     private FeatureOutput feature(String code) {
         return features.create(
-                new CreateFeatureInput(null, code, code, null, MICROSERVICE, "{}", false));
+                new CreateFeatureInput(null, code, code, null, microservice, "{}", false));
     }
 
     private UpdateFeatureGroupInput update(FeatureGroupOutput group, String name) {
@@ -210,19 +202,9 @@ class FeatureGroupConcurrencyIT  extends br.com.portalmanager.platform.workspace
             assertThatThrownBy(() -> pending.get().get(10, TimeUnit.SECONDS))
                     .hasCauseInstanceOf(NotFoundException.class);
         }
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM feature_group", Integer.class))
-                .isZero();
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM feature_group_feature",
-                                Integer.class))
-                .isZero();
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM service_context_features", Integer.class))
-                .isEqualTo(1);
+        assertThat(groupRepository.count()).isZero();
+        assertThat(relations.count()).isZero();
+        assertThat(featureRepository.count()).isEqualTo(1);
     }
 
     private void await(CountDownLatch latch) {

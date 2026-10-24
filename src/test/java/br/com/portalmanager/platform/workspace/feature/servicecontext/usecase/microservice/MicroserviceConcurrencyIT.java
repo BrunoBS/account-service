@@ -15,12 +15,13 @@ import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mo
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature.FeatureCommandService;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceCommandService;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceFinder;
-import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.feature.FeatureRepository;
+import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.microservice.MicroserviceRepository;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultScenario;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,18 +38,17 @@ import java.util.concurrent.atomic.AtomicReference;
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class MicroserviceConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
-    @Autowired private JdbcTemplate jdbc;
     @Autowired private MicroserviceCommandService microservices;
     @Autowired private MicroserviceFinder finder;
     @Autowired private FeatureCommandService features;
+    @Autowired private FeatureRepository featureRepository;
+    @Autowired private MicroserviceRepository microserviceRepository;
     @Autowired private PlatformTransactionManager transactionManager;
+    @Autowired private SchemaDefaultScenario schemaDefaults;
 
     @BeforeEach
     void prepare() {
-        SchemaDefaultFixture.seed(jdbc);
-        jdbc.update(
-                "INSERT IGNORE INTO type_life_cycle (code,label,sort_order,is_active,settings)"
-                        + " VALUES ('QUARANTINED','Quarantined',3,true,'{}')");
+        schemaDefaults.setup();
     }
 
     @Test
@@ -75,10 +75,7 @@ class MicroserviceConcurrencyIT  extends br.com.portalmanager.platform.workspace
                             });
             assertThat(pending.get().get(10, TimeUnit.SECONDS).lifecycle()).isEqualTo("INACTIVE");
         }
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM service_context_features", Integer.class))
-                .isEqualTo(1);
+        assertThat(featureRepository.count()).isEqualTo(1);
         assertThatThrownBy(
                         () ->
                                 features.create(
@@ -118,10 +115,7 @@ class MicroserviceConcurrencyIT  extends br.com.portalmanager.platform.workspace
             assertThatThrownBy(() -> pending.get().get(10, TimeUnit.SECONDS))
                     .hasCauseInstanceOf(ValidationException.class);
         }
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM service_context_features", Integer.class))
-                .isZero();
+        assertThat(featureRepository.count()).isZero();
     }
 
     @Test
@@ -159,11 +153,7 @@ class MicroserviceConcurrencyIT  extends br.com.portalmanager.platform.workspace
             assertThatThrownBy(() -> pending.get(10, TimeUnit.SECONDS))
                     .hasCauseInstanceOf(ResourceVersionConflictException.class);
         }
-        assertThat(
-                        jdbc.queryForObject(
-                                "SELECT name FROM service_context_microservices WHERE identifier=?",
-                                String.class,
-                                parent.identifier()))
+        assertThat(microserviceRepository.findByIdentifier(parent.identifier()).orElseThrow().getName())
                 .isEqualTo("Current");
     }
 

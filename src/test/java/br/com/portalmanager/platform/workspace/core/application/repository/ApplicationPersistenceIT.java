@@ -13,17 +13,20 @@ import br.com.portalmanager.platform.workspace.core.workspace.repository.Workspa
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.CatalogScenario;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.application_scope.ApplicationScopeTypeClient;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.application_scope.CatalogFactory;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.lifecycle.LifecycleTypeClient;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.lifecycle.LifecycleTypeFactory;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.workspace.WorkspaceTypeClient;
+import br.com.portalmanager.platform.workspace.entrypoint.catalog.workspace.WorkspaceTypeFactory;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 class ApplicationPersistenceIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
-
-    @Autowired
-    private JdbcTemplate jdbc;
 
     @Autowired
     private WorkspaceRepository workspaces;
@@ -31,20 +34,22 @@ class ApplicationPersistenceIT  extends br.com.portalmanager.platform.workspace.
     @Autowired
     private ApplicationRepository applications;
 
+    @Autowired private WorkspaceTypeClient workspaceTypes;
+    @Autowired private LifecycleTypeClient lifecycles;
+    @Autowired private ApplicationScopeTypeClient applicationScopes;
+
+    private final WorkspaceTypeFactory workspaceTypeFactory = new WorkspaceTypeFactory();
+    private final LifecycleTypeFactory lifecycleTypeFactory = new LifecycleTypeFactory();
+    private final CatalogFactory applicationScopeFactory = new CatalogFactory();
+
     @BeforeEach
     void seedCatalogs() {
-        jdbc.update(
-            "INSERT IGNORE INTO type_workspaces (code, label, description, sort_order, is_active, settings) VALUES ('MANAGER', 'Manager', 'Management workspace', 2, true, '{}')"
-        );
-        jdbc.update(
-            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('ACTIVE', 'Active', 'Active state', 1, true, '{}')"
-        );
-        jdbc.update(
-            "INSERT IGNORE INTO type_life_cycle (code, label, description, sort_order, is_active, settings) VALUES ('INACTIVE', 'Inactive', 'Inactive state', 2, true, '{}')"
-        );
-        jdbc.update(
-            "INSERT IGNORE INTO type_application_scopes (code, label, description, sort_order, is_active, settings) VALUES ('BACKEND', 'Backend', 'Backend scope', 1, true, '{}')"
-        );
+        CatalogScenario.builder()
+            .withWorkspaceTypes(workspaceTypes, java.util.List.of(workspaceTypeFactory.manager()))
+            .withLifecycleTypes(lifecycles, lifecycleTypeFactory.all())
+            .withApplicationScopeTypes(applicationScopes,
+                java.util.List.of(applicationScopeFactory.withLabel("BACKEND", "Backend")))
+            .setup();
     }
 
     @Test

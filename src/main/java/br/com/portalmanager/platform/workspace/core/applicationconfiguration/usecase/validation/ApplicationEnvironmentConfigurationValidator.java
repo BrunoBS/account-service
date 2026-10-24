@@ -62,7 +62,7 @@ public class ApplicationEnvironmentConfigurationValidator {
     }
 
     public void validateCopy(boolean copy, List<PublisherInput> explicit) {
-        if (copy && explicit != null) invalid("publishers");
+        if (copy && explicit != null && !explicit.isEmpty()) invalid("publishers");
     }
 
     public List<ResolvedPublisher> validatePublishers(
@@ -121,6 +121,7 @@ public class ApplicationEnvironmentConfigurationValidator {
         else request.put("version", version);
         request.set("settings", settings);
         request.set("publishers", objectMapper.valueToTree(publishers));
+        request.put("copyWorkspacePublishers", false);
         ValidationResult result = new ValidationResult();
         schemas.validateRequired(
                 SCHEMA_TYPE, "application-environment-configuration", "request", request, result);

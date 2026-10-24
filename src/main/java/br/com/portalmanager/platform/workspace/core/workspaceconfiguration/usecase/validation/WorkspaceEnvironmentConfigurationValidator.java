@@ -51,6 +51,8 @@ public class WorkspaceEnvironmentConfigurationValidator {
     }
 
     public void validateSettings(JsonNode settings) {
+        if (settings != null && settings.isNull()) return;
+
         ValidationResult result = new ValidationResult();
         schemas.validate(SCHEMA_TYPE, SETTINGS_SCHEMA_CODE, "settings", settings, result);
         reject(result);

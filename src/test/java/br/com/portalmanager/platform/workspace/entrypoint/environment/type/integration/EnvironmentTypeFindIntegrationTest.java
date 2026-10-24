@@ -1,0 +1,31 @@
+package br.com.portalmanager.platform.workspace.entrypoint.environment.type.integration;
+
+import br.com.portalmanager.platform.workspace.entrypoint.environment.type.support.EnvironmentTypeClient;
+import br.com.portalmanager.platform.workspace.entrypoint.environment.type.support.EnvironmentTypeFactory;
+import br.com.portalmanager.platform.workspace.entrypoint.environment.support.EnvironmentScenario;
+import br.com.portalmanager.platform.workspace.support.BaseIntegrationTest;
+import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@DisplayName("Integração HTTP - Environment Type Find")
+@WithMySql(excludeTables = {"flyway_schema_history", "type_life_cycle", "type_schema_scopes", "type_schema_version_status"})
+class EnvironmentTypeFindIntegrationTest extends BaseIntegrationTest {
+    @Autowired private EnvironmentScenario scenario;
+    @Autowired private EnvironmentTypeClient types;
+    private final EnvironmentTypeFactory factory = new EnvironmentTypeFactory();
+
+    @BeforeEach
+    void prepareScenario() {
+        scenario.setup();
+    }
+
+    @Test
+    @DisplayName("QUERY - busca tipo pelo código")
+    void buscaTipo() {
+        types.find("DEFAULT").expectOk().expect("rootAllowed", true).expect("workspaceRequired", false);
+        types.find("UNKNOWN").expectNotFound();
+    }
+}

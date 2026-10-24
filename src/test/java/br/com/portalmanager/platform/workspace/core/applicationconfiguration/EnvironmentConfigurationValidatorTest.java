@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.PublisherInput;
+import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.ResolvedPublisher;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.PublisherReferencePort;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.PublisherReferencePort.PublisherReference;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.ResourceScopeTypePort;
@@ -14,6 +15,9 @@ import br.com.portalmanager.platform.workspace.core.applicationconfiguration.use
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.validation.ApplicationEnvironmentConfigurationValidator;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -24,9 +28,10 @@ class EnvironmentConfigurationValidatorTest {
     private final JsonMapper json = JsonMapper.builder().build();
     private final PublisherReferencePort publishers = mock(PublisherReferencePort.class);
     private final ResourceScopeTypePort scopes = mock(ResourceScopeTypePort.class);
+    private final SchemaValidationPort schemas = mock(SchemaValidationPort.class);
     private final ApplicationEnvironmentConfigurationValidator validator =
             new ApplicationEnvironmentConfigurationValidator(
-                    publishers, mock(SchemaValidationPort.class), json, scopes);
+                    publishers, schemas, json, scopes);
 
     private PublisherInput input(String code) {
         return new PublisherInput(code, 1, json.createObjectNode());
@@ -38,6 +43,41 @@ class EnvironmentConfigurationValidatorTest {
     }
 
     @Test
+    void validatesCopiedPublishersUsingTheExpandedRequestShape() {
+        var settings = json.createObjectNode().put("region", "test");
+        var publisher = new PublisherInput("KAFKA", 1, json.createObjectNode().put("topicName", "events"));
+
+        validator.validateCopiedRequest("123e4567-e89b-12d3-a456-426614174000", null, settings, List.of(publisher));
+
+        var payload = org.mockito.ArgumentCaptor.forClass(JsonNode.class);
+        verify(schemas).validateRequired(eq("PLATFORM"), eq("application-environment-configuration"),
+                eq("request"), payload.capture(), any());
+        assertThat(payload.getValue().path("copyWorkspacePublishers").asBoolean(true)).isFalse();
+    }
+
+    @Test
+    void validatesCopiedUpdateRequestUsingVersionInsteadOfEnvironment() {
+        validator.validateCopiedRequest(null, 7L, json.createObjectNode().put("region", "test"),
+                List.of(input("KAFKA")));
+        var payload = org.mockito.ArgumentCaptor.forClass(JsonNode.class);
+        verify(schemas).validateRequired(eq("PLATFORM"), eq("application-environment-configuration"),
+                eq("request"), payload.capture(), any());
+        assertThat(payload.getValue().path("version").asLong()).isEqualTo(7L);
+        assertThat(payload.getValue().has("environmentIdentifier")).isFalse();
+    }
+
+    @Test
+    void permitsEmptyExplicitPublishersWhenCopyingWorkspacePublishers() {
+        validator.validateCopy(true, List.of());
+        validator.validateCopy(true, null);
+        validator.validateCopy(false, null);
+        validator.validateCopy(false, List.of(input("KAFKA")));
+
+        assertThatThrownBy(() -> validator.validateCopy(true, List.of(input("KAFKA"))))
+                .isInstanceOf(ValidationException.class);
+    }
+
+    @Test
     void validatesTheThreeCatalogCodesAndTheirInitialScopes() {
         when(scopes.existsActive(anyString())).thenReturn(true);
         for (String code : List.of("WEB_SOCKET", "KAFKA", "APP_CONFIG")) {
@@ -46,17 +86,8 @@ class EnvironmentConfigurationValidatorTest {
                     true,
                     json.createObjectNode()
                             .put("scope", code.equals("APP_CONFIG") ? "APPLICATION" : "WORKSPACE"));
-            if (false && code.equals("APP_CONFIG"))
-                assertThatThrownBy(
-                                () -> validator.validatePublishers(List.of(input(code)), Set.of()))
-                        .isInstanceOf(ValidationException.class);
-            else
-                assertThat(
-                                validator
-                                        .validatePublishers(List.of(input(code)), Set.of())
-                                        .getFirst()
-                                        .publisherCode())
-                        .isEqualTo(code);
+            assertThat(validator.validatePublishers(List.of(input(code)), Set.of()).getFirst().publisherCode())
+                    .isEqualTo(code);
         }
     }
 
@@ -145,6 +176,12 @@ class EnvironmentConfigurationValidatorTest {
                                             Set.of()))
                     .isInstanceOf(ValidationException.class);
         }
+        assertThatThrownBy(() -> validator.validatePublishers(
+                List.of(new PublisherInput("KAFKA", 1, null)), Set.of()))
+                .isInstanceOf(ValidationException.class);
+        reference("KAFKA", true, null);
+        assertThatThrownBy(() -> validator.validatePublishers(List.of(input("KAFKA")), Set.of()))
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test
@@ -157,5 +194,62 @@ class EnvironmentConfigurationValidatorTest {
                 .isInstanceOf(ValidationException.class);
         assertThatThrownBy(() -> validator.validateUpdateVersion(0L, 1L))
                 .isInstanceOf(ResourceVersionConflictException.class);
+        assertThatThrownBy(() -> validator.validateUpdateVersion(-1L, -1L))
+                .isInstanceOf(ValidationException.class);
+        validator.validatePagination(PageRequest.of(0, 20, Sort.by("createdAt")));
+        validator.validatePagination(PageRequest.of(0, 20, Sort.by("id")));
+        for (Pageable invalid : List.of(Pageable.unpaged(), PageRequest.of(0, 20, Sort.by("settings")),
+                PageRequest.of(Integer.MAX_VALUE, 2))) {
+            assertThatThrownBy(() -> validator.validatePagination(invalid)).isInstanceOf(ValidationException.class);
+        }
+        assertThatThrownBy(() -> validator.validatePagination(null)).isInstanceOf(ValidationException.class);
+    }
+
+    @Test
+    void rejectsNullPublisherFieldsAndSortOrders() {
+        for (PublisherInput invalid : List.of(new PublisherInput(null, 1, json.createObjectNode()),
+                new PublisherInput("KAFKA", null, json.createObjectNode()),
+                new PublisherInput("KAFKA", -1, json.createObjectNode()))) {
+            assertThatThrownBy(() -> validator.validatePublishers(List.of(invalid), Set.of()))
+                    .isInstanceOf(ValidationException.class);
+        }
+        assertThatThrownBy(() -> validator.validatePublishers(java.util.Arrays.asList((PublisherInput) null), Set.of()))
+                .isInstanceOf(ValidationException.class);
+    }
+
+    @Test
+    void rejectsSettingsWhenBoundSchemaReturnsValidationErrors() {
+        doAnswer(invocation -> {
+            ((br.com.portalmanager.platform.library.messaging.validation.ValidationResult) invocation.getArgument(4))
+                    .addError("settings.region", br.com.portalmanager.platform.library.messaging.message.PlatformMessageKeys.VALIDATION_FAILED);
+            return null;
+        }).when(schemas).validate(anyString(), anyString(), anyString(), any(), any());
+        assertThatThrownBy(() -> validator.validateSettings(json.createObjectNode()))
+                .isInstanceOf(ValidationException.class);
+    }
+
+    @Test
+    void rejectsCopiedRequestWhenExpandedSchemaValidationFails() {
+        doAnswer(invocation -> {
+            ((br.com.portalmanager.platform.library.messaging.validation.ValidationResult) invocation.getArgument(4))
+                    .addError("publishers[0].parameters", br.com.portalmanager.platform.library.messaging.message.PlatformMessageKeys.VALIDATION_FAILED);
+            return null;
+        }).when(schemas).validateRequired(anyString(), anyString(), anyString(), any(), any());
+        assertThatThrownBy(() -> validator.validateCopiedRequest("environment", null,
+                json.createObjectNode(), List.of(input("KAFKA"))))
+                .isInstanceOf(ValidationException.class);
+    }
+
+    @Test
+    void sortsMultipleConfiguredPublishersByRequestedOrder() {
+        when(scopes.existsActive(anyString())).thenReturn(true);
+        when(publishers.resolveForAssociation(anyCollection())).thenReturn(List.of(
+                new PublisherReference("WEB_SOCKET", true, json.createObjectNode().put("scope", "WORKSPACE")),
+                new PublisherReference("APP_CONFIG", true, json.createObjectNode().put("scope", "APPLICATION"))));
+        var resolved = validator.validatePublishers(List.of(
+                new PublisherInput("WEB_SOCKET", 2, json.createObjectNode()),
+                new PublisherInput("APP_CONFIG", 1, json.createObjectNode())), Set.of());
+        assertThat(resolved).extracting(ResolvedPublisher::publisherCode)
+                .containsExactly("APP_CONFIG", "WEB_SOCKET");
     }
 }

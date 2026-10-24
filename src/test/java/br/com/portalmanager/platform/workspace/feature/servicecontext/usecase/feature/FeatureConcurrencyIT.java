@@ -22,7 +22,7 @@ import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.op
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.featuregroup.FeatureGroupAssociationCommandService;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.featuregroup.FeatureGroupCommandService;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice.MicroserviceCommandService;
-import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultScenario;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +44,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class FeatureConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     private static final String MICROSERVICE = "11111111-1111-1111-1111-111111111111";
+    @Autowired private SchemaDefaultScenario schemaDefaults;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private FeatureCommandService features;
     @Autowired private FeatureQueryService query;
@@ -56,7 +57,7 @@ class FeatureConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
 
     @BeforeEach
     void prepare() {
-        SchemaDefaultFixture.seed(jdbc);
+        schemaDefaults.setup();
         jdbc.update(
                 "INSERT IGNORE INTO type_life_cycle (code,label,sort_order,is_active,settings)"
                         + " VALUES ('QUARANTINED','Quarantined',3,true,'{}')");

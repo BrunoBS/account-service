@@ -7,7 +7,12 @@ import br.com.portalmanager.platform.library.testing.database.annotation.WithMyS
 import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.MessageOutput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageQueryService;
-import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultScenario;
+import br.com.portalmanager.platform.workspace.feature.parameter.support.MicroserviceClient;
+import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.message.MessageClient;
+import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.message.MessageFactory;
+import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
+import tools.jackson.databind.json.JsonMapper;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -17,34 +22,28 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
 
 class MessageQueryIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
-    @Autowired private JdbcTemplate jdbc;
     @Autowired private EntityManagerFactory entityManagerFactory;
     @Autowired private MessageQueryService query;
+    @Autowired private SchemaDefaultScenario schemaDefaults;
+    @Autowired private PlatformRequestSpecificationFactory requests;
+    @Autowired private MessageClient messages;
+    private final MessageFactory messageFactory = new MessageFactory();
 
     @Test
     void loadsPageAndCountAndResolvesAllMicroserviceIdentifiersInOneBatch() {
-        SchemaDefaultFixture.seed(jdbc);
+        schemaDefaults.setup();
+        var microservices = new MicroserviceClient(requests, JsonMapper.builder().build());
+        java.util.List<String> identifiers = new java.util.ArrayList<>();
         for (int index = 1; index <= 3; index++) {
-            String identifier = "11111111-1111-1111-1111-11111111111" + index;
-            jdbc.update(
-                    "INSERT INTO service_context_microservices"
-                        + " (identifier,code,name,settings,lifecycle_code,created_at,updated_at)"
-                        + " VALUES (?,?,?,'{}','ACTIVE',NOW(6),NOW(6))",
-                    identifier,
-                    "review-service-" + index,
-                    "Review service " + index);
-            jdbc.update(
-                    "INSERT INTO messages"
-                        + " (identifier,microservice_id,message_key,code,http_status,lifecycle_code,created_at,updated_at)"
-                        + " SELECT UUID(),id,?,'REVIEW-101',400,'ACTIVE',NOW(6),NOW(6) FROM"
-                        + " service_context_microservices WHERE identifier=?",
-                    "review.query." + index,
-                    identifier);
+            String parent = microservices.create("review-service-" + index, "Review service " + index)
+                    .expectCreated().identifier();
+            identifiers.add(parent);
+            messages.create(messageFactory.valid(parent, "review.query." + index, "REVIEW-10" + index))
+                    .expectCreated();
         }
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         boolean statisticsEnabled = statistics.isStatisticsEnabled();
@@ -56,8 +55,7 @@ class MessageQueryIT  extends br.com.portalmanager.platform.workspace.support.Wo
             assertThat(page.getContent())
                     .extracting(MessageOutput::microserviceIdentifier)
                     .containsExactly(
-                            "11111111-1111-1111-1111-111111111111",
-                            "11111111-1111-1111-1111-111111111112");
+                            identifiers.get(0), identifiers.get(1));
             assertThat(statistics.getPrepareStatementCount()).isEqualTo(3);
         } finally {
             statistics.setStatisticsEnabled(statisticsEnabled);

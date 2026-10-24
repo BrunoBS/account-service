@@ -92,12 +92,13 @@ class EnvironmentConfigurationCommandTest {
     }
 
     @Test
-    void explicitPublishersDoNotConsultTheWorkspaceOrigin() {
+    void explicitPublishersStillRequireWorkspaceConfigurationButAreNotReplacedByItsPublishers() {
         setupScope();
         List<PublisherInput> explicit =
                 List.of(
                         new PublisherInput(
                                 PublisherTypeCode.kafka().value(), 1, json.createObjectNode()));
+        when(origin.copyPublishers(1L, 3L)).thenReturn(List.of());
         when(validator.validatePublishers(explicit, Set.of())).thenReturn(List.of());
         when(repository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
         commands.create(
@@ -105,7 +106,8 @@ class EnvironmentConfigurationCommandTest {
                 "application",
                 new CreateApplicationEnvironmentConfigurationInput(
                         null, "environment", json.createObjectNode(), explicit, false));
-        verifyNoInteractions(origin);
+        verify(origin).copyPublishers(1L, 3L);
+        verify(validator).validatePublishers(explicit, Set.of());
     }
 
     @Test
@@ -155,6 +157,26 @@ class EnvironmentConfigurationCommandTest {
                 .isInstanceOf(ValidationException.class);
         verify(associations, never()).deleteAssociations(any());
         verify(repository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void updateCanReplacePublishersFromWorkspaceAndValidatesUpdatedRequestShape() {
+        ApplicationEnvironmentConfiguration configuration = stored();
+        ObjectNode parameters = json.createObjectNode().put("topicName", "copied");
+        when(environments.resolveIdentifier(3L)).thenReturn("environment");
+        when(origin.copyPublishers(1L, 3L)).thenReturn(List.of(
+                new PublisherCopy(PublisherTypeCode.kafka().value(), 1, parameters)));
+        when(validator.validatePublishers(anyList(), eq(Set.of()))).thenReturn(List.of(
+                new ResolvedPublisher(PublisherTypeCode.kafka().value(), 1, parameters)));
+        when(repository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        commands.update("workspace", "application", configuration.getIdentifier(),
+                new UpdateApplicationEnvironmentConfigurationInput(4L, json.createObjectNode(), null, true));
+
+        verify(origin).copyPublishers(1L, 3L);
+        verify(validator).validateCopiedRequest(isNull(), eq(4L), any(), anyList());
+        verify(associations, never()).findByConfigurationIdOrderBySortOrderAsc(any());
+        verify(associations).deleteAssociations(9L);
     }
 
     private void setupScope() {

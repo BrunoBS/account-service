@@ -23,13 +23,12 @@ import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.oper
 import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.operations.category.CategoryQueryService;
 import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.operations.segment.SegmentCommandService;
 import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.operations.segment.SegmentQueryService;
-import br.com.portalmanager.platform.workspace.support.SchemaDefaultFixture;
+import br.com.portalmanager.platform.workspace.support.SchemaDefaultScenario;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
@@ -48,7 +47,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class SegmentConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
-    @Autowired private JdbcTemplate jdbc;
+    @Autowired private SchemaDefaultScenario schemaDefaults;
     @Autowired private SegmentCommandService segments;
     @Autowired private CategoryCommandService categories;
     @Autowired private SegmentQueryService segmentQueries;
@@ -57,7 +56,7 @@ class SegmentConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
     @BeforeEach
     void prepare() {
         reset(segmentRepository, categoryRepository);
-        SchemaDefaultFixture.seed(jdbc);
+        schemaDefaults.setup();
     }
 
     @Test
@@ -73,18 +72,14 @@ class SegmentConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
         assertThat(results.stream().filter(SegmentOutput.class::isInstance)).hasSize(1);
         assertThat(results.stream().filter(DataIntegrityViolationException.class::isInstance))
                 .hasSize(1);
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM segment", Integer.class)).isEqualTo(1);
+        assertThat(segmentRepository.count()).isEqualTo(1);
     }
 
     @Test
     void categoryConstraintReservesCodesInsideTheParentEvenWhenThePrecheckMissesADuplicate()
             throws Exception {
         SegmentOutput segment = createSegment();
-        Long internalId =
-                jdbc.queryForObject(
-                        "SELECT id FROM segment WHERE identifier=?",
-                        Long.class,
-                        segment.identifier());
+        Long internalId = segmentRepository.findByIdentifier(segment.identifier()).orElseThrow().getId();
         doReturn(false).when(categoryRepository).existsBySegmentIdAndCode(internalId, "premium");
         List<Object> results =
                 concurrently(
@@ -99,7 +94,7 @@ class SegmentConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
         assertThat(results.stream().filter(CategoryOutput.class::isInstance)).hasSize(1);
         assertThat(results.stream().filter(DataIntegrityViolationException.class::isInstance))
                 .hasSize(1);
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM category", Integer.class))
+        assertThat(categoryRepository.count())
                 .isEqualTo(1);
     }
 
@@ -156,11 +151,7 @@ class SegmentConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
                                             .executeWithoutResult(
                                                     status -> {
                                                         segmentRepository
-                                                                .findById(
-                                                                        jdbc.queryForObject(
-                                                                                "SELECT id FROM"
-                                                                                    + " segment",
-                                                                                Long.class))
+                                                                .findByIdentifier(segment.identifier())
                                                                 .orElseThrow();
                                                         cached.countDown();
                                                         await(changed);
@@ -201,11 +192,7 @@ class SegmentConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
                                             .executeWithoutResult(
                                                     status -> {
                                                         categoryRepository
-                                                                .findById(
-                                                                        jdbc.queryForObject(
-                                                                                "SELECT id FROM"
-                                                                                    + " category",
-                                                                                Long.class))
+                                                                .findBySegmentIdentifierAndIdentifier(segment.identifier(), category.identifier())
                                                                 .orElseThrow();
                                                         cached.countDown();
                                                         await(changed);
@@ -261,7 +248,7 @@ class SegmentConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
             assertThatThrownBy(() -> waiting.get().get(10, TimeUnit.SECONDS))
                     .hasCauseInstanceOf(ValidationException.class);
         }
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM category", Integer.class)).isZero();
+        assertThat(categoryRepository.count()).isZero();
     }
 
     @Test
@@ -310,11 +297,7 @@ class SegmentConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
                                             .executeWithoutResult(
                                                     status -> {
                                                         segmentRepository
-                                                                .findById(
-                                                                        jdbc.queryForObject(
-                                                                                "SELECT id FROM"
-                                                                                    + " segment",
-                                                                                Long.class))
+                                                                .findByIdentifier(segment.identifier())
                                                                 .orElseThrow();
                                                         cached.countDown();
                                                         await(changed);
@@ -329,7 +312,7 @@ class SegmentConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
             assertThatThrownBy(() -> pending.get(10, TimeUnit.SECONDS))
                     .hasCauseInstanceOf(ValidationException.class);
         }
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM category", Integer.class)).isZero();
+        assertThat(categoryRepository.count()).isZero();
     }
 
     @Test
@@ -347,11 +330,7 @@ class SegmentConcurrencyIT  extends br.com.portalmanager.platform.workspace.supp
         SegmentOutput segment = createSegment();
         CategoryOutput category = createCategory(segment);
         if (!initiallyActive) segments.inactivate(segment.identifier());
-        Long internalId =
-                jdbc.queryForObject(
-                        "SELECT id FROM segment WHERE identifier=?",
-                        Long.class,
-                        segment.identifier());
+        Long internalId = segmentRepository.findByIdentifier(segment.identifier()).orElseThrow().getId();
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
         try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {

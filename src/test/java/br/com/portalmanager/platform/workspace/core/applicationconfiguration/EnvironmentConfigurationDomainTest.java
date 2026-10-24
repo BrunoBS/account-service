@@ -53,6 +53,8 @@ class EnvironmentConfigurationDomainTest {
         ApplicationEnvironmentConfigurationPublisher publisher =
                 new ApplicationEnvironmentConfigurationPublisher(
                         configuration, PublisherTypeCode.kafka(), 1, parameters);
+        assertThat(publisher.getId()).isNull();
+        assertThat(publisher.getConfiguration()).isSameAs(configuration);
         assertThat(publisher.getPublisherCode()).isEqualTo(PublisherTypeCode.kafka());
         parameters.put("destination", "two");
         ((ObjectNode) publisher.getParameters()).put("destination", "three");
