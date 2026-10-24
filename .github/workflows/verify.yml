@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: BrunoBS/platform-libraries
-          ref: b8804f0043869ada6358405677a4756ee106ab72
+          ref: 2dbc07230640d27331f9a852bc2c30085f5137de
           token: ${{ secrets.PLATFORM_PACKAGES_TOKEN }}
           path: platform-libraries
 
