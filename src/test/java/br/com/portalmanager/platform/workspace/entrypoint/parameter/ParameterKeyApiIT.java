@@ -53,11 +53,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-@TestPropertySource(properties = "platform.audit.enabled=true")
-class ParameterKeyApiIT {
+class ParameterKeyApiIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     private static final String BASE = "/api/v1/dynamic-parameters";
     @LocalServerPort private int port;
     @Autowired private JdbcTemplate jdbc;
@@ -66,9 +62,7 @@ class ParameterKeyApiIT {
     @Autowired private AuthorizationMock authorization;
     @Autowired private ParameterKeyQueryService queries;
     @Autowired private jakarta.persistence.EntityManagerFactory entityManagerFactory;
-    @MockitoSpyBean private AuditOutboxAppender appender;
-    @MockitoSpyBean private ParameterKeyRepository repository;
-    @MockitoSpyBean private ParameterKeyValidator validator;
+
     private String microservice;
 
     @BeforeEach
@@ -76,7 +70,7 @@ class ParameterKeyApiIT {
         SchemaDefaultFixture.seed(jdbc);
         authorization.reset();
         authorization.allow(session -> session.groups("PM5_OWNER"));
-        reset(appender, repository, validator);
+        reset(auditAppender, parameterKeyRepository, parameterKeyValidator);
         microservice = createMicroservice("account-service");
     }
 
@@ -269,7 +263,7 @@ class ParameterKeyApiIT {
                                 .path("version");
             }
         }
-        clearInvocations(validator);
+        clearInvocations(parameterKeyValidator);
         for (String value : List.of("19.901", "-0.001", "0.291", "19.999")) {
             for (String operator : List.of("EQUALS", "CONTAINS")) {
                 String operand = operator.equals("CONTAINS") ? "[19.99," + value + "]" : value;
@@ -298,8 +292,8 @@ class ParameterKeyApiIT {
                         .statusCode(400);
             }
         }
-        verify(validator, never()).validateCreateInput(any());
-        verify(validator, never()).validateUpdate(any(), any());
+        verify(parameterKeyValidator, never()).validateCreateInput(any());
+        verify(parameterKeyValidator, never()).validateUpdate(any(), any());
         request()
                 .get(BASE + "/" + editable)
                 .then()
@@ -389,7 +383,7 @@ class ParameterKeyApiIT {
                 .post(BASE)
                 .then()
                 .statusCode(201);
-        clearInvocations(validator);
+        clearInvocations(parameterKeyValidator);
         for (String expression :
                 List.of(
                         "{\"operator\":\"CONTAINS\",\"valueType\":\"LONG\",\"value\":[10,\"20\"]}",
@@ -423,8 +417,8 @@ class ParameterKeyApiIT {
                     .then()
                     .statusCode(400);
         }
-        verify(validator, never()).validateCreateInput(any());
-        verify(validator, never()).validateUpdate(any(), any());
+        verify(parameterKeyValidator, never()).validateCreateInput(any());
+        verify(parameterKeyValidator, never()).validateUpdate(any(), any());
     }
 
     @Test
@@ -820,7 +814,7 @@ class ParameterKeyApiIT {
                         "SELECT id FROM service_context_microservices WHERE identifier=?",
                         Long.class,
                         microservice);
-        doReturn(false).when(repository).existsByMicroserviceIdAndKey(parent, "duplicate");
+        doReturn(false).when(parameterKeyRepository).existsByMicroserviceIdAndKey(parent, "duplicate");
         String conflict =
                 request()
                         .contentType(ContentType.JSON)
@@ -846,7 +840,7 @@ class ParameterKeyApiIT {
     void auditFailureRollsBackCreateUpdateBothLifecycleTransitionsAndDelete() {
         String identifier = create(body("rollback", "CONFIGURATION", 1));
         doThrow(new IllegalStateException("Test audit failure"))
-                .when(appender)
+                .when(auditAppender)
                 .append(any(), any());
         request()
                 .contentType(ContentType.JSON)
@@ -863,11 +857,11 @@ class ParameterKeyApiIT {
                 .statusCode(500);
         request().patch(BASE + "/" + identifier + "/inactivate").then().statusCode(500);
         assertThat(detail(identifier)).isEqualTo(before);
-        reset(appender);
+        reset(auditAppender);
         request().patch(BASE + "/" + identifier + "/inactivate").then().statusCode(200);
         before = detail(identifier);
         doThrow(new IllegalStateException("Test audit failure"))
-                .when(appender)
+                .when(auditAppender)
                 .append(any(), any());
         request().patch(BASE + "/" + identifier + "/activate").then().statusCode(500);
         request().delete(BASE + "/" + identifier).then().statusCode(500);

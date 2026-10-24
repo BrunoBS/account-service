@@ -22,11 +22,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@PlatformIntegrationTest
-@WithMySql
-@TestPropertySource(
-        properties = {"platform.authorization.mode=MOCK", "platform.audit.enabled=false"})
-class EnvironmentConfigurationPersistenceIT {
+class EnvironmentConfigurationPersistenceIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     @Autowired JdbcTemplate jdbc;
     @Autowired WorkspaceEnvironmentConfigurationRepository workspaces;
     @Autowired WorkspaceEnvironmentConfigurationPublisherRepository workspacePublishers;
@@ -36,7 +32,7 @@ class EnvironmentConfigurationPersistenceIT {
     private final JsonMapper mapper = JsonMapper.builder().build();
 
     @Test
-    void flywayCreatesIndependentJsonAggregatesAndOrderedRelationshipsWithOptimisticVersion() {
+    void currentSchemaPersistsIndependentJsonAggregatesAndOrderedRelationshipsWithOptimisticVersion() {
         seed();
         Long workspaceId =
                 jdbc.queryForObject(
@@ -113,12 +109,6 @@ class EnvironmentConfigurationPersistenceIT {
                                 String.class,
                                 workspaceId))
                 .isEqualTo("true");
-        assertThat(
-                        jdbc.queryForObject(
-                                "select count(*) from flyway_schema_history where version='84' and"
-                                        + " success=true",
-                                Integer.class))
-                .isEqualTo(1);
     }
 
     @Test

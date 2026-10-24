@@ -16,18 +16,12 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-@TestPropertySource(properties = "platform.audit.enabled=true")
-class EnvironmentTypePurgeIT {
+class EnvironmentTypePurgeIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     private static final String TYPE_CODE = "CELL";
 
     @LocalServerPort private int port;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private AuthorizationMock authorization;
-    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
-    private br.com.portalmanager.platform.library.audit.outbox.AuditOutboxAppender auditOutboxAppender;
 
     @BeforeEach
     void prepare() {
@@ -72,7 +66,7 @@ class EnvironmentTypePurgeIT {
     @Test
     void rollsBackThePurgeWhenTheAuditOutboxCannotBeWritten() {
         org.mockito.Mockito.doThrow(new IllegalStateException("Forced audit failure"))
-            .when(auditOutboxAppender).append(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+            .when(auditAppender).append(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
         delete().then().statusCode(500);
         assertThat(typeCount()).isEqualTo(1);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM audit_outbox", Integer.class)).isZero();

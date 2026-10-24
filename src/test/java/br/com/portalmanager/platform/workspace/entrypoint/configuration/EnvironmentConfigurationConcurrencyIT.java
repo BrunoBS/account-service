@@ -15,9 +15,6 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 import java.util.concurrent.*;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 class EnvironmentConfigurationConcurrencyIT extends EnvironmentConfigurationHttpFixture {
     @Test
     void onlyOneConcurrentCreationCanReserveTheSameOwnerEnvironment() throws Exception {

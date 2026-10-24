@@ -7,24 +7,18 @@ import static org.mockito.Mockito.mock;
 import br.com.portalmanager.platform.library.authorization.model.UserContext;
 import br.com.portalmanager.platform.library.authorization.model.UserSession;
 import br.com.portalmanager.platform.library.messaging.exception.ApiException;
+import br.com.portalmanager.platform.library.testing.authorization.annotation.WithUserContextIsolation;
 import br.com.portalmanager.platform.workspace.feature.onboarding.domain.OnboardingMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.port.OnboardingPhaseTypePort;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation.OnboardingValidator;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@WithUserContextIsolation
 class OnboardingValidatorTest {
 
     private final OnboardingValidator validator =
             new OnboardingValidator(mock(OnboardingPhaseTypePort.class));
-
-    @BeforeEach
-    @AfterEach
-    void clearSession() {
-        UserContext.clear();
-    }
 
     @Test
     void rejectsAnAbsentIdentityWithThePlatformMessageKey() {

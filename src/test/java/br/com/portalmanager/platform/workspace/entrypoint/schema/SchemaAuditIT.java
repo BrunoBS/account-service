@@ -23,15 +23,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-@TestPropertySource(properties = "platform.audit.enabled=true")
-class SchemaAuditIT {
+class SchemaAuditIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     @LocalServerPort private int port;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private AuthorizationMock authorization;
-    @MockitoSpyBean private AuditOutboxAppender auditAppender;
 
     @BeforeEach
     void prepare() {

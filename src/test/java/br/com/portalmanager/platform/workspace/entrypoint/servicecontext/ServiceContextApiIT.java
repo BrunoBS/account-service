@@ -23,10 +23,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Map;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-class ServiceContextApiIT {
+class ServiceContextApiIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @LocalServerPort private int port;
 

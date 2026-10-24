@@ -30,10 +30,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import tools.jackson.databind.ObjectMapper;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-class ApplicationApiIT {
+class ApplicationApiIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @LocalServerPort
     private int port;

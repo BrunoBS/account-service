@@ -15,7 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.*;
 import tools.jackson.databind.json.JsonMapper;
 
-abstract class EnvironmentConfigurationHttpFixture {
+abstract class EnvironmentConfigurationHttpFixture extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport {
     @Autowired PlatformRequestSpecificationFactory requests;
     @Autowired JdbcTemplate jdbc;
     @Autowired AuthorizationMock authorization;

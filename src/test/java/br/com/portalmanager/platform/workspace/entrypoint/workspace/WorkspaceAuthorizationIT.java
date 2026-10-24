@@ -24,10 +24,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-class WorkspaceAuthorizationIT {
+class WorkspaceAuthorizationIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     // These protocol tests deliberately construct requests with missing headers.
     @LocalServerPort

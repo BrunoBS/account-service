@@ -1,10 +1,11 @@
 package br.com.portalmanager.platform.workspace.support;
 
+import br.com.portalmanager.platform.library.testing.database.DatabaseScriptExecutor;
+
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.init.ScriptUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -170,41 +171,41 @@ public final class SchemaDefaultFixture {
                 (ConnectionCallback<Void>)
                         connection -> {
                             executeSchemaSeed(
-                                    connection, "db/migration/V42__workspace_resource_schema.sql");
+                                    connection, "fixtures/schema/workspace_resource_schema.sql");
                             executeSchemaSeed(
                                     connection,
-                                    "db/migration/V52__environment_resource_schemas.sql");
+                                    "fixtures/schema/environment_resource_schemas.sql");
                             executeSchemaSeed(
                                     connection,
-                                    "db/migration/V55__environment_type_compatibility_identifiers.sql");
+                                    "fixtures/schema/environment_type_compatibility_identifiers.sql");
                             executeSchemaSeed(
                                     connection,
-                                    "db/migration/V57__environment_type_code_schemas.sql");
+                                    "fixtures/schema/environment_type_code_schemas.sql");
                             executeSchemaSeed(
-                                    connection, "db/migration/V58__message_resource_schemas.sql");
-                            executeSchemaSeed(
-                                    connection,
-                                    "db/migration/V61__onboarding_phase_settings_schema.sql");
+                                    connection, "fixtures/schema/message_resource_schemas.sql");
                             executeSchemaSeed(
                                     connection,
-                                    "db/migration/V62__microservice_resource_schema.sql");
-                            executeSchemaSeed(
-                                    connection, "db/migration/V63__feature_resource_schema.sql");
-                            executeSchemaSeed(
-                                    connection, "db/migration/V64__context_resource_schema.sql");
+                                    "fixtures/schema/onboarding_phase_settings_schema.sql");
                             executeSchemaSeed(
                                     connection,
-                                    "db/migration/V65__separate_feature_context_resource_schema.sql");
+                                    "fixtures/schema/microservice_resource_schema.sql");
                             executeSchemaSeed(
-                                    connection, "db/migration/V67__segment_resource_schemas.sql");
+                                    connection, "fixtures/schema/feature_resource_schema.sql");
+                            executeSchemaSeed(
+                                    connection, "fixtures/schema/context_resource_schema.sql");
                             executeSchemaSeed(
                                     connection,
-                                    "db/migration/V85__environment_configuration_schemas.sql");
+                                    "fixtures/schema/separate_feature_context_resource_schema.sql");
                             executeSchemaSeed(
-                                    connection, "migration/dynamic-bundle-schema-seed.sql");
+                                    connection, "fixtures/schema/segment_resource_schemas.sql");
                             executeSchemaSeed(
-                                    connection, "migration/service-context-schema-seed.sql");
-                            executeSchemaSeed(connection, "migration/segmentation-schema-seed.sql");
+                                    connection,
+                                    "fixtures/schema/environment_configuration_schemas.sql");
+                            executeSchemaSeed(
+                                    connection, "fixtures/schema/dynamic-bundle-schema-seed.sql");
+                            executeSchemaSeed(
+                                    connection, "fixtures/schema/service-context-schema-seed.sql");
+                            executeSchemaSeed(connection, "fixtures/schema/segmentation-schema-seed.sql");
                             return null;
                         });
         try {
@@ -250,8 +251,10 @@ public final class SchemaDefaultFixture {
             String sql =
                     new String(input.readAllBytes(), StandardCharsets.UTF_8)
                             .replace("schema_configuration", "schema_binding");
-            ScriptUtils.executeSqlScript(
-                    connection, new ByteArrayResource(sql.getBytes(StandardCharsets.UTF_8), path));
+            DatabaseScriptExecutor.execute(
+                    connection,
+                    new ByteArrayResource(sql.getBytes(StandardCharsets.UTF_8), path),
+                    false);
         } catch (IOException exception) {
             throw new IllegalStateException(
                     "Could not load historical schema seed: " + path, exception);

@@ -42,11 +42,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-class MessageConcurrencyIT {
+class MessageConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     private static final String MICROSERVICE = "11111111-1111-1111-1111-111111111111";
     @Autowired private JdbcTemplate jdbc;
@@ -76,7 +73,7 @@ class MessageConcurrencyIT {
         MessageOutput created = messages.create(input("review.lock"));
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<MessageTranslatorOutput>> blocked = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {
@@ -108,7 +105,7 @@ class MessageConcurrencyIT {
         MessageOutput created = messages.create(input("review.cached"));
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch deleted = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<MessageTranslatorOutput> pending =
                     executor.submit(
                             () ->
@@ -141,7 +138,7 @@ class MessageConcurrencyIT {
         MessageTranslatorOutput translator = translators.create(created.identifier(), translated());
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch updated = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<MessageTranslatorOutput> pending =
                     executor.submit(
                             () ->
@@ -191,7 +188,7 @@ class MessageConcurrencyIT {
         MessageTranslatorOutput translator = translators.create(created.identifier(), translated());
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch updated = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -239,7 +236,7 @@ class MessageConcurrencyIT {
     void activeMicroserviceRemainsStableUntilMessageTransactionCommits() throws Exception {
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<Integer>> blocked = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {

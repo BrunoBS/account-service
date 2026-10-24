@@ -23,10 +23,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.List;
 import java.util.Map;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-class ServiceContextEndpointContractIT {
+class ServiceContextEndpointContractIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     private static final String MICROSERVICES = "/api/v1/service-contexts/microservices";
     private static final String FEATURES = "/api/v1/service-contexts/features";
     private static final String GROUPS = "/api/v1/service-contexts/feature-groups";

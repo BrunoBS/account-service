@@ -11,9 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 class OnboardingConfigurationIT extends EnvironmentConfigurationHttpFixture {
     @Test
     void fourRealEventsCompleteOnboardingAndHistorySurvivesLifecycleAndRestoration() {

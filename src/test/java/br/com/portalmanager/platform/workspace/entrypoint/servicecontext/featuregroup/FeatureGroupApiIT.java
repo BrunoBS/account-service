@@ -39,17 +39,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-@TestPropertySource(properties = "platform.audit.enabled=true")
-class FeatureGroupApiIT {
+class FeatureGroupApiIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     private static final String ROUTE = "/api/v1/service-contexts/feature-groups";
     private static final String MICROSERVICE = "11111111-1111-1111-1111-111111111111";
     @LocalServerPort private int port;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private AuthorizationMock authorization;
-    @MockitoSpyBean private AuditOutboxAppender appender;
 
     @BeforeEach
     void prepare() {
@@ -64,7 +59,7 @@ class FeatureGroupApiIT {
                 MICROSERVICE);
         authorization.reset();
         authorization.allow(session -> session.groups("PM5_OWNER"));
-        reset(appender);
+        reset(auditAppender);
     }
 
     @Test
@@ -317,7 +312,7 @@ class FeatureGroupApiIT {
         String identifier = create("review-group", "Review group");
         int eventsBefore = jdbc.queryForObject("SELECT COUNT(*) FROM audit_outbox", Integer.class);
         doThrow(new IllegalStateException("Test purge audit failure"))
-                .when(appender)
+                .when(auditAppender)
                 .append(
                         any(),
                         argThat(
@@ -331,7 +326,7 @@ class FeatureGroupApiIT {
         request().get(ROUTE + "/" + identifier).then().statusCode(200).body("version", equalTo(0));
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM audit_outbox", Integer.class))
                 .isEqualTo(eventsBefore);
-        reset(appender);
+        reset(auditAppender);
         request().delete(ROUTE + "/" + identifier).then().statusCode(204);
         assertSnapshot("FEATURE_GROUP_PURGED", identifier, "ACTIVE", 0);
     }
@@ -424,7 +419,7 @@ class FeatureGroupApiIT {
         String feature = feature("review-feature");
         int eventsBefore = jdbc.queryForObject("SELECT COUNT(*) FROM audit_outbox", Integer.class);
         doThrow(new IllegalStateException("Test audit failure"))
-                .when(appender)
+                .when(auditAppender)
                 .append(any(), any());
         Map<String, Object> body = payload("review-group", "Review group");
         request().contentType(ContentType.JSON).body(body).post(ROUTE).then().statusCode(500);

@@ -8,9 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-@PlatformIntegrationTest
-@WithMySql
-class WorkspaceServiceApplicationIT {
+class WorkspaceServiceApplicationIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @Autowired
     private ApplicationContext applicationContext;

@@ -41,11 +41,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-class FeatureConcurrencyIT {
+class FeatureConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     private static final String MICROSERVICE = "11111111-1111-1111-1111-111111111111";
     @Autowired private JdbcTemplate jdbc;
     @Autowired private FeatureCommandService features;
@@ -76,7 +73,7 @@ class FeatureConcurrencyIT {
         FeatureOutput feature = create();
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -113,7 +110,7 @@ class FeatureConcurrencyIT {
         FeatureOutput feature = create();
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<?>> pending = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {
@@ -143,7 +140,7 @@ class FeatureConcurrencyIT {
         FeatureOutput feature = create();
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -179,7 +176,7 @@ class FeatureConcurrencyIT {
                 other);
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -213,7 +210,7 @@ class FeatureConcurrencyIT {
                 groups.create(new CreateFeatureGroupInput("review-group", "Review group", null));
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<?>> pending = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {
@@ -248,7 +245,7 @@ class FeatureConcurrencyIT {
                 groups.create(new CreateFeatureGroupInput("review-group", "Review group", null));
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -289,7 +286,7 @@ class FeatureConcurrencyIT {
                 groups.create(new CreateFeatureGroupInput("review-group", "Review group", null));
         CountDownLatch snapshot = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<FeatureOutput> pending =
                     executor.submit(
                             () ->
@@ -347,7 +344,7 @@ class FeatureConcurrencyIT {
         Long featureId = query.findShareableInternalIdByIdentifier(feature.identifier());
         CountDownLatch snapshot = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -395,7 +392,7 @@ class FeatureConcurrencyIT {
                 groups.create(new CreateFeatureGroupInput("review-group", "Review group", null));
         CountDownLatch snapshot = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -444,7 +441,7 @@ class FeatureConcurrencyIT {
                 groups.create(new CreateFeatureGroupInput("review-group", "Review group", null));
         CountDownLatch snapshot = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->

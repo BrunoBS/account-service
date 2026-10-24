@@ -42,22 +42,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-class ParameterKeyConcurrencyIT {
+class ParameterKeyConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     @Autowired private JdbcTemplate jdbc;
     @Autowired private ParameterKeyCommandService commands;
     @Autowired private ParameterKeyQueryService queries;
     @Autowired private PlatformTransactionManager transactionManager;
-    @MockitoSpyBean private ParameterKeyRepository repository;
     private String parent;
 
     @BeforeEach
     void prepare() {
         SchemaDefaultFixture.seed(jdbc);
-        reset(repository);
+        reset(parameterKeyRepository);
         parent = UUID.randomUUID().toString();
         jdbc.update(
                 "INSERT INTO"
@@ -73,7 +69,7 @@ class ParameterKeyConcurrencyIT {
                         "SELECT id FROM service_context_microservices WHERE identifier=?",
                         Long.class,
                         parent);
-        doReturn(false).when(repository).existsByMicroserviceIdAndKey(id, "retry");
+        doReturn(false).when(parameterKeyRepository).existsByMicroserviceIdAndKey(id, "retry");
         List<Object> results = concurrently(this::create, this::create);
         assertThat(results.stream().filter(ParameterKeyMetadata.class::isInstance)).hasSize(1);
         assertThat(results.stream().filter(DataIntegrityViolationException.class::isInstance))
@@ -109,14 +105,14 @@ class ParameterKeyConcurrencyIT {
         Long id = jdbc.queryForObject("SELECT id FROM parameter_keys", Long.class);
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> stale =
                     executor.submit(
                             () ->
                                     new TransactionTemplate(transactionManager)
                                             .executeWithoutResult(
                                                     status -> {
-                                                        repository.findById(id).orElseThrow();
+                                                        parameterKeyRepository.findById(id).orElseThrow();
                                                         cached.countDown();
                                                         await(changed);
                                                         commands.update(
@@ -149,7 +145,7 @@ class ParameterKeyConcurrencyIT {
                     + " published_value=value,published_type_code=type_code,status_code='PUBLISHED'");
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<ParameterKeyMetadata>> waiting = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {
@@ -191,7 +187,7 @@ class ParameterKeyConcurrencyIT {
 
     private List<Object> concurrently(Callable<?> first, Callable<?> second) throws Exception {
         CountDownLatch start = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
+        try (ExecutorService executor = testUserExecutor(Executors.newFixedThreadPool(2))) {
             Future<Object> one = executor.submit(() -> result(start, first));
             Future<Object> two = executor.submit(() -> result(start, second));
             start.countDown();

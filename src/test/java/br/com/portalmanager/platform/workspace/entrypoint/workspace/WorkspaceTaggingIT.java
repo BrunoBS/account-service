@@ -20,10 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-class WorkspaceTaggingIT {
+class WorkspaceTaggingIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @Autowired
     private JdbcTemplate jdbcTemplate;

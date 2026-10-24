@@ -39,10 +39,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.AopTestUtils;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-class WorkspaceNameConcurrencyIT {
+class WorkspaceNameConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @LocalServerPort
     private int port;
@@ -53,11 +50,7 @@ class WorkspaceNameConcurrencyIT {
     @Autowired
     private AuthorizationMock authorizationMock;
 
-    @MockitoSpyBean
-    private WorkspaceRepository repository;
 
-    @MockitoSpyBean
-    private WorkspaceFinder workspaceFinder;
 
     @Autowired
     private EntityManagerFactory entityManagerFactory;
@@ -88,7 +81,7 @@ class WorkspaceNameConcurrencyIT {
             prechecks.await(15, TimeUnit.SECONDS);
             return false;
         })
-            .when(repository)
+            .when(workspaceRepository)
             .existsByName(matches("(?i)" + name));
         List<Response> responses = concurrent(
             () -> post(input(name)),
@@ -118,7 +111,7 @@ class WorkspaceNameConcurrencyIT {
             prechecks.await(15, TimeUnit.SECONDS);
             return false;
         })
-            .when(repository)
+            .when(workspaceRepository)
             .existsByNameAndIdNot(matches("(?i)" + name), anyLong());
         List<Response> responses = concurrent(
             () -> put(first.jsonPath().getString("identifier"), firstUpdate),

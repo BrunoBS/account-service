@@ -46,20 +46,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-class SegmentConcurrencyIT {
+class SegmentConcurrencyIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
     @Autowired private JdbcTemplate jdbc;
     @Autowired private SegmentCommandService segments;
     @Autowired private CategoryCommandService categories;
     @Autowired private SegmentQueryService segmentQueries;
     @Autowired private CategoryQueryService categoryQueries;
     @Autowired private PlatformTransactionManager transactionManager;
-    @MockitoSpyBean private SegmentRepository segmentRepository;
-    @MockitoSpyBean private CategoryRepository categoryRepository;
-
     @BeforeEach
     void prepare() {
         reset(segmentRepository, categoryRepository);
@@ -154,7 +148,7 @@ class SegmentConcurrencyIT {
         SegmentOutput segment = createSegment();
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> stale =
                     executor.submit(
                             () ->
@@ -199,7 +193,7 @@ class SegmentConcurrencyIT {
         CategoryOutput category = createCategory(segment);
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> stale =
                     executor.submit(
                             () ->
@@ -248,7 +242,7 @@ class SegmentConcurrencyIT {
         SegmentOutput segment = createSegment();
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<?>> waiting = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {
@@ -277,7 +271,7 @@ class SegmentConcurrencyIT {
         CountDownLatch attempted = new CountDownLatch(1);
         AtomicReference<Future<?>> waiting = new AtomicReference<>();
         AtomicReference<CategoryOutput> created = new AtomicReference<>();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             new TransactionTemplate(transactionManager)
                     .executeWithoutResult(
                             status -> {
@@ -308,7 +302,7 @@ class SegmentConcurrencyIT {
         SegmentOutput segment = createSegment();
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<?> pending =
                     executor.submit(
                             () ->
@@ -360,7 +354,7 @@ class SegmentConcurrencyIT {
                         segment.identifier());
         CountDownLatch cached = new CountDownLatch(1);
         CountDownLatch changed = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+        try (ExecutorService executor = testUserExecutor(Executors.newSingleThreadExecutor())) {
             Future<CategoryOutput> pending =
                     executor.submit(
                             () ->
@@ -414,7 +408,7 @@ class SegmentConcurrencyIT {
 
     private List<Object> concurrently(Callable<?> first, Callable<?> second) throws Exception {
         CountDownLatch start = new CountDownLatch(1);
-        try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
+        try (ExecutorService executor = testUserExecutor(Executors.newFixedThreadPool(2))) {
             Future<Object> one = executor.submit(() -> result(start, first));
             Future<Object> two = executor.submit(() -> result(start, second));
             start.countDown();

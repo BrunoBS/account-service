@@ -32,18 +32,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-@TestPropertySource(properties = "platform.audit.enabled=true")
-class MessageAuditIT {
+class MessageAuditIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     private static final String MICROSERVICE = "11111111-1111-1111-1111-111111111111";
 
     @LocalServerPort private int port;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private AuthorizationMock authorization;
-    @MockitoSpyBean private AuditOutboxAppender appender;
 
     @BeforeEach
     void prepare() {
@@ -58,7 +53,7 @@ class MessageAuditIT {
                 MICROSERVICE);
         authorization.reset();
         authorization.allow(session -> session.groups("PM5_OWNER"));
-        reset(appender);
+        reset(auditAppender);
     }
 
     @Test
@@ -194,7 +189,7 @@ class MessageAuditIT {
                                                 + " events");
                             return invocation.callRealMethod();
                         })
-                .when(appender)
+                .when(auditAppender)
                 .append(any(), any());
         request()
                 .contentType(ContentType.JSON)
@@ -231,7 +226,7 @@ class MessageAuditIT {
                         .extract()
                         .path("identifier");
         doThrow(new IllegalStateException("Forced message audit failure"))
-                .when(appender)
+                .when(auditAppender)
                 .append(any(), any());
         for (String resource :
                 List.of(
@@ -305,7 +300,7 @@ class MessageAuditIT {
                                         "Forced purge audit failure after child events");
                             return invocation.callRealMethod();
                         })
-                .when(appender)
+                .when(auditAppender)
                 .append(any(), any());
         request().delete(resource).then().statusCode(500);
         assertThat(attempts.get()).isEqualTo(3);
@@ -322,7 +317,7 @@ class MessageAuditIT {
                 .containsExactly(0L, 1L);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM audit_outbox", Integer.class))
                 .isEqualTo(existingEvents);
-        reset(appender);
+        reset(auditAppender);
         request().delete(resource).then().statusCode(204);
         assertSnapshot("MESSAGE_PURGED", identifier, "INACTIVE", 1);
         assertSnapshot("MESSAGE_TRANSLATOR_PURGED", children.get(0), "ACTIVE", 0);

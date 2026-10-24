@@ -31,22 +31,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-@PlatformIntegrationTest
-@WithMySql
-@WithMockAuthorization
-class OnboardingApiIT {
+class OnboardingApiIT  extends br.com.portalmanager.platform.workspace.support.WorkspaceIntegrationTestSupport{
 
     @LocalServerPort private int port;
 
     @Autowired private JdbcTemplate jdbc;
 
     @Autowired private AuthorizationMock authorization;
-
-    @DynamicPropertySource
-    static void auditProperties(DynamicPropertyRegistry registry) {
-        registry.add("platform.audit.enabled", () -> true);
-        registry.add("platform.audit.service-name", () -> "workspace-service");
-    }
 
     @BeforeEach
     void prepare() {
