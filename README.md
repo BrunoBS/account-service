@@ -16,6 +16,14 @@ Para execução local, configure MySQL com WORKSPACE_DB_URL/USERNAME/PASSWORD e 
 
 ## Testes HTTP
 
+Os testes em `src/test/java` ficam separados por tipo: `architecture` para
+regras ArchUnit, `unit` para testes sem infraestrutura externa e `integration`
+para testes com Spring, HTTP, banco ou Redis. Dentro de `unit` e `integration`,
+os pacotes acompanham os domínios reais `foundation`, `core` e `feature`; os
+clients, responses, builders, factories e scenarios de integração ficam em
+`support` do domínio correspondente. O suporte transversal fica em
+`integration/support`.
+
 Os testes de controller usam `@PlatformIntegrationTest` para subir o serviço em
 porta aleatória. `@WithMockAuthorization` usa WireMock para simular o provedor de
 autorização; cenários de acesso permitido, negado, escopo e visibilidade verificam
