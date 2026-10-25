@@ -19,6 +19,10 @@ public final class SchemaBindingClient extends BaseClient {
                 SchemaBindingClientResponse::new);
     }
 
+    public SchemaBindingClientResponse findAll() {
+        return response(ownerRequest().get("/api/v1/schema-bindings").then(), SchemaBindingClientResponse::new);
+    }
+
     private io.restassured.specification.RequestSpecification ownerRequest() {
         return authorizedRequest(AuthorizationRequestData.builder().token("owner-it").build())
                 .header("correlation-id", "schema-it")

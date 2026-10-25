@@ -154,7 +154,7 @@ class ParameterKeyConcurrencyIT  extends br.com.portalmanager.platform.workspace
                                                     return commands.update(
                                                             resource.identifier(),
                                                             new UpdateParameterKeyInput(
-                                                                    1L,
+                                                                    2L,
                                                                     null,
                                                                     "CONFIGURATION",
                                                                     IntNode.valueOf(2)));
@@ -166,7 +166,7 @@ class ParameterKeyConcurrencyIT  extends br.com.portalmanager.platform.workspace
                             });
             ParameterKeyMetadata updated = waiting.get().get(10, TimeUnit.SECONDS);
             assertThat(updated.active()).isFalse();
-            assertThat(updated.version()).isEqualTo(2L);
+            assertThat(updated.version()).isEqualTo(3L);
         }
         var snapshot = parameterKeyRepository.findRuntimeSnapshot(resource.identifier()).orElseThrow();
         assertThat(snapshot.isActive()).isFalse();

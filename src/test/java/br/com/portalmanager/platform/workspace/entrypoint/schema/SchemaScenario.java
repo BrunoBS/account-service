@@ -8,6 +8,7 @@ import br.com.portalmanager.platform.workspace.entrypoint.catalog.lifecycle.Life
 import br.com.portalmanager.platform.workspace.entrypoint.catalog.schema_scope.SchemaScopeTypeClient;
 import br.com.portalmanager.platform.workspace.entrypoint.catalog.schema_version_status.SchemaVersionStatusTypeClient;
 import br.com.portalmanager.platform.workspace.entrypoint.schema.request.CreateSchemaRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.schema.response.SchemaBindingResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -39,16 +40,33 @@ public final class SchemaScenario implements TestScenario<SchemaScenario> {
 
     @Override
     public SchemaScenario setup() {
-        String defaultSchema = createAndPublish(factory.defaultCatalogSchema());
-        List.of("DEFAULT", "lifecycle-type", "schema-scope", "schema-version-status-type",
-                        "workspace-type", "application-scope-type", "onboarding-phase-type")
-                .forEach(code -> bindings.create(factory.binding("CATALOG", code, defaultSchema)).expectCreated());
-
         CatalogScenario.builder()
                 .withLifecycleTypes(lifecycles, lifecycleFactory.all())
                 .withSchemaScopes(scopes, catalogFactory.scopes())
                 .withSchemaVersionStatuses(versionStatuses, catalogFactory.versionStatuses())
                 .setup();
+
+        String defaultSchema = schemas.findAll().expectOk().extractSchemas().stream()
+                .filter(schema -> "default".equals(schema.code()) && "PLATFORM".equals(schema.scope()))
+                .map(schema -> schema.identifier())
+                .findFirst()
+                .orElseGet(() -> createAndPublish(factory.defaultCatalogSchema()));
+
+        List<SchemaBindingResponse> existingBindings = bindings.findAll().expectOk().extractBindings();
+        List.of("WORKSPACE", "APPLICATION", "ENVIRONMENT", "PUBLISHER", "FEATURE", "MICROSERVICE",
+                        "CATALOG", "SERVICE_CONTEXT", "MESSAGE", "SEGMENTATION", "PLATFORM")
+                .stream()
+                .filter(code -> existingBindings.stream().noneMatch(binding ->
+                        code.equals(binding.resourceType()) && "DEFAULT".equals(binding.resourceCode())))
+                .forEach(resourceType -> bindings.create(
+                        factory.binding(resourceType, "DEFAULT", defaultSchema)).expectCreated());
+
+        List.of("lifecycle-type", "schema-scope", "schema-version-status-type", "workspace-type",
+                        "application-scope-type", "onboarding-phase-type")
+                .stream()
+                .filter(code -> existingBindings.stream().noneMatch(binding ->
+                        "CATALOG".equals(binding.resourceType()) && code.equals(binding.resourceCode())))
+                .forEach(code -> bindings.create(factory.binding("CATALOG", code, defaultSchema)).expectCreated());
 
         String workspaceSchema = createAndPublish(factory.workspaceResourceSchema());
         bindings.create(factory.binding("WORKSPACE", "workspace", workspaceSchema)).expectCreated();

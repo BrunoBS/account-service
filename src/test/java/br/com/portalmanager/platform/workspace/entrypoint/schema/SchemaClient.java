@@ -20,6 +20,10 @@ public final class SchemaClient extends BaseClient {
         return response(ownerRequest().body(json(request)).post(SCHEMAS).then(), SchemaClientResponse::new);
     }
 
+    public SchemaClientResponse findAll() {
+        return response(ownerRequest().get(SCHEMAS).then(), SchemaClientResponse::new);
+    }
+
     public SchemaClientResponse findVersions(String schemaIdentifier) {
         return response(ownerRequest().get(SCHEMAS + "/{identifier}/versions", schemaIdentifier).then(),
                 SchemaClientResponse::new);
