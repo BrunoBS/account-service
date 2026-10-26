@@ -19,4 +19,11 @@ public final class OnboardingClient extends BaseClient {
                 .get("/api/v1/workspaces/{workspaceIdentifier}/onboarding", workspaceIdentifier).then(),
                 OnboardingClientResponse::new);
     }
+
+    public OnboardingClientResponse complete(String workspaceIdentifier) {
+        return response(authorizedRequest(AuthorizationRequestData.builder().token("owner-it").build())
+                .header("correlation-id", "workspace-it").accept(ContentType.JSON)
+                .patch("/api/v1/workspaces/{workspaceIdentifier}/onboarding", workspaceIdentifier).then(),
+                OnboardingClientResponse::new);
+    }
 }

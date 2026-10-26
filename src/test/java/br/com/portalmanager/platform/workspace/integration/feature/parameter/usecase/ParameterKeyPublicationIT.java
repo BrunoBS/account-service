@@ -45,8 +45,7 @@ class ParameterKeyPublicationIT extends DynamicParameterRuntimeTestSupport {
                 .isEqualTo("PUBLISHED");
         assertThat(runtimeValue("single").get("value").get("approved").booleanValue()).isTrue();
         assertThat(redis.ttl("account-service.single")).isEmpty();
-        updateParameter(identifier,
-                Map.of("version", 1, "type", "CONFIGURATION", "value", Map.of("approved", false)))
+        updateParameter(identifier, 1, "CONFIGURATION", "{\"approved\":false}")
                 .expectOk();
         assertThat(runtimeValue("single").get("value").get("approved").booleanValue()).isTrue();
         assertThat(parameterKeys.findRuntimeSnapshot(identifier).orElseThrow()

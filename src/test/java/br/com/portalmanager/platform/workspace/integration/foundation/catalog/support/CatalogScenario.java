@@ -7,6 +7,8 @@ import br.com.portalmanager.platform.workspace.integration.foundation.catalog.li
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.onboardingphasetype.support.OnboardingTypeClient;
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.schemascopetype.support.SchemaScopeTypeClient;
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.schemaversionstatustype.support.SchemaVersionStatusTypeClient;
+import br.com.portalmanager.platform.workspace.integration.foundation.catalog.sharestatustype.support.ShareStatusTypeClient;
+import br.com.portalmanager.platform.workspace.integration.foundation.catalog.publicationmodetype.support.PublicationModeTypeClient;
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.workspacetype.support.WorkspaceTypeClient;
 
 import java.util.ArrayList;
@@ -46,6 +48,14 @@ public final class CatalogScenario implements TestScenario<CatalogScenario> {
     public CatalogScenario withSchemaVersionStatuses(
             SchemaVersionStatusTypeClient client, List<CatalogDTO> statuses) {
         return addCatalog(client, statuses);
+    }
+
+    public CatalogScenario withShareStatuses(ShareStatusTypeClient client, List<CatalogDTO> statuses) {
+        return addCatalog(client, statuses);
+    }
+
+    public CatalogScenario withPublicationModes(PublicationModeTypeClient client, List<CatalogDTO> modes) {
+        return addCatalog(client, modes);
     }
 
     private CatalogScenario addCatalog(CatalogClient client, List<CatalogDTO> entries) {

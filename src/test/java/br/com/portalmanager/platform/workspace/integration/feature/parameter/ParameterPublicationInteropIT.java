@@ -68,8 +68,8 @@ class ParameterPublicationInteropIT extends DynamicParameterRuntimeTestSupport {
         String identifier = create("threshold", "EXPRESSION",
                 "{\"operator\":\"GREATER_THAN_OR_EQUALS\",\"valueType\":\"INTEGER\",\"value\":18}");
         publish(identifier);
-        updateParameter(identifier, Map.of("version", 1, "type", "EXPRESSION", "value",
-                Map.of("operator", "GREATER_THAN_OR_EQUALS", "valueType", "INTEGER", "value", 25)))
+        updateParameter(identifier, 1, "EXPRESSION",
+                "{\"operator\":\"GREATER_THAN_OR_EQUALS\",\"valueType\":\"INTEGER\",\"value\":25}")
                 .expectOk();
         assertThat(expressions.matches("account-service.threshold", 21)).isTrue();
         publish(identifier);

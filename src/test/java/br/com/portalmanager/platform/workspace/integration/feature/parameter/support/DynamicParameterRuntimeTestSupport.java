@@ -17,10 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.List;
 
 @WithRedis
 public abstract class DynamicParameterRuntimeTestSupport extends br.com.portalmanager.platform.workspace.integration.support.WorkspaceIntegrationTestSupport {
@@ -35,13 +35,13 @@ public abstract class DynamicParameterRuntimeTestSupport extends br.com.portalma
     @RedisNamespace(value = "dynamic-parameter", mode = NamespaceMode.SHARED)
     protected RedisStore redis;
     @Autowired protected AuthorizationMock authorization;
+    @Autowired protected br.com.portalmanager.platform.workspace.integration.feature.servicecontext.microservice.support.MicroserviceClient microservices;
     protected String parent;
 
     @BeforeEach
     void prepareRuntime() {
-        client = new DynamicParameterClient(requests, JsonMapper.builder().build());
-        parent = new DynamicParameterScenario(schemaDefaults, authorization,
-                new MicroserviceClient(requests, JsonMapper.builder().build())).setup();
+        client = new DynamicParameterClient(requests);
+        parent = new DynamicParameterScenario(schemaDefaults, authorization, microservices).setup();
     }
 
     protected String create(String key, String type, String value) {
@@ -50,7 +50,7 @@ public abstract class DynamicParameterRuntimeTestSupport extends br.com.portalma
     }
 
     protected void publish(String identifier) {
-        client.publish(identifier).expectAcceptedWithEmptyBody();
+        client.publish(List.of(java.util.UUID.fromString(identifier))).expectAcceptedWithEmptyBody();
         String key = parameterKeys.findRuntimeSnapshot(identifier).orElseThrow().getKey();
         await(() -> runtimeValue(key) != null);
     }
@@ -59,8 +59,13 @@ public abstract class DynamicParameterRuntimeTestSupport extends br.com.portalma
         return client.publishBatch(identifiers);
     }
 
-    protected DynamicParameterResponse updateParameter(String identifier, Object body) {
+    protected DynamicParameterResponse updateParameter(String identifier, br.com.portalmanager.platform.workspace.entrypoint.parameter.request.UpdateParameterKeyRequest body) {
         return client.update(identifier, body);
+    }
+
+    protected DynamicParameterResponse updateParameter(String identifier, long version, String type, String valueJson) {
+        return client.update(identifier, requestFactory.update(version,
+                "Dynamic parameter integration fixture", type, valueJson));
     }
 
     protected DynamicParameterResponse inactivateParameter(String identifier) {

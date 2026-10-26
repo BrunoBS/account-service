@@ -51,9 +51,8 @@ class ParameterKeyReconciliationIT extends DynamicParameterRuntimeTestSupport {
     void hourlySynchronizationUsesPublishedTypeAndValueEvenWhenCurrentContentIsDraft() {
         String identifier = create("snapshot", "CONFIGURATION", "{\"approved\":true}");
         publish(identifier);
-        updateParameter(identifier,
-                Map.of("version", 1, "type", "EXPRESSION", "value",
-                        Map.of("operator", "EQUALS", "valueType", "LONG", "value", 10)))
+        updateParameter(identifier, 1, "EXPRESSION",
+                "{\"operator\":\"EQUALS\",\"valueType\":\"LONG\",\"value\":10}")
                 .expectOk();
         redis.delete("account-service.snapshot");
         publisher.reconcile();

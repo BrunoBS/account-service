@@ -63,7 +63,7 @@ public final class SchemaDefaultScenario implements TestScenario<SchemaDefaultSc
                 "Feature group association test schema", "feature-group-feature.json"));
         schemas.bindResource("MESSAGE", "message", resource(
                 "message-resource", "Message Resource", "Message test schema", "message.json"));
-        schemas.bindResource("MESSAGE", "message-translation", resource(
+        schemas.bindResource("MESSAGE", "message-translator", resource(
                 "message-translator-resource", "Message Translator Resource",
                 "Message translator test schema", "message-translator.json"));
         schemas.bindResource("SEGMENTATION", "segment", resource(
