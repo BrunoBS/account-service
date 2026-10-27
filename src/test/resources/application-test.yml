@@ -12,14 +12,19 @@ spring:
           events:
             log: false
 
-logging:
-  level:
-    org.springframework.test.context.cache: DEBUG
-
 platform:
+  observability:
+    logging:
+      levels:
+        org.springframework: WARN
+        org.testcontainers: WARN
+        tc: WARN
+        org.flywaydb: WARN
+        io.netty: WARN
+        br.com.portalmanager.platform.library.testing.database: WARN
+        br.com.portalmanager.platform.library.authorization.visibility: WARN
   authorization:
     mode: REAL
-    service-url: http://127.0.0.1:9
   messaging:
     enabled: true
     default-locale: pt-BR

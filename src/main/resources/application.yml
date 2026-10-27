@@ -23,9 +23,10 @@ spring:
 platform:
   observability:
     logging:
+      format: JSON
       levels:
-        br.com.portalmanager.platform.workspace: DEBUG
         br.com.portalmanager.platform: DEBUG
+        org.springframework.test.context.cache: WARN
   authorization:
     mode: ${PLATFORM_AUTHORIZATION_MODE:MOCK}
     service-url: ${AUTHORIZATION_SERVICE_URL:http://localhost:2020}

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @DisplayName("Integração HTTP - Environment Type Compatibility Find")
-@WithMySql(excludeTables = {"flyway_schema_history", "type_life_cycle", "type_schema_scopes", "type_schema_version_status"})
+@WithMySql(excludeTables = {"flyway_schema_history"})
 class EnvironmentTypeCompatibilityFindIntegrationTest extends BaseIntegrationTest {
     @Autowired private EnvironmentScenario scenario;
     @Autowired private EnvironmentTypeCompatibilityClient compatibilities;

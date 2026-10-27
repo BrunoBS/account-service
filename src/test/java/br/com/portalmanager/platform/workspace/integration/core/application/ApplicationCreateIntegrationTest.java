@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Integração HTTP - Application Create")
-@WithMySql(excludeTables = {"flyway_schema_history", "type_life_cycle", "type_schema_scopes", "type_schema_version_status"})
+@WithMySql(excludeTables = {"flyway_schema_history"})
 class ApplicationCreateIntegrationTest extends BaseIntegrationTest {
     @Autowired private AuthorizationMock authorization;
     @Autowired private WorkspaceClient workspaces;

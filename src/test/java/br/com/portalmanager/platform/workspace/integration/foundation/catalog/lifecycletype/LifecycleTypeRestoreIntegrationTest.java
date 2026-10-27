@@ -2,9 +2,6 @@ package br.com.portalmanager.platform.workspace.integration.foundation.catalog.l
 
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.lifecycletype.support.LifecycleTypeClient;
 import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
-import br.com.portalmanager.platform.library.testing.database.DatabaseSetupPhase;
-import br.com.portalmanager.platform.library.testing.database.annotation.DatabaseScripts;
-import br.com.portalmanager.platform.library.testing.database.annotation.WithDatabaseScripts;
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.support.CatalogTestDataFactory;
 import br.com.portalmanager.platform.workspace.integration.support.BaseIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,8 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @DisplayName("Integração HTTP - lifecycle restore")
-@DatabaseScripts(@WithDatabaseScripts(setup = "classpath:sql/catalog-active-lifecycle.sql",
-        setupPhase = DatabaseSetupPhase.BEFORE_EACH))
 class LifecycleTypeRestoreIntegrationTest extends BaseIntegrationTest {
     private static final String CODE = "INACTIVE";
 

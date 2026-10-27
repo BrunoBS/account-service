@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @DisplayName("Integração HTTP - Environment Type Delete")
-@WithMySql(excludeTables = {"flyway_schema_history", "type_life_cycle", "type_schema_scopes", "type_schema_version_status"})
+@WithMySql(excludeTables = {"flyway_schema_history"})
 class EnvironmentTypeDeleteIntegrationTest extends BaseIntegrationTest {
     @Autowired private EnvironmentScenario scenario;
     @Autowired private EnvironmentTypeClient types;

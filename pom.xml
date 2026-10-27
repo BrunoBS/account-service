@@ -17,6 +17,9 @@
     <packaging>jar</packaging>
     <name>workspace-service</name>
     <description>Golden Reference para o domínio de Workspace.</description>
+    <properties>
+        <skipITs>${skipTests}</skipITs>
+    </properties>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -129,6 +132,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
+                    <skipITs>${skipITs}</skipITs>
                     <includes combine.self="override">
                         <include>**/*IntegrationTest.java</include>
                         <include>**/*IT.java</include>

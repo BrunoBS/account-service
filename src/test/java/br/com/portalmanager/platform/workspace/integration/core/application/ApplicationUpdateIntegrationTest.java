@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @DisplayName("Integração HTTP - Application Update")
-@WithMySql(excludeTables = {"flyway_schema_history", "type_life_cycle", "type_schema_scopes", "type_schema_version_status"})
+@WithMySql(excludeTables = {"flyway_schema_history"})
 class ApplicationUpdateIntegrationTest extends BaseIntegrationTest {
     @Autowired private AuthorizationMock authorization;
     @Autowired private WorkspaceClient workspaces;

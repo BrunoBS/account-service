@@ -14,9 +14,13 @@ import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class WorkspaceFacade {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WorkspaceFacade.class);
 
     private final WorkspaceCommandService commandService;
     private final WorkspaceQueryService queryService;
@@ -34,7 +38,10 @@ public class WorkspaceFacade {
 
     @AuthorizationRequired(level = AuthorizationLevel.OPEN, action = AuthorizationAction.CREATE)
     public WorkspaceOutput create(AuthorizationContext context, CreateWorkspaceInput input) {
-        return commandService.create(input);
+        LOGGER.info("[BRUNO-TESTE]Recebida requisição para criar workspace");
+        WorkspaceOutput created = commandService.create(input);
+        LOGGER.info("Workspace criado com identifier={}", created.identifier());
+        return created;
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.DEV, action = AuthorizationAction.READ)

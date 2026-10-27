@@ -25,12 +25,7 @@ import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.verify;
 
 @DisplayName("Integração HTTP - Workspace Inactivate")
-@WithMySql(excludeTables = {
-        "flyway_schema_history",
-        "type_life_cycle",
-        "type_schema_scopes",
-        "type_schema_version_status"
-})
+@WithMySql(excludeTables = {"flyway_schema_history"})
 class WorkspaceInactivateIntegrationTest extends BaseIntegrationTest {
     @Autowired private AuthorizationMock authorization;
     @Autowired private WorkspaceTypeClient workspaceTypes;

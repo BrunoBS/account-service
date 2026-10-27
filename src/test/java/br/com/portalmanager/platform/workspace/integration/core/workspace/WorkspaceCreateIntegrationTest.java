@@ -43,13 +43,9 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 @DisplayName("Integração HTTP - Workspace Create")
-@WithMySql(excludeTables = {
-        "flyway_schema_history",
-        "type_life_cycle",
-        "type_schema_scopes",
-        "type_schema_version_status"
-})
+@WithMySql(excludeTables = {"flyway_schema_history"})
 class WorkspaceCreateIntegrationTest extends BaseIntegrationTest {
+
     @Autowired private AuthorizationMock authorization;
     @Autowired private WorkspaceTypeClient workspaceTypes;
     @Autowired private OnboardingTypeClient onboardingTypes;
