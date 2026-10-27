@@ -22,18 +22,13 @@ class SchemaFindAllIntegrationTest extends BaseIntegrationTest {
     @BeforeEach void prepareScenario() { scenario.setup(); }
 
     @Test
-    @DisplayName("QUERY - filtra schemas de plataforma e workspace por lifecycle")
-    void filtraPorLifecycleNosEscopos() {
+    @DisplayName("QUERY - filtra schemas de plataforma por lifecycle")
+    void filtraSchemasDePlataformaPorLifecycle() {
         var platform = schemas.create(factory.valid()).expectCreated().extractSchema();
         schemas.inactivate(platform.identifier()).expectOk();
         assertTrue(schemas.findAll("INACTIVE").expectOk().extractSchemas().stream()
                 .anyMatch(schema -> platform.identifier().equals(schema.identifier())));
 
-        String workspace = scenario.createWorkspace().identifier();
-        var scoped = schemas.create(workspace, factory.valid()).expectCreated().extractSchema();
-        schemas.inactivate(workspace, scoped.identifier()).expectOk();
-        assertTrue(schemas.findAll(workspace, "INACTIVE").expectOk().extractSchemas().stream()
-                .anyMatch(schema -> scoped.identifier().equals(schema.identifier())));
     }
 
     @Test

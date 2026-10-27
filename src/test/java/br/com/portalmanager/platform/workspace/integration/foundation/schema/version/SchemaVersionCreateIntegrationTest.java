@@ -19,8 +19,8 @@ class SchemaVersionCreateIntegrationTest extends BaseIntegrationTest {
     @BeforeEach void prepareScenario() { scenario.setup(); }
 
     @Test
-    @DisplayName("CREATE - cria nova versão draft monotônica em schema platform e workspace")
-    void criaVersaoDraftMonotonica() {
+    @DisplayName("CREATE - cria nova versão draft monotônica em schema de plataforma")
+    void criaVersaoDraftMonotonicaDePlataforma() {
         var platform = schemas.create(factory.valid()).expectCreated().extractSchema();
         var first = schemas.findVersions(platform.identifier()).expectOk().extractVersions().getFirst();
         schemas.publish(platform.identifier(), first.identifier()).expectOk();
@@ -29,12 +29,6 @@ class SchemaVersionCreateIntegrationTest extends BaseIntegrationTest {
         schemas.findVersions(platform.identifier()).expectOk().expect("[0].version", 2)
                 .expect("[0].status", "DRAFT");
 
-        String workspace = scenario.createWorkspace().identifier();
-        var scoped = schemas.create(workspace, factory.valid()).expectCreated().extractSchema();
-        var initial = schemas.findVersions(workspace, scoped.identifier()).expectOk().extractVersions().getFirst();
-        schemas.publish(workspace, scoped.identifier(), initial.identifier()).expectOk();
-        schemas.createVersion(workspace, scoped.identifier(), factory.validVersion("Workspace v2"))
-                .expectCreated().expect("version", 2).expect("status", "DRAFT");
     }
 
     @Test

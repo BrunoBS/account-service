@@ -23,6 +23,10 @@ import br.com.portalmanager.platform.workspace.integration.foundation.catalog.ap
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.support.CatalogScenario;
 import br.com.portalmanager.platform.workspace.integration.foundation.schema.support.SchemaFactory;
 import br.com.portalmanager.platform.workspace.integration.foundation.schema.support.SchemaScenario;
+import br.com.portalmanager.platform.workspace.integration.core.environment.support.EnvironmentFactory;
+import br.com.portalmanager.platform.workspace.integration.core.environment.support.EnvironmentScenario;
+import br.com.portalmanager.platform.workspace.integration.core.environment.workspace.support.WorkspaceEnvironmentClient;
+import br.com.portalmanager.platform.workspace.integration.core.environment.defaults.support.DefaultEnvironmentClient;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
@@ -41,12 +45,17 @@ public final class ResourceSharingScenario implements TestScenario<ResourceShari
     private final MicroserviceClient microservices;
     private final FeatureClient features;
     private final ContractClient contracts;
+    private final EnvironmentScenario environments;
+    private final WorkspaceEnvironmentClient workspaceEnvironments;
+    private final DefaultEnvironmentClient defaultEnvironments;
 
     public ResourceSharingScenario(AuthorizationMock authorization, WorkspaceClient workspaces,
             WorkspaceTypeClient workspaceTypes, OnboardingTypeClient onboardingTypes,
             ApplicationScopeTypeClient applicationScopes, PublicationModeTypeClient publicationModes,
             ShareStatusTypeClient shareStatuses, SchemaScenario schemas, ApplicationClient applications,
-            MicroserviceClient microservices, FeatureClient features, ContractClient contracts) {
+            MicroserviceClient microservices, FeatureClient features, ContractClient contracts,
+            EnvironmentScenario environments, WorkspaceEnvironmentClient workspaceEnvironments,
+            DefaultEnvironmentClient defaultEnvironments) {
         this.authorization=Objects.requireNonNull(authorization); this.workspaces=Objects.requireNonNull(workspaces);
         this.workspaceTypes=Objects.requireNonNull(workspaceTypes); this.onboardingTypes=Objects.requireNonNull(onboardingTypes);
         this.applicationScopes=Objects.requireNonNull(applicationScopes); this.schemas=Objects.requireNonNull(schemas);
@@ -54,6 +63,9 @@ public final class ResourceSharingScenario implements TestScenario<ResourceShari
         this.shareStatuses=Objects.requireNonNull(shareStatuses);
         this.applications=Objects.requireNonNull(applications); this.microservices=Objects.requireNonNull(microservices);
         this.features=Objects.requireNonNull(features); this.contracts=Objects.requireNonNull(contracts);
+        this.environments=Objects.requireNonNull(environments);
+        this.workspaceEnvironments=Objects.requireNonNull(workspaceEnvironments);
+        this.defaultEnvironments=Objects.requireNonNull(defaultEnvironments);
     }
 
     @Override public Data setup() {
@@ -90,6 +102,27 @@ public final class ResourceSharingScenario implements TestScenario<ResourceShari
     public ContractResponse createContract(Data data) {
         return contracts.create(data.ownerWorkspace(), data.ownerApplication(), new ContractFactory().valid(data.feature())).expectCreated().extractBody();
     }
+
+    public String createAnotherShareableFeature() {
+        String microservice = microservices.create(new MicroserviceFactory().valid("sharing-other-service", "Other sharing service")).expectCreated().extractBody().identifier();
+        return features.create(new FeatureFactory().shareable(microservice)).expectCreated().extractBody().identifier();
+    }
+
+    public EnvironmentMapping environmentMapping(Data data) {
+        environments.prepareResourceSharingEnvironments();
+        EnvironmentFactory factory = new EnvironmentFactory();
+        String parent = defaultEnvironments.create(factory.validDefault("Shared mapping base"))
+                .expectCreated().extractBody().identifier();
+        String source = workspaceEnvironments.create(data.participantWorkspace(),
+                        factory.shard("Participant source environment", parent))
+                .expectCreated().extractBody().identifier();
+        String destination = workspaceEnvironments.create(data.ownerWorkspace(),
+                        factory.shard("Owner destination environment", parent))
+                .expectCreated().extractBody().identifier();
+        return new EnvironmentMapping(source, destination);
+    }
+
+    public record EnvironmentMapping(String source, String destination) {}
 
     public String requestParticipation(Data data, String contractIdentifier, ParticipantClient participants) {
         return participants.request(data.participantWorkspace(), data.participantApplication(), contractIdentifier)

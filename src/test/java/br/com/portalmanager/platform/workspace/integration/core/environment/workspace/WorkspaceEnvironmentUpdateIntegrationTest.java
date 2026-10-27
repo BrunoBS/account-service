@@ -3,7 +3,6 @@ package br.com.portalmanager.platform.workspace.integration.core.environment.wor
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import br.com.portalmanager.platform.workspace.integration.core.environment.support.EnvironmentFactory;
-import br.com.portalmanager.platform.workspace.integration.core.environment.support.EnvironmentUpdateBuilder;
 import br.com.portalmanager.platform.workspace.integration.core.environment.workspace.support.WorkspaceEnvironmentClient;
 import br.com.portalmanager.platform.workspace.integration.core.environment.support.EnvironmentScenario;
 import br.com.portalmanager.platform.workspace.integration.support.BaseIntegrationTest;
@@ -31,13 +30,8 @@ class WorkspaceEnvironmentUpdateIntegrationTest extends BaseIntegrationTest {
         var created = environments.create(scenario.workspaceIdentifier(), factory.valid())
                 .expectCreated()
                 .extractBody();
-        var update = EnvironmentUpdateBuilder.builder()
-                .withVersion(created.version())
-                .withName("Renamed environment")
-                .withAuthorizationType("TST")
-                .withSettings(created.settings())
-                .build();
-        var updated = environments.update(scenario.workspaceIdentifier(), created.identifier(), update)
+        var updated = environments.update(scenario.workspaceIdentifier(), created.identifier(),
+                        factory.update(created.version(), created.settings()))
                 .expectOk()
                 .expect("name", "Renamed environment")
                 .extractBody();
@@ -51,17 +45,27 @@ class WorkspaceEnvironmentUpdateIntegrationTest extends BaseIntegrationTest {
         var created = environments.create(scenario.workspaceIdentifier(), factory.valid())
                 .expectCreated()
                 .extractBody();
-        var update = EnvironmentUpdateBuilder.builder()
-                .withVersion(created.version())
-                .withName("Renamed environment")
-                .withAuthorizationType("TST")
-                .withSettings(created.settings())
-                .build();
-
-        environments.update(scenario.workspaceIdentifier(), created.identifier(), update).expectOk();
-        environments.update(scenario.workspaceIdentifier(), created.identifier(), update).expectConflict();
         environments.update(scenario.workspaceIdentifier(), created.identifier(),
-                EnvironmentUpdateBuilder.builder().withVersion(created.version() + 1).withName(null).build())
+                factory.update(created.version(), created.settings())).expectOk();
+        environments.update(scenario.workspaceIdentifier(), created.identifier(),
+                factory.update(created.version(), created.settings())).expectConflict();
+        environments.update(scenario.workspaceIdentifier(), created.identifier(),
+                factory.updateWithoutName(created.version() + 1, created.settings()))
+                .expectBadRequest();
+    }
+
+    @Test
+    @DisplayName("VALIDATION - exige versão e tipo e impede alterar o parent")
+    void rejeitaVersaoTipoOuParentInvalido() {
+        var created = environments.create(scenario.workspaceIdentifier(), factory.valid())
+                .expectCreated().extractBody();
+
+        environments.update(scenario.workspaceIdentifier(), created.identifier(),
+                factory.updateWithoutVersion(created.settings())).expectBadRequest();
+        environments.update(scenario.workspaceIdentifier(), created.identifier(),
+                factory.updateWithoutEnvironmentType(created.version(), created.settings())).expectBadRequest();
+        environments.update(scenario.workspaceIdentifier(), created.identifier(),
+                factory.updateWithParent(created.version(), created.settings(), "parent-workspace-environment"))
                 .expectBadRequest();
     }
 }

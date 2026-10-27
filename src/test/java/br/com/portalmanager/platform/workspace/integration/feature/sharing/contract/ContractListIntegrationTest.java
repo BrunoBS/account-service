@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.workspace.integration.feature.sharing.suppo
 import br.com.portalmanager.platform.workspace.integration.feature.sharing.support.ParticipantFactory;
 import br.com.portalmanager.platform.workspace.integration.feature.sharing.support.ResourceSharingScenario;
 import br.com.portalmanager.platform.workspace.integration.support.BaseIntegrationTest;
+import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ class ContractListIntegrationTest extends BaseIntegrationTest {
     @Autowired private ResourceSharingScenario scenario;
     @Autowired private ContractClient contracts;
     @Autowired private ParticipantClient participants;
+    @Autowired private AuthorizationMock authorization;
     private final ContractFactory factory = new ContractFactory();
     private ResourceSharingScenario.Data data;
 
@@ -26,7 +28,7 @@ class ContractListIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("QUERY - lista contratos ativos da aplicação proprietária")
     void listaContratosAtivos() {
-        var contract = scenario.createContract(data);
+        br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.response.ContractResponse contract = scenario.createContract(data);
                 contracts.list(data.ownerWorkspace(), data.ownerApplication(), "ACTIVE", 0, 20)
                         .expectOk().expectContains("content[0].identifier", contract.identifier());
     }
@@ -36,5 +38,41 @@ class ContractListIntegrationTest extends BaseIntegrationTest {
     void rejeitaPaginaInvalida() {
         contracts.list(data.ownerWorkspace(), data.ownerApplication(), null, -1, 20)
                         .expectBadRequest();
+    }
+
+    @Test
+    @DisplayName("QUERY - filtra contratos inativos")
+    void filtraContratosInativos() {
+        br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.response.ContractResponse contract = scenario.createContract(data);
+        contracts.inactivate(data.ownerWorkspace(), data.ownerApplication(), contract.identifier()).expectOk();
+
+        contracts.list(data.ownerWorkspace(), data.ownerApplication(), "INACTIVE", 0, 20)
+                .expectOk()
+                .expectSize("content", 1)
+                .expect("content[0].identifier", contract.identifier());
+    }
+
+    @Test
+    @DisplayName("VALIDATION - rejeita lifecycle desconhecido")
+    void rejeitaLifecycleDesconhecido() {
+        contracts.list(data.ownerWorkspace(), data.ownerApplication(), "UNKNOWN", 0, 20)
+                .expectBadRequest();
+    }
+
+    @Test
+    @DisplayName("VALIDATION - rejeita tamanho de página fora do limite")
+    void rejeitaTamanhoDePaginaAcimaDoLimite() {
+        contracts.list(data.ownerWorkspace(), data.ownerApplication(), null, 0, 101)
+                .expectBadRequest();
+    }
+
+    @Test
+    @DisplayName("AUTH - exige permissão de leitura para listar contratos")
+    void exigePermissaoDeLeitura() {
+        authorization.forbidden();
+
+        contracts.list(data.ownerWorkspace(), data.ownerApplication(), null, 0, 20)
+                .expectForbidden();
+        authorization.verifyCalledWithPolicy("DEV");
     }
 }

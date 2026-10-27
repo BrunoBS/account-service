@@ -10,6 +10,7 @@ public final class ContractFactory extends AbstractTestDataFactory<ContractReque
         return builder().withFeatureIdentifier(featureIdentifier).withDescription(description).build();
     }
     public ContractRequest withoutFeature() { return builder().withFeatureIdentifier(null).build(); }
+    public ContractRequest withFeature(String featureIdentifier) { return builder().withFeatureIdentifier(featureIdentifier).build(); }
     public ContractRequest withDescriptionAboveMaximum(String featureIdentifier) {
         return builder().withFeatureIdentifier(featureIdentifier).withDescription("d".repeat(501)).build();
     }

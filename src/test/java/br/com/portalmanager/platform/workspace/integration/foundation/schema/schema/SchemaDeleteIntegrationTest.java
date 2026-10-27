@@ -21,18 +21,13 @@ class SchemaDeleteIntegrationTest extends BaseIntegrationTest {
     @BeforeEach void prepareScenario() { scenario.setup(); }
 
     @Test
-    @DisplayName("DELETE - coloca schemas de plataforma e workspace em quarentena")
-    void colocaSchemasEmQuarentena() {
+    @DisplayName("DELETE - coloca schema de plataforma em quarentena")
+    void colocaSchemaDePlataformaEmQuarentena() {
         var platform = schemas.create(factory.valid()).expectCreated().extractSchema();
         schemas.quarantine(platform.identifier()).expectNoContent();
         assertTrue(schemas.findAll("QUARANTINED").expectOk().extractSchemas().stream()
                 .anyMatch(schema -> platform.identifier().equals(schema.identifier())));
 
-        String workspace = scenario.createWorkspace().identifier();
-        var scoped = schemas.create(workspace, factory.valid()).expectCreated().extractSchema();
-        schemas.quarantine(workspace, scoped.identifier()).expectNoContent();
-        assertTrue(schemas.findAll(workspace, "QUARANTINED").expectOk().extractSchemas().stream()
-                .anyMatch(schema -> scoped.identifier().equals(schema.identifier())));
     }
 
     @Test

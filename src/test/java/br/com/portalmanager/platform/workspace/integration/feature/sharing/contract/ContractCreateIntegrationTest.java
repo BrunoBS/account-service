@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.workspace.integration.feature.sharing.suppo
 import br.com.portalmanager.platform.workspace.integration.feature.sharing.support.ParticipantFactory;
 import br.com.portalmanager.platform.workspace.integration.feature.sharing.support.ResourceSharingScenario;
 import br.com.portalmanager.platform.workspace.integration.support.BaseIntegrationTest;
+import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ class ContractCreateIntegrationTest extends BaseIntegrationTest {
     @Autowired private ResourceSharingScenario scenario;
     @Autowired private ContractClient contracts;
     @Autowired private ParticipantClient participants;
+    @Autowired private AuthorizationMock authorization;
     private final ContractFactory factory = new ContractFactory();
     private ResourceSharingScenario.Data data;
 
@@ -26,8 +28,13 @@ class ContractCreateIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("CREATE - cria contrato de compartilhamento")
     void criaContrato() {
-        contracts.create(data.ownerWorkspace(), data.ownerApplication(), factory.valid(data.feature()))
+        br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.response.ContractResponse created =
+                contracts.create(data.ownerWorkspace(), data.ownerApplication(), factory.valid(data.feature()))
                         .expectCreated()
+                        .extractBody();
+        contracts.find(data.ownerWorkspace(), data.ownerApplication(), created.identifier())
+                .expectOk()
+                .expect("identifier", created.identifier())
                         .expect("featureIdentifier", data.feature())
                         .expect("lifecycle", "ACTIVE");
     }
@@ -37,5 +44,39 @@ class ContractCreateIntegrationTest extends BaseIntegrationTest {
     void rejeitaContratoSemFeature() {
         contracts.create(data.ownerWorkspace(), data.ownerApplication(), factory.withoutFeature())
                         .expectBadRequest();
+    }
+
+    @Test
+    @DisplayName("VALIDATION - rejeita descrição acima do limite")
+    void rejeitaDescricaoAcimaDoLimite() {
+        contracts.create(data.ownerWorkspace(), data.ownerApplication(),
+                        factory.withDescriptionAboveMaximum(data.feature()))
+                .expectBadRequest();
+    }
+
+    @Test
+    @DisplayName("VALIDATION - rejeita contrato duplicado para a mesma feature")
+    void rejeitaContratoDuplicadoParaFeature() {
+        scenario.createContract(data);
+
+        contracts.create(data.ownerWorkspace(), data.ownerApplication(), factory.valid(data.feature()))
+                .expectConflict();
+    }
+
+    @Test
+    @DisplayName("VALIDATION - rejeita feature inexistente")
+    void rejeitaFeatureInexistente() {
+        contracts.create(data.ownerWorkspace(), data.ownerApplication(), factory.withFeature("missing-feature"))
+                .expectNotFound();
+    }
+
+    @Test
+    @DisplayName("AUTH - exige permissão administrativa para criar contrato")
+    void exigePermissaoAdministrativaParaCriar() {
+        authorization.forbidden();
+
+        contracts.create(data.ownerWorkspace(), data.ownerApplication(), factory.valid(data.feature()))
+                .expectForbidden();
+        authorization.verifyCalledWithPolicy("ADM");
     }
 }

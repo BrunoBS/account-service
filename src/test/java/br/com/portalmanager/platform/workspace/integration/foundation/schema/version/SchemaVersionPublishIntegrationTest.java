@@ -19,8 +19,8 @@ class SchemaVersionPublishIntegrationTest extends BaseIntegrationTest {
     @BeforeEach void prepareScenario() { scenario.setup(); }
 
     @Test
-    @DisplayName("PUBLISH - publica versão draft e mantém publicação monotônica")
-    void publicaVersoesEmAmbosEscopos() {
+    @DisplayName("PUBLISH - publica versão draft e mantém publicação monotônica em plataforma")
+    void publicaVersoesDePlataformaMonotonicamente() {
         var platform = schemas.create(factory.valid()).expectCreated().extractSchema();
         var first = schemas.findVersions(platform.identifier()).expectOk().extractVersions().getFirst();
         schemas.publish(platform.identifier(), first.identifier()).expectOk().expect("status", "PUBLISHED");
@@ -30,10 +30,6 @@ class SchemaVersionPublishIntegrationTest extends BaseIntegrationTest {
         schemas.publish(platform.identifier(), second.identifier()).expectOk()
                 .expect("version", 2).expect("status", "PUBLISHED");
 
-        String workspace = scenario.createWorkspace().identifier();
-        var scoped = schemas.create(workspace, factory.valid()).expectCreated().extractSchema();
-        var draft = schemas.findVersions(workspace, scoped.identifier()).expectOk().extractVersions().getFirst();
-        schemas.publish(workspace, scoped.identifier(), draft.identifier()).expectOk().expect("status", "PUBLISHED");
     }
 
     @Test

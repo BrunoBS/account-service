@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.workspace.integration.feature.sharing.suppo
 import br.com.portalmanager.platform.workspace.integration.feature.sharing.support.ParticipantFactory;
 import br.com.portalmanager.platform.workspace.integration.feature.sharing.support.ResourceSharingScenario;
 import br.com.portalmanager.platform.workspace.integration.support.BaseIntegrationTest;
+import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ class ContractFindIntegrationTest extends BaseIntegrationTest {
     @Autowired private ResourceSharingScenario scenario;
     @Autowired private ContractClient contracts;
     @Autowired private ParticipantClient participants;
+    @Autowired private AuthorizationMock authorization;
     private final ContractFactory factory = new ContractFactory();
     private ResourceSharingScenario.Data data;
 
@@ -26,7 +28,7 @@ class ContractFindIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("QUERY - busca contrato pelo identificador")
     void buscaContratoExistente() {
-        var contract = scenario.createContract(data);
+        br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.response.ContractResponse contract = scenario.createContract(data);
                 contracts.find(data.ownerWorkspace(), data.ownerApplication(), contract.identifier())
                         .expectOk().expect("identifier", contract.identifier());
     }
@@ -36,5 +38,25 @@ class ContractFindIntegrationTest extends BaseIntegrationTest {
     void naoEncontraContratoAusente() {
         contracts.find(data.ownerWorkspace(), data.ownerApplication(), "missing-contract")
                         .expectNotFound();
+    }
+
+    @Test
+    @DisplayName("AUTH - exige permissão de leitura para consultar contrato")
+    void exigePermissaoDeLeitura() {
+        br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.response.ContractResponse contract = scenario.createContract(data);
+        authorization.forbidden();
+
+        contracts.find(data.ownerWorkspace(), data.ownerApplication(), contract.identifier())
+                .expectForbidden();
+        authorization.verifyCalledWithPolicy("DEV");
+    }
+
+    @Test
+    @DisplayName("QUERY - contrato de outra aplicação não fica visível")
+    void naoExpõeContratoDeOutraAplicacao() {
+        br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.response.ContractResponse contract = scenario.createContract(data);
+
+        contracts.find(data.participantWorkspace(), data.participantApplication(), contract.identifier())
+                .expectNotFound();
     }
 }

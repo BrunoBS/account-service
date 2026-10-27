@@ -79,6 +79,16 @@ public final class SchemaScenario implements TestScenario<SchemaScenario> {
         return this;
     }
 
+    public SchemaScenario bindResourceIfMissing(String resourceType, String resourceCode, CreateSchemaRequest request) {
+        boolean exists = bindings.findAll().expectOk().extractBindings().stream()
+                .anyMatch(binding -> resourceType.equals(binding.resourceType())
+                        && resourceCode.equals(binding.resourceCode()));
+        if (!exists) {
+            bindResource(resourceType, resourceCode, request);
+        }
+        return this;
+    }
+
     public SchemaScenario bindResources(String resourceType, List<String> resourceCodes, CreateSchemaRequest request) {
         String schemaIdentifier = createAndPublish(request);
         resourceCodes.forEach(code -> bindings.create(factory.binding(resourceType, code, schemaIdentifier)).expectCreated());

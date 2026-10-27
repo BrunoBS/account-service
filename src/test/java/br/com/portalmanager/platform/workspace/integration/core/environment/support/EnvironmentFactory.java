@@ -2,6 +2,8 @@ package br.com.portalmanager.platform.workspace.integration.core.environment.sup
 
 import br.com.portalmanager.platform.library.testing.fixture.factory.AbstractTestDataFactory;
 import br.com.portalmanager.platform.workspace.entrypoint.environment.request.CreateEnvironmentRequest;
+import br.com.portalmanager.platform.workspace.entrypoint.environment.request.UpdateEnvironmentRequest;
+import tools.jackson.databind.JsonNode;
 
 public final class EnvironmentFactory extends AbstractTestDataFactory<CreateEnvironmentRequest,EnvironmentBuilder> {
     @Override protected EnvironmentBuilder builder(){return EnvironmentBuilder.builder();}
@@ -17,4 +19,23 @@ public final class EnvironmentFactory extends AbstractTestDataFactory<CreateEnvi
     public CreateEnvironmentRequest withoutDescription(){return builder().withDescription(null).build();}
     public CreateEnvironmentRequest withAuthorizationType(String value){return builder().withAuthorizationType(value).build();}
     public CreateEnvironmentRequest withName(String value){return builder().withName(value).build();}
+    public UpdateEnvironmentRequest update(Long version, JsonNode settings) {
+        return new UpdateEnvironmentRequest(version, "Renamed environment", "Updated environment description",
+                "TST", null, null, settings, "CUSTOM", null);
+    }
+    public UpdateEnvironmentRequest updateWithoutName(Long version, JsonNode settings) {
+        return new UpdateEnvironmentRequest(version, null, "Updated environment description",
+                "TST", null, null, settings, "CUSTOM", null);
+    }
+    public UpdateEnvironmentRequest updateWithoutVersion(JsonNode settings) {
+        return update(null, settings);
+    }
+    public UpdateEnvironmentRequest updateWithoutEnvironmentType(Long version, JsonNode settings) {
+        return new UpdateEnvironmentRequest(version, "Renamed environment", "Updated environment description",
+                "TST", null, null, settings, null, null);
+    }
+    public UpdateEnvironmentRequest updateWithParent(Long version, JsonNode settings, String parentIdentifier) {
+        return new UpdateEnvironmentRequest(version, "Renamed environment", "Updated environment description",
+                "TST", null, null, settings, "CUSTOM", parentIdentifier);
+    }
 }

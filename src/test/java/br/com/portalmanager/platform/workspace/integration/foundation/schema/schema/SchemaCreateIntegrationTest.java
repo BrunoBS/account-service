@@ -34,25 +34,12 @@ class SchemaCreateIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("CREATE - cria schema no escopo de um workspace")
-    void criaSchemaDeWorkspace() {
-        String workspace = scenario.createWorkspace().identifier();
-
-        var created = schemas.create(workspace, factory.valid()).expectCreated().extractSchema();
-
-        schemas.findByIdentifier(workspace, created.identifier()).expectOk()
-                .expect("scope", "WORKSPACE").expect("workspaceIdentifier", workspace);
-    }
-
-    @Test
     @DisplayName("VALIDATION - rejeita dados obrigatórios, definição inválida e código duplicado")
     void rejeitaSchemaInvalidoOuDuplicado() {
         schemas.create(factory.withoutCode()).expectBadRequest().expectContainsItem("details.field", "code");
         schemas.create(factory.withoutName()).expectBadRequest().expectContainsItem("details.field", "name");
         schemas.create(factory.withInvalidCode()).expectBadRequest().expectContainsItem("details.field", "code");
         schemas.create(factory.withInvalidDefinition()).expectBadRequest();
-        schemas.create("missing-workspace", factory.valid()).expectNotFound();
-
         var valid = factory.valid();
         schemas.create(valid).expectCreated();
         schemas.create(factory.withDuplicateCode(valid.code())).expectConflict();

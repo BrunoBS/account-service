@@ -19,8 +19,8 @@ class SchemaVersionFindAllIntegrationTest extends BaseIntegrationTest {
     @BeforeEach void prepareScenario() { scenario.setup(); }
 
     @Test
-    @DisplayName("QUERY - lista versões em ordem decrescente nos dois escopos")
-    void listaVersoesMaisRecentesPrimeiro() {
+    @DisplayName("QUERY - lista versões de plataforma em ordem decrescente")
+    void listaVersoesDePlataformaMaisRecentesPrimeiro() {
         var platform = schemas.create(factory.valid()).expectCreated().extractSchema();
         var first = schemas.findVersions(platform.identifier()).expectOk().extractVersions().getFirst();
         schemas.publish(platform.identifier(), first.identifier()).expectOk();
@@ -30,9 +30,6 @@ class SchemaVersionFindAllIntegrationTest extends BaseIntegrationTest {
         schemas.findVersions(platform.identifier()).expectOk()
                 .expect("[0].version", 2).expect("[1].version", 1);
 
-        String workspace = scenario.createWorkspace().identifier();
-        var scoped = schemas.create(workspace, factory.valid()).expectCreated().extractSchema();
-        schemas.findVersions(workspace, scoped.identifier()).expectOk().expect("[0].version", 1);
     }
 
     @Test

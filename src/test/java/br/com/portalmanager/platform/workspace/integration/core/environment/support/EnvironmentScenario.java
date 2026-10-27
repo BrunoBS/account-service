@@ -69,6 +69,18 @@ public final class EnvironmentScenario implements TestScenario<EnvironmentScenar
 
     public String workspaceIdentifier(){return workspaceIdentifier;}
 
+    public void prepareResourceSharingEnvironments() {
+        schemas.bindResourceIfMissing("ENVIRONMENT", "environment", schemaFactory.resource(
+                "environment-resource", "Environment", "Environment payload", "Environment v1", "environment.json"));
+        schemas.bindResourceIfMissing("ENVIRONMENT", "environment-type", schemaFactory.resource(
+                "environment-type-resource", "Environment Type", "Environment type payload", "Environment Type v1", "environment-type.json"));
+        schemas.bindResourceIfMissing("ENVIRONMENT", "environment-type-compatibility", schemaFactory.resource(
+                "environment-type-compatibility-resource", "Environment Type Compatibility", "Compatibility payload", "Compatibility v1", "environment-type-compatibility.json"));
+        ensureAuthorizationTypes();
+        ensureEnvironmentTypes();
+        ensureCompatibilities();
+    }
+
     private void ensureAuthorizationTypes() {
         List.of("DEV","TST","ADM").forEach(code -> {
             var existing=authorizationTypes.findByCode(code);

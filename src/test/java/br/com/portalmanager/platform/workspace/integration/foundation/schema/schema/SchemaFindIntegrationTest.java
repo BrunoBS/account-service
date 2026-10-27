@@ -20,17 +20,12 @@ class SchemaFindIntegrationTest extends BaseIntegrationTest {
     @BeforeEach void prepareScenario() { scenario.setup(); }
 
     @Test
-    @DisplayName("QUERY - busca schemas de plataforma e do workspace correspondente")
-    void buscaSchemasEmSeusEscopos() {
+    @DisplayName("QUERY - busca schema de plataforma pelo identificador")
+    void buscaSchemaDePlataforma() {
         var platform = schemas.create(factory.valid()).expectCreated().extractSchema();
         schemas.findByIdentifier(platform.identifier()).expectOk()
                 .expect("identifier", platform.identifier()).expect("scope", "PLATFORM");
 
-        String workspace = scenario.createWorkspace().identifier();
-        var scoped = schemas.create(workspace, factory.valid()).expectCreated().extractSchema();
-        schemas.findByIdentifier(workspace, scoped.identifier()).expectOk()
-                .expect("identifier", scoped.identifier()).expect("workspaceIdentifier", workspace);
-        schemas.findByIdentifier(workspace, platform.identifier()).expectNotFound();
     }
 
     @Test

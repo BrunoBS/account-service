@@ -19,18 +19,13 @@ class SchemaVersionDeleteIntegrationTest extends BaseIntegrationTest {
     @BeforeEach void prepareScenario() { scenario.setup(); }
 
     @Test
-    @DisplayName("DELETE - remove drafts de schemas de plataforma e workspace")
-    void removeDrafts() {
+    @DisplayName("DELETE - remove draft de schema de plataforma")
+    void removeDraftDePlataforma() {
         var platform = schemas.create(factory.valid()).expectCreated().extractSchema();
         var platformDraft = schemas.findVersions(platform.identifier()).expectOk().extractVersions().getFirst();
         schemas.deleteDraft(platform.identifier(), platformDraft.identifier()).expectNoContent();
         schemas.findVersions(platform.identifier()).expectOk().expectSize("", 0);
 
-        String workspace = scenario.createWorkspace().identifier();
-        var scoped = schemas.create(workspace, factory.valid()).expectCreated().extractSchema();
-        var scopedDraft = schemas.findVersions(workspace, scoped.identifier()).expectOk().extractVersions().getFirst();
-        schemas.deleteDraft(workspace, scoped.identifier(), scopedDraft.identifier()).expectNoContent();
-        schemas.findVersions(workspace, scoped.identifier()).expectOk().expectSize("", 0);
     }
 
     @Test

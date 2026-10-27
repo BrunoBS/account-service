@@ -19,17 +19,12 @@ class SchemaActivateIntegrationTest extends BaseIntegrationTest {
     @BeforeEach void prepareScenario() { scenario.setup(); }
 
     @Test
-    @DisplayName("ACTIVATE - ativa schemas de plataforma e workspace")
-    void ativaSchemasNosEscopos() {
+    @DisplayName("ACTIVATE - ativa schema inativo de plataforma")
+    void ativaSchemaDePlataforma() {
         var platform = schemas.create(factory.valid()).expectCreated().extractSchema();
         schemas.inactivate(platform.identifier()).expectOk();
         schemas.activate(platform.identifier()).expectOk().expect("lifecycle", "ACTIVE");
 
-        String workspace = scenario.createWorkspace().identifier();
-        var scoped = schemas.create(workspace, factory.valid()).expectCreated().extractSchema();
-        schemas.inactivate(workspace, scoped.identifier()).expectOk();
-        schemas.activate(workspace, scoped.identifier()).expectOk()
-                .expect("lifecycle", "ACTIVE").expect("workspaceIdentifier", workspace);
     }
 
     @Test

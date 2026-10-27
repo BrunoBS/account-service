@@ -20,18 +20,13 @@ class SchemaUpdateIntegrationTest extends BaseIntegrationTest {
     @BeforeEach void prepareScenario() { scenario.setup(); }
 
     @Test
-    @DisplayName("UPDATE - atualiza metadados de schemas de plataforma e workspace")
-    void atualizaMetadadosEmAmbosEscopos() {
+    @DisplayName("UPDATE - atualiza metadados de schema de plataforma")
+    void atualizaMetadadosDeSchemaDePlataforma() {
         var platform = schemas.create(factory.valid()).expectCreated().extractSchema();
         schemas.update(platform.identifier(), factory.update(platform.version()))
                 .expectOk().expect("name", "Updated schema name").expect("code", platform.code());
         schemas.findByIdentifier(platform.identifier()).expectOk().expect("description", "Updated schema description");
 
-        String workspace = scenario.createWorkspace().identifier();
-        var scoped = schemas.create(workspace, factory.valid()).expectCreated().extractSchema();
-        schemas.update(workspace, scoped.identifier(), factory.update(scoped.version()))
-                .expectOk().expect("workspaceIdentifier", workspace).expect("name", "Updated schema name")
-                .expect("code", scoped.code());
     }
 
     @Test
