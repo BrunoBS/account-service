@@ -38,7 +38,7 @@ public class WorkspaceFacade {
 
     @AuthorizationRequired(level = AuthorizationLevel.OPEN, action = AuthorizationAction.CREATE)
     public WorkspaceOutput create(AuthorizationContext context, CreateWorkspaceInput input) {
-        LOGGER.info("[BRUNO-TESTE]Recebida requisição para criar workspace");
+        LOGGER.info("Recebida requisição para criar workspace");
         WorkspaceOutput created = commandService.create(input);
         LOGGER.info("Workspace criado com identifier={}", created.identifier());
         return created;

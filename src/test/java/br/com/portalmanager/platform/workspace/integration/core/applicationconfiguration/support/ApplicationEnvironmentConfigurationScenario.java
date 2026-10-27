@@ -34,6 +34,7 @@ public final class ApplicationEnvironmentConfigurationScenario implements TestSc
     private final WorkspaceEnvironmentConfigurationFactory workspaceConfigurationFactory = new WorkspaceEnvironmentConfigurationFactory();
     private String applicationIdentifier;
     private String environmentIdentifier;
+    private String workspaceConfigurationIdentifier;
 
     public ApplicationEnvironmentConfigurationScenario(EnvironmentScenario environments, SchemaScenario schemas,
             ApplicationScopeTypeClient applicationScopes, ApplicationClient applications,
@@ -82,8 +83,8 @@ public final class ApplicationEnvironmentConfigurationScenario implements TestSc
                 .expectCreated().extractBody().identifier();
         environmentIdentifier=workspaceEnvironments.create(environments.workspaceIdentifier(), environmentFactory.valid())
                 .expectCreated().extractBody().identifier();
-        workspaceConfigurations.create(environments.workspaceIdentifier(),
-                workspaceConfigurationFactory.valid(environmentIdentifier)).expectCreated();
+        workspaceConfigurationIdentifier = workspaceConfigurations.create(environments.workspaceIdentifier(),
+                workspaceConfigurationFactory.valid(environmentIdentifier)).expectCreated().extractBody().identifier();
         return this;
     }
 
@@ -108,6 +109,8 @@ public final class ApplicationEnvironmentConfigurationScenario implements TestSc
             existing.expect2xx();
         }
     }
+
+    public String workspaceConfigurationIdentifier() { return workspaceConfigurationIdentifier; }
 
     public String workspaceIdentifier() { return environments.workspaceIdentifier(); }
     public String applicationIdentifier() { return applicationIdentifier; }

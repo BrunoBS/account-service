@@ -18,6 +18,7 @@
     <name>workspace-service</name>
     <description>Golden Reference para o domínio de Workspace.</description>
     <properties>
+        <platform.libraries.version>1.0.0</platform.libraries.version>
         <skipITs>${skipTests}</skipITs>
     </properties>
     <dependencyManagement>
@@ -25,13 +26,17 @@
             <dependency>
                 <groupId>br.com.portalmanager.platform.library</groupId>
                 <artifactId>platform-libraries-bom</artifactId>
-                <version>1.0.0</version>
+                <version>${platform.libraries.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
         <dependency>
             <groupId>br.com.portalmanager.platform.library</groupId>
             <artifactId>platform-parameter-client</artifactId>
@@ -48,7 +53,6 @@
         <dependency>
             <groupId>br.com.portalmanager.platform.library</groupId>
             <artifactId>platform-redis</artifactId>
-            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -97,7 +101,6 @@
         <dependency>
             <groupId>br.com.portalmanager.platform.library</groupId>
             <artifactId>platform-testing-redis</artifactId>
-            <version>1.0.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

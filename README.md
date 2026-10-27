@@ -52,3 +52,22 @@ reconciliação restaura os snapshots publicados após falhas de envio. Os teste
 `ParameterKeyReconciliationIT` verificam integração, isolamento e lifecycle.
 A dependência de teste `platform-parameter-client` requer a mesma revisão V2 das
 bibliotecas; teste em reactor local não comprova disponibilidade no registry.
+
+## Configuração operacional e preparação da reauditoria
+
+O serviço inicia com autorização REAL e exige `AUTHORIZATION_SERVICE_URL`.
+Para desenvolvimento com mock, ative explicitamente `SPRING_PROFILES_ACTIVE=local`;
+o grupo padrão local é GUEST. Configure `LOCAL_AUTHORIZATION_GROUPS` deliberadamente
+quando precisar exercer operações administrativas. Nunca ative `local` em produção.
+
+Os probes ficam em `/actuator/health/liveness` e `/actuator/health/readiness`.
+Somente status é exposto; detalhes de banco/Redis e endpoints de configuração não
+são publicados. Liveness considera o estado da aplicação. Readiness inclui MySQL e
+Redis; falha de dependência retira tráfego sem pedir reinício do processo.
+Restrinja o acesso aos probes pela rede de operação.
+
+Consulte o [relatório de correções e pendências](docs/golden/golden-reaudit-remediation.md),
+o [plano de instalação e migração](https://github.com/BrunoBS/golden-platform/blob/main/docs/services/account-service/database-transition.md) e a
+[configuração por ambiente](https://github.com/BrunoBS/golden-platform/blob/main/docs/services/account-service/operations.md).
+
+A etapa atual está em [consolidação da release, registry e gitlinks](docs/golden/release-consolidation.md).

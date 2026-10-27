@@ -5,6 +5,8 @@ import br.com.portalmanager.platform.library.messaging.message.PlatformMessageKe
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.WorkspaceEnvironmentConfigurationPort;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.WorkspaceEnvironmentConfigurationPort.PublisherCopy;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain.WorkspaceEnvironmentConfiguration;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain.WorkspaceEnvironmentConfigurationPublisher;
+import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.repository.WorkspaceEnvironmentConfigurationPublisherRepository;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.repository.WorkspaceEnvironmentConfigurationRepository;
 
@@ -28,18 +30,15 @@ public class WorkspaceEnvironmentConfigurationAdapter
 
     @Override
     @Transactional
+    public void requireActive(Long workspaceId, Long environmentId) {
+        findActive(workspaceId, environmentId);
+    }
+
+    @Override
+    @Transactional
     public List<PublisherCopy> copyPublishers(Long workspaceId, Long environmentId) {
-        WorkspaceEnvironmentConfiguration configuration =
-                repository
-                        .findByWorkspaceIdAndEnvironmentId(workspaceId, environmentId)
-                        .orElseThrow(
-                                () ->
-                                        new NotFoundException(
-                                                PlatformMessageKeys.RESOURCE_NOT_FOUND));
-        List<
-                        br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain
-                                .WorkspaceEnvironmentConfigurationPublisher>
-                source =
+        WorkspaceEnvironmentConfiguration configuration = findActive(workspaceId, environmentId);
+        List<WorkspaceEnvironmentConfigurationPublisher> source =
                         associations.findByConfigurationIdOrderBySortOrderAsc(
                                 configuration.getId());
         return source.stream()
@@ -50,5 +49,11 @@ public class WorkspaceEnvironmentConfigurationAdapter
                                         association.getSortOrder(),
                                         association.getParameters()))
                 .toList();
+    }
+
+    private WorkspaceEnvironmentConfiguration findActive(Long workspaceId, Long environmentId) {
+        return repository.findByWorkspaceIdAndEnvironmentIdAndLifecycle(
+                        workspaceId, environmentId, LifecycleTypeCode.active())
+                .orElseThrow(() -> new NotFoundException(PlatformMessageKeys.RESOURCE_NOT_FOUND));
     }
 }

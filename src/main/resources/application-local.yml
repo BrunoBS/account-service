@@ -1,0 +1,7 @@
+# Activate deliberately with SPRING_PROFILES_ACTIVE=local. Never use this profile in production.
+platform:
+  authorization:
+    mode: MOCK
+    mock:
+      user-name: ${LOCAL_AUTHORIZATION_USER:local-user}
+      groups: ${LOCAL_AUTHORIZATION_GROUPS:GUEST}

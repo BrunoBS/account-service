@@ -3,8 +3,6 @@ spring:
     web:
       pageable:
         max-page-size: 100
-  profiles:
-    active: local
   application:
     name: workspace-service
   main:
@@ -25,23 +23,11 @@ platform:
     logging:
       format: JSON
       levels:
-        br.com.portalmanager.platform: DEBUG
+        br.com.portalmanager.platform: ${PLATFORM_LOG_LEVEL:INFO}
         org.springframework.test.context.cache: WARN
   authorization:
-    mode: ${PLATFORM_AUTHORIZATION_MODE:MOCK}
-    service-url: ${AUTHORIZATION_SERVICE_URL:http://localhost:2020}
-    mock:
-      user-name: bbs
-      email: bruno.barbosa@empresa.com.br
-
-      account-id: "-"
-      application-id: "-"
-      environment-id: "-"
-
-      trace-id: "81f3503a-8153-4b80-9ee8-5ef41e611b31"
-
-      groups:
-        - PM5_OWNER
+    mode: ${PLATFORM_AUTHORIZATION_MODE:REAL}
+    service-url: ${AUTHORIZATION_SERVICE_URL:}
 
   messaging:
     enabled: true
@@ -66,3 +52,21 @@ workspace:
     reconciliation:
       enabled: true
       interval: PT1H
+
+# Expose only aggregate status. Keep dependencies out of liveness.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      show-components: never
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db,redis

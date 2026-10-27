@@ -21,27 +21,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Checkout Platform Libraries test branch
-        uses: actions/checkout@v4
-        with:
-          repository: BrunoBS/platform-libraries
-          ref: 217fee1cbe9049600e108560579e2f8baf9500e5
-          token: ${{ secrets.PLATFORM_PACKAGES_TOKEN }}
-          path: platform-libraries
-
       - name: Set up Java 25
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "25"
 
-      - name: Cache isolated Maven repository
-        uses: actions/cache@v4
-        with:
-          path: ${{ runner.temp }}/account-service-m2
-          key: ${{ runner.os }}-maven-java25-${{ hashFiles('pom.xml', '.github/maven-settings.xml', 'platform-libraries/**/pom.xml', 'platform-libraries/.mvn/maven.config') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-java25-
+      - name: Validate published Maven model
+        env:
+          GITHUB_PACKAGES_USERNAME: BrunoBS
+          GITHUB_PACKAGES_TOKEN: ${{ secrets.PLATFORM_PACKAGES_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GITHUB_PACKAGES_TOKEN:-}" ]; then
+            echo "PLATFORM_PACKAGES_TOKEN must provide package read access."
+            exit 1
+          fi
+          mvn --settings .github/maven-settings.xml --batch-mode --no-transfer-progress --strict-checksums -Dmaven.repo.local="${RUNNER_TEMP}/account-service-m2" validate
 
       - name: Preload MySQL image from public mirrors
         run: |
@@ -66,21 +62,6 @@ jobs:
           echo "Unable to preload MySQL 8.4.11 from the configured public mirrors."
           exit 1
 
-      - name: Install branch Platform Library modules used by verification
-        env:
-          GITHUB_PACKAGES_USERNAME: BrunoBS
-          GITHUB_PACKAGES_TOKEN: ${{ secrets.PLATFORM_PACKAGES_TOKEN }}
-        working-directory: platform-libraries
-        run: >
-          mvn
-          --settings "${GITHUB_WORKSPACE}/.github/maven-settings.xml"
-          --batch-mode
-          --no-transfer-progress
-          -Dmaven.repo.local="${RUNNER_TEMP}/account-service-m2"
-          -pl modules/platform-catalog,modules/platform-schema-validation,modules/platform-testing/platform-testing-redis,modules/platform-testing/platform-testing-authorization,modules/platform-testing/platform-testing-database
-          -am
-          install
-
       - name: Verify with isolated Maven repository
         env:
           GITHUB_PACKAGES_USERNAME: BrunoBS
@@ -90,8 +71,21 @@ jobs:
           --settings .github/maven-settings.xml
           --batch-mode
           --no-transfer-progress
+          --strict-checksums
           -Dmaven.repo.local="${RUNNER_TEMP}/account-service-m2"
           clean verify
+
+      - name: Record resolved platform artifacts
+        if: always()
+        run: |
+          mkdir -p target/build-evidence
+          git rev-parse HEAD > target/build-evidence/service-commit.txt
+          mvn --version > target/build-evidence/toolchain.txt
+          cp pom.xml target/build-evidence/consumer-pom.xml
+          platform_repository="${RUNNER_TEMP}/account-service-m2/br/com/portalmanager/platform/library"
+          if [ -d "$platform_repository" ]; then
+            find "$platform_repository" -type f \( -name '*.jar' -o -name '*.pom' \) -exec sha256sum {} \; | sort > target/build-evidence/platform-sha256.txt
+          fi
 
       - name: Upload test diagnostics
         if: always()
@@ -99,7 +93,9 @@ jobs:
         with:
           name: test-diagnostics-${{ github.run_id }}
           path: |
+            target/build-evidence/
             target/surefire-reports/
             target/failsafe-reports/
+            target/site/jacoco/
           if-no-files-found: warn
           retention-days: 7
