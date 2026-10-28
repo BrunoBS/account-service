@@ -133,7 +133,18 @@ class ApplicationEnvironmentConfigurationLifecycleIntegrationTest extends BaseIn
     }
 
     private ApplicationEnvironmentConfigurationResponse create() {
-        return configurations.create(scenario.workspaceIdentifier(), scenario.applicationIdentifier(), factory.valid(scenario.environmentIdentifier())).expectCreated().extractBody();
+        ApplicationEnvironmentConfigurationResponse created = configurations.create(
+                scenario.workspaceIdentifier(),
+                scenario.applicationIdentifier(),
+                factory.valid(scenario.environmentIdentifier()))
+            .expectCreated()
+            .extractBody();
+
+        // DATETIME(6) stores microseconds; take the baseline from persisted state
+        // before comparing it after rejected operations.
+        return configurations.find(scenario.workspaceIdentifier(), scenario.applicationIdentifier(), created.identifier())
+            .expectOk()
+            .extractBody();
     }
 
     private void assertUnchanged(ApplicationEnvironmentConfigurationResponse before) {
