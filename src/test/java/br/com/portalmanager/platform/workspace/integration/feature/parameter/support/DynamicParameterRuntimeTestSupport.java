@@ -50,13 +50,13 @@ public abstract class DynamicParameterRuntimeTestSupport extends br.com.portalma
     }
 
     protected void publish(String identifier) {
-        client.publish(List.of(java.util.UUID.fromString(identifier))).expectAcceptedWithEmptyBody();
+        client.publish(List.of(java.util.UUID.fromString(identifier)), List.of(java.util.UUID.fromString(parent))).expectAcceptedWithEmptyBody();
         String key = parameterKeys.findRuntimeSnapshot(identifier).orElseThrow().getKey();
         await(() -> runtimeValue(key) != null);
     }
 
     protected DynamicParameterResponse publishBatch(Object identifiers) {
-        return client.publishBatch(identifiers);
+        return client.publishBatch(identifiers, List.of(java.util.UUID.fromString(parent)));
     }
 
     protected DynamicParameterResponse updateParameter(String identifier, br.com.portalmanager.platform.workspace.entrypoint.parameter.request.UpdateParameterKeyRequest body) {

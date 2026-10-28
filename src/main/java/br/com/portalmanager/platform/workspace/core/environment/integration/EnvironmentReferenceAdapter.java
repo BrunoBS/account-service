@@ -11,6 +11,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class EnvironmentReferenceAdapter
@@ -49,9 +53,19 @@ public class EnvironmentReferenceAdapter
         // The owning configuration has already passed workspace/application visibility.
         // Resolve only its persisted reference, including inactive environments, as in Shared
         // history.
-        return repository.findIdentifierReferences(List.of(id)).stream()
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException(EnvironmentMessageKeys.NOT_FOUND))
-                .getIdentifier();
+        return resolveIdentifiers(List.of(id)).get(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, String> resolveIdentifiers(Collection<Long> ids) {
+        if (ids.isEmpty()) return Map.of();
+        Map<Long, String> identifiers = repository.findIdentifierReferences(ids).stream()
+                .collect(Collectors.toMap(EnvironmentRepository.IdentifierReference::getId,
+                        EnvironmentRepository.IdentifierReference::getIdentifier));
+        if (!identifiers.keySet().containsAll(new HashSet<>(ids))) {
+            throw new NotFoundException(EnvironmentMessageKeys.NOT_FOUND);
+        }
+        return identifiers;
     }
 }

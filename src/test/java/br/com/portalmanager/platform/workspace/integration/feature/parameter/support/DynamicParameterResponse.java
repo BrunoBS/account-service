@@ -17,6 +17,9 @@ public final class DynamicParameterResponse extends BaseResponse<DynamicParamete
 
     public ParameterKeyMetadataResponse extractMetadata() { return extract(ParameterKeyMetadataResponse.class); }
     public ParameterKeyResponse extractBody() { return extract(ParameterKeyResponse.class); }
+    public br.com.portalmanager.platform.workspace.entrypoint.parameter.response.ParameterCacheResponse extractCache() {
+        return extract(br.com.portalmanager.platform.workspace.entrypoint.parameter.response.ParameterCacheResponse.class);
+    }
     public String status() { return response.extract().path("status"); }
 
     public DynamicParameterResponse expectAccepted() {

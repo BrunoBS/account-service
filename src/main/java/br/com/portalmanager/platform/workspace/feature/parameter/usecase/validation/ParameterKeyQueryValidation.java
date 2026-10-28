@@ -26,6 +26,12 @@ public final class ParameterKeyQueryValidation {
 
     private ParameterKeyQueryValidation() {}
 
+    public static void requireCacheMicroservice(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            throw new ValidationException(ParameterKeyMessageKeys.REFERENCE_REQUIRED);
+        }
+    }
+
     public static void validatePage(Pageable page) {
         if (page.isUnpaged()
                 || page.getOffset() > Integer.MAX_VALUE

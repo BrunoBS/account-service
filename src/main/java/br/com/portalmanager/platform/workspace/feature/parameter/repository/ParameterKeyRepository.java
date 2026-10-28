@@ -11,9 +11,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +23,7 @@ import java.util.Optional;
 public interface ParameterKeyRepository extends JpaRepository<ParameterKey, Long> {
     @Query(
             """
-            select resource.id as id, resource.identifier as identifier, resource.microserviceId as microserviceId, resource.key as key, resource.active as active,
+            select resource.id as id, resource.microserviceId as microserviceId, resource.key as key,
                 resource.publishedType.value as type, resource.publishedValue as value
             from ParameterKey resource where resource.identifier = :identifier
             """)
@@ -30,8 +32,8 @@ public interface ParameterKeyRepository extends JpaRepository<ParameterKey, Long
 
     @Query(
             """
-            select resource.id as id, resource.identifier as identifier, resource.microserviceId as microserviceId,
-                resource.key as key, resource.active as active, resource.publishedType.value as type, resource.publishedValue as value
+            select resource.id as id, resource.microserviceId as microserviceId,
+                resource.key as key, resource.publishedType.value as type, resource.publishedValue as value
             from ParameterKey resource
             where resource.active = true and resource.publishedValue is not null and resource.identifier in :identifiers
             order by resource.id
@@ -41,8 +43,8 @@ public interface ParameterKeyRepository extends JpaRepository<ParameterKey, Long
 
     @Query(
             """
-            select resource.id as id, resource.identifier as identifier, resource.microserviceId as microserviceId,
-                resource.key as key, resource.active as active, resource.publishedType.value as type, resource.publishedValue as value
+            select resource.id as id, resource.microserviceId as microserviceId,
+                resource.key as key, resource.publishedType.value as type, resource.publishedValue as value
             from ParameterKey resource
             where resource.id > :afterId and resource.active = true and resource.publishedValue is not null
             order by resource.id
@@ -64,7 +66,7 @@ public interface ParameterKeyRepository extends JpaRepository<ParameterKey, Long
 
     @Query(
             """
-            select resource.version as version, resource.identifier as identifier, resource.microserviceId as microserviceId,
+            select resource.id as id, resource.version as version, resource.identifier as identifier, resource.microserviceId as microserviceId,
                 resource.key as key, resource.description as description, resource.type.value as type, resource.value as value,
                 resource.status.value as status, resource.active as active, resource.createdAt as createdAt, resource.updatedAt as updatedAt
             from ParameterKey resource where resource.identifier = :identifier
@@ -73,7 +75,7 @@ public interface ParameterKeyRepository extends JpaRepository<ParameterKey, Long
 
     @Query(
             """
-            select resource.version as version, resource.identifier as identifier, resource.microserviceId as microserviceId,
+            select resource.id as id, resource.version as version, resource.identifier as identifier, resource.microserviceId as microserviceId,
                 resource.key as key, resource.description as description, resource.type.value as type, resource.value as value,
                 resource.status.value as status, resource.active as active, resource.createdAt as createdAt, resource.updatedAt as updatedAt
             from ParameterKey resource
@@ -90,4 +92,70 @@ public interface ParameterKeyRepository extends JpaRepository<ParameterKey, Long
             @Param("active") boolean active,
             @Param("key") String key,
             Pageable pageable);
+
+    @Query("""
+            select resource.id from ParameterKey resource
+            where resource.id > :afterId and resource.microserviceId in :microserviceIds
+              and (:all = true or resource.identifier in :identifiers)
+            order by resource.id
+            """)
+    Slice<Long> findPublicationIds(long afterId, Collection<Long> microserviceIds,
+            boolean all, Collection<String> identifiers, Pageable pageable);
+
+    @Query("""
+            select resource.id as id, resource.microserviceId as microserviceId, resource.key as key
+            from ParameterKey resource where resource.id > :afterId and resource.active = false
+            order by resource.id
+            """)
+    Slice<InactiveKey> findInactiveKeys(long afterId, Pageable pageable);
+
+    interface InactiveKey {
+        Long getId();
+        Long getMicroserviceId();
+        String getKey();
+    }
+
+    @Query("""
+            select resource.id as id, resource.microserviceId as microserviceId, resource.key as key
+            from ParameterKey resource where resource.id in :ids and resource.active = false
+            order by resource.id
+            """)
+    List<InactiveKey> findInactiveKeys(Collection<Long> ids);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select resource.id as id, resource.version as version, resource.identifier as identifier,
+                resource.microserviceId as microserviceId, resource.key as key,
+                resource.description as description, resource.type.value as type, resource.value as value,
+                resource.status.value as status, resource.active as active,
+                resource.createdAt as createdAt, resource.updatedAt as updatedAt
+            from ParameterKey resource
+            where resource.id in :ids and resource.microserviceId in :microserviceIds
+              and resource.active = true and resource.status.value = :draft
+            order by resource.id
+            """)
+    List<ParameterKeyReadProjection> findDraftsForPublication(
+            Collection<Long> ids, Collection<Long> microserviceIds, String draft);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = """
+            UPDATE parameter_keys
+            SET published_value = value, published_type_code = type_code,
+                status_code = :published, version = version + 1, updated_at = :now
+            WHERE id IN (:ids) AND microservice_id IN (:microserviceIds)
+                AND active = true AND status_code = :draft
+            """, nativeQuery = true)
+    int publishDrafts(Collection<Long> ids, Collection<Long> microserviceIds,
+            String draft, String published, LocalDateTime now);
+
+    @Query("""
+            select resource.id as id, resource.microserviceId as microserviceId,
+                resource.key as key,
+                resource.publishedType.value as type, resource.publishedValue as value
+            from ParameterKey resource
+            where resource.active = true and resource.publishedValue is not null and resource.id in :ids
+                and resource.status.value = :published
+            order by resource.id
+            """)
+    List<ParameterKeyRuntimeProjection> findPublishedSnapshotsByIds(Collection<Long> ids, String published);
 }

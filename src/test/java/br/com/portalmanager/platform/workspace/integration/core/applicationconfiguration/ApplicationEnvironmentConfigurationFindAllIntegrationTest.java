@@ -46,4 +46,32 @@ class ApplicationEnvironmentConfigurationFindAllIntegrationTest extends BaseInte
         configurations.findAll(scenario.workspaceIdentifier(), scenario.applicationIdentifier())
                 .sort("settings").execute().expectBadRequest();
     }
+    @Autowired private jakarta.persistence.EntityManagerFactory entityManagerFactory;
+    @Autowired private br.com.portalmanager.platform.workspace.integration.core.environment.workspace.support.WorkspaceEnvironmentClient workspaceEnvironments;
+    @Autowired private br.com.portalmanager.platform.workspace.integration.core.workspaceconfiguration.support.WorkspaceEnvironmentConfigurationClient workspaceConfigurations;
+
+    @Test
+    @DisplayName("REGRESSION FIN-PERF-001 - orçamento SQL não cresce por configuração listada")
+    void consultasDeReferenciasEPublishersSaoEmLote() {
+        configurations.create(scenario.workspaceIdentifier(), scenario.applicationIdentifier(), factory.valid(scenario.environmentIdentifier())).expectCreated();
+        org.hibernate.stat.Statistics statistics = entityManagerFactory.unwrap(org.hibernate.SessionFactory.class).getStatistics();
+        boolean previous = statistics.isStatisticsEnabled();
+        statistics.setStatisticsEnabled(true);
+        try {
+            statistics.clear();
+            configurations.findAll(scenario.workspaceIdentifier(), scenario.applicationIdentifier()).execute().expectOk().expectSize("content", 1);
+            long one = statistics.getPrepareStatementCount();
+            for (int index = 0; index < 2; index++) {
+                String environment = scenario.createEnvironmentWithoutWorkspaceConfiguration();
+            workspaceConfigurations.create(scenario.workspaceIdentifier(),
+                    new br.com.portalmanager.platform.workspace.integration.core.workspaceconfiguration.support.WorkspaceEnvironmentConfigurationFactory().valid(environment)).expectCreated();
+                configurations.create(scenario.workspaceIdentifier(), scenario.applicationIdentifier(), factory.valid(environment)).expectCreated();
+            }
+            statistics.clear();
+            configurations.findAll(scenario.workspaceIdentifier(), scenario.applicationIdentifier()).execute().expectOk().expectSize("content", 3);
+            long three = statistics.getPrepareStatementCount();
+            org.assertj.core.api.Assertions.assertThat(three).isEqualTo(one);
+            org.assertj.core.api.Assertions.assertThat(three).isLessThanOrEqualTo(6);
+        } finally { statistics.setStatisticsEnabled(previous); }
+    }
 }

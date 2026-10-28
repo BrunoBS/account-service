@@ -7,6 +7,7 @@ import br.com.portalmanager.platform.library.authorization.model.AuthorizationLe
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.CreateParameterKeyInput;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.ParameterKeyMetadata;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.ParameterKeyOutput;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.ParameterCachePage;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.PublishParameterKeysInput;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.UpdateParameterKeyInput;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.operations.ParameterKeyCommandService;
@@ -30,6 +31,17 @@ public class DynamicParameterFacade {
         this.commands = commands;
         this.queries = queries;
         this.publication = publication;
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.READ)
+    public ParameterCachePage findCache(AuthorizationContext context, String microserviceIdentifier,
+            String cursor, Integer count) {
+        return queries.findCache(microserviceIdentifier, cursor, count);
+    }
+
+    @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.DELETE)
+    public void clearCache(AuthorizationContext context, String microserviceIdentifier) {
+        publication.clearCache(microserviceIdentifier);
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.UPDATE)

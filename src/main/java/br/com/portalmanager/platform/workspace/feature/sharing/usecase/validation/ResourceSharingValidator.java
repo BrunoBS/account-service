@@ -48,7 +48,7 @@ public class ResourceSharingValidator {
     }
 
     public void validatePage(int page, int size) {
-        if (page < 0 || size < 1 || size > 100)
+        if (page < 0 || size < 1 || size > 100 || (long) page * size > Integer.MAX_VALUE)
             throw new ValidationException(ResourceSharingMessageKeys.REQUEST_INVALID);
     }
 

@@ -13,15 +13,17 @@ public record ParameterProperties(
         @DefaultValue Runtime runtime, @DefaultValue Reconciliation reconciliation) {
 
     public record Runtime(
-            @DefaultValue("true") boolean enabled, @DefaultValue("500") int batchSize) {
+            @DefaultValue("true") boolean enabled, @DefaultValue("500") int batchSize,
+            @DefaultValue("PT0.1S") Duration retryDelay) {
 
         public Runtime {
-            if (batchSize < 1)
+            if (batchSize < 1 || retryDelay == null || retryDelay.isNegative()
+                    || retryDelay.compareTo(Duration.ofSeconds(10)) > 0)
                 throw new PlatformConfigurationException(
                         new PlatformErrorDefinition(
                                 "PARAMETER-KEY-0502",
-                                "Invalid parameter runtime batch size.",
-                                "Use a positive batch size.",
+                                "Invalid parameter runtime settings.",
+                                "Use a positive batch size and a retry delay between 0 and 10 seconds.",
                                 500));
         }
     }

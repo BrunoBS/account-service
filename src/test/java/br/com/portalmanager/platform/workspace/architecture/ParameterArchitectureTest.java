@@ -83,7 +83,7 @@ class ParameterArchitectureTest {
         assertThat(
                         Arrays.stream(ParameterKeyController.class.getDeclaredMethods())
                                 .filter(method -> !method.isSynthetic()))
-                .hasSize(8);
+                .hasSize(10);
         assertThat(
                         Arrays.stream(ParameterKeyController.class.getDeclaredMethods())
                                 .filter(method -> method.isAnnotationPresent(PatchMapping.class))
@@ -93,6 +93,26 @@ class ParameterArchitectureTest {
                                                         method.getAnnotation(PatchMapping.class)
                                                                 .value())))
                 .containsExactlyInAnyOrder("/{identifier}/activate", "/{identifier}/inactivate");
+    }
+
+    @Test
+    void cacheAdministrationHasExplicitOwnerReadAndDeletePolicies() throws Exception {
+        Method read = DynamicParameterFacade.class.getMethod("findCache",
+                br.com.portalmanager.platform.library.authorization.model.AuthorizationContext.class,
+                String.class, String.class, Integer.class);
+        Method clear = DynamicParameterFacade.class.getMethod("clearCache",
+                br.com.portalmanager.platform.library.authorization.model.AuthorizationContext.class, String.class);
+        assertThat(read.getAnnotation(AuthorizationRequired.class).action())
+                .isEqualTo(br.com.portalmanager.platform.library.authorization.model.AuthorizationAction.READ);
+        assertThat(clear.getAnnotation(AuthorizationRequired.class).action())
+                .isEqualTo(br.com.portalmanager.platform.library.authorization.model.AuthorizationAction.DELETE);
+        assertThat(ParameterKeyController.class.getMethod("findCache",
+                br.com.portalmanager.platform.library.authorization.model.AuthorizationContext.class,
+                java.util.UUID.class, String.class, Integer.class)
+                .getAnnotation(org.springframework.web.bind.annotation.GetMapping.class).value()).containsExactly("/cache");
+        assertThat(ParameterKeyController.class.getMethod("clearCache",
+                br.com.portalmanager.platform.library.authorization.model.AuthorizationContext.class, java.util.UUID.class)
+                .getAnnotation(org.springframework.web.bind.annotation.DeleteMapping.class).value()).containsExactly("/cache");
     }
 
     @Test

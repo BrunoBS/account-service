@@ -27,6 +27,20 @@ public final class DynamicParameterClient extends BaseClient {
                 .header("correlation-id", "dynamic-parameter-runtime-review");
     }
 
+    public DynamicParameterResponse cache(String microserviceIdentifier, String cursor, Integer count) {
+        io.restassured.specification.RequestSpecification request = parameterRequest();
+        if (microserviceIdentifier != null) request.queryParam("microserviceIdentifier", microserviceIdentifier);
+        if (cursor != null) request.queryParam("cursor", cursor);
+        if (count != null) request.queryParam("count", count);
+        return response(request.get(BASE + "/cache").then(), DynamicParameterResponse::new);
+    }
+
+    public DynamicParameterResponse clearCache(String microserviceIdentifier) {
+        io.restassured.specification.RequestSpecification request = parameterRequest();
+        if (microserviceIdentifier != null) request.queryParam("microserviceIdentifier", microserviceIdentifier);
+        return response(request.delete(BASE + "/cache").then(), DynamicParameterResponse::new);
+    }
+
     public DynamicParameterResponse create(CreateParameterKeyRequest body) {
         return response(parameterRequest().body(json(body)).post(BASE).then(), DynamicParameterResponse::new);
     }
@@ -44,14 +58,17 @@ public final class DynamicParameterClient extends BaseClient {
         return response(request.get(BASE).then(), DynamicParameterResponse::new);
     }
 
-    public DynamicParameterResponse publish(List<UUID> identifiers) {
-        return response(parameterRequest().body(json(new br.com.portalmanager.platform.workspace.entrypoint.parameter.request.PublishParameterKeysRequest(identifiers)))
-                .post(BASE + "/publish").then(), DynamicParameterResponse::new);
+    public DynamicParameterResponse publish(List<UUID> identifiers, List<UUID> microserviceIdentifiers) {
+        return publishRequest(new br.com.portalmanager.platform.workspace.entrypoint.parameter.request.PublishParameterKeysRequest(
+                identifiers, false, microserviceIdentifiers));
     }
 
-    DynamicParameterResponse publishBatch(Object identifiers) {
-        return response(parameterRequest().body(Map.of("identifiers", identifiers))
-                .post(BASE + "/publish").then(), DynamicParameterResponse::new);
+    public DynamicParameterResponse publishRequest(Object body) {
+        return response(parameterRequest().body(json(body)).post(BASE + "/publish").then(), DynamicParameterResponse::new);
+    }
+
+    DynamicParameterResponse publishBatch(Object identifiers, List<UUID> microserviceIdentifiers) {
+        return publishRequest(Map.of("identifiers", identifiers, "microserviceIdentifiers", microserviceIdentifiers));
     }
 
     public DynamicParameterResponse update(String identifier, UpdateParameterKeyRequest body) {

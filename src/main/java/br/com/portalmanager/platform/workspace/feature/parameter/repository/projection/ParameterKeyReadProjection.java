@@ -5,6 +5,8 @@ import tools.jackson.databind.JsonNode;
 import java.time.LocalDateTime;
 
 public interface ParameterKeyReadProjection {
+    Long getId();
+
     Long getVersion();
 
     String getIdentifier();

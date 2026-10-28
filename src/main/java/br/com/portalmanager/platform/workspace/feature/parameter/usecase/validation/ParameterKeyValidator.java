@@ -4,11 +4,15 @@ import br.com.portalmanager.platform.library.messaging.exception.ConflictExcepti
 import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
 import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.library.schemavalidation.validation.SchemaValidator;
+import br.com.portalmanager.platform.library.schemavalidation.resolver.ResourceSchemaResolver;
+import br.com.portalmanager.platform.library.schemavalidation.validation.JsonSchemaValidator;
+import br.com.portalmanager.platform.library.schemavalidation.model.ResourceSchema;
 import br.com.portalmanager.platform.workspace.feature.parameter.domain.ParameterKey;
 import br.com.portalmanager.platform.workspace.feature.parameter.domain.ParameterKeyMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.ParameterKeyRepository;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.CreateParameterKeyInput;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.PublishParameterKeysInput;
+import br.com.portalmanager.platform.workspace.feature.parameter.repository.projection.ParameterKeyReadProjection;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.UpdateParameterKeyInput;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.ParameterKeyTypePort;
 
@@ -25,16 +29,19 @@ import java.util.Objects;
 public class ParameterKeyValidator {
     private final ParameterKeyRepository repository;
     private final ParameterKeyTypePort types;
-    private final SchemaValidator schemas;
+    private final ResourceSchemaResolver schemaResolver;
+    private final JsonSchemaValidator schemas;
     private final ObjectMapper mapper;
 
     public ParameterKeyValidator(
             ParameterKeyRepository repository,
             ParameterKeyTypePort types,
-            SchemaValidator schemas,
+            ResourceSchemaResolver schemaResolver,
+            JsonSchemaValidator schemas,
             ObjectMapper mapper) {
         this.repository = repository;
         this.types = types;
+        this.schemaResolver = schemaResolver;
         this.schemas = schemas;
         this.mapper = mapper;
     }
@@ -54,17 +61,35 @@ public class ParameterKeyValidator {
             throw new ConflictException(ParameterKeyMessageKeys.KEY_DUPLICATE);
     }
 
-    public void validatePublicationIdentifiers(List<String> identifiers) {
-        if (identifiers == null
-                || identifiers.isEmpty()
-                || identifiers.stream().anyMatch(Objects::isNull))
-            throw new ValidationException(
-                    new ValidationResult(
-                            "identifiers", ParameterKeyMessageKeys.PUBLICATION_REQUIRED));
-        if (new HashSet<>(identifiers).size() != identifiers.size())
-            throw new ValidationException(
-                    new ValidationResult(
-                            "identifiers", ParameterKeyMessageKeys.PUBLICATION_DUPLICATE));
+    public void validatePublicationInput(PublishParameterKeysInput input) {
+        if (input == null) throw new ValidationException(ParameterKeyMessageKeys.REQUEST_REQUIRED);
+        if (input.microserviceIdentifiers() == null || input.microserviceIdentifiers().isEmpty()
+                || input.microserviceIdentifiers().stream().anyMatch(Objects::isNull)) {
+            throw new ValidationException(new ValidationResult(
+                    "microserviceIdentifiers", ParameterKeyMessageKeys.REFERENCE_REQUIRED));
+        }
+        if (input.all()) return;
+        if (input.identifiers() == null || input.identifiers().isEmpty()
+                || input.identifiers().stream().anyMatch(Objects::isNull)) {
+            throw new ValidationException(new ValidationResult(
+                    "identifiers", ParameterKeyMessageKeys.PUBLICATION_REQUIRED));
+        }
+        if (new HashSet<>(input.identifiers()).size() != input.identifiers().size()) {
+            throw new ValidationException(new ValidationResult(
+                    "identifiers", ParameterKeyMessageKeys.PUBLICATION_DUPLICATE));
+        }
+    }
+
+    public void validatePublications(List<ParameterKeyReadProjection> drafts) {
+        drafts.stream().map(ParameterKeyReadProjection::getType).distinct()
+                .forEach(this::validateTypeAvailability);
+        ResourceSchema schema = schemaResolver.resolve("PLATFORM", "dynamic-parameter");
+        for (ParameterKeyReadProjection resource : drafts) {
+            ObjectNode request = mapper.createObjectNode()
+                    .put("version", resource.getVersion()).put("type", resource.getType());
+            request.set("value", resource.getValue());
+            schemas.validate(schema, request);
+        }
     }
 
     public void validatePublication(ParameterKey resource) {
@@ -75,7 +100,7 @@ public class ParameterKeyValidator {
                         .put("version", resource.getVersion())
                         .put("type", resource.getType().value());
         request.set("value", resource.getValue());
-        schemas.validate("PLATFORM", "dynamic-parameter", request);
+        schemas.validate(schemaResolver.resolve("PLATFORM", "dynamic-parameter"), request);
     }
 
     public void validateUpdate(ParameterKey resource, UpdateParameterKeyInput input) {

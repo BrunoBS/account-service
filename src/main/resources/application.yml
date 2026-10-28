@@ -1,5 +1,8 @@
 spring:
   data:
+    redis:
+      connect-timeout: ${WORKSPACE_REDIS_CONNECT_TIMEOUT:500ms}
+      timeout: ${WORKSPACE_REDIS_TIMEOUT:2s}
     web:
       pageable:
         max-page-size: 100
@@ -49,6 +52,7 @@ workspace:
     runtime:
       enabled: true
       batch-size: 500
+      retry-delay: ${WORKSPACE_PARAMETER_RETRY_DELAY:100ms}
     reconciliation:
       enabled: true
       interval: PT1H

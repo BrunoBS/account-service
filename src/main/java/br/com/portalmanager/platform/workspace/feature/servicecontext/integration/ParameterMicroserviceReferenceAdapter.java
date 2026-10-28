@@ -39,6 +39,12 @@ public class ParameterMicroserviceReferenceAdapter implements MicroserviceRefere
                 .collect(Collectors.toMap(Reference::internalId, reference -> reference));
     }
 
+    @Override
+    public Map<Long, Reference> findByIdentifiers(Collection<String> identifiers) {
+        return microservices.findReferencesByIdentifiers(identifiers).values().stream()
+                .map(this::toReference).collect(Collectors.toMap(Reference::internalId, reference -> reference));
+    }
+
     private Reference toReference(MicroserviceReference reference) {
         return new Reference(reference.id(), reference.identifier(), reference.code());
     }

@@ -71,6 +71,17 @@ public class MicroserviceQueryService {
     }
 
     @Transactional(readOnly = true)
+    public Map<Long, MicroserviceReference> findReferencesByIdentifiers(Collection<String> identifiers) {
+        if (identifiers.isEmpty()) return Map.of();
+        Map<Long, MicroserviceReference> references = repository.findReferencesByIdentifiers(identifiers).stream()
+                .map(this::toReference).collect(Collectors.toMap(MicroserviceReference::id, reference -> reference));
+        if (references.size() != new java.util.HashSet<>(identifiers).size()) {
+            throw new NotFoundException(ServiceContextMessageKeys.MICROSERVICE_NOT_FOUND);
+        }
+        return references;
+    }
+
+    @Transactional(readOnly = true)
     public Map<Long, String> findIdentifiersByInternalIds(Collection<Long> microserviceIds) {
         if (microserviceIds.isEmpty()) return Map.of();
         return repository.findIdentifierReferences(microserviceIds).stream()

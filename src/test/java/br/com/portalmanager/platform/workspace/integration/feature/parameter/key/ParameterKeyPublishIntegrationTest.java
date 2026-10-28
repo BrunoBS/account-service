@@ -38,7 +38,7 @@ class ParameterKeyPublishIntegrationTest extends BaseIntegrationTest {
     void publicaChave() {
         String identifier = create("publish-key", "CONFIGURATION", "{\"published\":true}");
 
-        client.publish(List.of(UUID.fromString(identifier))).expectAcceptedWithEmptyBody();
+        client.publish(List.of(UUID.fromString(identifier)), List.of(UUID.fromString(parent))).expectAcceptedWithEmptyBody();
         await(() -> "PUBLISHED".equals(client.findByIdentifier(identifier).expectOk().status()));
         client.findByIdentifier(identifier).expectOk().expect("status", "PUBLISHED");
     }
@@ -46,6 +46,6 @@ class ParameterKeyPublishIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("VALIDATION - rejeita publicação sem identificadores")
     void rejeitaLoteVazio() {
-        client.publish(List.of()).expectBadRequest();
+        client.publish(List.of(), List.of(UUID.fromString(parent))).expectBadRequest();
     }
 }

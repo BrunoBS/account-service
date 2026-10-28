@@ -11,5 +11,7 @@ public interface MicroserviceReferencePort {
 
     Map<Long, Reference> findByInternalIds(Collection<Long> ids);
 
+    Map<Long, Reference> findByIdentifiers(Collection<String> identifiers);
+
     record Reference(Long internalId, String identifier, String code) {}
 }

@@ -6,6 +6,7 @@ import br.com.portalmanager.platform.workspace.entrypoint.parameter.request.Publ
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.request.UpdateParameterKeyRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.response.ParameterKeyMetadataResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.response.ParameterKeyResponse;
+import br.com.portalmanager.platform.workspace.entrypoint.parameter.response.ParameterCacheResponse;
 import br.com.portalmanager.platform.workspace.feature.parameter.facade.DynamicParameterFacade;
 
 import org.springframework.data.domain.Page;
@@ -24,6 +25,21 @@ public class ParameterKeyController {
 
     public ParameterKeyController(DynamicParameterFacade facade) {
         this.facade = facade;
+    }
+
+    @GetMapping("/cache")
+    public ParameterCacheResponse findCache(AuthorizationContext context,
+            @RequestParam(required = false) UUID microserviceIdentifier,
+            @RequestParam(defaultValue = "0") String cursor,
+            @RequestParam(required = false) Integer count) {
+        return ParameterCacheResponse.from(facade.findCache(context, microserviceIdentifier == null ? null : microserviceIdentifier.toString(), cursor, count));
+    }
+
+    @DeleteMapping("/cache")
+    public ResponseEntity<Void> clearCache(AuthorizationContext context,
+            @RequestParam(required = false) UUID microserviceIdentifier) {
+        facade.clearCache(context, microserviceIdentifier == null ? null : microserviceIdentifier.toString());
+        return ResponseEntity.accepted().build();
     }
 
     @PostMapping

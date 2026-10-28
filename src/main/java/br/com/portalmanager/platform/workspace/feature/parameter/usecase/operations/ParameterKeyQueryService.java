@@ -2,6 +2,11 @@ package br.com.portalmanager.platform.workspace.feature.parameter.usecase.operat
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.parameter.domain.ParameterKeyMessageKeys;
+import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.workspace.feature.parameter.config.ParameterProperties;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.ParameterPublicationStore;
+import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.ParameterCachePage;
+import org.springframework.transaction.annotation.Propagation;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.ParameterKeyRepository;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.projection.ParameterKeyReadProjection;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.mapping.ParameterKeyMapper;
@@ -27,14 +32,31 @@ public class ParameterKeyQueryService {
     private final ParameterKeyRepository repository;
     private final MicroserviceReferencePort microservices;
     private final ParameterKeyMapper mapper;
+    private final ParameterPublicationStore publicationStore;
+    private final ParameterProperties properties;
 
     public ParameterKeyQueryService(
             ParameterKeyRepository repository,
             MicroserviceReferencePort microservices,
-            ParameterKeyMapper mapper) {
+            ParameterKeyMapper mapper,
+            ParameterPublicationStore publicationStore,
+            ParameterProperties properties) {
         this.repository = repository;
         this.microservices = microservices;
         this.mapper = mapper;
+        this.publicationStore = publicationStore;
+        this.properties = properties;
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public ParameterCachePage findCache(String microserviceIdentifier, String cursor, Integer count) {
+        ParameterKeyQueryValidation.requireCacheMicroservice(microserviceIdentifier);
+        int scanCount = count == null ? properties.runtime().batchSize() : count;
+        if (scanCount < 1 || scanCount > properties.runtime().batchSize()) {
+            throw new ValidationException(ParameterKeyMessageKeys.PAGE_INVALID);
+        }
+        Reference reference = microservices.findByIdentifier(microserviceIdentifier);
+        return publicationStore.scan(reference.code(), cursor, scanCount);
     }
 
     @Transactional(readOnly = true)

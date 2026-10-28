@@ -75,4 +75,24 @@ class ContractListIntegrationTest extends BaseIntegrationTest {
                 .expectForbidden();
         authorization.verifyCalledWithPolicy("DEV");
     }
+
+    @Autowired private jakarta.persistence.EntityManagerFactory entityManagerFactory;
+
+    @Test
+    @DisplayName("REGRESSION FIN-HTTP-001 - valida limite do offset antes da persistência")
+    void rejeitaOverflowDoOffsetESuportaMaiorPaginaRepresentavel() {
+        int page = Integer.MAX_VALUE / 100;
+        contracts.list(data.ownerWorkspace(), data.ownerApplication(), null, page, 100).expectOk().expectSize("content", 0);
+        org.hibernate.stat.Statistics statistics = entityManagerFactory.unwrap(org.hibernate.SessionFactory.class).getStatistics();
+        boolean previous = statistics.isStatisticsEnabled();
+        statistics.setStatisticsEnabled(true);
+        try {
+            statistics.clear();
+            page = Integer.MAX_VALUE / 100 + 1;
+            contracts.list(data.ownerWorkspace(), data.ownerApplication(), null, page, 100).expectBadRequest();
+            page = Integer.MAX_VALUE;
+            contracts.list(data.ownerWorkspace(), data.ownerApplication(), null, page, 100).expectBadRequest();
+            org.assertj.core.api.Assertions.assertThat(statistics.getPrepareStatementCount()).isZero();
+        } finally { statistics.setStatisticsEnabled(previous); }
+    }
 }

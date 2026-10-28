@@ -2,6 +2,8 @@ package br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usec
 
 import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
 import br.com.portalmanager.platform.library.messaging.message.PlatformMessageKeys;
+import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain.WorkspaceEnvironmentConfiguration;
+import java.util.Map;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.repository.WorkspaceEnvironmentConfigurationRepository;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.mapping.WorkspaceEnvironmentConfigurationMapper;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.WorkspaceEnvironmentConfigurationOutput;
@@ -53,11 +55,11 @@ public class WorkspaceEnvironmentConfigurationQueryService {
                 pageable.getSort().getOrderFor("id") == null
                         ? pageable.getSort().and(Sort.by("id"))
                         : pageable.getSort();
-        return repository
+        Page<WorkspaceEnvironmentConfiguration> page = repository
                 .findByWorkspaceIdAndLifecycle(
-                        ownerId,
-                        LifecycleFilter.resolve(lifecycle),
-                        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort))
-                .map(configuration -> mapper.toOutput(workspaceIdentifier, configuration));
+                        ownerId, LifecycleFilter.resolve(lifecycle),
+                        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort));
+        Map<Long, WorkspaceEnvironmentConfigurationOutput> outputs = mapper.toOutputs(workspaceIdentifier, page.getContent());
+        return page.map(configuration -> outputs.get(configuration.getId()));
     }
 }

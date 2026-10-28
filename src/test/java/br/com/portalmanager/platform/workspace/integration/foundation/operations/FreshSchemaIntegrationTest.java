@@ -23,6 +23,7 @@ class FreshSchemaIntegrationTest extends BaseIntegrationTest {
                 while (result.next()) tables.add(result.getString("TABLE_NAME"));
             }
             assertThat(tables).contains("workspaces", "applications", "environments", "workspace_environment_configurations", "application_environment_configurations", "flyway_schema_history", "vw_platform_resource_schemas", "vw_dynamic_bundle_messages");
+            assertThat(tables).doesNotContain("parameter_publications");
             Set<String> indexes = new HashSet<>();
             try (ResultSet result = metadata.getIndexInfo(connection.getCatalog(), null, "workspace_environment_configurations", true, false)) {
                 while (result.next()) indexes.add(result.getString("INDEX_NAME"));

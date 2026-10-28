@@ -119,9 +119,9 @@ public class ParameterKeyCommandService {
         ParameterKey resource = finder.findForUpdate(identifier);
         resource.requireDeletable();
         ParameterKeyMetadata snapshot = mapper.toMetadata(resource, reference(resource));
+        publisher.removeBeforeDeletion(snapshot);
         repository.delete(resource);
         repository.flush();
-        removeFromRuntimeAfterCommit(snapshot);
         return snapshot;
     }
 

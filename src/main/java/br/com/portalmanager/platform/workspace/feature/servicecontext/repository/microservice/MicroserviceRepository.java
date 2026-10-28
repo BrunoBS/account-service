@@ -35,6 +35,10 @@ public interface MicroserviceRepository extends JpaRepository<Microservice, Long
     List<MicroserviceReferenceProjection> findReferencesByInternalIds(
             @Param("ids") Collection<Long> ids);
 
+    @Query("select resource.id as id, resource.identifier as identifier, resource.code as code"
+            + " from Microservice resource where resource.identifier in :identifiers")
+    List<MicroserviceReferenceProjection> findReferencesByIdentifiers(Collection<String> identifiers);
+
     Page<Microservice> findByLifecycle(LifecycleTypeCode lifecycle, Pageable pageable);
 
     Optional<Microservice> findByIdentifierAndLifecycle(
