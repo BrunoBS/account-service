@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.core.workspaceconfiguration.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.factory.AbstractTestDataFactory;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.factory.AbstractTestDataFactory;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.PublisherInput;
 import br.com.portalmanager.platform.workspace.entrypoint.workspaceconfiguration.request.CreateWorkspaceEnvironmentConfigurationRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.workspaceconfiguration.request.UpdateWorkspaceEnvironmentConfigurationRequest;

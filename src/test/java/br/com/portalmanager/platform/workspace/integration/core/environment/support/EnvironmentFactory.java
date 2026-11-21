@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.core.environment.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.factory.AbstractTestDataFactory;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.factory.AbstractTestDataFactory;
 import br.com.portalmanager.platform.workspace.entrypoint.environment.request.CreateEnvironmentRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.environment.request.UpdateEnvironmentRequest;
 import tools.jackson.databind.JsonNode;

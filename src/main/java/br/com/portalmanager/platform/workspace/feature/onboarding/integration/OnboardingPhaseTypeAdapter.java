@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.onboarding.integration;
 
-import br.com.portalmanager.platform.library.catalog.dto.CatalogDTO;
+import br.com.portalmanager.platform.library.catalog.api.contract.CatalogDTO;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.port.OnboardingPhaseTypePort;
 import br.com.portalmanager.platform.workspace.foundation.catalog.onboardingphasetype.usecase.OnboardingPhaseTypeService;
 

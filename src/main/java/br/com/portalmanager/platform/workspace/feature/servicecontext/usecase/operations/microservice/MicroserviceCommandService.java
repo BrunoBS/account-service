@@ -2,8 +2,8 @@ package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.o
 
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.microservice.MicroserviceMapper;
 
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.audit.model.AuditAction;
+import br.com.portalmanager.platform.library.audit.api.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.api.contract.model.AuditAction;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.microservice.Microservice;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.microservice.MicroserviceRepository;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.microservice.CreateMicroserviceInput;

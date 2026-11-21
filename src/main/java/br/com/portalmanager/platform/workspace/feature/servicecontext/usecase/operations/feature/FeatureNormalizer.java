@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature;
 
-import br.com.portalmanager.platform.library.schemavalidation.normalization.SchemaPayloadNormalizer;
+import br.com.portalmanager.platform.library.schemavalidation.internal.normalization.SchemaPayloadNormalizer;
 
 import org.springframework.stereotype.Component;
 

@@ -1,9 +1,9 @@
 package br.com.portalmanager.platform.workspace.feature.sharing.usecase.validation;
 
-import br.com.portalmanager.platform.library.authorization.exception.UnauthorizedAccessException;
-import br.com.portalmanager.platform.library.authorization.message.AuthorizationMessageKeys;
-import br.com.portalmanager.platform.library.authorization.model.UserContext;
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.library.authorization.api.exception.UnauthorizedAccessException;
+import br.com.portalmanager.platform.library.authorization.internal.message.AuthorizationMessageKeys;
+import br.com.portalmanager.platform.library.authorization.api.model.UserContext;
+import br.com.portalmanager.platform.library.messaging.api.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.ResourceSharingMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.sharing.repository.contract.ContractRepository;
 import br.com.portalmanager.platform.workspace.feature.sharing.repository.participant.ParticipantRepository;

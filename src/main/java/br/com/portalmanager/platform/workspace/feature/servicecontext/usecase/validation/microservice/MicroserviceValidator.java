@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation.microservice;
 
-import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.library.messaging.api.exception.ResourceVersionConflictException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.ServiceContextMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.microservice.Microservice;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.microservice.MicroserviceRepository;

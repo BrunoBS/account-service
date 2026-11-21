@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.core.application.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.factory.AbstractTestDataFactory;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.factory.AbstractTestDataFactory;
 import br.com.portalmanager.platform.workspace.entrypoint.application.request.UpdateApplicationRequest;
 import java.util.List;
 import tools.jackson.databind.json.JsonMapper;

@@ -1,15 +1,13 @@
 package br.com.portalmanager.platform.workspace.integration.feature.parameter.key;
 
-import br.com.portalmanager.platform.library.messaging.exception.ApiException;
-import br.com.portalmanager.platform.library.redis.annotation.RedisNamespace;
-import br.com.portalmanager.platform.library.redis.configuration.PlatformRedisProperties.NamespaceMode;
-import br.com.portalmanager.platform.library.redis.core.RedisStore;
-import br.com.portalmanager.platform.library.redis.configuration.PlatformRedisProperties;
-import br.com.portalmanager.platform.library.redis.internal.DefaultRedisStore;
-import br.com.portalmanager.platform.library.redis.internal.RedisAccess;
-import br.com.portalmanager.platform.library.redis.serialization.RedisJsonCodec;
-import br.com.portalmanager.platform.library.testing.lifecycle.PlatformAwait;
-import br.com.portalmanager.platform.library.testing.redis.annotation.WithRedis;
+import br.com.portalmanager.platform.library.messaging.api.exception.ApiException;
+import br.com.portalmanager.platform.library.redis.api.store.RedisStore;
+import br.com.portalmanager.platform.library.redis.api.configuration.PlatformRedisProperties;
+import br.com.portalmanager.platform.library.redis.internal.store.DefaultRedisStore;
+import br.com.portalmanager.platform.library.redis.internal.common.RedisAccess;
+import br.com.portalmanager.platform.library.redis.internal.serialization.RedisJsonCodec;
+import br.com.portalmanager.platform.library.testing.core.api.lifecycle.PlatformAwait;
+import br.com.portalmanager.platform.library.testing.redis.api.annotation.WithRedis;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.request.PublishParameterKeysRequest;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.projection.ParameterKeyRuntimeProjection;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.PublishedParameterValue;
@@ -53,11 +51,12 @@ class ParameterKeyReconciliationIntegrationTest extends BaseIntegrationTest {
     @Autowired private WorkspaceAuditOutboxRepository outbox;
     @Autowired private ObjectMapper json;
     @Autowired private jakarta.persistence.EntityManagerFactory entityManagerFactory;
-    @Autowired @RedisNamespace(value = "dynamic-parameter", mode = NamespaceMode.SHARED) private RedisStore redis;
+    @Autowired private RedisStore redis;
     private final DynamicParameterRequestFactory factory = new DynamicParameterRequestFactory();
     private String parent;
 
-    @BeforeEach void prepare() { parent = scenario.setup(); }
+    @BeforeEach void prepare() {
+        redis = redis.withNamespace("dynamic-parameter"); parent = scenario.setup(); }
 
     private String create(String key) {
         return client.create(factory.valid(parent, key, "CONFIGURATION", "{\"value\":1}"))
@@ -361,10 +360,10 @@ class ParameterKeyReconciliationIntegrationTest extends BaseIntegrationTest {
         unavailable.start();
         try {
             PlatformRedisProperties properties = new Binder(new MapConfigurationPropertySource(Map.of(
-                    "platform.redis.namespace", "dynamic-parameter", "platform.redis.namespace-mode", "SHARED")))
+                    )))
                     .bindOrCreate("platform.redis", PlatformRedisProperties.class);
             RedisStore failed = new DefaultRedisStore(new StringRedisTemplate(unavailable),
-                    new RedisJsonCodec(json, 1048576), new RedisAccess(properties, "workspace-service"));
+                    new RedisJsonCodec(json, 1048576), new RedisAccess(properties, "workspace-service")).withNamespace("dynamic-parameter");
             doAnswer(invocation -> failed.deleteAll(invocation.<Collection<String>>getArgument(0)))
                     .when(publicationStore).removeAll(anyCollection());
             client.inactivate(id).expectOk();

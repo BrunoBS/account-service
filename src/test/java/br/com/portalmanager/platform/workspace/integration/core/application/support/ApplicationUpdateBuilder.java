@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.core.application.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.builder.TestDataBuilder;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.builder.TestDataBuilder;
 import br.com.portalmanager.platform.workspace.entrypoint.application.request.UpdateApplicationRequest;
 import java.util.List;
 import java.util.UUID;

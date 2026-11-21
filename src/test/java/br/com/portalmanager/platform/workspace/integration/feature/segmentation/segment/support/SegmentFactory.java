@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.segmentation.segment.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.factory.AbstractTestDataFactory;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.factory.AbstractTestDataFactory;
 import br.com.portalmanager.platform.workspace.entrypoint.segmentation.segment.request.CreateSegmentRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.segmentation.segment.request.UpdateSegmentRequest;
 

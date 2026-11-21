@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.foundation.schema.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.scenario.TestScenario;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.scenario.TestScenario;
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.support.CatalogScenario;
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.support.SchemaCatalogFactory;
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.lifecycletype.support.LifecycleTypeClient;

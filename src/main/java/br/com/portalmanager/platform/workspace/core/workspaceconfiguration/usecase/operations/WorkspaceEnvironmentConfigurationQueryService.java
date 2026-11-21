@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.operations;
 
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.library.messaging.message.PlatformMessageKeys;
+import br.com.portalmanager.platform.library.messaging.api.exception.NotFoundException;
+import br.com.portalmanager.platform.library.messaging.api.message.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain.WorkspaceEnvironmentConfiguration;
 import java.util.Map;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.repository.WorkspaceEnvironmentConfigurationRepository;

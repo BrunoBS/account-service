@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message;
 
-import br.com.portalmanager.platform.library.schemavalidation.normalization.SchemaPayloadNormalizer;
+import br.com.portalmanager.platform.library.schemavalidation.internal.normalization.SchemaPayloadNormalizer;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.CreateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.UpdateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.messagetranslator.MessageTranslatorNormalizer;

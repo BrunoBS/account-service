@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.segmentation.usecase.operations.category;
 
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.library.messaging.api.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.SegmentationMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.category.Category;
 import br.com.portalmanager.platform.workspace.feature.segmentation.repository.category.CategoryRepository;

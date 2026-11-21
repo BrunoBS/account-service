@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.entrypoint.authorizationcache;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.feature.authorizationcache.facade.AuthorizationCacheFacade;
 import br.com.portalmanager.platform.workspace.feature.authorizationcache.usecase.operations.AuthorizationCacheRefreshService;
 import java.util.List;

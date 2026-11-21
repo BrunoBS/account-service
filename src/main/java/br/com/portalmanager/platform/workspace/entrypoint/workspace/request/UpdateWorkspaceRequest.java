@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.workspace.request;
 
-import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
+import br.com.portalmanager.platform.library.schemavalidation.api.annotation.ValidateResourceSchemaRequest;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.model.UpdateWorkspaceInput;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceNormalizer;
 import java.util.List;

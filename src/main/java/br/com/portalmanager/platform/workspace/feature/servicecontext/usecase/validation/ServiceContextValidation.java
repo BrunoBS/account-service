@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.validation;
 
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.ServiceContextMessageKeys;
 
 public final class ServiceContextValidation {

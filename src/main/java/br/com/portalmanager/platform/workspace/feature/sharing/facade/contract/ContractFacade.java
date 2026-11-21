@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.sharing.facade.contract;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.*;
+import br.com.portalmanager.platform.library.authorization.api.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.api.model.*;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.contract.ContractInput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.contract.ContractOutput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.contract.ContractPageOutput;

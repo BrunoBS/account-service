@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.servicecontext.feature;
 
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.entrypoint.servicecontext.feature.request.CreateFeatureRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.servicecontext.feature.request.UpdateFeatureRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.servicecontext.feature.response.FeatureResponse;

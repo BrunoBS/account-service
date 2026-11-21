@@ -1,6 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.authorizationcache.usecase.operations;
 
-import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
+import br.com.portalmanager.platform.workspace.feature.authorizationcache.usecase.port.WorkspaceAuthorizationPort;
+import br.com.portalmanager.platform.workspace.feature.authorizationcache.usecase.port.WorkspaceAuthorizationPort.AuthorizationGroup;
 import br.com.portalmanager.platform.workspace.feature.authorizationcache.integration.RedisAuthorizationCache;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,11 +17,11 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(prefix = "workspace.authorization-cache", name = "enabled", havingValue = "true")
 public class AuthorizationCacheRefreshService {
     private static final Logger LOG = LoggerFactory.getLogger(AuthorizationCacheRefreshService.class);
-    private final WorkspaceRepository workspaceRepository;
+    private final WorkspaceAuthorizationPort workspaces;
     private final RedisAuthorizationCache cache;
 
-    public AuthorizationCacheRefreshService(WorkspaceRepository workspaceRepository, RedisAuthorizationCache cache) {
-        this.workspaceRepository = workspaceRepository;
+    public AuthorizationCacheRefreshService(WorkspaceAuthorizationPort workspaces, RedisAuthorizationCache cache) {
+        this.workspaces = workspaces;
         this.cache = cache;
     }
 
@@ -33,11 +34,11 @@ public class AuthorizationCacheRefreshService {
     private int refreshAll(List<UUID> failures) {
         int refreshed = 0;
         String cursor = "";
-        List<String> page = workspaceRepository.findAuthorizationRefreshWorkspaceIdentifiers(cursor);
+        List<String> page = workspaces.findWorkspaceIdentifiers(cursor);
         while (!page.isEmpty()) {
             refreshed += refreshPage(page.stream().map(UUID::fromString).toList(), failures);
             cursor = page.getLast();
-            page = workspaceRepository.findAuthorizationRefreshWorkspaceIdentifiers(cursor);
+            page = workspaces.findWorkspaceIdentifiers(cursor);
         }
         return refreshed;
     }
@@ -59,9 +60,9 @@ public class AuthorizationCacheRefreshService {
     private void refreshWorkspace(UUID workspace) {
         String prefix = "AUTH::" + workspace + "::";
         Map<String, String> groups = new HashMap<>();
-        for (var row : workspaceRepository.findAuthorizationGroups(workspace.toString())) {
-            String key = prefix + scope(row.getEnvironmentIdentifier()) + "::" + scope(row.getApplicationIdentifier());
-            String group = row.getAuthorizerGroup();
+        for (AuthorizationGroup row : workspaces.findGroups(workspace.toString())) {
+            String key = prefix + scope(row.environmentIdentifier()) + "::" + scope(row.applicationIdentifier());
+            String group = row.authorizerGroup();
             if (group == null || group.isBlank()) {
                 throw new IllegalStateException("Authorization view returned an empty group");
             }

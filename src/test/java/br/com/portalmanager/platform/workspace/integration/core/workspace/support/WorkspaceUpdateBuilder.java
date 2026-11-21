@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.core.workspace.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.builder.TestDataBuilder;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.builder.TestDataBuilder;
 import br.com.portalmanager.platform.workspace.entrypoint.workspace.request.ApproverRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.workspace.request.UpdateWorkspaceRequest;
 import net.datafaker.Faker;

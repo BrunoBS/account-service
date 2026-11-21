@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.integration.feature.parameter.support;
 
-import br.com.portalmanager.platform.library.testing.http.AuthorizationRequestData;
-import br.com.portalmanager.platform.library.testing.http.BaseClient;
-import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
+import br.com.portalmanager.platform.library.testing.http.api.contract.AuthorizationRequestData;
+import br.com.portalmanager.platform.library.testing.http.api.client.BaseClient;
+import br.com.portalmanager.platform.library.testing.http.api.client.PlatformRequestSpecificationFactory;
 import io.restassured.response.ValidatableResponse;
 import tools.jackson.databind.json.JsonMapper;
 

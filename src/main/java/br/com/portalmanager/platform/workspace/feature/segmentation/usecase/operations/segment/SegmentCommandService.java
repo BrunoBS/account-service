@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.segmentation.usecase.operations.segment;
 
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.audit.model.AuditAction;
+import br.com.portalmanager.platform.library.audit.api.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.api.contract.model.AuditAction;
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.segment.Segment;
 import br.com.portalmanager.platform.workspace.feature.segmentation.repository.segment.SegmentRepository;
 import br.com.portalmanager.platform.workspace.feature.segmentation.usecase.model.segment.CreateSegmentInput;

@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.validation.messagetranslator;
 
-import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.library.messaging.api.exception.ResourceVersionConflictException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.MessageMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.message.Message;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.messagetranslator.MessageTranslator;

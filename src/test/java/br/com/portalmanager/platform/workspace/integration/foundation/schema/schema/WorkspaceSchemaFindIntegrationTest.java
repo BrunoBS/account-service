@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.foundation.schema.schema;
 
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
 import br.com.portalmanager.platform.workspace.entrypoint.schema.response.SchemaResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.schema.response.SchemaVersionResponse;
 import br.com.portalmanager.platform.workspace.integration.foundation.schema.support.SchemaClient;

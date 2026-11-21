@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.parameter.usecase.validation;
 
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.feature.parameter.domain.ParameterKeyMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.catalog.parameterkeystatustype.domain.ParameterKeyStatusTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.parameterkeytype.domain.ParameterKeyTypeEnum;

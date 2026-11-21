@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@br.com.portalmanager.platform.library.testing.redis.annotation.WithRedis
+@br.com.portalmanager.platform.library.testing.redis.api.annotation.WithRedis
 class ParameterKeyInactivateIntegrationTest extends BaseIntegrationTest {
     @Autowired private DynamicParameterClient client;
     @Autowired private DynamicParameterScenario scenario;

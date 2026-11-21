@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.application;
 
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.core.application.facade.ApplicationFacade;
 import br.com.portalmanager.platform.workspace.entrypoint.application.request.CreateApplicationRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.application.request.UpdateApplicationRequest;

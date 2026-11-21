@@ -1,8 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspace.domain;
 
-import br.com.portalmanager.platform.library.tagging.model.Tag;
-import br.com.portalmanager.platform.library.tagging.model.TagName;
-import br.com.portalmanager.platform.library.tagging.model.TagOriginType;
+import br.com.portalmanager.platform.library.tagging.api.contract.model.Tag;
+import br.com.portalmanager.platform.library.tagging.api.contract.model.TagOriginType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -19,7 +18,7 @@ public class WorkspaceTag extends Tag<Workspace> {
 
     protected WorkspaceTag() {}
 
-    public WorkspaceTag(Workspace owner, TagName name, TagOriginType originType) {
+    public WorkspaceTag(Workspace owner, String name, TagOriginType originType) {
         super(name, originType);
         this.owner = owner;
     }

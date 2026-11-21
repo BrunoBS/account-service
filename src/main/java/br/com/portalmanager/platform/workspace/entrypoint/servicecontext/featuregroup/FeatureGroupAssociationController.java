@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.servicecontext.featuregroup;
 
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.entrypoint.servicecontext.feature.response.FeatureResponse;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.facade.featuregroup.FeatureGroupAssociationFacade;
 

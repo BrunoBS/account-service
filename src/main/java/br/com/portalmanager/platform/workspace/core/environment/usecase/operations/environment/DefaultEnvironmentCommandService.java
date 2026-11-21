@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environment;
 
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.audit.model.AuditAction;
+import br.com.portalmanager.platform.library.audit.api.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.api.contract.model.AuditAction;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.CreateEnvironmentInput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.EnvironmentOutput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.UpdateEnvironmentInput;

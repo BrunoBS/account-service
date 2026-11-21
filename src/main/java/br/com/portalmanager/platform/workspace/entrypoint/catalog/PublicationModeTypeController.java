@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.catalog;
 
-import br.com.portalmanager.platform.library.catalog.web.CatalogController;
+import br.com.portalmanager.platform.library.catalog.internal.web.CatalogController;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publicationmodetype.domain.PublicationModeType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publicationmodetype.facade.PublicationModeTypeFacade;
 import org.springframework.web.bind.annotation.RequestMapping;

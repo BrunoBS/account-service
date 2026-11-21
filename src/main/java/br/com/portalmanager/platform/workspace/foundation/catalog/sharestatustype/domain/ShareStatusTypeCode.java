@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain;
 
-import br.com.portalmanager.platform.library.catalog.model.AbstractCatalogCode;
+import br.com.portalmanager.platform.library.catalog.api.contract.model.AbstractCatalogCode;
 import jakarta.persistence.Embeddable;
 
 @Embeddable

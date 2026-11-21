@@ -19,7 +19,7 @@ class ApplicationEnvironmentConfigurationLifecycleIntegrationTest extends BaseIn
     @Autowired private ApplicationEnvironmentConfigurationClient configurations;
     @Autowired private WorkspaceEnvironmentConfigurationClient workspaceConfigurations;
     @Autowired private WorkspaceClient workspaces;
-    @Autowired private br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock authorization;
+    @Autowired private br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock authorization;
     @Autowired private ApplicationClient applications;
     @Autowired private WorkspaceEnvironmentClient environments;
     private final ApplicationEnvironmentConfigurationFactory factory = new ApplicationEnvironmentConfigurationFactory();

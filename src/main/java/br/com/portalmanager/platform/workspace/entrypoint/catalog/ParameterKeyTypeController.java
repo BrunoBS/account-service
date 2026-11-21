@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.catalog;
 
-import br.com.portalmanager.platform.library.catalog.web.CatalogController;
+import br.com.portalmanager.platform.library.catalog.internal.web.CatalogController;
 import br.com.portalmanager.platform.workspace.foundation.catalog.parameterkeytype.domain.ParameterKeyType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.parameterkeytype.facade.ParameterKeyTypeFacade;
 

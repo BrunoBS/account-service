@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.facade;
 
-import br.com.portalmanager.platform.library.catalog.facade.AbstractCatalogFacade;
+import br.com.portalmanager.platform.library.catalog.api.facade.AbstractCatalogFacade;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.usecase.WorkspaceTypeService;
 import org.springframework.stereotype.Component;

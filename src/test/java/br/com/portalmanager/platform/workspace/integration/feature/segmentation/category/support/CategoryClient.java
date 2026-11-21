@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.integration.feature.segmentation.category.support;
 
-import br.com.portalmanager.platform.library.testing.http.AuthorizationRequestData;
-import br.com.portalmanager.platform.library.testing.http.BaseClient;
-import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
+import br.com.portalmanager.platform.library.testing.http.api.contract.AuthorizationRequestData;
+import br.com.portalmanager.platform.library.testing.http.api.client.BaseClient;
+import br.com.portalmanager.platform.library.testing.http.api.client.PlatformRequestSpecificationFactory;
 import br.com.portalmanager.platform.workspace.entrypoint.segmentation.category.request.CreateCategoryRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.segmentation.category.request.UpdateCategoryRequest;
 import io.restassured.http.ContentType;

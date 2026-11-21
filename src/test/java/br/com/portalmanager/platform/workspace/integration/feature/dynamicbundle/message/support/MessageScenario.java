@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.integration.feature.dynamicbundle.message.support;
 
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
-import br.com.portalmanager.platform.library.testing.fixture.scenario.TestScenario;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.scenario.TestScenario;
 import br.com.portalmanager.platform.workspace.integration.feature.servicecontext.microservice.support.MicroserviceClient;
 import br.com.portalmanager.platform.workspace.integration.feature.servicecontext.microservice.support.MicroserviceFactory;
 import br.com.portalmanager.platform.workspace.integration.support.SchemaDefaultScenario;

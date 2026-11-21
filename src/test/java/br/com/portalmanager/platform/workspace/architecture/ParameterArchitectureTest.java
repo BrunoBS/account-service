@@ -5,9 +5,9 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
+import br.com.portalmanager.platform.library.authorization.api.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationLevel;
+import br.com.portalmanager.platform.library.schemavalidation.api.annotation.ValidateResourceSchemaRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.ParameterKeyController;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.request.CreateParameterKeyRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.request.UpdateParameterKeyRequest;
@@ -98,20 +98,20 @@ class ParameterArchitectureTest {
     @Test
     void cacheAdministrationHasExplicitOwnerReadAndDeletePolicies() throws Exception {
         Method read = DynamicParameterFacade.class.getMethod("findCache",
-                br.com.portalmanager.platform.library.authorization.model.AuthorizationContext.class,
+                br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext.class,
                 String.class, String.class, Integer.class);
         Method clear = DynamicParameterFacade.class.getMethod("clearCache",
-                br.com.portalmanager.platform.library.authorization.model.AuthorizationContext.class, String.class);
+                br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext.class, String.class);
         assertThat(read.getAnnotation(AuthorizationRequired.class).action())
-                .isEqualTo(br.com.portalmanager.platform.library.authorization.model.AuthorizationAction.READ);
+                .isEqualTo(br.com.portalmanager.platform.library.authorization.api.model.AuthorizationAction.READ);
         assertThat(clear.getAnnotation(AuthorizationRequired.class).action())
-                .isEqualTo(br.com.portalmanager.platform.library.authorization.model.AuthorizationAction.DELETE);
+                .isEqualTo(br.com.portalmanager.platform.library.authorization.api.model.AuthorizationAction.DELETE);
         assertThat(ParameterKeyController.class.getMethod("findCache",
-                br.com.portalmanager.platform.library.authorization.model.AuthorizationContext.class,
+                br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext.class,
                 java.util.UUID.class, String.class, Integer.class)
                 .getAnnotation(org.springframework.web.bind.annotation.GetMapping.class).value()).containsExactly("/cache");
         assertThat(ParameterKeyController.class.getMethod("clearCache",
-                br.com.portalmanager.platform.library.authorization.model.AuthorizationContext.class, java.util.UUID.class)
+                br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext.class, java.util.UUID.class)
                 .getAnnotation(org.springframework.web.bind.annotation.DeleteMapping.class).value()).containsExactly("/cache");
     }
 

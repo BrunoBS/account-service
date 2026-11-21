@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.applicationconfiguration.integration;
 
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.library.messaging.api.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.SchemaValidationPort;
 import br.com.portalmanager.platform.workspace.foundation.schema.integration.SchemaSettingsValidationAdapter;
 

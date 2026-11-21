@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.integration.foundation.authorization;
 
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
-import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.http.api.client.PlatformRequestSpecificationFactory;
 import br.com.portalmanager.platform.workspace.integration.support.BaseIntegrationTest;
 import br.com.portalmanager.platform.workspace.integration.core.workspace.support.WorkspaceClient;
 import br.com.portalmanager.platform.workspace.integration.core.workspace.support.WorkspaceFactory;

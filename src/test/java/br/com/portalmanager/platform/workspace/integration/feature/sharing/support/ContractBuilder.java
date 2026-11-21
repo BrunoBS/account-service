@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.sharing.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.builder.TestDataBuilder;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.builder.TestDataBuilder;
 import br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.request.ContractRequest;
 
 public final class ContractBuilder implements TestDataBuilder<ContractRequest> {

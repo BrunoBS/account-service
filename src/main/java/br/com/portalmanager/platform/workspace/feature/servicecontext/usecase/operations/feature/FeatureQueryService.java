@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature;
 
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.exception.NotFoundException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.ServiceContextMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.feature.Feature;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.feature.FeatureRepository;

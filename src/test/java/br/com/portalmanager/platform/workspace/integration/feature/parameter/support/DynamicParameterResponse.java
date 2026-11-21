@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.parameter.support;
 
-import br.com.portalmanager.platform.library.testing.http.response.BaseResponse;
+import br.com.portalmanager.platform.library.testing.http.api.response.BaseResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.response.ParameterKeyMetadataResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.response.ParameterKeyResponse;
 import io.restassured.response.ValidatableResponse;

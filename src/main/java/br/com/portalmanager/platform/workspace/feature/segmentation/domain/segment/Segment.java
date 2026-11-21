@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.segmentation.domain.segment;
 
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.SegmentationMessageKeys;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 

@@ -1,12 +1,12 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.validation;
 
-import br.com.portalmanager.platform.library.authorization.exception.ForbiddenAccessException;
-import br.com.portalmanager.platform.library.authorization.model.UserContext;
-import br.com.portalmanager.platform.library.authorization.model.UserSession;
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.library.authorization.api.exception.ForbiddenAccessException;
+import br.com.portalmanager.platform.library.authorization.api.model.UserContext;
+import br.com.portalmanager.platform.library.authorization.api.model.UserSession;
+import br.com.portalmanager.platform.library.messaging.api.exception.NotFoundException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ResourceVersionConflictException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceMessageKeys;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;

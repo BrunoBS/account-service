@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.message.request;
 
-import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
+import br.com.portalmanager.platform.library.schemavalidation.api.annotation.ValidateResourceSchemaRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.messagetranslator.request.CreateMessageTranslatorRequest;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.CreateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.message.MessageNormalizer;

@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.feature.parameter.repository;
 
-import br.com.portalmanager.platform.library.messaging.exception.ApiException;
-import br.com.portalmanager.platform.library.messaging.message.PlatformMessageKeys;
+import br.com.portalmanager.platform.library.messaging.api.exception.ApiException;
+import br.com.portalmanager.platform.library.messaging.api.message.PlatformMessageKeys;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

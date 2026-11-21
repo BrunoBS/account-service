@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.servicecontext.microservice.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.builder.TestDataBuilder;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.builder.TestDataBuilder;
 import br.com.portalmanager.platform.workspace.entrypoint.servicecontext.microservice.request.CreateMicroserviceRequest;
 import java.util.UUID;
 import tools.jackson.databind.JsonNode;

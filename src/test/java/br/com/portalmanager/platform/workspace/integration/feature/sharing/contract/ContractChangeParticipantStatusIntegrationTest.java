@@ -6,7 +6,7 @@ import br.com.portalmanager.platform.workspace.integration.feature.sharing.suppo
 import br.com.portalmanager.platform.workspace.integration.feature.sharing.support.ParticipantFactory;
 import br.com.portalmanager.platform.workspace.integration.feature.sharing.support.ResourceSharingScenario;
 import br.com.portalmanager.platform.workspace.integration.support.BaseIntegrationTest;
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
 import br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.response.ContractResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

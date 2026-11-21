@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.sharing.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.factory.AbstractTestDataFactory;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.factory.AbstractTestDataFactory;
 import br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.request.ContractRequest;
 
 public final class ContractFactory extends AbstractTestDataFactory<ContractRequest, ContractBuilder> {

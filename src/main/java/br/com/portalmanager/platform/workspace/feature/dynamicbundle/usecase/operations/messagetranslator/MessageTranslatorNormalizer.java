@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.operations.messagetranslator;
 
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.library.schemavalidation.normalization.SchemaPayloadNormalizer;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.validation.ValidationResult;
+import br.com.portalmanager.platform.library.schemavalidation.internal.normalization.SchemaPayloadNormalizer;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.domain.MessageMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.messagetranslator.CreateMessageTranslatorInput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.messagetranslator.UpdateMessageTranslatorInput;

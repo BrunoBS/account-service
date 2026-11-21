@@ -1,9 +1,9 @@
 package br.com.portalmanager.platform.workspace.feature.dynamicbundle.facade.message;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationAction;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
+import br.com.portalmanager.platform.library.authorization.api.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationAction;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationLevel;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.CreateMessageInput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.MessageOutput;
 import br.com.portalmanager.platform.workspace.feature.dynamicbundle.usecase.model.message.UpdateMessageInput;

@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.parameter.usecase.operations;
 
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.library.messaging.api.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.parameter.domain.ParameterKeyMessageKeys;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.feature.parameter.config.ParameterProperties;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.port.ParameterPublicationStore;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.ParameterCachePage;

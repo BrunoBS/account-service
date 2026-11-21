@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.dynamicbundle.message.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.builder.TestDataBuilder;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.builder.TestDataBuilder;
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.message.request.CreateMessageRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.message.request.UpdateMessageRequest;
 

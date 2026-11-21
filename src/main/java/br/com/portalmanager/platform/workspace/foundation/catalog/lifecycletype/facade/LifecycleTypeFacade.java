@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.facade;
 
-import br.com.portalmanager.platform.library.catalog.facade.AbstractCatalogFacade;
+import br.com.portalmanager.platform.library.catalog.api.facade.AbstractCatalogFacade;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.usecase.LifecycleTypeService;
 import org.springframework.stereotype.Component;

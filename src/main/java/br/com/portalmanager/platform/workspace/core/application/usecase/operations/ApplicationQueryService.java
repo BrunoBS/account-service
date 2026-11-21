@@ -1,9 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.application.usecase.operations;
 
-import br.com.portalmanager.platform.library.authorization.annotation.ResourceVisibility;
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.library.tagging.TagManager;
-import br.com.portalmanager.platform.library.tagging.model.TagName;
+import br.com.portalmanager.platform.library.authorization.api.annotation.ResourceVisibility;
+import br.com.portalmanager.platform.library.messaging.api.exception.NotFoundException;
+import br.com.portalmanager.platform.library.tagging.api.contract.TagManager;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationMessageKeys;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationTag;
@@ -172,7 +171,7 @@ public class ApplicationQueryService {
                 repository.findFiltered(
                         workspaceId,
                         lifecycleCode,
-                        normalizedTag == null ? null : TagName.of(normalizedTag),
+                        normalizedTag,
                         PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort));
         Map<String, List<String>> manualTags =
                 tags.findManualByOwnerKeys(

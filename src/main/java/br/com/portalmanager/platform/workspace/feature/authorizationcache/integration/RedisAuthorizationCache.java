@@ -1,8 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.authorizationcache.integration;
 
-import br.com.portalmanager.platform.library.redis.annotation.RedisNamespace;
-import br.com.portalmanager.platform.library.redis.configuration.PlatformRedisProperties.NamespaceMode;
-import br.com.portalmanager.platform.library.redis.core.RedisStore;
+import br.com.portalmanager.platform.library.redis.api.store.RedisStore;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,9 +12,8 @@ public class RedisAuthorizationCache {
     private static final Duration TTL = Duration.ofMinutes(30);
     private final RedisStore store;
 
-    public RedisAuthorizationCache(@RedisNamespace(value = "authorization-cache", mode = NamespaceMode.SHARED)
-                                    RedisStore store) {
-        this.store = store;
+    public RedisAuthorizationCache(RedisStore store) {
+        this.store = store.withNamespace("authorization-cache");
     }
 
     public void reconcile(String prefix, Map<String, String> groups) {

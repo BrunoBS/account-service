@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.support;
 
-import br.com.portalmanager.platform.library.testing.database.DatabaseCleaner;
+import br.com.portalmanager.platform.library.testing.database.internal.DatabaseCleaner;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;

@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.sharing.participant;
 
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.response.ContractPageResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.response.ContractResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.sharing.participant.response.ParticipantPageResponse;

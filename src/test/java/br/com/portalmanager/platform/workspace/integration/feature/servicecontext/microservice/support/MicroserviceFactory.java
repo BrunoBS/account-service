@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.servicecontext.microservice.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.factory.AbstractTestDataFactory;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.factory.AbstractTestDataFactory;
 import br.com.portalmanager.platform.workspace.entrypoint.servicecontext.microservice.request.CreateMicroserviceRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.servicecontext.microservice.request.UpdateMicroserviceRequest;
 import tools.jackson.databind.json.JsonMapper;

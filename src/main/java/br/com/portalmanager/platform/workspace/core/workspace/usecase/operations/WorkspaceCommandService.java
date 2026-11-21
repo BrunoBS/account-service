@@ -1,12 +1,11 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.audit.model.AuditAction;
-import br.com.portalmanager.platform.library.tagging.TagManager;
+import br.com.portalmanager.platform.library.audit.api.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.api.contract.model.AuditAction;
+import br.com.portalmanager.platform.library.tagging.api.contract.TagManager;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceApprover;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceDetails;
-import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceSystemTags;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceTag;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.mapping.WorkspaceMapper;
@@ -62,8 +61,7 @@ public class WorkspaceCommandService {
                         approver -> workspace.addApprover(approver.functional(), approver.email()));
         Workspace savedWorkspace = repository.saveAndFlush(workspace);
         List<String> manualTags =
-                tags.createInitialTags(
-                        savedWorkspace, input.tags(), WorkspaceSystemTags.resolve(savedWorkspace));
+                tags.createInitialTags(savedWorkspace, input.tags());
         phaseCompletion.registerPhaseCompletion(
                 savedWorkspace.getId(), OnboardingPhaseTypeCode.workspaceRegistration());
         return mapper.toOutput(savedWorkspace, manualTags);
@@ -88,8 +86,7 @@ public class WorkspaceCommandService {
 
         Workspace savedWorkspace = repository.saveAndFlush(workspace);
         List<String> manualTags =
-                tags.reconcileAndReturnManualTags(
-                        savedWorkspace, input.tags(), WorkspaceSystemTags.resolve(savedWorkspace));
+                tags.reconcileAndReturnManualTags(savedWorkspace, input.tags());
         return mapper.toOutput(savedWorkspace, manualTags);
     }
 

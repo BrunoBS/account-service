@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.servicecontext.feature;
 
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
 import br.com.portalmanager.platform.workspace.integration.feature.servicecontext.feature.support.FeatureClient;
 import br.com.portalmanager.platform.workspace.integration.feature.servicecontext.feature.support.FeatureFactory;
 import br.com.portalmanager.platform.workspace.integration.feature.servicecontext.feature.support.FeatureScenario;

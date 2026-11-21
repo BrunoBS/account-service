@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.application.domain;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizerGroup;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.tagging.model.TagOwner;
+import br.com.portalmanager.platform.library.authorization.api.annotation.AuthorizerGroup;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
+import br.com.portalmanager.platform.library.tagging.api.contract.model.TagOwner;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import jakarta.persistence.*;
@@ -35,6 +35,9 @@ public class Application implements TagOwner {
 
     @Column(name = "workspace_id", nullable = false, updatable = false)
     private Long workspaceId;
+
+    @Transient
+    private String systemTagWorkspaceIdentifier;
 
     @Column(nullable = false, length = 50)
     private String name;
@@ -180,5 +183,14 @@ public class Application implements TagOwner {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void prepareSystemTags(String workspaceIdentifier) {
+        this.systemTagWorkspaceIdentifier = workspaceIdentifier;
+    }
+
+    @Override
+    public java.util.Collection<String> getSystemTags() {
+        return ApplicationSystemTags.resolve(this, systemTagWorkspaceIdentifier);
     }
 }

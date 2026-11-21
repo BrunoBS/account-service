@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.servicecontext.feature.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.builder.TestDataBuilder;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.builder.TestDataBuilder;
 import br.com.portalmanager.platform.workspace.entrypoint.servicecontext.feature.request.CreateFeatureRequest;
 import java.util.UUID;
 import tools.jackson.databind.JsonNode;

@@ -5,7 +5,7 @@ import br.com.portalmanager.platform.workspace.entrypoint.schema.request.CreateS
 import br.com.portalmanager.platform.workspace.entrypoint.schema.request.CreateSchemaVersionRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.schema.request.UpdateSchemaBindingRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.schema.request.UpdateSchemaRequest;
-import br.com.portalmanager.platform.library.testing.fixture.factory.AbstractTestDataFactory;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.factory.AbstractTestDataFactory;
 import org.springframework.core.io.ClassPathResource;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;

@@ -1,6 +1,5 @@
 package br.com.portalmanager.platform.workspace.core.workspace.repository;
 
-import br.com.portalmanager.platform.library.tagging.model.TagName;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.projection.WorkspaceOnboardingReference;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.projection.WorkspaceReference;
@@ -56,7 +55,7 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
     Page<Workspace> findFiltered(
         @Param("lifecycleCode") String lifecycleCode,
         @Param("workspaceTypeCode") String workspaceTypeCode,
-        @Param("tagName") TagName tagName,
+        @Param("tagName") String tagName,
         Pageable pageable
     );
 

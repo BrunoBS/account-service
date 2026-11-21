@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.application.config;
 
-import br.com.portalmanager.platform.library.tagging.TagManager;
+import br.com.portalmanager.platform.library.tagging.api.contract.TagManager;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationTag;
 import br.com.portalmanager.platform.workspace.core.application.repository.ApplicationTagRepository;

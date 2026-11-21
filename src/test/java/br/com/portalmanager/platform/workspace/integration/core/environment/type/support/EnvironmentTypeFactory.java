@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.core.environment.type.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.factory.AbstractTestDataFactory;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.factory.AbstractTestDataFactory;
 import br.com.portalmanager.platform.workspace.entrypoint.environment.request.CreateEnvironmentTypeRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.environment.request.UpdateEnvironmentTypeRequest;
 

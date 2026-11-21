@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.sharing.support;
 
-import br.com.portalmanager.platform.library.testing.http.response.BaseResponse;
+import br.com.portalmanager.platform.library.testing.http.api.response.BaseResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.response.ContractPageResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.response.ContractResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.sharing.participant.response.ParticipantPageResponse;

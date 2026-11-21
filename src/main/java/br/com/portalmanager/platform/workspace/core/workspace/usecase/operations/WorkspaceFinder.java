@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
-import br.com.portalmanager.platform.library.authorization.annotation.ResourceVisibility;
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.library.authorization.api.annotation.ResourceVisibility;
+import br.com.portalmanager.platform.library.messaging.api.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceMessageKeys;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;

@@ -4,10 +4,10 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationAction;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
-import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
+import br.com.portalmanager.platform.library.authorization.api.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationAction;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationLevel;
+import br.com.portalmanager.platform.library.schemavalidation.api.annotation.ValidateResourceSchemaRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.segmentation.category.CategoryController;
 import br.com.portalmanager.platform.workspace.entrypoint.segmentation.segment.SegmentController;
 import br.com.portalmanager.platform.workspace.feature.segmentation.facade.category.CategoryFacade;

@@ -1,10 +1,9 @@
 package br.com.portalmanager.platform.workspace.core.application.usecase.operations;
 
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.audit.model.AuditAction;
-import br.com.portalmanager.platform.library.tagging.TagManager;
+import br.com.portalmanager.platform.library.audit.api.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.api.contract.model.AuditAction;
+import br.com.portalmanager.platform.library.tagging.api.contract.TagManager;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
-import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationSystemTags;
 import br.com.portalmanager.platform.workspace.core.application.domain.ApplicationTag;
 import br.com.portalmanager.platform.workspace.core.application.repository.ApplicationRepository;
 import br.com.portalmanager.platform.workspace.core.application.usecase.mapping.ApplicationMapper;
@@ -65,11 +64,9 @@ public class ApplicationCommandService {
         Application application =
                 new Application(workspaceId, mapper.toDetails(input), LocalDateTime.now());
         Application savedApplication = repository.saveAndFlush(application);
+        savedApplication.prepareSystemTags(workspaceIdentifier);
         List<String> manualTags =
-                tags.createInitialTags(
-                        savedApplication,
-                        input.tags(),
-                        ApplicationSystemTags.resolve(savedApplication, workspaceIdentifier));
+                tags.createInitialTags(savedApplication, input.tags());
 
         if (firstApplication) {
             phaseCompletion.registerPhaseCompletion(
@@ -91,11 +88,9 @@ public class ApplicationCommandService {
         validator.validateForUpdate(workspace.workspaceType(), application, input);
         application.update(mapper.toDetails(input), LocalDateTime.now());
         Application savedApplication = repository.saveAndFlush(application);
+        savedApplication.prepareSystemTags(workspaceIdentifier);
         List<String> manualTags =
-                tags.reconcileAndReturnManualTags(
-                        savedApplication,
-                        input.tags(),
-                        ApplicationSystemTags.resolve(savedApplication, workspaceIdentifier));
+                tags.reconcileAndReturnManualTags(savedApplication, input.tags());
         return mapper.toOutput(savedApplication, workspaceIdentifier, manualTags);
     }
 

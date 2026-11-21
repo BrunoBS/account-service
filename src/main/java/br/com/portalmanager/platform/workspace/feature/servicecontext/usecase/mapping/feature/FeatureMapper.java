@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.feature;
 
-import br.com.portalmanager.platform.library.messaging.exception.ApiException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ApiException;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.ServiceContextMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.feature.Feature;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.feature.FeatureDetails;

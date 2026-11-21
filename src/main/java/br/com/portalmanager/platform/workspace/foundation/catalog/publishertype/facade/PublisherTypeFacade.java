@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.facade;
 
-import br.com.portalmanager.platform.library.catalog.facade.AbstractCatalogFacade;
+import br.com.portalmanager.platform.library.catalog.api.facade.AbstractCatalogFacade;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.domain.PublisherType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.usecase.PublisherTypeService;
 

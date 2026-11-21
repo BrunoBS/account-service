@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.sharing.usecase.validation;
 
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.feature.sharing.domain.ResourceSharingMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.contract.ContractInput;
 import br.com.portalmanager.platform.workspace.feature.sharing.usecase.model.pagination.ResourceSharingPageInput;

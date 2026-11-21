@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.integration.foundation.catalog.resourcescopetype;
 
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.resourcescopetype.support.ResourceScopeTypeClient;
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.support.CatalogTestDataFactory;
 import br.com.portalmanager.platform.workspace.integration.support.BaseIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;

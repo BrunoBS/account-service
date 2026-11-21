@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.onboarding.usecase.mapping;
 
-import br.com.portalmanager.platform.library.catalog.dto.CatalogDTO;
+import br.com.portalmanager.platform.library.catalog.api.contract.CatalogDTO;
 import br.com.portalmanager.platform.workspace.feature.onboarding.domain.WorkspaceOnboardingCompletion;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.phase.OnboardingPhaseOutput;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.phase.OnboardingPhaseStatus;

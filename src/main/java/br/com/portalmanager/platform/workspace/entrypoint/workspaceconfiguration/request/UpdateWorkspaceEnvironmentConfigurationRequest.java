@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.workspaceconfiguration.request;
 
-import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
+import br.com.portalmanager.platform.library.schemavalidation.api.annotation.ValidateResourceSchemaRequest;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.PublisherInput;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.UpdateWorkspaceEnvironmentConfigurationInput;
 

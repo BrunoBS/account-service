@@ -1,10 +1,10 @@
 package br.com.portalmanager.platform.workspace.feature.onboarding.usecase.validation;
 
-import br.com.portalmanager.platform.library.authorization.model.UserContext;
-import br.com.portalmanager.platform.library.authorization.model.UserSession;
-import br.com.portalmanager.platform.library.catalog.dto.CatalogDTO;
-import br.com.portalmanager.platform.library.messaging.exception.ApiException;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.authorization.api.model.UserContext;
+import br.com.portalmanager.platform.library.authorization.api.model.UserSession;
+import br.com.portalmanager.platform.library.catalog.api.contract.CatalogDTO;
+import br.com.portalmanager.platform.library.messaging.api.exception.ApiException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.feature.onboarding.domain.OnboardingMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.model.progress.OnboardingProgressOutput;
 import br.com.portalmanager.platform.workspace.feature.onboarding.usecase.port.OnboardingPhaseTypePort;

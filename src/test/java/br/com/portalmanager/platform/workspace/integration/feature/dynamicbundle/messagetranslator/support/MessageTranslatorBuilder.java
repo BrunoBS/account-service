@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.dynamicbundle.messagetranslator.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.builder.TestDataBuilder;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.builder.TestDataBuilder;
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.messagetranslator.request.CreateMessageTranslatorRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.messagetranslator.request.UpdateMessageTranslatorRequest;
 

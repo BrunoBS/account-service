@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.audit.domain;
 
-import br.com.portalmanager.platform.library.audit.outbox.AuditOutboxEntity;
+import br.com.portalmanager.platform.library.audit.api.contract.outbox.AuditOutboxEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 

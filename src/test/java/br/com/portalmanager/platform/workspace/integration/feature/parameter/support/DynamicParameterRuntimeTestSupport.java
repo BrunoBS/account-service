@@ -1,12 +1,10 @@
 package br.com.portalmanager.platform.workspace.integration.feature.parameter.support;
 
-import br.com.portalmanager.platform.library.redis.core.RedisStore;
-import br.com.portalmanager.platform.library.redis.annotation.RedisNamespace;
-import br.com.portalmanager.platform.library.redis.configuration.PlatformRedisProperties.NamespaceMode;
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
-import br.com.portalmanager.platform.library.testing.lifecycle.PlatformAwait;
-import br.com.portalmanager.platform.library.testing.redis.annotation.WithRedis;
-import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
+import br.com.portalmanager.platform.library.redis.api.store.RedisStore;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.core.api.lifecycle.PlatformAwait;
+import br.com.portalmanager.platform.library.testing.redis.api.annotation.WithRedis;
+import br.com.portalmanager.platform.library.testing.http.api.client.PlatformRequestSpecificationFactory;
 import br.com.portalmanager.platform.workspace.foundation.audit.repository.WorkspaceAuditOutboxRepository;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.ParameterKeyRepository;
 import br.com.portalmanager.platform.workspace.integration.support.SchemaDefaultScenario;
@@ -32,7 +30,6 @@ public abstract class DynamicParameterRuntimeTestSupport extends br.com.portalma
     @Autowired protected SchemaDefaultScenario schemaDefaults;
     @Autowired protected ObjectMapper mapper;
     @Autowired
-    @RedisNamespace(value = "dynamic-parameter", mode = NamespaceMode.SHARED)
     protected RedisStore redis;
     @Autowired protected AuthorizationMock authorization;
     @Autowired protected br.com.portalmanager.platform.workspace.integration.feature.servicecontext.microservice.support.MicroserviceClient microservices;
@@ -40,6 +37,7 @@ public abstract class DynamicParameterRuntimeTestSupport extends br.com.portalma
 
     @BeforeEach
     void prepareRuntime() {
+        redis = redis.withNamespace("dynamic-parameter");
         client = new DynamicParameterClient(requests);
         parent = new DynamicParameterScenario(schemaDefaults, authorization, microservices).setup();
     }

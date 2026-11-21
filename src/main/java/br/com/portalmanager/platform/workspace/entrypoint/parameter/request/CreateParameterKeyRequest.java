@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.parameter.request;
 
-import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
+import br.com.portalmanager.platform.library.schemavalidation.api.annotation.ValidateResourceSchemaRequest;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.CreateParameterKeyInput;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.operations.ParameterKeyRequestNormalizer;
 

@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.segmentation.category;
 
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.entrypoint.segmentation.category.request.CreateCategoryRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.segmentation.category.request.UpdateCategoryRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.segmentation.category.response.CategoryResponse;

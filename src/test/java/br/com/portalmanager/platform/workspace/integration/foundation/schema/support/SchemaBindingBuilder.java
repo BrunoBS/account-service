@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.foundation.schema.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.builder.TestDataBuilder;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.builder.TestDataBuilder;
 import br.com.portalmanager.platform.workspace.entrypoint.schema.request.CreateSchemaBindingRequest;
 
 public final class SchemaBindingBuilder implements TestDataBuilder<CreateSchemaBindingRequest> {

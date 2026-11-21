@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.servicecontext.featuregroup.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.scenario.TestScenario;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.scenario.TestScenario;
 import br.com.portalmanager.platform.workspace.integration.feature.servicecontext.support.ServiceContextScenario;
 import java.util.Objects;
 import org.springframework.stereotype.Component;

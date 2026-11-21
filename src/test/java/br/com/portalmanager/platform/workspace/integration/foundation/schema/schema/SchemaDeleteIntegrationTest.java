@@ -2,7 +2,7 @@ package br.com.portalmanager.platform.workspace.integration.foundation.schema.sc
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
 import br.com.portalmanager.platform.workspace.integration.foundation.schema.support.SchemaClient;
 import br.com.portalmanager.platform.workspace.integration.foundation.schema.support.SchemaFactory;
 import br.com.portalmanager.platform.workspace.integration.foundation.schema.support.SchemaIntegrationScenario;

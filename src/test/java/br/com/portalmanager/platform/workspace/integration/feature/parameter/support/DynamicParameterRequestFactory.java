@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.parameter.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.factory.AbstractTestDataFactory;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.factory.AbstractTestDataFactory;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.request.CreateParameterKeyRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.request.UpdateParameterKeyRequest;
 import tools.jackson.databind.json.JsonMapper;

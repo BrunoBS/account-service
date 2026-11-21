@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.integration;
 
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.library.schemavalidation.validation.JsonSchemaValidator;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.validation.ValidationResult;
+import br.com.portalmanager.platform.library.schemavalidation.internal.validation.JsonSchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.schema.domain.SchemaMessageKeys;
 
 import org.springframework.stereotype.Component;

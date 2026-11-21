@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.onboarding;
 
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.entrypoint.onboarding.response.OnboardingProgressResponse;
 import br.com.portalmanager.platform.workspace.feature.onboarding.facade.OnboardingFacade;
 import org.springframework.http.ResponseEntity;

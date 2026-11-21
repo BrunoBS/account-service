@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.UUID;
 import java.util.List;
-import br.com.portalmanager.platform.library.testing.redis.annotation.WithRedis;
+import br.com.portalmanager.platform.library.testing.redis.api.annotation.WithRedis;
 
 @WithRedis
 class ParameterKeyPublishIntegrationTest extends BaseIntegrationTest {
@@ -29,7 +29,7 @@ class ParameterKeyPublishIntegrationTest extends BaseIntegrationTest {
     }
 
     private void await(java.util.function.BooleanSupplier condition) {
-        br.com.portalmanager.platform.library.testing.lifecycle.PlatformAwait.until(
+        br.com.portalmanager.platform.library.testing.core.api.lifecycle.PlatformAwait.until(
                 condition, java.time.Duration.ofSeconds(10), java.time.Duration.ofMillis(25));
     }
 

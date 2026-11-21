@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.integration.feature.sharing.support;
 
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
-import br.com.portalmanager.platform.library.testing.fixture.scenario.TestScenario;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.scenario.TestScenario;
 import br.com.portalmanager.platform.workspace.entrypoint.sharing.contract.response.ContractResponse;
 import br.com.portalmanager.platform.workspace.integration.core.application.support.ApplicationClient;
 import br.com.portalmanager.platform.workspace.integration.core.application.support.ApplicationFactory;

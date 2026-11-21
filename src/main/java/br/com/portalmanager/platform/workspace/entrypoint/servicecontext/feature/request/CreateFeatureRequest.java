@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.servicecontext.feature.request;
 
-import br.com.portalmanager.platform.library.schemavalidation.annotation.ValidateResourceSchemaRequest;
+import br.com.portalmanager.platform.library.schemavalidation.api.annotation.ValidateResourceSchemaRequest;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.model.feature.CreateFeatureInput;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.feature.FeatureNormalizer;
 

@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.usecase;
 
-import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
-import br.com.portalmanager.platform.library.schemavalidation.validation.SchemaValidator;
+import br.com.portalmanager.platform.library.catalog.internal.service.EnumCatalogService;
+import br.com.portalmanager.platform.library.schemavalidation.api.contract.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain.ShareStatusType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain.ShareStatusTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.repository.ShareStatusTypeRepository;

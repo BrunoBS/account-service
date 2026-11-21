@@ -10,8 +10,8 @@ import br.com.portalmanager.platform.workspace.integration.core.workspace.suppor
 import br.com.portalmanager.platform.workspace.integration.core.workspace.support.WorkspaceUpdateFactory;
 
 
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
-import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.database.api.annotation.WithMySql;
 import br.com.portalmanager.platform.workspace.integration.core.application.support.ApplicationClient;
 import br.com.portalmanager.platform.workspace.integration.core.application.support.ApplicationClientResponse;
 import br.com.portalmanager.platform.workspace.integration.core.application.support.ApplicationFactory;

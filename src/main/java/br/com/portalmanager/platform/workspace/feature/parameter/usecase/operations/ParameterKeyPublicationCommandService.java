@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.parameter.usecase.operations;
 
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.audit.model.AuditAction;
-import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
+import br.com.portalmanager.platform.library.audit.api.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.api.contract.model.AuditAction;
+import br.com.portalmanager.platform.library.messaging.api.exception.ResourceVersionConflictException;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.ParameterKeyRepository;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.projection.ParameterKeyReadProjection;
 import br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.ParameterKeyMetadata;

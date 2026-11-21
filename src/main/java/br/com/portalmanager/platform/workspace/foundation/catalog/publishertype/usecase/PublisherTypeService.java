@@ -1,9 +1,9 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.usecase;
 
-import br.com.portalmanager.platform.library.catalog.exception.CatalogTechnicalException;
-import br.com.portalmanager.platform.library.catalog.mapper.CatalogMapper;
-import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
-import br.com.portalmanager.platform.library.schemavalidation.validation.SchemaValidator;
+import br.com.portalmanager.platform.library.catalog.api.exception.CatalogTechnicalException;
+import br.com.portalmanager.platform.library.catalog.internal.mapping.CatalogMapper;
+import br.com.portalmanager.platform.library.catalog.internal.service.EnumCatalogService;
+import br.com.portalmanager.platform.library.schemavalidation.api.contract.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.domain.PublisherType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.domain.PublisherTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publishertype.repository.PublisherTypeRepository;

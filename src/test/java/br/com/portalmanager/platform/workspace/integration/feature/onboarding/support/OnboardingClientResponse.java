@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.onboarding.support;
 
-import br.com.portalmanager.platform.library.testing.http.response.BaseResponse;
+import br.com.portalmanager.platform.library.testing.http.api.response.BaseResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.onboarding.response.OnboardingProgressResponse;
 import io.restassured.response.ValidatableResponse;
 

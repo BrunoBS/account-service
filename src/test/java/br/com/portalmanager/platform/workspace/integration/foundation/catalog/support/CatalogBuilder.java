@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.integration.foundation.catalog.support;
 
-import br.com.portalmanager.platform.library.catalog.dto.CatalogDTO;
-import br.com.portalmanager.platform.library.testing.fixture.builder.TestDataBuilder;
+import br.com.portalmanager.platform.library.catalog.api.contract.CatalogDTO;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.builder.TestDataBuilder;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 

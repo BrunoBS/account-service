@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.messagetranslator;
 
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.messagetranslator.request.CreateMessageTranslatorRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.messagetranslator.request.UpdateMessageTranslatorRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.messagetranslator.response.MessageTranslatorResponse;

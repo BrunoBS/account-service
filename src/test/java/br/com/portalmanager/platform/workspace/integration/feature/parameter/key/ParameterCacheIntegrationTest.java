@@ -1,11 +1,9 @@
 package br.com.portalmanager.platform.workspace.integration.feature.parameter.key;
 
-import br.com.portalmanager.platform.library.redis.annotation.RedisNamespace;
-import br.com.portalmanager.platform.library.redis.configuration.PlatformRedisProperties.NamespaceMode;
-import br.com.portalmanager.platform.library.redis.core.RedisStore;
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
-import br.com.portalmanager.platform.library.testing.lifecycle.PlatformAwait;
-import br.com.portalmanager.platform.library.testing.redis.annotation.WithRedis;
+import br.com.portalmanager.platform.library.redis.api.store.RedisStore;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.core.api.lifecycle.PlatformAwait;
+import br.com.portalmanager.platform.library.testing.redis.api.annotation.WithRedis;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.response.ParameterCacheResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.response.ParameterKeyResponse;
 import br.com.portalmanager.platform.workspace.integration.feature.parameter.support.DynamicParameterClient;
@@ -42,7 +40,7 @@ class ParameterCacheIntegrationTest extends BaseIntegrationTest {
     @Autowired private WorkspaceAuditOutboxRepository auditOutbox;
     @Autowired private StringRedisTemplate raw;
     @Autowired @Qualifier("applicationTaskExecutor") private TaskExecutor executor;
-    @Autowired @RedisNamespace(value = "dynamic-parameter", mode = NamespaceMode.SHARED) private RedisStore redis;
+    @Autowired private RedisStore redis;
     private final DynamicParameterRequestFactory factory = new DynamicParameterRequestFactory();
     private String parent;
     private String code;
@@ -51,6 +49,7 @@ class ParameterCacheIntegrationTest extends BaseIntegrationTest {
     @Autowired private br.com.portalmanager.platform.workspace.integration.feature.servicecontext.microservice.support.MicroserviceClient microservices;
 
     @BeforeEach void prepare() {
+        redis = redis.withNamespace("dynamic-parameter");
         scenario.setup();
         code = "cache-" + UUID.randomUUID().toString().replace("-", "");
         parent = microservices.create(new br.com.portalmanager.platform.workspace.integration.feature.servicecontext.microservice.support.MicroserviceFactory()
@@ -202,17 +201,17 @@ class ParameterCacheIntegrationTest extends BaseIntegrationTest {
                                 .commandTimeout(Duration.ofMillis(100)).shutdownTimeout(Duration.ZERO).build());
         unavailable.afterPropertiesSet(); unavailable.start();
         try {
-            br.com.portalmanager.platform.library.redis.configuration.PlatformRedisProperties properties =
+            br.com.portalmanager.platform.library.redis.api.configuration.PlatformRedisProperties properties =
                     new org.springframework.boot.context.properties.bind.Binder(
                             new org.springframework.boot.context.properties.source.MapConfigurationPropertySource(java.util.Map.of(
-                                    "platform.redis.namespace", "dynamic-parameter", "platform.redis.namespace-mode", "SHARED")))
-                            .bindOrCreate("platform.redis", br.com.portalmanager.platform.library.redis.configuration.PlatformRedisProperties.class);
-            RedisStore failed = new br.com.portalmanager.platform.library.redis.internal.DefaultRedisStore(
+                                    )))
+                            .bindOrCreate("platform.redis", br.com.portalmanager.platform.library.redis.api.configuration.PlatformRedisProperties.class);
+            RedisStore failed = new br.com.portalmanager.platform.library.redis.internal.store.DefaultRedisStore(
                     new StringRedisTemplate(unavailable),
-                    new br.com.portalmanager.platform.library.redis.serialization.RedisJsonCodec(new tools.jackson.databind.json.JsonMapper(), 1048576),
-                    new br.com.portalmanager.platform.library.redis.internal.RedisAccess(properties, "workspace-service"));
+                    new br.com.portalmanager.platform.library.redis.internal.serialization.RedisJsonCodec(new tools.jackson.databind.json.JsonMapper(), 1048576),
+                    new br.com.portalmanager.platform.library.redis.internal.common.RedisAccess(properties, "workspace-service")).withNamespace("dynamic-parameter");
             doAnswer(invocation -> {
-                br.com.portalmanager.platform.library.redis.core.RedisKeyPage page = failed.scan(
+                br.com.portalmanager.platform.library.redis.api.store.RedisKeyPage page = failed.scan(
                         invocation.<String>getArgument(0) + ".", invocation.getArgument(1), invocation.getArgument(2));
                 return new br.com.portalmanager.platform.workspace.feature.parameter.usecase.model.ParameterCachePage(page.cursor(), page.keys());
             }).when(publicationStore).scan(anyString(), anyString(), anyInt());

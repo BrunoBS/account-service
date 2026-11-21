@@ -1,11 +1,11 @@
 package br.com.portalmanager.platform.workspace.integration.support;
 
-import br.com.portalmanager.platform.library.audit.outbox.AuditOutboxAppender;
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationContextExecutorService;
-import br.com.portalmanager.platform.library.testing.authorization.annotation.WithMockAuthorization;
-import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
-import br.com.portalmanager.platform.library.testing.lifecycle.annotation.PlatformIntegrationTest;
+import br.com.portalmanager.platform.library.audit.internal.outbox.AuditOutboxAppender;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.authorization.internal.executor.AuthorizationContextExecutorService;
+import br.com.portalmanager.platform.library.testing.authorization.api.annotation.WithMockAuthorization;
+import br.com.portalmanager.platform.library.testing.database.api.annotation.WithMySql;
+import br.com.portalmanager.platform.library.testing.http.api.lifecycle.annotation.PlatformIntegrationTest;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.WorkspaceRepository;
 import br.com.portalmanager.platform.workspace.core.workspace.usecase.operations.WorkspaceFinder;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.ParameterKeyRepository;
@@ -26,12 +26,18 @@ import java.util.concurrent.ExecutorService;
 
 @PlatformIntegrationTest
 @WithMySql
+@br.com.portalmanager.platform.library.testing.redis.api.annotation.WithRedis
 @WithMockAuthorization
 @ExtendWith(CleanMySqlAfterEachExtension.class)
 public abstract class BaseIntegrationTest {
     @Autowired private AuthorizationMock authorization;
     @Autowired private LifecycleTypeClient lifecycleTypes;
 
+    // These HTTP tests verify the committed outbox; delivery is owned by platform-audit.
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    protected br.com.portalmanager.platform.library.audit.internal.outbox.AuditOutboxProcessor auditProcessor;
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    protected br.com.portalmanager.platform.library.objectstorage.api.contract.ObjectStorageClient auditStorage;
     @MockitoSpyBean protected AuditOutboxAppender auditAppender;
     @MockitoSpyBean protected ParameterPublicationStore publicationStore;
     @MockitoSpyBean protected ParameterKeyRepository parameterKeyRepository;

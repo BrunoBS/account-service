@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.operations.microservice;
 
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
+import br.com.portalmanager.platform.library.messaging.api.exception.NotFoundException;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.ServiceContextMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.microservice.MicroserviceRepository;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.repository.microservice.projection.MicroserviceReferenceProjection;

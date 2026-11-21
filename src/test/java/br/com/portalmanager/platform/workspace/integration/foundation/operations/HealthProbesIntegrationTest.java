@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.integration.foundation.operations;
 
-import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
-import br.com.portalmanager.platform.library.testing.redis.annotation.WithRedis;
+import br.com.portalmanager.platform.library.testing.http.api.client.PlatformRequestSpecificationFactory;
+import br.com.portalmanager.platform.library.testing.redis.api.annotation.WithRedis;
 import br.com.portalmanager.platform.workspace.integration.support.BaseIntegrationTest;
 import org.springframework.boot.health.registry.HealthContributorRegistry;
 import org.springframework.boot.health.contributor.HealthContributor;

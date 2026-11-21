@@ -4,7 +4,7 @@ import br.com.portalmanager.platform.workspace.entrypoint.environment.response.E
 import br.com.portalmanager.platform.workspace.integration.core.environment.compatibility.support.EnvironmentTypeCompatibilityClient;
 import br.com.portalmanager.platform.workspace.integration.core.environment.support.EnvironmentScenario;
 import br.com.portalmanager.platform.workspace.integration.support.BaseIntegrationTest;
-import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
+import br.com.portalmanager.platform.library.testing.database.api.annotation.WithMySql;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

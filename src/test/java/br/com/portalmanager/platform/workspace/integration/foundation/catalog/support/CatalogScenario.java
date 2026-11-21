@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.integration.foundation.catalog.support;
 
-import br.com.portalmanager.platform.library.catalog.dto.CatalogDTO;
-import br.com.portalmanager.platform.library.testing.fixture.scenario.TestScenario;
+import br.com.portalmanager.platform.library.catalog.api.contract.CatalogDTO;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.scenario.TestScenario;
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.applicationscopetype.support.ApplicationScopeTypeClient;
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.lifecycletype.support.LifecycleTypeClient;
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.onboardingphasetype.support.OnboardingTypeClient;

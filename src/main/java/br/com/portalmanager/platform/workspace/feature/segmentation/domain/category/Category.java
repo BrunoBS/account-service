@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.segmentation.domain.category;
 
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.SegmentationMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.segment.Segment;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
@@ -15,6 +15,7 @@ import java.util.UUID;
         name = "category",
         uniqueConstraints =
                 @UniqueConstraint(
+
                         name = "uk_category_code",
                         columnNames = {"segment_id", "code"}))
 public class Category {

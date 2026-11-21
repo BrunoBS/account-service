@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.parameterkeytype.usecase;
 
-import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
-import br.com.portalmanager.platform.library.schemavalidation.validation.SchemaValidator;
+import br.com.portalmanager.platform.library.catalog.internal.service.EnumCatalogService;
+import br.com.portalmanager.platform.library.schemavalidation.api.contract.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.parameterkeytype.domain.ParameterKeyType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.parameterkeytype.domain.ParameterKeyTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.parameterkeytype.repository.ParameterKeyTypeRepository;

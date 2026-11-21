@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.sharestatustype.domain;
 
-import br.com.portalmanager.platform.library.catalog.model.CatalogEnum;
+import br.com.portalmanager.platform.library.catalog.api.contract.model.CatalogEnum;
 import java.util.List;
 
 public enum ShareStatusTypeEnum implements CatalogEnum<ShareStatusTypeEnum> {

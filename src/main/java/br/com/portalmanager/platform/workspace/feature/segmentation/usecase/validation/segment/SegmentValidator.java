@@ -1,9 +1,9 @@
 package br.com.portalmanager.platform.workspace.feature.segmentation.usecase.validation.segment;
 
-import br.com.portalmanager.platform.library.messaging.exception.ConflictException;
-import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.library.messaging.api.exception.ConflictException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ResourceVersionConflictException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.validation.ValidationResult;
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.SegmentationMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.segment.Segment;
 import br.com.portalmanager.platform.workspace.feature.segmentation.repository.segment.SegmentRepository;

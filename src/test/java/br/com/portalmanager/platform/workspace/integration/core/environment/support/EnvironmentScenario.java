@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.integration.core.environment.support;
 
-import br.com.portalmanager.platform.library.catalog.dto.CatalogDTO;
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
-import br.com.portalmanager.platform.library.testing.fixture.scenario.TestScenario;
+import br.com.portalmanager.platform.library.catalog.api.contract.CatalogDTO;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.scenario.TestScenario;
 import br.com.portalmanager.platform.workspace.integration.foundation.catalog.support.CatalogScenario;
 import br.com.portalmanager.platform.workspace.integration.core.environment.compatibility.support.EnvironmentTypeCompatibilityClient;
 import br.com.portalmanager.platform.workspace.integration.core.environment.compatibility.support.EnvironmentTypeCompatibilityFactory;

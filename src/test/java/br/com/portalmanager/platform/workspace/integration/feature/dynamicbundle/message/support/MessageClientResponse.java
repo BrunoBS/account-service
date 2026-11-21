@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.dynamicbundle.message.support;
 
-import br.com.portalmanager.platform.library.testing.http.response.BaseResponse;
+import br.com.portalmanager.platform.library.testing.http.api.response.BaseResponse;
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.message.response.MessageResponse;
 import io.restassured.response.ValidatableResponse;
 

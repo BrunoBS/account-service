@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.environment.usecase.operations.environment;
 
-import br.com.portalmanager.platform.library.schemavalidation.normalization.SchemaPayloadNormalizer;
+import br.com.portalmanager.platform.library.schemavalidation.internal.normalization.SchemaPayloadNormalizer;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.CreateEnvironmentInput;
 import br.com.portalmanager.platform.workspace.core.environment.usecase.model.environment.UpdateEnvironmentInput;
 import java.util.List;

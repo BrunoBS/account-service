@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.core.workspaceconfiguration;
 
-import br.com.portalmanager.platform.library.testing.database.annotation.WithMySql;
+import br.com.portalmanager.platform.library.testing.database.api.annotation.WithMySql;
 import br.com.portalmanager.platform.workspace.integration.feature.onboarding.support.OnboardingClient;
 import br.com.portalmanager.platform.workspace.integration.core.workspaceconfiguration.support.WorkspaceEnvironmentConfigurationClient;
 import br.com.portalmanager.platform.workspace.integration.core.workspaceconfiguration.support.WorkspaceEnvironmentConfigurationFactory;

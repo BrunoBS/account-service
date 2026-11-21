@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.foundation.schema.facade.schema;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.*;
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.library.authorization.api.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.api.model.*;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.schema.*;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.model.version.*;
 import br.com.portalmanager.platform.workspace.foundation.schema.usecase.operations.schema.*;

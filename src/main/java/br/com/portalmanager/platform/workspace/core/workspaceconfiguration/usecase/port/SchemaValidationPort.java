@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.port;
 
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
+import br.com.portalmanager.platform.library.messaging.api.validation.ValidationResult;
 
 import tools.jackson.databind.JsonNode;
 

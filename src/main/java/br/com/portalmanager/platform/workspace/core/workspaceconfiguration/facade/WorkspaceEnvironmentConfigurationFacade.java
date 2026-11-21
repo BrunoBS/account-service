@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspaceconfiguration.facade;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizationRequired;
-import br.com.portalmanager.platform.library.authorization.model.*;
+import br.com.portalmanager.platform.library.authorization.api.annotation.AuthorizationRequired;
+import br.com.portalmanager.platform.library.authorization.api.model.*;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.model.*;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.operations.WorkspaceEnvironmentConfigurationCommandService;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.usecase.operations.WorkspaceEnvironmentConfigurationQueryService;

@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.publicationmodetype.usecase;
 
-import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
-import br.com.portalmanager.platform.library.schemavalidation.validation.SchemaValidator;
+import br.com.portalmanager.platform.library.catalog.internal.service.EnumCatalogService;
+import br.com.portalmanager.platform.library.schemavalidation.api.contract.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publicationmodetype.domain.PublicationModeType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publicationmodetype.domain.PublicationModeTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.publicationmodetype.repository.PublicationModeTypeRepository;

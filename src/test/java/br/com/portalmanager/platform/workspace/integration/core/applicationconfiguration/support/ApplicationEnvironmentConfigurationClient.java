@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.integration.core.applicationconfiguration.support;
 
-import br.com.portalmanager.platform.library.testing.http.AuthorizationRequestData;
-import br.com.portalmanager.platform.library.testing.http.BaseClient;
-import br.com.portalmanager.platform.library.testing.http.PlatformRequestSpecificationFactory;
+import br.com.portalmanager.platform.library.testing.http.api.contract.AuthorizationRequestData;
+import br.com.portalmanager.platform.library.testing.http.api.client.BaseClient;
+import br.com.portalmanager.platform.library.testing.http.api.client.PlatformRequestSpecificationFactory;
 import br.com.portalmanager.platform.workspace.entrypoint.applicationconfiguration.request.CreateApplicationEnvironmentConfigurationRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.applicationconfiguration.request.UpdateApplicationEnvironmentConfigurationRequest;
 import io.restassured.http.ContentType;

@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.repository;
 
-import br.com.portalmanager.platform.library.catalog.repository.CatalogRepository;
+import br.com.portalmanager.platform.library.catalog.internal.repository.CatalogRepository;
 import br.com.portalmanager.platform.workspace.foundation.catalog.schemascopetype.domain.SchemaScopeType;
 import org.springframework.stereotype.Repository;
 

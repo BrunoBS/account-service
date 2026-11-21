@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.environment;
 
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.core.environment.facade.environment.DefaultEnvironmentFacade;
 import br.com.portalmanager.platform.workspace.entrypoint.environment.request.CreateEnvironmentRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.environment.request.UpdateEnvironmentRequest;

@@ -1,9 +1,9 @@
 package br.com.portalmanager.platform.workspace.feature.onboarding.usecase.operations.progress;
 
-import br.com.portalmanager.platform.library.catalog.dto.CatalogDTO;
-import br.com.portalmanager.platform.library.catalog.exception.CatalogTechnicalException;
-import br.com.portalmanager.platform.library.catalog.message.CatalogMessageKeys;
-import br.com.portalmanager.platform.library.messaging.exception.ApiException;
+import br.com.portalmanager.platform.library.catalog.api.contract.CatalogDTO;
+import br.com.portalmanager.platform.library.catalog.api.exception.CatalogTechnicalException;
+import br.com.portalmanager.platform.library.catalog.internal.message.CatalogMessageKeys;
+import br.com.portalmanager.platform.library.messaging.api.exception.ApiException;
 import br.com.portalmanager.platform.workspace.feature.onboarding.domain.OnboardingMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.onboarding.domain.WorkspaceOnboardingCompletion;
 import br.com.portalmanager.platform.workspace.feature.onboarding.repository.WorkspaceOnboardingCompletionRepository;

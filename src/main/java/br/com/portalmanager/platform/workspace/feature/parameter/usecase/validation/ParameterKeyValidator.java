@@ -1,12 +1,12 @@
 package br.com.portalmanager.platform.workspace.feature.parameter.usecase.validation;
 
-import br.com.portalmanager.platform.library.messaging.exception.ConflictException;
-import br.com.portalmanager.platform.library.messaging.exception.ResourceVersionConflictException;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.messaging.validation.ValidationResult;
-import br.com.portalmanager.platform.library.schemavalidation.resolver.ResourceSchemaResolver;
-import br.com.portalmanager.platform.library.schemavalidation.validation.JsonSchemaValidator;
-import br.com.portalmanager.platform.library.schemavalidation.model.ResourceSchema;
+import br.com.portalmanager.platform.library.messaging.api.exception.ConflictException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ResourceVersionConflictException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
+import br.com.portalmanager.platform.library.messaging.api.validation.ValidationResult;
+import br.com.portalmanager.platform.library.schemavalidation.api.contract.resolver.ResourceSchemaResolver;
+import br.com.portalmanager.platform.library.schemavalidation.internal.validation.JsonSchemaValidator;
+import br.com.portalmanager.platform.library.schemavalidation.api.contract.model.ResourceSchema;
 import br.com.portalmanager.platform.workspace.feature.parameter.domain.ParameterKey;
 import br.com.portalmanager.platform.workspace.feature.parameter.domain.ParameterKeyMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.ParameterKeyRepository;

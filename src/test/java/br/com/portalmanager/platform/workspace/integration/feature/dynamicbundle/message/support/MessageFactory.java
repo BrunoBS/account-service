@@ -2,7 +2,7 @@ package br.com.portalmanager.platform.workspace.integration.feature.dynamicbundl
 
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.message.request.CreateMessageRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.message.request.UpdateMessageRequest;
-import br.com.portalmanager.platform.library.testing.fixture.factory.AbstractTestDataFactory;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.factory.AbstractTestDataFactory;
 
 public final class MessageFactory extends AbstractTestDataFactory<CreateMessageRequest, MessageBuilder> {
     @Override protected MessageBuilder builder() { return MessageBuilder.builder(); }

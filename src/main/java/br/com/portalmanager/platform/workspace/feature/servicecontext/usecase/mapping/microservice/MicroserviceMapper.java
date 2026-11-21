@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.feature.servicecontext.usecase.mapping.microservice;
 
-import br.com.portalmanager.platform.library.messaging.exception.ApiException;
+import br.com.portalmanager.platform.library.messaging.api.exception.ApiException;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.ServiceContextMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.microservice.Microservice;
 import br.com.portalmanager.platform.workspace.feature.servicecontext.domain.microservice.MicroserviceDetails;

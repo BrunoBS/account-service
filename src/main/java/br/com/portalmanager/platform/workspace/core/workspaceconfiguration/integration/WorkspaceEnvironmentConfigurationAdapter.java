@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspaceconfiguration.integration;
 
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.library.messaging.message.PlatformMessageKeys;
+import br.com.portalmanager.platform.library.messaging.api.exception.NotFoundException;
+import br.com.portalmanager.platform.library.messaging.api.message.PlatformMessageKeys;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.WorkspaceEnvironmentConfigurationPort;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.port.WorkspaceEnvironmentConfigurationPort.PublisherCopy;
 import br.com.portalmanager.platform.workspace.core.workspaceconfiguration.domain.WorkspaceEnvironmentConfiguration;

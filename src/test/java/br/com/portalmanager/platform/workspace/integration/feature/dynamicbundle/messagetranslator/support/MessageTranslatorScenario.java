@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.dynamicbundle.messagetranslator.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.scenario.TestScenario;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.scenario.TestScenario;
 import br.com.portalmanager.platform.workspace.integration.feature.dynamicbundle.message.support.MessageClient;
 import br.com.portalmanager.platform.workspace.integration.feature.dynamicbundle.message.support.MessageFactory;
 import br.com.portalmanager.platform.workspace.integration.feature.dynamicbundle.message.support.MessageScenario;

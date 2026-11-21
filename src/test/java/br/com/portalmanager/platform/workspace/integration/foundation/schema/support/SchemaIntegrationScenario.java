@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.integration.foundation.schema.support;
 
-import br.com.portalmanager.platform.library.testing.authorization.AuthorizationMock;
-import br.com.portalmanager.platform.library.testing.fixture.scenario.TestScenario;
+import br.com.portalmanager.platform.library.testing.authorization.api.AuthorizationMock;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.scenario.TestScenario;
 import br.com.portalmanager.platform.workspace.entrypoint.workspace.response.WorkspaceResponse;
 import br.com.portalmanager.platform.workspace.integration.core.workspace.support.WorkspaceFactory;
 import br.com.portalmanager.platform.workspace.integration.core.workspace.support.WorkspaceScenario;

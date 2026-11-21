@@ -12,7 +12,10 @@ Java 25, Maven 3.9.9–3.x e Docker para testes de integração. Configure as cr
 mvn --settings .github/maven-settings.xml --batch-mode --no-transfer-progress clean verify
 ```
 
-Para execução local, configure MySQL com WORKSPACE_DB_URL/USERNAME/PASSWORD e Redis conforme application.yml. O perfil local usa autorização MOCK por padrão.
+Para execução local, configure MySQL com WORKSPACE_DB_URL/USERNAME/PASSWORD e Redis conforme application.yml. O perfil local usa autorização MOCK por padrão. A auditoria exige
+`AUDIT_STORAGE_BUCKET` e usa AWS na região `AUDIT_STORAGE_REGION` (padrão
+`us-east-1`), com as credenciais da cadeia padrão do SDK. Os testes HTTP
+substituem o envio externo e verificam os registros confirmados no outbox.
 
 ## Testes HTTP
 
@@ -39,10 +42,9 @@ são sempre fornecidas pelos testes após uma leitura explícita.
 ## Publicação de parâmetros
 
 A publicação encapsula Redis em `ParameterPublicationStore`, implementado por
-`RedisParameterPublicationStore`. Somente o adaptador injeta um store anotado
-`@RedisNamespace(value = "dynamic-parameter", mode = NamespaceMode.SHARED)`.
-O store padrão continua seguindo `platform.redis.*`; não configure seu namespace
-global apenas para publicar parâmetros. A chave lógica permanece
+`RedisParameterPublicationStore`. O adaptador obtém uma view com
+`RedisStore.withNamespace("dynamic-parameter")`. Essa view usa o namespace
+compartilhado de publicação; o store padrão mantém o nome da aplicação. A chave lógica permanece
 `<microservice.code>.<key>` e o envelope `{type,value}`, persistente e sem TTL.
 
 A publicação assíncrona envia snapshots confirmados em lotes; remoções ocorrem

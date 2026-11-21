@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
-import br.com.portalmanager.platform.library.schemavalidation.normalization.SchemaPayloadNormalizer;
-import br.com.portalmanager.platform.library.tagging.model.TagName;
+import br.com.portalmanager.platform.library.schemavalidation.internal.normalization.SchemaPayloadNormalizer;
+import br.com.portalmanager.platform.library.tagging.internal.TagNameNormalizer;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Component;
@@ -43,7 +43,7 @@ public class WorkspaceNormalizer implements SchemaPayloadNormalizer {
     }
 
     public String normalizeTagFilter(String value) {
-        return value == null || value.isBlank() ? null : TagName.of(value).value();
+        return value == null || value.isBlank() ? null : TagNameNormalizer.normalizeRequired(value);
     }
 
     private void trimText(ObjectNode object, String field) {

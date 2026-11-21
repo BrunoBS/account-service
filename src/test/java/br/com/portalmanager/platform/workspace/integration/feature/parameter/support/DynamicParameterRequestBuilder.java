@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.feature.parameter.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.builder.TestDataBuilder;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.builder.TestDataBuilder;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.request.CreateParameterKeyRequest;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;

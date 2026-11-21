@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.facade;
 
-import br.com.portalmanager.platform.library.catalog.facade.AbstractCatalogFacade;
+import br.com.portalmanager.platform.library.catalog.api.facade.AbstractCatalogFacade;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.domain.ApplicationScopeType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.applicationscopetype.usecase.ApplicationScopeTypeService;
 import org.springframework.stereotype.Component;

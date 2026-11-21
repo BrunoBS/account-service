@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.segmentation.usecase.operations.category;
 
-import br.com.portalmanager.platform.library.audit.annotation.Auditable;
-import br.com.portalmanager.platform.library.audit.model.AuditAction;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
+import br.com.portalmanager.platform.library.audit.api.annotation.Auditable;
+import br.com.portalmanager.platform.library.audit.api.contract.model.AuditAction;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.SegmentationMessageKeys;
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.category.Category;
 import br.com.portalmanager.platform.workspace.feature.segmentation.domain.segment.Segment;

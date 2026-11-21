@@ -2,7 +2,7 @@ package br.com.portalmanager.platform.workspace.architecture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.portalmanager.platform.library.catalog.model.AbstractCatalogCode;
+import br.com.portalmanager.platform.library.catalog.api.contract.model.AbstractCatalogCode;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;

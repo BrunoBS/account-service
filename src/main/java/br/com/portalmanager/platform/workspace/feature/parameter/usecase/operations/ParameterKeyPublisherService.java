@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.feature.parameter.usecase.operations;
 
-import br.com.portalmanager.platform.library.authorization.model.UserContext;
-import br.com.portalmanager.platform.library.authorization.model.UserSession;
-import br.com.portalmanager.platform.library.messaging.exception.ApiException;
+import br.com.portalmanager.platform.library.authorization.api.model.UserContext;
+import br.com.portalmanager.platform.library.authorization.api.model.UserSession;
+import br.com.portalmanager.platform.library.messaging.api.exception.ApiException;
 import br.com.portalmanager.platform.workspace.foundation.catalog.parameterkeystatustype.domain.ParameterKeyStatusTypeCode;
 import br.com.portalmanager.platform.workspace.feature.parameter.config.ParameterProperties;
 import br.com.portalmanager.platform.workspace.feature.parameter.repository.ParameterKeyRepository;

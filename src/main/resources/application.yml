@@ -24,7 +24,7 @@ spring:
 golden:
   scheduling:
     distributed-lock:
-      enabled: ${WORKSPACE_AUTHORIZATION_CACHE_ENABLED:false}
+      enabled: true
       lock-at-most-for: PT10M
       lock-at-least-for: PT0S
       keep-alive: true
@@ -51,9 +51,17 @@ platform:
   schema-validation:
     fallback-code: DEFAULT
     view-name: vw_platform_resource_schemas
+  object-storage:
+    provider: ${AUDIT_STORAGE_PROVIDER:AWS}
+    region: ${AUDIT_STORAGE_REGION:us-east-1}
+    destinations:
+      audit:
+        bucket: ${AUDIT_STORAGE_BUCKET:}
   audit:
     enabled: ${AUDIT_ENABLED:true}
     service-name: workspace-service
+    outbox:
+      destination: audit
 
 workspace:
   authorization-cache:

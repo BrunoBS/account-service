@@ -1,8 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.workspace.domain;
 
-import br.com.portalmanager.platform.library.authorization.annotation.AuthorizerGroup;
-import br.com.portalmanager.platform.library.messaging.exception.ValidationException;
-import br.com.portalmanager.platform.library.tagging.model.TagOwner;
+import br.com.portalmanager.platform.library.authorization.api.annotation.AuthorizerGroup;
+import br.com.portalmanager.platform.library.messaging.api.exception.ValidationException;
+import br.com.portalmanager.platform.library.tagging.api.contract.model.TagOwner;
 import br.com.portalmanager.platform.workspace.foundation.catalog.lifecycletype.domain.LifecycleTypeCode;
 import br.com.portalmanager.platform.workspace.foundation.catalog.workspacetype.domain.WorkspaceTypeCode;
 import jakarta.persistence.*;
@@ -225,5 +225,10 @@ public class Workspace implements TagOwner {
 
     public Set<WorkspaceApprover> getApprovers() {
         return Collections.unmodifiableSet(approvers);
+    }
+
+    @Override
+    public java.util.Collection<String> getSystemTags() {
+        return WorkspaceSystemTags.resolve(this);
     }
 }

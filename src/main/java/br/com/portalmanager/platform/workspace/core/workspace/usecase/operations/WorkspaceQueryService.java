@@ -1,9 +1,8 @@
 package br.com.portalmanager.platform.workspace.core.workspace.usecase.operations;
 
-import br.com.portalmanager.platform.library.authorization.annotation.ResourceVisibility;
-import br.com.portalmanager.platform.library.messaging.exception.NotFoundException;
-import br.com.portalmanager.platform.library.tagging.TagManager;
-import br.com.portalmanager.platform.library.tagging.model.TagName;
+import br.com.portalmanager.platform.library.authorization.api.annotation.ResourceVisibility;
+import br.com.portalmanager.platform.library.messaging.api.exception.NotFoundException;
+import br.com.portalmanager.platform.library.tagging.api.contract.TagManager;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceMessageKeys;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.WorkspaceTag;
@@ -137,7 +136,7 @@ public class WorkspaceQueryService {
                 repository.findFiltered(
                         lifecycleCode,
                         input.typeName(),
-                        input.tagName() == null ? null : TagName.of(input.tagName()),
+                        input.tagName(),
                         orderedPageable);
         Map<String, List<String>> manualTagsByWorkspaceIdentifier =
                 tags.findManualByOwnerKeys(

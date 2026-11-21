@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.integration.foundation.catalog.support;
 
-import br.com.portalmanager.platform.library.catalog.dto.CatalogDTO;
-import br.com.portalmanager.platform.library.testing.fixture.factory.AbstractTestDataFactory;
+import br.com.portalmanager.platform.library.catalog.api.contract.CatalogDTO;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.factory.AbstractTestDataFactory;
 
 public final class CatalogTestDataFactory extends AbstractTestDataFactory<CatalogDTO, CatalogBuilder> {
     @Override

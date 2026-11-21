@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.message;
 
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.message.request.CreateMessageRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.message.request.UpdateMessageRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.dynamicbundle.message.response.MessageResponse;

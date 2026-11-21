@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.core.workspaceconfiguration.support;
 
-import br.com.portalmanager.platform.library.testing.http.response.BaseResponse;
+import br.com.portalmanager.platform.library.testing.http.api.response.BaseResponse;
 import io.restassured.response.ValidatableResponse;
 
 public final class WorkspaceEnvironmentConfigurationResponse

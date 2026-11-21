@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.foundation.catalog.support;
 
-import br.com.portalmanager.platform.library.catalog.dto.CatalogDTO;
+import br.com.portalmanager.platform.library.catalog.api.contract.CatalogDTO;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;

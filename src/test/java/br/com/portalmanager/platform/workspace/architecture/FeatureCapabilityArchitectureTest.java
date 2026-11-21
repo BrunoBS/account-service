@@ -29,6 +29,7 @@ class FeatureCapabilityArchitectureTest {
                         .collect(Collectors.toSet());
         assertThat(capabilities)
                 .containsExactlyInAnyOrder(
+                        "authorizationcache",
                         "dynamicbundle",
                         "servicecontext",
                         "segmentation",

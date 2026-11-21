@@ -30,6 +30,12 @@ platform:
     default-locale: pt-BR
     cache:
       enabled: false
+  object-storage:
+    provider: AWS
+    region: us-east-1
+    destinations:
+      audit:
+        bucket: workspace-audit-tests
   audit:
     enabled: true
     service-name: workspace-service

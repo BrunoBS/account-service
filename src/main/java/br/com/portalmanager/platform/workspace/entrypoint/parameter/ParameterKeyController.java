@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.entrypoint.parameter;
 
-import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
+import br.com.portalmanager.platform.library.authorization.api.model.AuthorizationContext;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.request.CreateParameterKeyRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.request.PublishParameterKeysRequest;
 import br.com.portalmanager.platform.workspace.entrypoint.parameter.request.UpdateParameterKeyRequest;

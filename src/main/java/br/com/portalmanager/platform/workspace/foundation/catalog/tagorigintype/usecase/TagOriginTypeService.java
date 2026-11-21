@@ -1,7 +1,7 @@
 package br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.usecase;
 
-import br.com.portalmanager.platform.library.catalog.service.EnumCatalogService;
-import br.com.portalmanager.platform.library.schemavalidation.validation.SchemaValidator;
+import br.com.portalmanager.platform.library.catalog.internal.service.EnumCatalogService;
+import br.com.portalmanager.platform.library.schemavalidation.api.contract.validation.SchemaValidator;
 import br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.domain.TagOriginType;
 import br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.domain.TagOriginTypeEnum;
 import br.com.portalmanager.platform.workspace.foundation.catalog.tagorigintype.repository.TagOriginTypeRepository;

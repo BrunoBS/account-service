@@ -1,6 +1,6 @@
 package br.com.portalmanager.platform.workspace.integration.core.applicationconfiguration.support;
 
-import br.com.portalmanager.platform.library.testing.fixture.builder.TestDataBuilder;
+import br.com.portalmanager.platform.library.testing.core.api.fixture.builder.TestDataBuilder;
 import br.com.portalmanager.platform.workspace.core.applicationconfiguration.usecase.model.PublisherInput;
 import br.com.portalmanager.platform.workspace.entrypoint.applicationconfiguration.request.CreateApplicationEnvironmentConfigurationRequest;
 import java.util.List;

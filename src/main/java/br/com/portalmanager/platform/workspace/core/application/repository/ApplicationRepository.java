@@ -1,6 +1,5 @@
 package br.com.portalmanager.platform.workspace.core.application.repository;
 
-import br.com.portalmanager.platform.library.tagging.model.TagName;
 import br.com.portalmanager.platform.workspace.core.application.domain.Application;
 import br.com.portalmanager.platform.workspace.core.application.repository.projection.ApplicationReference;
 import br.com.portalmanager.platform.workspace.core.application.repository.projection.ApplicationScopeReference;
@@ -92,7 +91,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     Page<Application> findFiltered(
         @Param("workspaceId") Long workspaceId,
         @Param("lifecycle") String lifecycle,
-        @Param("tagName") TagName tagName,
+        @Param("tagName") String tagName,
         Pageable pageable
     );
 }
