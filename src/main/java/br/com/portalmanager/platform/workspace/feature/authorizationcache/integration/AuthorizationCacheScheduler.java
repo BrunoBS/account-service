@@ -3,19 +3,20 @@ package br.com.portalmanager.platform.workspace.feature.authorizationcache.integ
 import br.com.portalmanager.platform.library.scheduling.api.contract.task.PlatformTaskScheduler;
 import br.com.portalmanager.platform.workspace.feature.authorizationcache.usecase.operations.AuthorizationCacheRefreshService;
 import br.com.portalmanager.platform.workspace.feature.authorizationcache.usecase.operations.AuthorizationCacheRefreshService.Result;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
 @ConditionalOnProperty(prefix = "workspace.authorization-cache", name = "enabled", havingValue = "true")
 public class AuthorizationCacheScheduler {
+    private static final Logger LOG = LoggerFactory.getLogger(AuthorizationCacheScheduler.class);
     private static final String LOCK_NAME = "workspace-authorization-cache-refresh";
     private final PlatformTaskScheduler scheduler;
     private final AuthorizationCacheRefreshService refresh;
@@ -25,8 +26,16 @@ public class AuthorizationCacheScheduler {
         this.refresh = refresh;
     }
 
-    public ScheduledFuture<?> schedulePeriodic(Runnable task, Duration interval) {
-        return scheduler.scheduleAtFixedRate(LOCK_NAME, task, interval);
+    public void submitFullRefresh() {
+        scheduler.schedule(LOCK_NAME, () -> {
+            try {
+                Result result = refresh.refresh(List.of(), true);
+                LOG.info("Authorization cache refresh finished: refreshed={}, failures={}",
+                        result.refreshed(), result.failedWorkspaces().size());
+            } catch (RuntimeException failure) {
+                LOG.error("Scheduled authorization cache refresh failed", failure);
+            }
+        }, Instant.now());
     }
 
     public Result refreshNow(List<UUID> workspaces, boolean all) {
