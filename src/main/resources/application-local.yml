@@ -1,5 +1,10 @@
 # Activate deliberately with SPRING_PROFILES_ACTIVE=local. Never use this profile in production.
 platform:
+  object-storage:
+    endpoint: ${AUDIT_STORAGE_ENDPOINT:http://127.0.0.1:4566}
+    destinations:
+      audit:
+        bucket: ${AUDIT_STORAGE_BUCKET:workspace-audit-local}
   authorization:
     mode: MOCK
     mock:

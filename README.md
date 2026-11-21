@@ -17,6 +17,33 @@ Para execução local, configure MySQL com WORKSPACE_DB_URL/USERNAME/PASSWORD e 
 `us-east-1`), com as credenciais da cadeia padrão do SDK. Os testes HTTP
 substituem o envio externo e verificam os registros confirmados no outbox.
 
+Para usar S3 local via LocalStack, suba LocalStack e Redis e execute com o perfil `local`
+(o MySQL deve estar disponível conforme a configuração acima):
+
+```sh
+docker compose -f compose.local.yml up -d --wait
+AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_EC2_METADATA_DISABLED=true \
+  SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
+```
+
+O script de inicialização cria o bucket `workspace-audit-local` se ele não existir.
+Também habilita o versionamento para preservar snapshots sucessivos do mesmo recurso.
+O perfil `local` usa o endpoint `http://127.0.0.1:4566` e esse bucket por padrão;
+`AUDIT_STORAGE_ENDPOINT` e `AUDIT_STORAGE_BUCKET` permitem substituí-los. Na IDE,
+configure as mesmas variáveis de ambiente do comando acima. Os dados do LocalStack
+ficam em um volume Docker entre reinicializações do container.
+
+O LocalStack também cria a fila SQS `workspace-audit-events` e configura o bucket
+para publicar eventos `s3:ObjectCreated:*` nela. A mensagem informa o bucket e a
+chave do objeto recebido. Para listar filas e consultar mensagens pelo terminal:
+
+```sh
+docker compose -f compose.local.yml exec localstack awslocal sqs list-queues
+docker compose -f compose.local.yml exec localstack awslocal sqs receive-message \
+  --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/workspace-audit-events \
+  --max-number-of-messages 10 --wait-time-seconds 5
+```
+
 ## Testes HTTP
 
 Os testes em `src/test/java` ficam separados por tipo: `architecture` para
