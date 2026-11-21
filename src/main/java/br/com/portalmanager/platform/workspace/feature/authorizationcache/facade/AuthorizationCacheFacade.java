@@ -5,6 +5,7 @@ import br.com.portalmanager.platform.library.authorization.annotation.Authorizat
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationAction;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationContext;
 import br.com.portalmanager.platform.library.authorization.model.AuthorizationLevel;
+import br.com.portalmanager.platform.workspace.feature.authorizationcache.integration.AuthorizationCacheScheduler;
 import br.com.portalmanager.platform.workspace.feature.authorizationcache.usecase.operations.AuthorizationCacheRefreshService;
 import java.util.List;
 import java.util.UUID;
@@ -13,15 +14,15 @@ import org.springframework.stereotype.Service;
 @Service
 @ConditionalOnProperty(prefix = "workspace.authorization-cache", name = "enabled", havingValue = "true")
 public class AuthorizationCacheFacade {
-    private final AuthorizationCacheRefreshService refresh;
+    private final AuthorizationCacheScheduler scheduler;
 
-    public AuthorizationCacheFacade(AuthorizationCacheRefreshService refresh) {
-        this.refresh = refresh;
+    public AuthorizationCacheFacade(AuthorizationCacheScheduler scheduler) {
+        this.scheduler = scheduler;
     }
 
     @AuthorizationRequired(level = AuthorizationLevel.OWNER, action = AuthorizationAction.UPDATE)
     public AuthorizationCacheRefreshService.Result refresh(AuthorizationContext context, List<UUID> workspaces,
                                                            boolean all) {
-        return refresh.refresh(workspaces, all);
+        return scheduler.refreshNow(workspaces, all);
     }
 }
