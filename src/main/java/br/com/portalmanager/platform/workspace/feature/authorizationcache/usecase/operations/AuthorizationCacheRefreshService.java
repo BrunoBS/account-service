@@ -27,7 +27,7 @@ public class AuthorizationCacheRefreshService {
     public Result refresh(List<UUID> workspaces, boolean all) {
         List<UUID> failures = new ArrayList<>();
         int refreshed = all ? refreshAll(failures) : refreshPage(workspaces, failures);
-        return new Result(false, refreshed, List.copyOf(failures));
+        return new Result(refreshed, List.copyOf(failures));
     }
 
     private int refreshAll(List<UUID> failures) {
@@ -76,5 +76,5 @@ public class AuthorizationCacheRefreshService {
         return identifier == null ? "NONE" : identifier.toString();
     }
 
-    public record Result(boolean busy, int refreshed, List<UUID> failedWorkspaces) {}
+    public record Result(int refreshed, List<UUID> failedWorkspaces) {}
 }

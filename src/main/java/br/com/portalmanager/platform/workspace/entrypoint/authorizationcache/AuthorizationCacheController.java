@@ -34,7 +34,7 @@ public class AuthorizationCacheController {
                     "Provide all=true or a non-empty list of workspace identifiers");
         }
         var result = facade.refresh(context, workspaces.stream().distinct().toList(), request.all());
-        return ResponseEntity.status(result.busy() ? HttpStatus.CONFLICT : HttpStatus.OK).body(result);
+        return ResponseEntity.ok(result);
     }
 
     public record RefreshRequest(boolean all, List<UUID> workspaceIdentifiers) {}
