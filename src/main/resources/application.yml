@@ -21,6 +21,14 @@ spring:
   flyway:
     enabled: true
 
+golden:
+  scheduling:
+    distributed-lock:
+      enabled: ${WORKSPACE_AUTHORIZATION_CACHE_ENABLED:false}
+      lock-at-most-for: PT10M
+      lock-at-least-for: PT0S
+      keep-alive: true
+
 platform:
   observability:
     logging:
@@ -48,6 +56,10 @@ platform:
     service-name: workspace-service
 
 workspace:
+  authorization-cache:
+    enabled: ${WORKSPACE_AUTHORIZATION_CACHE_ENABLED:false}
+    scheduler:
+      interval: PT25M
   parameter:
     runtime:
       enabled: true

@@ -55,6 +55,11 @@
             <artifactId>platform-redis</artifactId>
         </dependency>
         <dependency>
+            <groupId>br.com.portalmanager.platform.library</groupId>
+            <artifactId>platform-scheduling</artifactId>
+            <version>${platform.libraries.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-flyway</artifactId>
         </dependency>
