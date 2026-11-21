@@ -4,6 +4,7 @@ import br.com.portalmanager.platform.library.tagging.model.TagName;
 import br.com.portalmanager.platform.workspace.core.workspace.domain.Workspace;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.projection.WorkspaceOnboardingReference;
 import br.com.portalmanager.platform.workspace.core.workspace.repository.projection.WorkspaceReference;
+import br.com.portalmanager.platform.workspace.core.workspace.repository.projection.WorkspaceAuthorizationGroup;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -79,6 +80,24 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
             @Param("ids") Collection<Long> ids,
             @Param("lifecycleCode") String lifecycleCode
     );
+
+    @Query(value = """
+            SELECT identifier
+            FROM workspaces
+            WHERE identifier > :cursor
+            ORDER BY identifier
+            LIMIT 100
+            """, nativeQuery = true)
+    List<String> findAuthorizationRefreshWorkspaceIdentifiers(@Param("cursor") String cursor);
+
+    @Query(value = """
+            SELECT DISTINCT environmentIdentifier AS environmentIdentifier,
+                            applicationIdentifier AS applicationIdentifier,
+                            authorizerGroup AS authorizerGroup
+            FROM vw_authorizations
+            WHERE workspaceIdentifier = :workspaceIdentifier
+            """, nativeQuery = true)
+    List<WorkspaceAuthorizationGroup> findAuthorizationGroups(@Param("workspaceIdentifier") String workspaceIdentifier);
 
     boolean existsByName(String name);
 
